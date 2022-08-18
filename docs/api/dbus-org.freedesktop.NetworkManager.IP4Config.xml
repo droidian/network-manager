@@ -25,7 +25,9 @@
   </refsect1>
 <refsect1 role="desc" id="gdbus-interface-org-freedesktop-NetworkManager-IP4Config">
   <title role="desc.title">Description</title>
-  <para></para>
+  <para>
+</para><para>
+</para>
 </refsect1>
 <refsect1 role="details" id="gdbus-properties-org.freedesktop.NetworkManager.IP4Config">
   <title role="details.title">Property Details</title>
@@ -35,9 +37,10 @@
 <programlisting>
 Addresses  readable   aau
 </programlisting>
-<para>        Array of arrays of IPv4 address/prefix/gateway. All 3 elements of each
-        array are in network byte order. Essentially: [(addr, prefix, gateway),
-        (addr, prefix, gateway), ...] Deprecated: use AddressData and Gateway
+<para>
+Array of arrays of IPv4 address/prefix/gateway. All 3 elements of each
+array are in network byte order. Essentially: [(addr, prefix, gateway),
+(addr, prefix, gateway), ...] Deprecated: use AddressData and Gateway
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-IP4Config.AddressData">
@@ -46,9 +49,10 @@ Addresses  readable   aau
 <programlisting>
 AddressData  readable   aa{sv}
 </programlisting>
-<para>        Array of IP address data objects. All addresses will include "address" (an
-        IP address string), and "prefix" (a uint). Some addresses may include
-        additional attributes.
+<para>
+Array of IP address data objects. All addresses will include "address" (an
+IP address string), and "prefix" (a uint). Some addresses may include
+additional attributes.
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-IP4Config.Gateway">
@@ -57,7 +61,8 @@ AddressData  readable   aa{sv}
 <programlisting>
 Gateway  readable   s
 </programlisting>
-<para>        The gateway in use.
+<para>
+The gateway in use.
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-IP4Config.Routes">
@@ -66,11 +71,12 @@ Gateway  readable   s
 <programlisting>
 Routes  readable   aau
 </programlisting>
-<para>        Arrays of IPv4 route/prefix/next-hop/metric. All 4 elements of each tuple
-        are in network byte order. 'route' and 'next hop' are IPv4 addresses,
-        while prefix and metric are simple unsigned integers. Essentially:
-        [(route, prefix, next-hop, metric), (route, prefix, next-hop, metric),
-        ...] Deprecated: use RouteData
+<para>
+Arrays of IPv4 route/prefix/next-hop/metric. All 4 elements of each tuple
+are in network byte order. 'route' and 'next hop' are IPv4 addresses,
+while prefix and metric are simple unsigned integers. Essentially:
+[(route, prefix, next-hop, metric), (route, prefix, next-hop, metric),
+...] Deprecated: use RouteData
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-IP4Config.RouteData">
@@ -79,9 +85,10 @@ Routes  readable   aau
 <programlisting>
 RouteData  readable   aa{sv}
 </programlisting>
-<para>        Array of IP route data objects. All routes will include "dest" (an IP
-        address string) and "prefix" (a uint). Some routes may include "next-hop"
-        (an IP address string), "metric" (a uint), and additional attributes.
+<para>
+Array of IP route data objects. All routes will include "dest" (an IP
+address string) and "prefix" (a uint). Some routes may include "next-hop"
+(an IP address string), "metric" (a uint), and additional attributes.
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-IP4Config.Nameservers">
@@ -90,7 +97,8 @@ RouteData  readable   aa{sv}
 <programlisting>
 Nameservers  readable   au
 </programlisting>
-<para>        The nameservers in use. Deprecated: use NameserverData
+<para>
+The nameservers in use. Deprecated: use NameserverData
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-IP4Config.NameserverData">
@@ -99,8 +107,9 @@ Nameservers  readable   au
 <programlisting>
 NameserverData  readable   aa{sv}
 </programlisting>
-<para>        The nameservers in use. Currently, only the value "address"
-        is recognized (with an IP address string).
+<para>
+The nameservers in use. Currently, only the value "address"
+is recognized (with an IP address string).
 </para>
 <para role="since">Since 1.14</para>
 </refsect2>
@@ -110,7 +119,8 @@ NameserverData  readable   aa{sv}
 <programlisting>
 Domains  readable   as
 </programlisting>
-<para>        A list of domains this address belongs to.
+<para>
+A list of domains this address belongs to.
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-IP4Config.Searches">
@@ -119,7 +129,8 @@ Domains  readable   as
 <programlisting>
 Searches  readable   as
 </programlisting>
-<para>        A list of dns searches.
+<para>
+A list of dns searches.
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-IP4Config.DnsOptions">
@@ -128,8 +139,9 @@ Searches  readable   as
 <programlisting>
 DnsOptions  readable   as
 </programlisting>
-<para>        A list of DNS options that modify the behavior of the DNS resolver. See
-        resolv.conf(5) manual page for the list of supported options.
+<para>
+A list of DNS options that modify the behavior of the DNS resolver. See
+resolv.conf(5) manual page for the list of supported options.
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-IP4Config.DnsPriority">
@@ -138,7 +150,8 @@ DnsOptions  readable   as
 <programlisting>
 DnsPriority  readable   i
 </programlisting>
-<para>        The relative priority of DNS servers.
+<para>
+The relative priority of DNS servers.
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-IP4Config.WinsServers">
@@ -147,8 +160,9 @@ DnsPriority  readable   i
 <programlisting>
 WinsServers  readable   au
 </programlisting>
-<para>        The Windows Internet Name Service servers associated with the connection.
-        Each address is in network byte order. Deprecated: use WinsServerData
+<para>
+The Windows Internet Name Service servers associated with the connection.
+Each address is in network byte order. Deprecated: use WinsServerData
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-IP4Config.WinsServerData">
@@ -157,7 +171,8 @@ WinsServers  readable   au
 <programlisting>
 WinsServerData  readable   as
 </programlisting>
-<para>        The Windows Internet Name Service servers associated with the connection.
+<para>
+The Windows Internet Name Service servers associated with the connection.
 </para>
 <para role="since">Since 1.14</para>
 </refsect2>

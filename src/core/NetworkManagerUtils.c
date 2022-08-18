@@ -30,7 +30,6 @@
 #include "libnm-platform/nm-linux-platform.h"
 #include "libnm-platform/nm-platform-utils.h"
 #include "nm-auth-utils.h"
-#include "libnm-systemd-shared/nm-sd-utils-shared.h"
 
 /*****************************************************************************/
 
@@ -1155,7 +1154,7 @@ nm_utils_file_is_in_path(const char *abs_filename, const char *abs_path)
     g_return_val_if_fail(abs_filename && abs_filename[0] == '/', NULL);
     g_return_val_if_fail(abs_path && abs_path[0] == '/', NULL);
 
-    path = nm_sd_utils_path_startswith(abs_filename, abs_path);
+    path = nm_path_startswith(abs_filename, abs_path);
     if (!path)
         return NULL;
 
@@ -1389,16 +1388,20 @@ nm_utils_ip_route_attribute_to_platform(int                addr_family,
 
     r->r_rtm_flags = ((onlink) ? (unsigned) RTNH_F_ONLINK : 0u);
 
+    GET_ATTR(NM_IP_ROUTE_ATTRIBUTE_ADVMSS, r->mss, UINT32, uint32, 0);
     GET_ATTR(NM_IP_ROUTE_ATTRIBUTE_WINDOW, r->window, UINT32, uint32, 0);
     GET_ATTR(NM_IP_ROUTE_ATTRIBUTE_CWND, r->cwnd, UINT32, uint32, 0);
     GET_ATTR(NM_IP_ROUTE_ATTRIBUTE_INITCWND, r->initcwnd, UINT32, uint32, 0);
     GET_ATTR(NM_IP_ROUTE_ATTRIBUTE_INITRWND, r->initrwnd, UINT32, uint32, 0);
     GET_ATTR(NM_IP_ROUTE_ATTRIBUTE_MTU, r->mtu, UINT32, uint32, 0);
+    GET_ATTR(NM_IP_ROUTE_ATTRIBUTE_RTO_MIN, r->rto_min, UINT32, uint32, 0);
+    GET_ATTR(NM_IP_ROUTE_ATTRIBUTE_QUICKACK, r->quickack, BOOLEAN, boolean, FALSE);
     GET_ATTR(NM_IP_ROUTE_ATTRIBUTE_LOCK_WINDOW, r->lock_window, BOOLEAN, boolean, FALSE);
     GET_ATTR(NM_IP_ROUTE_ATTRIBUTE_LOCK_CWND, r->lock_cwnd, BOOLEAN, boolean, FALSE);
     GET_ATTR(NM_IP_ROUTE_ATTRIBUTE_LOCK_INITCWND, r->lock_initcwnd, BOOLEAN, boolean, FALSE);
     GET_ATTR(NM_IP_ROUTE_ATTRIBUTE_LOCK_INITRWND, r->lock_initrwnd, BOOLEAN, boolean, FALSE);
     GET_ATTR(NM_IP_ROUTE_ATTRIBUTE_LOCK_MTU, r->lock_mtu, BOOLEAN, boolean, FALSE);
+    GET_ATTR(NM_IP_ROUTE_ATTRIBUTE_LOCK_ADVMSS, r->lock_mss, BOOLEAN, boolean, FALSE);
 
     if ((variant = nm_ip_route_get_attribute(s_route, NM_IP_ROUTE_ATTRIBUTE_SRC))
         && g_variant_is_of_type(variant, G_VARIANT_TYPE_STRING)) {
@@ -1691,7 +1694,7 @@ nm_utils_platform_capture_ip_setting(NMPlatform *platform,
         return NM_SETTING(g_steal_pointer(&s_ip));
     }
 
-    nmp_lookup_init_object(&lookup, NMP_OBJECT_TYPE_IP_ADDRESS(IS_IPv4), ifindex);
+    nmp_lookup_init_object_by_ifindex(&lookup, NMP_OBJECT_TYPE_IP_ADDRESS(IS_IPv4), ifindex);
     nm_platform_iter_obj_for_each (&iter, platform, &lookup, &obj) {
         const NMPlatformIPXAddress           *address = NMP_OBJECT_CAST_IPX_ADDRESS(obj);
         nm_auto_unref_ip_address NMIPAddress *s_addr  = NULL;
@@ -1745,7 +1748,7 @@ nm_utils_platform_capture_ip_setting(NMPlatform *platform,
     }
     g_object_set(s_ip, NM_SETTING_IP_CONFIG_METHOD, method, NULL);
 
-    nmp_lookup_init_object(&lookup, NMP_OBJECT_TYPE_IP_ROUTE(IS_IPv4), ifindex);
+    nmp_lookup_init_object_by_ifindex(&lookup, NMP_OBJECT_TYPE_IP_ROUTE(IS_IPv4), ifindex);
     nm_platform_iter_obj_for_each (&iter, platform, &lookup, &obj) {
         const NMPlatformIPXRoute         *route   = NMP_OBJECT_CAST_IPX_ROUTE(obj);
         nm_auto_unref_ip_route NMIPRoute *s_route = NULL;

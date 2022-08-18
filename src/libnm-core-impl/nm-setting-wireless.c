@@ -141,6 +141,10 @@ nm_setting_wireless_ap_security_compatible(NMSettingWireless         *s_wireless
     g_return_val_if_fail(NM_IS_SETTING_WIRELESS(s_wireless), FALSE);
 
     if (!s_wireless_sec) {
+        /* A OWE-TM network can be used w/o security */
+        if (ap_wpa == NM_802_11_AP_SEC_KEY_MGMT_OWE_TM
+            || (ap_rsn == NM_802_11_AP_SEC_KEY_MGMT_OWE_TM))
+            return TRUE;
         if ((ap_flags & NM_802_11_AP_FLAGS_PRIVACY) || (ap_wpa != NM_802_11_AP_SEC_NONE)
             || (ap_rsn != NM_802_11_AP_SEC_NONE))
             return FALSE;
@@ -821,10 +825,10 @@ verify(NMSetting *setting, NMConnection *connection, GError **error)
 {
     NMSettingWirelessPrivate *priv          = NM_SETTING_WIRELESS_GET_PRIVATE(setting);
     const char               *valid_modes[] = {NM_SETTING_WIRELESS_MODE_INFRA,
-                                 NM_SETTING_WIRELESS_MODE_ADHOC,
-                                 NM_SETTING_WIRELESS_MODE_AP,
-                                 NM_SETTING_WIRELESS_MODE_MESH,
-                                 NULL};
+                                               NM_SETTING_WIRELESS_MODE_ADHOC,
+                                               NM_SETTING_WIRELESS_MODE_AP,
+                                               NM_SETTING_WIRELESS_MODE_MESH,
+                                               NULL};
     const char               *valid_bands[] = {"a", "bg", NULL};
     guint                     i;
     gsize                     length;
@@ -1405,6 +1409,10 @@ nm_setting_wireless_class_init(NMSettingWirelessClass *klass)
      * point.  This capability is highly driver dependent and not supported by
      * all devices.  Note: this property does not control the BSSID used when
      * creating an Ad-Hoc network and is unlikely to in the future.
+     *
+     * Locking a client profile to a certain BSSID will prevent roaming and also
+     * disable background scanning. That can be useful, if there is only one access
+     * point for the SSID.
      **/
     /* ---ifcfg-rh---
      * property: bssid

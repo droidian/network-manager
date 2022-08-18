@@ -1,3 +1,11 @@
+# This is the symbol version script of libnm for the linker.
+#
+# Note that once a stable release is done, all version nodes so
+# far must not change anymore. E.g. after 1.36.0 release, libnm_1_36_0
+# node (and all other version nodes) are frozen.
+#
+# Only add/remove symbols in the section for the current development
+# version, at the bottom of the file.
 libnm_1_0_0 {
 global:
 	nm_802_11_ap_flags_get_type;
@@ -1827,3 +1835,12 @@ global:
 	nm_client_get_radio_flags;
 	nm_radio_flags_get_type;
 } libnm_1_36_0;
+
+libnm_1_40_0 {
+global:
+	nm_conn_wireguard_import;
+	nm_mptcp_flags_get_type;
+	nm_setting_connection_get_wait_activation_delay;
+	nm_setting_ip4_link_local_get_type;
+	nm_setting_ip6_config_get_mtu;
+} libnm_1_38_0;

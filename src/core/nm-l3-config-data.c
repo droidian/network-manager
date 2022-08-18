@@ -149,6 +149,8 @@ struct _NML3ConfigData {
 
     NMSettingIP6ConfigPrivacy ip6_privacy : 4;
 
+    NMMptcpFlags mptcp_flags : 18;
+
     bool is_sealed : 1;
 
     bool has_routes_with_type_local_4_set : 1;
@@ -582,6 +584,16 @@ nm_l3_config_data_log(const NML3ConfigData *self,
                                            NULL)));
     }
 
+    if (self->mptcp_flags != NM_MPTCP_FLAGS_NONE) {
+        gs_free char *s = NULL;
+
+        _L("mptcp-flags: %s",
+           (s = _nm_utils_enum_to_str_full(nm_mptcp_flags_get_type(),
+                                           self->mptcp_flags,
+                                           " ",
+                                           NULL)));
+    }
+
     if (self->ip6_token.id != 0) {
         _L("ipv6-token: %s",
            nm_utils_inet6_interface_identifier_to_token(&self->ip6_token, sbuf_addr));
@@ -694,6 +706,7 @@ nm_l3_config_data_new(NMDedupMultiIndex *multi_idx, int ifindex, NMIPConfigSourc
         .never_default_4               = NM_OPTION_BOOL_DEFAULT,
         .source                        = source,
         .ip6_privacy                   = NM_SETTING_IP6_CONFIG_PRIVACY_UNKNOWN,
+        .mptcp_flags                   = NM_MPTCP_FLAGS_NONE,
         .ndisc_hop_limit_set           = FALSE,
         .ndisc_reachable_time_msec_set = FALSE,
         .ndisc_retrans_timer_msec_set  = FALSE,
@@ -1875,6 +1888,30 @@ nm_l3_config_data_set_ip6_token(NML3ConfigData *self, NMUtilsIPv6IfaceId ipv6_to
     return TRUE;
 }
 
+NMMptcpFlags
+nm_l3_config_data_get_mptcp_flags(const NML3ConfigData *self)
+{
+    nm_assert(!self || _NM_IS_L3_CONFIG_DATA(self, TRUE));
+
+    if (!self)
+        return NM_MPTCP_FLAGS_NONE;
+
+    return self->mptcp_flags;
+}
+
+gboolean
+nm_l3_config_data_set_mptcp_flags(NML3ConfigData *self, NMMptcpFlags mptcp_flags)
+{
+    nm_assert(_NM_IS_L3_CONFIG_DATA(self, FALSE));
+    nm_assert(!NM_FLAGS_ANY(mptcp_flags, ~_NM_MPTCP_FLAGS_ALL));
+
+    if (self->mptcp_flags == mptcp_flags)
+        return FALSE;
+    self->mptcp_flags = mptcp_flags;
+    nm_assert(self->mptcp_flags == mptcp_flags);
+    return TRUE;
+}
+
 NMProxyConfigMethod
 nm_l3_config_data_get_proxy_method(const NML3ConfigData *self)
 {
@@ -2324,6 +2361,7 @@ nm_l3_config_data_cmp_full(const NML3ConfigData *a,
         NM_CMP_DIRECT_REF_STRING(a->proxy_pac_url, b->proxy_pac_url);
         NM_CMP_DIRECT_REF_STRING(a->proxy_pac_script, b->proxy_pac_script);
         NM_CMP_DIRECT_UNSAFE(a->ip6_privacy, b->ip6_privacy);
+        NM_CMP_DIRECT_UNSAFE(a->mptcp_flags, b->mptcp_flags);
 
         NM_CMP_DIRECT_UNSAFE(a->ndisc_hop_limit_set, b->ndisc_hop_limit_set);
         if (a->ndisc_hop_limit_set)
@@ -2612,9 +2650,6 @@ nm_l3_config_data_add_dependent_device_routes(NML3ConfigData       *self,
         } else {
             const gboolean has_peer = !IN6_IS_ADDR_UNSPECIFIED(&addr_src->a6.peer_address);
             int            routes_i;
-
-            if (addr_src->ax.plen == 0)
-                continue;
 
             if (NM_FLAGS_HAS(addr_src->a6.n_ifa_flags, IFA_F_NOPREFIXROUTE))
                 continue;
@@ -2999,10 +3034,10 @@ nm_l3_config_data_merge(NML3ConfigData       *self,
                         gpointer                  hook_user_data)
 {
     static const guint32 x_default_route_metric_x[2]  = {NM_PLATFORM_ROUTE_METRIC_DEFAULT_IP6,
-                                                        NM_PLATFORM_ROUTE_METRIC_DEFAULT_IP4};
+                                                         NM_PLATFORM_ROUTE_METRIC_DEFAULT_IP4};
     static const guint32 x_default_route_penalty_x[2] = {0, 0};
     static const int     x_default_dns_priority_x[2]  = {NM_DNS_PRIORITY_DEFAULT_NORMAL,
-                                                    NM_DNS_PRIORITY_DEFAULT_NORMAL};
+                                                         NM_DNS_PRIORITY_DEFAULT_NORMAL};
     guint32              default_route_table_coerced_x[2];
     NMDedupMultiIter     iter;
     const NMPObject     *obj;
@@ -3244,6 +3279,9 @@ nm_l3_config_data_merge(NML3ConfigData       *self,
 
     if (self->ip6_privacy == NM_SETTING_IP6_CONFIG_PRIVACY_UNKNOWN)
         self->ip6_privacy = src->ip6_privacy;
+
+    if (self->mptcp_flags == NM_MPTCP_FLAGS_NONE)
+        self->mptcp_flags = src->mptcp_flags;
 
     if (!self->ndisc_hop_limit_set && src->ndisc_hop_limit_set) {
         self->ndisc_hop_limit_set = TRUE;

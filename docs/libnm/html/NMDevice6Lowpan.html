@@ -8,14 +8,16 @@
 <link rel="up" href="ch04.html" title="Device and Runtime Configuration API Reference">
 <link rel="prev" href="NMDevice.html" title="NMDevice">
 <link rel="next" href="NMDeviceAdsl.html" title="NMDeviceAdsl">
-<meta name="generator" content="GTK-Doc V1.33.0 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
 <table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
 <td width="100%" align="left" class="shortcuts">
 <a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
-                  <a href="#NMDevice6Lowpan.description" class="shortcut">Description</a></span>
+                  <a href="#NMDevice6Lowpan.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
+                  <a href="#NMDevice6Lowpan.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_properties">  <span class="dim">|</span> 
+                  <a href="#NMDevice6Lowpan.properties" class="shortcut">Properties</a></span>
 </td>
 <td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
 <td><a accesskey="u" href="ch04.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
@@ -59,6 +61,22 @@
 </table></div>
 </div>
 <div class="refsect1">
+<a name="NMDevice6Lowpan.properties"></a><h2>Properties</h2>
+<div class="informaltable"><table class="informaltable" border="0">
+<colgroup>
+<col width="150px" class="properties_type">
+<col width="300px" class="properties_name">
+<col width="200px" class="properties_flags">
+</colgroup>
+<tbody><tr>
+<td class="property_type">
+<a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a> *</td>
+<td class="property_name"><a class="link" href="NMDevice6Lowpan.html#NMDevice6Lowpan--parent" title="The “parent” property">parent</a></td>
+<td class="property_flags">Read</td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect1">
 <a name="NMDevice6Lowpan.other"></a><h2>Types and Values</h2>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
@@ -74,8 +92,20 @@
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMDevice6Lowpan.html#NM-DEVICE-6LOWPAN-HW-ADDRESS:CAPS" title="NM_DEVICE_6LOWPAN_HW_ADDRESS">NM_DEVICE_6LOWPAN_HW_ADDRESS</a></td>
 </tr>
+<tr>
+<td class="datatype_keyword"> </td>
+<td class="function_name"><a class="link" href="NMDevice6Lowpan.html#NMDevice6Lowpan-struct" title="NMDevice6Lowpan">NMDevice6Lowpan</a></td>
+</tr>
 </tbody>
 </table></div>
+</div>
+<div class="refsect1">
+<a name="NMDevice6Lowpan.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="screen">    <a href="https://developer.gnome.org/gobject/unstable/gobject-The-Base-Object-Type.html#GObject-struct">GObject</a>
+    <span class="lineart">╰──</span> <a class="link" href="NMObject.html" title="NMObject">NMObject</a>
+        <span class="lineart">╰──</span> <a class="link" href="NMDevice.html" title="NMDevice">NMDevice</a>
+            <span class="lineart">╰──</span> NMDevice6Lowpan
+</pre>
 </div>
 <div class="refsect1">
 <a name="NMDevice6Lowpan.description"></a><h2>Description</h2>
@@ -104,7 +134,7 @@ nm_device_6lowpan_get_parent (<em class="parameter"><code><a class="link" href="
 <div class="refsect3">
 <a name="nm-device-6lowpan-get-parent.returns"></a><h4>Returns</h4>
 <p>the device's parent device. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.14</p>
 </div>
@@ -129,9 +159,25 @@ NM_DEPRECATED_IN_1_24_FOR ();</pre>
 <pre class="programlisting">#define NM_DEVICE_6LOWPAN_HW_ADDRESS "hw-address"
 </pre>
 </div>
+<hr>
+<div class="refsect2">
+<a name="NMDevice6Lowpan-struct"></a><h3>NMDevice6Lowpan</h3>
+<pre class="programlisting">typedef struct _NMDevice6Lowpan NMDevice6Lowpan;</pre>
+</div>
+</div>
+<div class="refsect1">
+<a name="NMDevice6Lowpan.property-details"></a><h2>Property Details</h2>
+<div class="refsect2">
+<a name="NMDevice6Lowpan--parent"></a><h3>The <code class="literal">“parent”</code> property</h3>
+<pre class="programlisting">  “parent”                   <a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a> *</pre>
+<p>The devices's parent device.</p>
+<p>Owner: NMDevice6Lowpan</p>
+<p>Flags: Read</p>
+<p class="since">Since: 1.14</p>
+</div>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.33.0</div>
+<hr>Generated by GTK-Doc V1.33.1</div>
 </body>
 </html>

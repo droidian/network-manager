@@ -8,7 +8,7 @@
 <link rel="up" href="ref-dbus-access-points.html" title="The /org/freedesktop/NetworkManager/AccessPoint/* objects">
 <link rel="prev" href="ref-dbus-access-points.html" title="The /org/freedesktop/NetworkManager/AccessPoint/* objects">
 <link rel="next" href="ref-dbus-wifi-p2p-peers.html" title="The /org.freedesktop.NetworkManager.WifiP2PPeer/* objects">
-<meta name="generator" content="GTK-Doc V1.33.0 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -49,7 +49,10 @@
 </div>
 <div class="refsect1">
 <a name="gdbus-interface-org-freedesktop-NetworkManager-AccessPoint"></a><h2>Description</h2>
-<p></p>
+<p>
+</p>
+<p>
+</p>
 </div>
 <div class="refsect1">
 <a name="gdbus-properties-org.freedesktop.NetworkManager.AccessPoint"></a><h2>Property Details</h2>
@@ -58,9 +61,11 @@
 <pre class="programlisting">
 Flags  readable   u
 </pre>
-<p>        Flags describing the capabilities of the access point.
+<p>
+Flags describing the capabilities of the access point.
 </p>
-<p>        Returns: <a class="link" href="nm-dbus-types.html#NM80211ApFlags" title="enum NM80211ApFlags">NM80211ApFlags</a>
+<p>
+Returns: <a class="link" href="nm-dbus-types.html#NM80211ApFlags" title="enum NM80211ApFlags">NM80211ApFlags</a>
 </p>
 </div>
 <hr>
@@ -69,10 +74,12 @@ Flags  readable   u
 <pre class="programlisting">
 WpaFlags  readable   u
 </pre>
-<p>        Flags describing the access point's capabilities according to WPA (Wifi
-        Protected Access).
+<p>
+Flags describing the access point's capabilities according to WPA (Wifi
+Protected Access).
 </p>
-<p>        Returns: <a class="link" href="nm-dbus-types.html#NM80211ApSecurityFlags" title="enum NM80211ApSecurityFlags">NM80211ApSecurityFlags</a>
+<p>
+Returns: <a class="link" href="nm-dbus-types.html#NM80211ApSecurityFlags" title="enum NM80211ApSecurityFlags">NM80211ApSecurityFlags</a>
 </p>
 </div>
 <hr>
@@ -81,10 +88,12 @@ WpaFlags  readable   u
 <pre class="programlisting">
 RsnFlags  readable   u
 </pre>
-<p>        Flags describing the access point's capabilities according to the RSN
-        (Robust Secure Network) protocol.
+<p>
+Flags describing the access point's capabilities according to the RSN
+(Robust Secure Network) protocol.
 </p>
-<p>        Returns: <a class="link" href="nm-dbus-types.html#NM80211ApSecurityFlags" title="enum NM80211ApSecurityFlags">NM80211ApSecurityFlags</a>
+<p>
+Returns: <a class="link" href="nm-dbus-types.html#NM80211ApSecurityFlags" title="enum NM80211ApSecurityFlags">NM80211ApSecurityFlags</a>
 </p>
 </div>
 <hr>
@@ -93,7 +102,8 @@ RsnFlags  readable   u
 <pre class="programlisting">
 Ssid  readable   ay
 </pre>
-<p>        The Service Set Identifier identifying the access point.
+<p>
+The Service Set Identifier identifying the access point.
 </p>
 </div>
 <hr>
@@ -102,7 +112,8 @@ Ssid  readable   ay
 <pre class="programlisting">
 Frequency  readable   u
 </pre>
-<p>        The radio channel frequency in use by the access point, in MHz.
+<p>
+The radio channel frequency in use by the access point, in MHz.
 </p>
 </div>
 <hr>
@@ -111,7 +122,8 @@ Frequency  readable   u
 <pre class="programlisting">
 HwAddress  readable   s
 </pre>
-<p>        The hardware address (BSSID) of the access point.
+<p>
+The hardware address (BSSID) of the access point.
 </p>
 </div>
 <hr>
@@ -120,9 +132,11 @@ HwAddress  readable   s
 <pre class="programlisting">
 Mode  readable   u
 </pre>
-<p>        Describes the operating mode of the access point.
+<p>
+Describes the operating mode of the access point.
 </p>
-<p>        Returns: <a class="link" href="nm-dbus-types.html#NM80211Mode" title="enum NM80211Mode">NM80211Mode</a>
+<p>
+Returns: <a class="link" href="nm-dbus-types.html#NM80211Mode" title="enum NM80211Mode">NM80211Mode</a>
 </p>
 </div>
 <hr>
@@ -131,8 +145,9 @@ Mode  readable   u
 <pre class="programlisting">
 MaxBitrate  readable   u
 </pre>
-<p>        The maximum bitrate this access point is capable of, in kilobits/second
-        (Kb/s).
+<p>
+The maximum bitrate this access point is capable of, in kilobits/second
+(Kb/s).
 </p>
 </div>
 <hr>
@@ -141,7 +156,8 @@ MaxBitrate  readable   u
 <pre class="programlisting">
 Strength  readable   y
 </pre>
-<p>        The current signal quality of the access point, in percent.
+<p>
+The current signal quality of the access point, in percent.
 </p>
 </div>
 <hr>
@@ -150,14 +166,15 @@ Strength  readable   y
 <pre class="programlisting">
 LastSeen  readable   i
 </pre>
-<p>        The timestamp (in CLOCK_BOOTTIME seconds) for the last time the access
-        point was found in scan results. A value of -1 means the access point has
-        never been found in scan results.
+<p>
+The timestamp (in CLOCK_BOOTTIME seconds) for the last time the access
+point was found in scan results. A value of -1 means the access point has
+never been found in scan results.
 </p>
 </div>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.33.0</div>
+<hr>Generated by GTK-Doc V1.33.1</div>
 </body>
 </html>

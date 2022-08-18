@@ -2,9 +2,9 @@
 .\"     Title: NetworkManager-dispatcher
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 06/16/2022
+.\"      Date: 08/15/2022
 .\"    Manual: Network management daemons
-.\"    Source: NetworkManager-dispatcher 1.38.2
+.\"    Source: NetworkManager-dispatcher 1.39.90
 .\"  Language: English
 .\"
 .TH "NETWORKMANAGER\-DISPATCHER" "8" "" "NetworkManager\-dispatcher 1\&" "Network management daemons"
@@ -208,7 +208,13 @@ The same variables as for IPv4 are available for IPv6, but the prefixes are IP6_
 .PP
 \fICONNECTIVITY_STATE\fR
 .RS 4
-The network connectivity state, which can take the values defined by the NMConnectivityState type, from the org\&.freedesktop\&.NetworkManager D\-Bus API: unknown, none, portal, limited or full\&. Note: this variable will only be set for connectivity\-change actions\&.
+The network connectivity state, which can take the values defined by the NMConnectivityState type, from the org\&.freedesktop\&.NetworkManager D\-Bus API:
+UNKNOWN,
+NONE,
+PORTAL,
+LIMITED
+or
+FULL\&. Note: this variable will only be set for connectivity\-change actions\&.
 .RE
 .PP
 In case of VPN, VPN_IP_IFACE is set, and IP4_*, IP6_* variables with VPN prefix are exported too, like VPN_IP4_ADDRESS_0, VPN_IP4_NUM_ADDRESSES\&.

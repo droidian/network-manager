@@ -2,9 +2,9 @@
 .\"     Title: NetworkManager-wait-online.service
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 06/16/2022
+.\"      Date: 08/15/2022
 .\"    Manual: Network management daemons
-.\"    Source: NetworkManager-wait-online.service 1.38.2
+.\"    Source: NetworkManager-wait-online.service 1.39.90
 .\"  Language: English
 .\"
 .TH "NETWORKMANAGER\-WAIT\-ONLINE\&" "8" "" "NetworkManager\-wait\-online\&" "Network management daemons"
@@ -77,6 +77,13 @@ blocks\&.
 In general, startup complete is not reached as long as NetworkManager is busy activating a device and as long as there are profiles in activating state\&. During boot, NetworkManager starts autoactivating suitable profiles that are configured to autoconnect\&. If activation fails, NetworkManager might retry right away (depending on
 connection\&.autoconnect\-retries
 setting)\&. While trying and retrying, NetworkManager is busy until all profiles and devices either reached an activated or disconnected state and no further events are expected\&.
+
+Basically, as long as there are devices and connections in
+activating
+state visible with
+\fBnmcli device\fR
+and
+\fBnmcli connection\fR, startup is still pending\&.
 .RE
 .sp
 .RS 4
@@ -123,9 +130,37 @@ blocks until timeout\&. This is a configuration error\&.
 .sp -1
 .IP \(bu 2.3
 .\}
+Dispatcher scripts for the "pre\-up" event run at a late stage during activation of a profile\&. These scripts block the activation for when NetworkManager considers the profile fully activated\&. See also
+\fBNetworkManager-dispatcher\fR(8)
+for details\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+The connection property
+connection\&.wait\-activation\-delay
+also adds an additional delay during activation and delays startup complete\&. This is to workaround certain cases where a device is known to not be ready for a certain amount of time\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
 The property
 connection\&.wait\-device\-timeout
-of the connection profiles waits until the waited devices appear\&. This is useful if the driver takes a longer time to detect the networking interfaces\&.
+of the connection profiles waits until the waited devices appear\&. This is useful if the driver takes a longer time to detect the networking interfaces\&. Similar with the
+connection\&.gateway\-ping\-timeout
+property\&.
 .RE
 .sp
 .RS 4

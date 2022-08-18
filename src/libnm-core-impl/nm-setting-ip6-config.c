@@ -43,16 +43,18 @@ NM_GOBJECT_PROPERTIES_DEFINE_BASE(PROP_IP6_PRIVACY,
                                   PROP_ADDR_GEN_MODE,
                                   PROP_TOKEN,
                                   PROP_DHCP_DUID,
-                                  PROP_RA_TIMEOUT, );
+                                  PROP_RA_TIMEOUT,
+                                  PROP_MTU, );
 
 typedef struct {
     NMSettingIPConfigPrivate parent;
 
-    char  *token;
-    char  *dhcp_duid;
-    int    ip6_privacy;
-    gint32 addr_gen_mode;
-    gint32 ra_timeout;
+    char   *token;
+    char   *dhcp_duid;
+    int     ip6_privacy;
+    gint32  addr_gen_mode;
+    gint32  ra_timeout;
+    guint32 mtu;
 } NMSettingIP6ConfigPrivate;
 
 /**
@@ -110,7 +112,7 @@ NMSettingIP6ConfigAddrGenMode
 nm_setting_ip6_config_get_addr_gen_mode(NMSettingIP6Config *setting)
 {
     g_return_val_if_fail(NM_IS_SETTING_IP6_CONFIG(setting),
-                         NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_STABLE_PRIVACY);
+                         NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_DEFAULT);
 
     return NM_SETTING_IP6_CONFIG_GET_PRIVATE(setting)->addr_gen_mode;
 }
@@ -169,6 +171,23 @@ nm_setting_ip6_config_get_ra_timeout(NMSettingIP6Config *setting)
     g_return_val_if_fail(NM_IS_SETTING_IP6_CONFIG(setting), 0);
 
     return NM_SETTING_IP6_CONFIG_GET_PRIVATE(setting)->ra_timeout;
+}
+
+/**
+ * nm_setting_ip6_config_get_mtu:
+ * @setting: the #NMSettingIP6Config
+ *
+ * Returns: The configured %NM_SETTING_IP6_CONFIG_MTU value for the maximum
+ * transmission unit.
+ *
+ * Since: 1.40
+ **/
+guint32
+nm_setting_ip6_config_get_mtu(NMSettingIP6Config *setting)
+{
+    g_return_val_if_fail(NM_IS_SETTING_IP6_CONFIG(setting), 0);
+
+    return NM_SETTING_IP6_CONFIG_GET_PRIVATE(setting)->mtu;
 }
 
 static gboolean
@@ -269,7 +288,9 @@ verify(NMSetting *setting, NMConnection *connection, GError **error)
 
     if (!NM_IN_SET(priv->addr_gen_mode,
                    NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_EUI64,
-                   NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_STABLE_PRIVACY)) {
+                   NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_STABLE_PRIVACY,
+                   NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_DEFAULT_OR_EUI64,
+                   NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_DEFAULT)) {
         g_set_error_literal(error,
                             NM_CONNECTION_ERROR,
                             NM_CONNECTION_ERROR_INVALID_PROPERTY,
@@ -757,8 +778,10 @@ nm_setting_ip6_config_class_init(NMSettingIP6ConfigClass *klass)
      *
      * Configure method for creating the address for use with RFC4862 IPv6
      * Stateless Address Autoconfiguration. The permitted values are:
-     * %NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_EUI64 or
+     * %NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_EUI64,
      * %NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_STABLE_PRIVACY.
+     * %NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_DEFAULT_OR_EUI64
+     * or %NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_DEFAULT.
      *
      * If the property is set to EUI64, the addresses will be generated
      * using the interface tokens derived from hardware address. This makes
@@ -773,9 +796,16 @@ nm_setting_ip6_config_class_init(NMSettingIP6ConfigClass *klass)
      * and makes the address stable when the network interface hardware is
      * replaced.
      *
-     * On D-Bus, the absence of an addr-gen-mode setting equals enabling
-     * stable-privacy. For keyfile plugin, the absence of the setting
-     * on disk means EUI64 so that the property doesn't change on upgrade
+     * The special values "default" and "default-or-eui64" will fallback to the global
+     * connection default in as documented in NetworkManager.conf(5) manual. If the
+     * global default is not specified, the fallback value is "stable-privacy"
+     * or "eui64", respectively.
+     *
+     * For libnm, the property defaults to "default" since 1.40.
+     * Previously it defaulted to "stable-privacy".
+     * On D-Bus, the absence of an addr-gen-mode setting equals
+     * "default". For keyfile plugin, the absence of the setting
+     * on disk means "default-or-eui64" so that the property doesn't change on upgrade
      * from older versions.
      *
      * Note that this setting is distinct from the Privacy Extensions as
@@ -787,8 +817,8 @@ nm_setting_ip6_config_class_init(NMSettingIP6ConfigClass *klass)
     /* ---ifcfg-rh---
      * property: addr-gen-mode
      * variable: IPV6_ADDR_GEN_MODE
-     * values: IPV6_ADDR_GEN_MODE: eui64, stable-privacy
-     * default: eui64
+     * values: IPV6_ADDR_GEN_MODE: default, default-or-eui64, eui64, stable-privacy
+     * default: "default-or-eui64"
      * description: Configure IPv6 Stable Privacy addressing for SLAAC (RFC7217).
      * example: IPV6_ADDR_GEN_MODE=stable-privacy
      * ---end---
@@ -799,10 +829,11 @@ nm_setting_ip6_config_class_init(NMSettingIP6ConfigClass *klass)
                                              PROP_ADDR_GEN_MODE,
                                              G_MININT32,
                                              G_MAXINT32,
-                                             NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_STABLE_PRIVACY,
+                                             NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_DEFAULT,
                                              NM_SETTING_PARAM_NONE,
                                              NMSettingIP6ConfigPrivate,
-                                             addr_gen_mode);
+                                             addr_gen_mode,
+                                             .to_dbus_including_default = TRUE);
 
     /**
      * NMSettingIP6Config:token:
@@ -855,6 +886,27 @@ nm_setting_ip6_config_class_init(NMSettingIP6ConfigClass *klass)
                                              NM_SETTING_PARAM_FUZZY_IGNORE,
                                              NMSettingIP6ConfigPrivate,
                                              ra_timeout);
+
+    /**
+     * NMSettingIP6Config:mtu:
+     *
+     * Maximum transmission unit size, in bytes. If zero (the default), the MTU
+     * is set automatically from router advertisements or is left equal to the
+     * link-layer MTU. If greater than the link-layer MTU, or greater than zero
+     * but less than the minimum IPv6 MTU of 1280, this value has no effect.
+     *
+     * Since: 1.40
+     **/
+    _nm_setting_property_define_direct_uint32(properties_override,
+                                              obj_properties,
+                                              NM_SETTING_IP6_CONFIG_MTU,
+                                              PROP_MTU,
+                                              0,
+                                              G_MAXUINT32,
+                                              0,
+                                              NM_SETTING_PARAM_FUZZY_IGNORE,
+                                              NMSettingIP6ConfigPrivate,
+                                              mtu);
 
     /**
      * NMSettingIP6Config:dhcp-duid:
@@ -936,7 +988,7 @@ nm_setting_ip6_config_class_init(NMSettingIP6ConfigClass *klass)
      *   'address-data' and 'gateway'.
      *
      *   Array of IPv6 address structures.  Each IPv6 address structure is
-     *   composed of an IPv6 address, a prefix length (1 - 128), and an IPv6
+     *   composed of an IPv6 address, a prefix length (0 - 128), and an IPv6
      *   gateway address. The gateway may be zeroed out if no gateway exists for
      *   that subnet.
      * ---end---
@@ -984,7 +1036,7 @@ nm_setting_ip6_config_class_init(NMSettingIP6ConfigClass *klass)
      *   you send this property the daemon will ignore 'route-data'.
      *
      *   Array of IPv6 route structures.  Each IPv6 route structure is
-     *   composed of an IPv6 address, a prefix length (1 - 128), an IPv6
+     *   composed of an IPv6 address, a prefix length (0 - 128), an IPv6
      *   next hop address (which may be zeroed out if there is no next hop),
      *   and a metric. If the metric is 0, NM will choose an appropriate
      *   default metric for the device.
@@ -1003,6 +1055,9 @@ nm_setting_ip6_config_class_init(NMSettingIP6ConfigClass *klass)
      *     Various attributes are supported:
      *     <itemizedlist>
      *      <listitem>
+     *        <para><literal>"advmss"</literal> - an unsigned 32 bit integer.</para>
+     *      </listitem>
+     *      <listitem>
      *        <para><literal>"cwnd"</literal> - an unsigned 32 bit integer.</para>
      *      </listitem>
      *      <listitem>
@@ -1013,6 +1068,9 @@ nm_setting_ip6_config_class_init(NMSettingIP6ConfigClass *klass)
      *      </listitem>
      *      <listitem>
      *        <para><literal>"initrwnd"</literal> - an unsigned 32 bit integer.</para>
+     *      </listitem>
+     *      <listitem>
+     *        <para><literal>"lock-advmss"</literal> - a boolean value.</para>
      *      </listitem>
      *      <listitem>
      *        <para><literal>"lock-cwnd"</literal> - a boolean value.</para>
@@ -1034,6 +1092,13 @@ nm_setting_ip6_config_class_init(NMSettingIP6ConfigClass *klass)
      *      </listitem>
      *      <listitem>
      *        <para><literal>"onlink"</literal> - a boolean value.</para>
+     *      </listitem>
+     *      <listitem>
+     *        <para><literal>"quickack"</literal> - a boolean value.</para>
+     *      </listitem>
+     *      <listitem>
+     *        <para><literal>"rto_min"</literal> - an unsigned 32 bit integer.
+     *        The value is in milliseconds.</para>
      *      </listitem>
      *      <listitem>
      *        <para><literal>"src"</literal> - an IPv6 address.</para>

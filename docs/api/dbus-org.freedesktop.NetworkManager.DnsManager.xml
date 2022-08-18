@@ -15,7 +15,8 @@
   </refsect1>
 <refsect1 role="desc" id="gdbus-interface-org-freedesktop-NetworkManager-DnsManager">
   <title role="desc.title">Description</title>
-  <para>      The interface contains DNS-related information.
+  <para>
+The interface contains DNS-related information.
 </para>
 </refsect1>
 <refsect1 role="details" id="gdbus-properties-org.freedesktop.NetworkManager.DnsManager">
@@ -26,7 +27,8 @@
 <programlisting>
 Mode  readable   s
 </programlisting>
-<para>        The current DNS processing mode.
+<para>
+The current DNS processing mode.
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-DnsManager.RcManager">
@@ -35,7 +37,8 @@ Mode  readable   s
 <programlisting>
 RcManager  readable   s
 </programlisting>
-<para>        The current resolv.conf management mode.
+<para>
+The current resolv.conf management mode.
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-DnsManager.Configuration">
@@ -44,13 +47,14 @@ RcManager  readable   s
 <programlisting>
 Configuration  readable   aa{sv}
 </programlisting>
-<para>        The current DNS configuration represented as an array of
-        dictionaries.  Each dictionary has the "nameservers",
-        "priority" keys and, optionally, "interface" and "vpn".
-        "nameservers" is the list of DNS servers, "priority" their
-        relative priority, "interface" the interface on which these
-        servers are contacted, "vpn" a boolean telling whether the
-        configuration was obtained from a VPN connection.
+<para>
+The current DNS configuration represented as an array of
+dictionaries.  Each dictionary has the "nameservers",
+"priority" keys and, optionally, "interface" and "vpn".
+"nameservers" is the list of DNS servers, "priority" their
+relative priority, "interface" the interface on which these
+servers are contacted, "vpn" a boolean telling whether the
+configuration was obtained from a VPN connection.
 </para>
 </refsect2>
 </refsect1>

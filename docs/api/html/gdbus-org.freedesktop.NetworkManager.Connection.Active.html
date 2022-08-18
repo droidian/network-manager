@@ -8,7 +8,7 @@
 <link rel="up" href="ref-dbus-active-connections.html" title="The /org/freedesktop/NetworkManager/ActiveConnection/* objects">
 <link rel="prev" href="ref-dbus-active-connections.html" title="The /org/freedesktop/NetworkManager/ActiveConnection/* objects">
 <link rel="next" href="gdbus-org.freedesktop.NetworkManager.VPN.Connection.html" title="org.freedesktop.NetworkManager.VPN.Connection">
-<meta name="generator" content="GTK-Doc V1.33.0 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -63,20 +63,21 @@
 </div>
 <div class="refsect1">
 <a name="gdbus-interface-org-freedesktop-NetworkManager-Connection-Active"></a><h2>Description</h2>
-<p>      Objects that implement the Connection.Active interface represent an
-      attempt to connect to a network using the details provided by a Connection
-      object. The Connection.Active object tracks the life-cycle of the
-      connection attempt and if successful indicates whether the connected
-      network is the "default" or preferred network for access. NetworkManager
-      has the concept of connections, which can be thought of as settings, a
-      profile or a configuration that can be applied on a networking device.
-      Such settings-connections are exposed as D-Bus object and the
-      active-connection expresses this relationship between device and
-      settings-connection. At any time a settings-connection can only be
-      activated on one device and vice versa. However, during activation and
-      deactivation multiple active-connections can reference the same device or
-      settings-connection as they are waiting to be activated or to be
-      deactivated.
+<p>
+Objects that implement the Connection.Active interface represent an
+attempt to connect to a network using the details provided by a Connection
+object. The Connection.Active object tracks the life-cycle of the
+connection attempt and if successful indicates whether the connected
+network is the "default" or preferred network for access. NetworkManager
+has the concept of connections, which can be thought of as settings, a
+profile or a configuration that can be applied on a networking device.
+Such settings-connections are exposed as D-Bus object and the
+active-connection expresses this relationship between device and
+settings-connection. At any time a settings-connection can only be
+activated on one device and vice versa. However, during activation and
+deactivation multiple active-connections can reference the same device or
+settings-connection as they are waiting to be activated or to be
+deactivated.
 </p>
 </div>
 <div class="refsect1">
@@ -87,7 +88,8 @@
 StateChanged (u state,
               u reason);
 </pre>
-<p>        Emitted when the state of the active connection has changed.
+<p>
+Emitted when the state of the active connection has changed.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -97,11 +99,15 @@ StateChanged (u state,
 <tbody>
 <tr>
 <td><p><span class="term"><code class="literal">u <em class="parameter"><code>state</code></em></code>:</span></p></td>
-<td><p>(<a class="link" href="nm-dbus-types.html#NMActiveConnectionState" title="enum NMActiveConnectionState">NMActiveConnectionState</a>) The new state of the active connection.</p></td>
+<td><p>
+(<a class="link" href="nm-dbus-types.html#NMActiveConnectionState" title="enum NMActiveConnectionState">NMActiveConnectionState</a>) The new state of the active connection.
+</p></td>
 </tr>
 <tr>
 <td><p><span class="term"><code class="literal">u <em class="parameter"><code>reason</code></em></code>:</span></p></td>
-<td><p>(<a class="link" href="nm-dbus-types.html#NMActiveConnectionStateReason" title="enum NMActiveConnectionStateReason">NMActiveConnectionStateReason</a>) Reason code describing the change to the new state.</p></td>
+<td><p>
+(<a class="link" href="nm-dbus-types.html#NMActiveConnectionStateReason" title="enum NMActiveConnectionStateReason">NMActiveConnectionStateReason</a>) Reason code describing the change to the new state.
+</p></td>
 </tr>
 </tbody>
 </table></div>
@@ -115,7 +121,8 @@ StateChanged (u state,
 <pre class="programlisting">
 Connection  readable   o
 </pre>
-<p>        The path of the connection.
+<p>
+The path of the connection.
 </p>
 </div>
 <hr>
@@ -124,9 +131,10 @@ Connection  readable   o
 <pre class="programlisting">
 SpecificObject  readable   o
 </pre>
-<p>        A specific object associated with the active connection. This property
-        reflects the specific object used during connection activation, and will
-        not change over the lifetime of the ActiveConnection once set.
+<p>
+A specific object associated with the active connection. This property
+reflects the specific object used during connection activation, and will
+not change over the lifetime of the ActiveConnection once set.
 </p>
 </div>
 <hr>
@@ -135,8 +143,9 @@ SpecificObject  readable   o
 <pre class="programlisting">
 Id  readable   s
 </pre>
-<p>        The ID of the connection, provided as a convenience so that clients do not
-        have to retrieve all connection details.
+<p>
+The ID of the connection, provided as a convenience so that clients do not
+have to retrieve all connection details.
 </p>
 </div>
 <hr>
@@ -145,8 +154,9 @@ Id  readable   s
 <pre class="programlisting">
 Uuid  readable   s
 </pre>
-<p>        The UUID of the connection, provided as a convenience so that clients do
-        not have to retrieve all connection details.
+<p>
+The UUID of the connection, provided as a convenience so that clients do
+not have to retrieve all connection details.
 </p>
 </div>
 <hr>
@@ -155,8 +165,9 @@ Uuid  readable   s
 <pre class="programlisting">
 Type  readable   s
 </pre>
-<p>        The type of the connection, provided as a convenience so that clients do
-        not have to retrieve all connection details.
+<p>
+The type of the connection, provided as a convenience so that clients do
+not have to retrieve all connection details.
 </p>
 </div>
 <hr>
@@ -165,8 +176,9 @@ Type  readable   s
 <pre class="programlisting">
 Devices  readable   ao
 </pre>
-<p>        Array of object paths representing devices which are part of this active
-        connection.
+<p>
+Array of object paths representing devices which are part of this active
+connection.
 </p>
 </div>
 <hr>
@@ -175,9 +187,11 @@ Devices  readable   ao
 <pre class="programlisting">
 State  readable   u
 </pre>
-<p>        The state of this active connection.
+<p>
+The state of this active connection.
 </p>
-<p>        Returns: <a class="link" href="nm-dbus-types.html#NMActiveConnectionState" title="enum NMActiveConnectionState">NMActiveConnectionState</a>
+<p>
+Returns: <a class="link" href="nm-dbus-types.html#NMActiveConnectionState" title="enum NMActiveConnectionState">NMActiveConnectionState</a>
 </p>
 </div>
 <hr>
@@ -186,9 +200,11 @@ State  readable   u
 <pre class="programlisting">
 StateFlags  readable   u
 </pre>
-<p>        The state flags of this active connection.
+<p>
+The state flags of this active connection.
 </p>
-<p>        Returns: <a class="link" href="nm-dbus-types.html#NMActivationStateFlags" title="enum NMActivationStateFlags">NMActivationStateFlags</a>
+<p>
+Returns: <a class="link" href="nm-dbus-types.html#NMActivationStateFlags" title="enum NMActivationStateFlags">NMActivationStateFlags</a>
 </p>
 </div>
 <hr>
@@ -197,8 +213,9 @@ StateFlags  readable   u
 <pre class="programlisting">
 Default  readable   b
 </pre>
-<p>        Whether this active connection is the default IPv4 connection, i.e.
-        whether it currently owns the default IPv4 route.
+<p>
+Whether this active connection is the default IPv4 connection, i.e.
+whether it currently owns the default IPv4 route.
 </p>
 </div>
 <hr>
@@ -207,9 +224,10 @@ Default  readable   b
 <pre class="programlisting">
 Ip4Config  readable   o
 </pre>
-<p>        Object path of the Ip4Config object describing the configuration of the
-        connection. Only valid when the connection is in the
-        NM_ACTIVE_CONNECTION_STATE_ACTIVATED state.
+<p>
+Object path of the Ip4Config object describing the configuration of the
+connection. Only valid when the connection is in the
+NM_ACTIVE_CONNECTION_STATE_ACTIVATED state.
 </p>
 </div>
 <hr>
@@ -218,9 +236,10 @@ Ip4Config  readable   o
 <pre class="programlisting">
 Dhcp4Config  readable   o
 </pre>
-<p>        Object path of the Dhcp4Config object describing the DHCP options returned
-        by the DHCP server (assuming the connection used DHCP). Only valid when
-        the connection is in the NM_ACTIVE_CONNECTION_STATE_ACTIVATED state.
+<p>
+Object path of the Dhcp4Config object describing the DHCP options returned
+by the DHCP server (assuming the connection used DHCP). Only valid when
+the connection is in the NM_ACTIVE_CONNECTION_STATE_ACTIVATED state.
 </p>
 </div>
 <hr>
@@ -229,8 +248,9 @@ Dhcp4Config  readable   o
 <pre class="programlisting">
 Default6  readable   b
 </pre>
-<p>        Whether this active connection is the default IPv6 connection, i.e.
-        whether it currently owns the default IPv6 route.
+<p>
+Whether this active connection is the default IPv6 connection, i.e.
+whether it currently owns the default IPv6 route.
 </p>
 </div>
 <hr>
@@ -239,9 +259,10 @@ Default6  readable   b
 <pre class="programlisting">
 Ip6Config  readable   o
 </pre>
-<p>        Object path of the Ip6Config object describing the configuration of the
-        connection. Only valid when the connection is in the
-        NM_ACTIVE_CONNECTION_STATE_ACTIVATED state.
+<p>
+Object path of the Ip6Config object describing the configuration of the
+connection. Only valid when the connection is in the
+NM_ACTIVE_CONNECTION_STATE_ACTIVATED state.
 </p>
 </div>
 <hr>
@@ -250,9 +271,10 @@ Ip6Config  readable   o
 <pre class="programlisting">
 Dhcp6Config  readable   o
 </pre>
-<p>        Object path of the Dhcp6Config object describing the DHCP options returned
-        by the DHCP server (assuming the connection used DHCP). Only valid when
-        the connection is in the NM_ACTIVE_CONNECTION_STATE_ACTIVATED state.
+<p>
+Object path of the Dhcp6Config object describing the DHCP options returned
+by the DHCP server (assuming the connection used DHCP). Only valid when
+the connection is in the NM_ACTIVE_CONNECTION_STATE_ACTIVATED state.
 </p>
 </div>
 <hr>
@@ -261,7 +283,8 @@ Dhcp6Config  readable   o
 <pre class="programlisting">
 Vpn  readable   b
 </pre>
-<p>        Whether this active connection is also a VPN connection.
+<p>
+Whether this active connection is also a VPN connection.
 </p>
 </div>
 <hr>
@@ -270,12 +293,13 @@ Vpn  readable   b
 <pre class="programlisting">
 Master  readable   o
 </pre>
-<p>        The path to the master device if the connection is a slave.
+<p>
+The path to the master device if the connection is a slave.
 </p>
 </div>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.33.0</div>
+<hr>Generated by GTK-Doc V1.33.1</div>
 </body>
 </html>

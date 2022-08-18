@@ -243,10 +243,15 @@ extern const NMIPAddr nm_ip_addr_zero;
 static inline int
 nm_ip_addr_cmp(int addr_family, gconstpointer a, gconstpointer b)
 {
+    /* Note that @a and @b are not required to be full NMIPAddr unions.
+     * Depending on @addr_family, they can also be only in_addr_t or
+     * struct in6_addr. */
     NM_CMP_SELF(a, b);
     NM_CMP_DIRECT_MEMCMP(a, b, nm_utils_addr_family_to_size(addr_family));
     return 0;
 }
+
+int nm_ip_addr_cmp_for_sort(gconstpointer a, gconstpointer b, gpointer user_data);
 
 static inline gboolean
 nm_ip_addr_equal(int addr_family, gconstpointer a, gconstpointer b)
@@ -277,8 +282,15 @@ nm_ip_addr_set(int addr_family, gpointer dst, gconstpointer src)
     nm_assert(dst);
     nm_assert(src);
 
-    /* this MUST use memcpy() (or similar means) to support unaligned src/dst pointers. */
+    /* this MUST use memcpy() to support unaligned src/dst pointers. */
     memcpy(dst, src, nm_utils_addr_family_to_size(addr_family));
+
+    /* Note that @dst is not necessarily a NMIPAddr, it could also be just
+     * an in_addr_t/struct in6_addr. We thus can only set the bytes that
+     * we know are present based on the address family.
+     *
+     * Using this function to initialize an NMIPAddr union (for IPv4) leaves
+     * uninitalized bytes. Avoid that by using nm_ip_addr_init() instead. */
 }
 
 static inline NMIPAddr
@@ -290,6 +302,8 @@ nm_ip_addr_init(int addr_family, gconstpointer src)
     nm_assert(src);
 
     G_STATIC_ASSERT_EXPR(sizeof(NMIPAddr) == sizeof(struct in6_addr));
+
+    /* this MUST use memcpy() to support unaligned src/dst pointers. */
 
     if (NM_IS_IPv4(addr_family)) {
         memcpy(&a, src, sizeof(in_addr_t));
@@ -311,12 +325,6 @@ gboolean nm_ip_addr_set_from_untrusted(int           addr_family,
 
 gboolean
 nm_ip_addr_set_from_variant(int addr_family, gpointer dst, GVariant *variant, int *out_addr_family);
-
-static inline gboolean
-nm_ip4_addr_is_localhost(in_addr_t addr4)
-{
-    return (addr4 & htonl(0xFF000000u)) == htonl(0x7F000000u);
-}
 
 static inline gconstpointer
 nm_ip_addr_from_packed_array(int addr_family, gconstpointer ipaddr_arr, gsize idx)
@@ -388,6 +396,17 @@ gboolean nm_utils_get_ipv6_interface_identifier(NMLinkType          link_type,
                                                 NMUtilsIPv6IfaceId *out_iid);
 
 /*****************************************************************************/
+
+static inline guint32
+_nm_utils_ip4_netmask_to_prefix(in_addr_t subnetmask)
+{
+    G_STATIC_ASSERT_EXPR(__SIZEOF_INT__ == 4);
+    G_STATIC_ASSERT_EXPR(sizeof(int) == 4);
+    G_STATIC_ASSERT_EXPR(sizeof(guint) == 4);
+    G_STATIC_ASSERT_EXPR(sizeof(subnetmask) == 4);
+
+    return ((subnetmask != 0u) ? (guint32) (32 - __builtin_ctz(ntohl(subnetmask))) : 0u);
+}
 
 /**
  * _nm_utils_ip4_prefix_to_netmask:
@@ -485,11 +504,20 @@ nm_utils_ip_address_same_prefix(int           addr_family,
 /*****************************************************************************/
 
 gboolean nm_utils_ip_is_site_local(int addr_family, const void *address);
+gboolean nm_utils_ip6_is_ula(const struct in6_addr *address);
 
 /*****************************************************************************/
 
-#define NM_IPV4LL_NETWORK ((in_addr_t) (htonl(0xA9FE0000lu)))
-#define NM_IPV4LL_NETMASK ((in_addr_t) (htonl(0xFFFF0000lu)))
+#define NM_IPV4LL_NETWORK ((in_addr_t) htonl(0xA9FE0000lu))
+#define NM_IPV4LL_NETMASK ((in_addr_t) htonl(0xFFFF0000lu))
+
+static inline gboolean
+nm_utils_ip4_address_is_loopback(in_addr_t addr)
+{
+    /* There is also IN_LOOPBACK() in <linux/in.h>, but there the
+     * argument is in host order not `in_addr_t`. */
+    return (addr & htonl(0xFF000000u)) == htonl(0x7F000000u);
+}
 
 static inline gboolean
 nm_utils_ip4_address_is_link_local(in_addr_t addr)
@@ -619,6 +647,16 @@ static inline gboolean
 nm_utils_is_separator(const char c)
 {
     return NM_IN_SET(c, ' ', '\t');
+}
+
+/*****************************************************************************/
+
+static inline GBytes *
+nm_g_bytes_ref(GBytes *b)
+{
+    if (b)
+        g_bytes_ref(b);
+    return b;
 }
 
 /*****************************************************************************/
@@ -1977,6 +2015,7 @@ typedef struct {
         NMUtilsNamedEntry named_entry;
         const char       *name;
         char             *name_mutable;
+        gpointer          name_ptr;
     };
     union {
         const char *value_str;
@@ -1990,14 +2029,28 @@ typedef struct {
         .name = (n), .value_ptr = (v)   \
     }
 
-NMUtilsNamedValue *
-nm_utils_named_values_from_strdict_full(GHashTable         *hash,
-                                        guint              *out_len,
-                                        GCompareDataFunc    compare_func,
-                                        gpointer            user_data,
-                                        NMUtilsNamedValue  *provided_buffer,
-                                        guint               provided_buffer_len,
-                                        NMUtilsNamedValue **out_allocated_buffer);
+NMUtilsNamedValue *nm_utils_hash_to_array_full(GHashTable         *hash,
+                                               guint              *out_len,
+                                               GCompareDataFunc    compare_func,
+                                               gpointer            user_data,
+                                               NMUtilsNamedValue  *provided_buffer,
+                                               guint               provided_buffer_len,
+                                               NMUtilsNamedValue **out_allocated_buffer);
+
+#define nm_utils_named_values_from_strdict_full(hash,                 \
+                                                out_len,              \
+                                                compare_func,         \
+                                                user_data,            \
+                                                provided_buffer,      \
+                                                provided_buffer_len,  \
+                                                out_allocated_buffer) \
+    nm_utils_hash_to_array_full((hash),                               \
+                                (out_len),                            \
+                                (compare_func),                       \
+                                (user_data),                          \
+                                (provided_buffer),                    \
+                                (provided_buffer_len),                \
+                                (out_allocated_buffer))
 
 #define nm_utils_named_values_from_strdict(hash, out_len, array, out_allocated_buffer) \
     nm_utils_named_values_from_strdict_full((hash),                                    \
@@ -2037,6 +2090,29 @@ gpointer *nm_utils_hash_values_to_array(GHashTable      *hash,
                                         GCompareDataFunc compare_func,
                                         gpointer         user_data,
                                         guint           *out_len);
+
+static inline NMUtilsNamedValue *
+nm_utils_hash_to_array(GHashTable      *hash,
+                       GCompareDataFunc compare_func,
+                       gpointer         user_data,
+                       guint           *out_len)
+{
+    return nm_utils_hash_to_array_full(hash, out_len, compare_func, user_data, NULL, 0, NULL);
+}
+
+#define nm_utils_hash_to_array_with_buffer(hash,                 \
+                                           out_len,              \
+                                           compare_func,         \
+                                           user_data,            \
+                                           array,                \
+                                           out_allocated_buffer) \
+    nm_utils_hash_to_array_full((hash),                          \
+                                (out_len),                       \
+                                (compare_func),                  \
+                                (user_data),                     \
+                                (array),                         \
+                                G_N_ELEMENTS(array),             \
+                                (out_allocated_buffer))
 
 static inline const char **
 nm_strdict_get_keys(const GHashTable *hash, gboolean sorted, guint *out_length)
@@ -2146,38 +2222,57 @@ nm_g_array_unref(GArray *arr)
         g_array_unref(arr);
 }
 
-#define nm_g_array_first(arr, type)   \
-    ({                                \
-        GArray *const _arr = (arr);   \
-        guint         _len;           \
-                                      \
-        nm_assert(_arr);              \
-        _len = _arr->len;             \
-        nm_assert(_len > 0);          \
-        &g_array_index(arr, type, 0); \
+#define nm_g_array_first(arr, Type)                                \
+    ({                                                             \
+        GArray *const _arr = (arr);                                \
+                                                                   \
+        nm_assert(_arr);                                           \
+        nm_assert(sizeof(Type) == g_array_get_element_size(_arr)); \
+        nm_assert(_arr->len > 0);                                  \
+                                                                   \
+        &g_array_index(arr, Type, 0);                              \
     })
 
-#define nm_g_array_last(arr, type)            \
-    ({                                        \
-        GArray *const _arr = (arr);           \
-        guint         _len;                   \
-                                              \
-        nm_assert(_arr);                      \
-        _len = _arr->len;                     \
-        nm_assert(_len > 0);                  \
-        &g_array_index(arr, type, _len - 1u); \
+#define nm_g_array_last(arr, Type)                                 \
+    ({                                                             \
+        GArray *const _arr = (arr);                                \
+                                                                   \
+        nm_assert(_arr);                                           \
+        nm_assert(sizeof(Type) == g_array_get_element_size(_arr)); \
+        nm_assert(_arr->len > 0);                                  \
+                                                                   \
+        &g_array_index(arr, Type, _arr->len - 1u);                 \
     })
 
-#define nm_g_array_append_new(arr, type)   \
-    ({                                     \
-        GArray *const _arr = (arr);        \
-        guint         _len;                \
-                                           \
-        nm_assert(_arr);                   \
-        _len = _arr->len;                  \
-        nm_assert(_len < G_MAXUINT);       \
-        g_array_set_size(_arr, _len + 1u); \
-        &g_array_index(arr, type, _len);   \
+/* Similar to g_array_index(). The differences are
+ * - this does nm_assert() checks that the arguments are valid.
+ * - returns a pointer to the element. */
+#define nm_g_array_index_p(arr, Type, idx)                            \
+    ({                                                                \
+        GArray *const _arr_55 = (arr);                                \
+        const guint   _idx_55 = (idx);                                \
+                                                                      \
+        nm_assert(_arr_55);                                           \
+        nm_assert(sizeof(Type) == g_array_get_element_size(_arr_55)); \
+        nm_assert(_idx_55 < _arr_55->len);                            \
+                                                                      \
+        &g_array_index(_arr_55, Type, _idx_55);                       \
+    })
+
+#define nm_g_array_append_new(arr, Type)                           \
+    ({                                                             \
+        GArray *const _arr = (arr);                                \
+        guint         _len;                                        \
+                                                                   \
+        nm_assert(_arr);                                           \
+        nm_assert(sizeof(Type) == g_array_get_element_size(_arr)); \
+                                                                   \
+        _len = _arr->len;                                          \
+                                                                   \
+        nm_assert(_len < G_MAXUINT);                               \
+                                                                   \
+        g_array_set_size(_arr, _len + 1u);                         \
+        &g_array_index(arr, Type, _len);                           \
     })
 
 /*****************************************************************************/
@@ -2310,6 +2405,25 @@ nm_g_hash_table_contains(GHashTable *hash, gconstpointer key)
 {
     return hash ? g_hash_table_contains(hash, key) : FALSE;
 }
+
+#define nm_g_hash_table_contains_any(hash, ...)                              \
+    ({                                                                       \
+        GHashTable *const   _hash   = (hash);                                \
+        gconstpointer const _keys[] = {__VA_ARGS__};                         \
+        int                 _i_key;                                          \
+        gboolean            _contains = FALSE;                               \
+                                                                             \
+        if (_hash) {                                                         \
+            for (_i_key = 0; _i_key < (int) G_N_ELEMENTS(_keys); _i_key++) { \
+                if (g_hash_table_contains(_hash, _keys[_i_key])) {           \
+                    _contains = TRUE;                                        \
+                    break;                                                   \
+                }                                                            \
+            }                                                                \
+        }                                                                    \
+                                                                             \
+        _contains;                                                           \
+    })
 
 static inline gboolean
 nm_g_hash_table_remove(GHashTable *hash, gconstpointer key)
@@ -2765,6 +2879,8 @@ nm_ether_addr_to_string(const NMEtherAddr *ether_addr, char sbuf[static(sizeof(N
 #define nm_ether_addr_to_string_a(ether_addr) \
     nm_ether_addr_to_string((ether_addr), g_alloca(sizeof(NMEtherAddr) * 3))
 
+NMEtherAddr *nm_ether_addr_from_string(NMEtherAddr *addr, const char *str);
+
 guint8 *nm_utils_hexstr2bin_full(const char *hexstr,
                                  gboolean    allow_0x_prefix,
                                  gboolean    delimiter_required,
@@ -3054,10 +3170,14 @@ gboolean nm_utils_ifname_valid(const char *name, NMUtilsIfaceType type, GError *
 static inline GArray *
 nm_strvarray_ensure(GArray **p)
 {
+    nm_assert(p);
+
     if (!*p) {
         *p = g_array_new(TRUE, FALSE, sizeof(char *));
         g_array_set_clear_func(*p, nm_indirect_g_free);
-    }
+    } else
+        nm_assert(g_array_get_element_size(*p) == sizeof(char *));
+
     return *p;
 }
 
@@ -3066,6 +3186,9 @@ nm_strvarray_add(GArray *array, const char *str)
 {
     char *s;
 
+    nm_assert(array);
+    nm_assert(g_array_get_element_size(array) == sizeof(char *));
+
     s = g_strdup(str);
     g_array_append_val(array, s);
 }
@@ -3073,15 +3196,14 @@ nm_strvarray_add(GArray *array, const char *str)
 static inline const char *
 nm_strvarray_get_idx(GArray *array, guint idx)
 {
-    nm_assert(array);
-    nm_assert(idx < array->len);
-
-    return g_array_index(array, const char *, idx);
+    return *nm_g_array_index_p(array, const char *, idx);
 }
 
 static inline const char *const *
 nm_strvarray_get_strv_non_empty(GArray *arr, guint *length)
 {
+    nm_assert(!arr || g_array_get_element_size(arr) == sizeof(char *));
+
     if (!arr || arr->len == 0) {
         NM_SET_OUT(length, 0);
         return NULL;
@@ -3095,6 +3217,8 @@ static inline char **
 nm_strvarray_get_strv_non_empty_dup(GArray *arr, guint *length)
 {
     const char *const *strv;
+
+    nm_assert(!arr || g_array_get_element_size(arr) == sizeof(char *));
 
     if (!arr || arr->len == 0) {
         NM_SET_OUT(length, 0);
@@ -3114,6 +3238,8 @@ nm_strvarray_get_strv(GArray **arr, guint *length)
         return (const char *const *) arr;
     }
 
+    nm_assert(g_array_get_element_size(*arr) == sizeof(char *));
+
     NM_SET_OUT(length, (*arr)->len);
     return &g_array_index(*arr, const char *, 0);
 }
@@ -3124,6 +3250,8 @@ nm_strvarray_set_strv(GArray **array, const char *const *strv)
     gs_unref_array GArray *array_old = NULL;
 
     array_old = g_steal_pointer(array);
+
+    nm_assert(!array_old || g_array_get_element_size(array_old) == sizeof(char *));
 
     if (!strv || !strv[0])
         return;
@@ -3141,6 +3269,7 @@ nm_strvarray_find_first(GArray *strv, const char *needle)
     nm_assert(needle);
 
     if (strv) {
+        nm_assert(g_array_get_element_size(strv) == sizeof(char *));
         for (i = 0; i < strv->len; i++) {
             if (nm_streq(needle, g_array_index(strv, const char *, i)))
                 return i;
@@ -3224,6 +3353,12 @@ char *_nm_utils_format_variant_attributes(GHashTable                          *a
 
 /*****************************************************************************/
 
+/* glibc defines HOST_NAME_MAX as 64. Also Linux' sethostname() enforces
+ * that (__NEW_UTS_LEN). However, musl sets this to 255.
+ *
+ * At some places, we want to follow Linux. Hardcode our own define. */
+#define NM_HOST_NAME_MAX 64
+
 gboolean nm_utils_is_localhost(const char *name);
 
 gboolean nm_utils_is_specific_hostname(const char *name);
@@ -3275,5 +3410,47 @@ gboolean nm_utils_validate_hostname(const char *hostname);
 /*****************************************************************************/
 
 void nm_utils_thread_local_register_destroy(gpointer tls_data, GDestroyNotify destroy_notify);
+
+/*****************************************************************************/
+
+int nm_unbase64char(char c);
+int nm_unbase64mem_full(const char *p, gsize l, gboolean secure, guint8 **ret, gsize *ret_size);
+
+/*****************************************************************************/
+
+static inline gboolean
+nm_path_is_absolute(const char *p)
+{
+    /* Copied from systemd's path_is_absolute()
+     * https://github.com/systemd/systemd/blob/bc85f8b51d962597360e982811e674c126850f56/src/basic/path-util.h#L50 */
+
+    nm_assert(p);
+    return p[0] == '/';
+}
+
+int nm_path_find_first_component(const char **p, gboolean accept_dot_dot, const char **ret);
+
+int nm_path_compare(const char *a, const char *b);
+
+static inline gboolean
+nm_path_equal(const char *a, const char *b)
+{
+    return nm_path_compare(a, b) == 0;
+}
+
+char *nm_path_simplify(char *path);
+
+char *
+nm_path_startswith_full(const char *path, const char *prefix, gboolean accept_dot_dot) _nm_pure;
+
+static inline char *
+nm_path_startswith(const char *path, const char *prefix)
+{
+    return nm_path_startswith_full(path, prefix, TRUE);
+}
+
+/*****************************************************************************/
+
+gboolean nm_hostname_is_valid(const char *s, gboolean trailing_dot);
 
 #endif /* __NM_SHARED_UTILS_H__ */

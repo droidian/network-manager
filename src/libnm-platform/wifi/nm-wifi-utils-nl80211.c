@@ -9,13 +9,12 @@
 
 #include "nm-wifi-utils-nl80211.h"
 
+#include "libnm-std-aux/nm-linux-compat.h"
+
 #include <sys/ioctl.h>
-#include <net/ethernet.h>
 #include <unistd.h>
 #include <linux/nl80211.h>
 #include <linux/if.h>
-
-#include "linux-headers/nl80211-vnd-intel.h"
 
 #include "libnm-log-core/nm-logging.h"
 #include "libnm-platform/nm-netlink.h"
@@ -46,9 +45,9 @@ typedef struct {
     NMWifiUtils     parent;
     struct nl_sock *nl_sock;
     guint32        *freqs;
-    int             id;
     int             num_freqs;
     int             phy;
+    guint16         genl_family_id;
     bool            can_wowlan : 1;
 } NMWifiUtilsNl80211;
 
@@ -59,7 +58,7 @@ typedef struct {
 G_DEFINE_TYPE(NMWifiUtilsNl80211, nm_wifi_utils_nl80211, NM_TYPE_WIFI_UTILS)
 
 static int
-ack_handler(struct nl_msg *msg, void *arg)
+ack_handler(const struct nl_msg *msg, void *arg)
 {
     int *done = arg;
     *done     = 1;
@@ -67,7 +66,7 @@ ack_handler(struct nl_msg *msg, void *arg)
 }
 
 static int
-finish_handler(struct nl_msg *msg, void *arg)
+finish_handler(const struct nl_msg *msg, void *arg)
 {
     int *done = arg;
     *done     = 1;
@@ -75,7 +74,7 @@ finish_handler(struct nl_msg *msg, void *arg)
 }
 
 static int
-error_handler(struct sockaddr_nl *nla, struct nlmsgerr *err, void *arg)
+error_handler(const struct sockaddr_nl *nla, const struct nlmsgerr *err, void *arg)
 {
     int *done = arg;
     *done     = err->error;
@@ -83,12 +82,12 @@ error_handler(struct sockaddr_nl *nla, struct nlmsgerr *err, void *arg)
 }
 
 static struct nl_msg *
-_nl80211_alloc_msg(int id, int ifindex, int phy, guint32 cmd, guint32 flags)
+_nl80211_alloc_msg(guint16 genl_family_id, int ifindex, int phy, uint8_t cmd, uint16_t flags)
 {
     nm_auto_nlmsg struct nl_msg *msg = NULL;
 
     msg = nlmsg_alloc();
-    genlmsg_put(msg, 0, 0, id, 0, flags, cmd, 0);
+    genlmsg_put(msg, NL_AUTO_PORT, NL_AUTO_SEQ, genl_family_id, 0, flags, cmd, 0);
     NLA_PUT_U32(msg, NL80211_ATTR_IFINDEX, ifindex);
     if (phy != -1)
         NLA_PUT_U32(msg, NL80211_ATTR_WIPHY, phy);
@@ -99,15 +98,15 @@ nla_put_failure:
 }
 
 static struct nl_msg *
-nl80211_alloc_msg(NMWifiUtilsNl80211 *self, guint32 cmd, guint32 flags)
+nl80211_alloc_msg(NMWifiUtilsNl80211 *self, uint8_t cmd, uint16_t flags)
 {
-    return _nl80211_alloc_msg(self->id, self->parent.ifindex, self->phy, cmd, flags);
+    return _nl80211_alloc_msg(self->genl_family_id, self->parent.ifindex, self->phy, cmd, flags);
 }
 
 static int
 nl80211_send_and_recv(NMWifiUtilsNl80211 *self,
                       struct nl_msg      *msg,
-                      int (*valid_handler)(struct nl_msg *, void *),
+                      int (*valid_handler)(const struct nl_msg *, void *),
                       void *valid_data)
 {
     int                err;
@@ -168,7 +167,7 @@ struct nl80211_iface_info {
 };
 
 static int
-nl80211_iface_info_handler(struct nl_msg *msg, void *arg)
+nl80211_iface_info_handler(const struct nl_msg *msg, void *arg)
 {
     struct nl80211_iface_info *info = arg;
     struct genlmsghdr         *gnlh = nlmsg_data(nlmsg_hdr(msg));
@@ -270,7 +269,7 @@ nla_put_failure:
 }
 
 static int
-nl80211_get_wake_on_wlan_handler(struct nl_msg *msg, void *arg)
+nl80211_get_wake_on_wlan_handler(const struct nl_msg *msg, void *arg)
 {
     _NMSettingWirelessWakeOnWLan *wowl = arg;
     struct nlattr                *attrs[NL80211_ATTR_MAX + 1];
@@ -423,7 +422,7 @@ struct nl80211_station_info {
 };
 
 static int
-nl80211_station_dump_handler(struct nl_msg *msg, void *arg)
+nl80211_station_dump_handler(const struct nl_msg *msg, void *arg)
 {
     static const struct nla_policy stats_policy[] = {
         [NL80211_STA_INFO_INACTIVE_TIME]     = {.type = NLA_U32},
@@ -577,7 +576,7 @@ struct nl80211_device_info {
 #define WLAN_CIPHER_SUITE_SMS4      0x00147201
 
 static int
-nl80211_wiphy_info_handler(struct nl_msg *msg, void *arg)
+nl80211_wiphy_info_handler(const struct nl_msg *msg, void *arg)
 {
     static const struct nla_policy freq_policy[] = {
         [NL80211_FREQUENCY_ATTR_FREQ]     = {.type = NLA_U32},
@@ -817,7 +816,7 @@ struct nl80211_csme_conn_info {
 };
 
 static int
-nl80211_csme_conn_event_handler(struct nl_msg *msg, void *arg)
+nl80211_csme_conn_event_handler(const struct nl_msg *msg, void *arg)
 {
     struct nl80211_csme_conn_info *info          = arg;
     NMPlatformCsmeConnInfo        *out_conn_info = info->conn_info;
@@ -945,7 +944,7 @@ nm_wifi_utils_nl80211_class_init(NMWifiUtilsNl80211Class *klass)
 }
 
 NMWifiUtils *
-nm_wifi_utils_nl80211_new(int ifindex, struct nl_sock *genl)
+nm_wifi_utils_nl80211_new(struct nl_sock *genl, guint16 genl_family_id, int ifindex)
 {
     gs_unref_object NMWifiUtilsNl80211 *self        = NULL;
     nm_auto_nlmsg struct nl_msg        *msg         = NULL;
@@ -954,16 +953,14 @@ nm_wifi_utils_nl80211_new(int ifindex, struct nl_sock *genl)
     if (!genl)
         return NULL;
 
+    if (genl_family_id == 0)
+        return NULL;
+
     self = g_object_new(NM_TYPE_WIFI_UTILS_NL80211, NULL);
 
     self->parent.ifindex = ifindex;
     self->nl_sock        = genl;
-
-    self->id = genl_ctrl_resolve(self->nl_sock, "nl80211");
-    if (self->id < 0) {
-        _LOGD("genl_ctrl_resolve: failed to resolve \"nl80211\"");
-        return NULL;
-    }
+    self->genl_family_id = genl_family_id;
 
     self->phy = -1;
 

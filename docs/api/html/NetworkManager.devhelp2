@@ -514,6 +514,7 @@
     <keyword type="enum" name="enum NMClientPermission" link="nm-dbus-types.html#NMClientPermission"/>
     <keyword type="enum" name="enum NMClientPermissionResult" link="nm-dbus-types.html#NMClientPermissionResult"/>
     <keyword type="enum" name="enum NMRadioFlags" link="nm-dbus-types.html#NMRadioFlags"/>
+    <keyword type="enum" name="enum NMMptcpFlags" link="nm-dbus-types.html#NMMptcpFlags"/>
     <keyword type="method" name="The GetSecrets() method" link="gdbus-org.freedesktop.NetworkManager.SecretAgent.html#gdbus-method-org-freedesktop-NetworkManager-SecretAgent.GetSecrets"/>
     <keyword type="method" name="The CancelGetSecrets() method" link="gdbus-org.freedesktop.NetworkManager.SecretAgent.html#gdbus-method-org-freedesktop-NetworkManager-SecretAgent.CancelGetSecrets"/>
     <keyword type="method" name="The SaveSecrets() method" link="gdbus-org.freedesktop.NetworkManager.SecretAgent.html#gdbus-method-org-freedesktop-NetworkManager-SecretAgent.SaveSecrets"/>
@@ -849,6 +850,14 @@
     <keyword type="constant" name="NM_RADIO_FLAG_NONE" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.35.4.2.1.4.1.1.1id-1.4.17.2.35.4.2.1.4.1.1.2"/>
     <keyword type="constant" name="NM_RADIO_FLAG_WLAN_AVAILABLE" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.35.4.2.1.4.2.1.1id-1.4.17.2.35.4.2.1.4.2.1.2"/>
     <keyword type="constant" name="NM_RADIO_FLAG_WWAN_AVAILABLE" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.35.4.2.1.4.3.1.1id-1.4.17.2.35.4.2.1.4.3.1.2"/>
+    <keyword type="constant" name="NM_MPTCP_FLAGS_NONE" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.36.4.2.1.4.1.1.1id-1.4.17.2.36.4.2.1.4.1.1.2"/>
+    <keyword type="constant" name="NM_MPTCP_FLAGS_DISABLED" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.36.4.2.1.4.2.1.1id-1.4.17.2.36.4.2.1.4.2.1.2"/>
+    <keyword type="constant" name="NM_MPTCP_FLAGS_ENABLED_ON_GLOBAL_IFACE" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.36.4.2.1.4.3.1.1id-1.4.17.2.36.4.2.1.4.3.1.2"/>
+    <keyword type="constant" name="NM_MPTCP_FLAGS_ENABLED" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.36.4.2.1.4.4.1.1id-1.4.17.2.36.4.2.1.4.4.1.2"/>
+    <keyword type="constant" name="NM_MPTCP_FLAGS_SIGNAL" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.36.4.2.1.4.5.1.1id-1.4.17.2.36.4.2.1.4.5.1.2"/>
+    <keyword type="constant" name="NM_MPTCP_FLAGS_SUBFLOW" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.36.4.2.1.4.6.1.1id-1.4.17.2.36.4.2.1.4.6.1.2"/>
+    <keyword type="constant" name="NM_MPTCP_FLAGS_BACKUP" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.36.4.2.1.4.7.1.1id-1.4.17.2.36.4.2.1.4.7.1.2"/>
+    <keyword type="constant" name="NM_MPTCP_FLAGS_FULLMESH" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.36.4.2.1.4.8.1.1id-1.4.17.2.36.4.2.1.4.8.1.2"/>
     <keyword type="constant" name="NM_VPN_SERVICE_STATE_UNKNOWN" link="nm-vpn-dbus-types.htmlnm-vpn-dbus-types.html#id-1.6.3.2.3.4.2.1.4.1.1.1id-1.6.3.2.3.4.2.1.4.1.1.2"/>
     <keyword type="constant" name="NM_VPN_SERVICE_STATE_INIT" link="nm-vpn-dbus-types.htmlnm-vpn-dbus-types.html#id-1.6.3.2.3.4.2.1.4.2.1.1id-1.6.3.2.3.4.2.1.4.2.1.2"/>
     <keyword type="constant" name="NM_VPN_SERVICE_STATE_SHUTDOWN" link="nm-vpn-dbus-types.htmlnm-vpn-dbus-types.html#id-1.6.3.2.3.4.2.1.4.3.1.1id-1.6.3.2.3.4.2.1.4.3.1.2"/>

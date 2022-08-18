@@ -29,7 +29,9 @@
   </refsect1>
 <refsect1 role="desc" id="gdbus-interface-org-freedesktop-NetworkManager-Device-Vxlan">
   <title role="desc.title">Description</title>
-  <para></para>
+  <para>
+</para><para>
+</para>
 </refsect1>
 <refsect1 role="details" id="gdbus-properties-org.freedesktop.NetworkManager.Device.Vxlan">
   <title role="details.title">Property Details</title>
@@ -39,8 +41,9 @@
 <programlisting>
 Parent  readable   o
 </programlisting>
-<para>        The object path of the parent device (if the VXLAN is not purely internal
-        to this host).
+<para>
+The object path of the parent device (if the VXLAN is not purely internal
+to this host).
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-Vxlan.HwAddress">
@@ -49,9 +52,10 @@ Parent  readable   o
 <programlisting>
 HwAddress  readable   s
 </programlisting>
-<para>        Hardware address of the device.
+<para>
+Hardware address of the device.
 n
-        DEPRECATED. Use the "HwAddress" property in "org.freedesktop.NetworkManager.Device" instead which exists since version NetworkManager 1.24.0.
+DEPRECATED. Use the "HwAddress" property in "org.freedesktop.NetworkManager.Device" instead which exists since version NetworkManager 1.24.0.
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-Vxlan.Id">
@@ -60,7 +64,8 @@ n
 <programlisting>
 Id  readable   u
 </programlisting>
-<para>        The VXLAN Network Identifier (VNI).
+<para>
+The VXLAN Network Identifier (VNI).
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-Vxlan.Group">
@@ -69,8 +74,9 @@ Id  readable   u
 <programlisting>
 Group  readable   s
 </programlisting>
-<para>        The IP (v4 or v6) multicast group used to communicate with other physical
-        hosts on this VXLAN.
+<para>
+The IP (v4 or v6) multicast group used to communicate with other physical
+hosts on this VXLAN.
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-Vxlan.Local">
@@ -79,8 +85,9 @@ Group  readable   s
 <programlisting>
 Local  readable   s
 </programlisting>
-<para>        The local IPv4 or IPv6 address to use when sending VXLAN packets to other
-        physical hosts.
+<para>
+The local IPv4 or IPv6 address to use when sending VXLAN packets to other
+physical hosts.
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-Vxlan.Tos">
@@ -89,8 +96,9 @@ Local  readable   s
 <programlisting>
 Tos  readable   y
 </programlisting>
-<para>        The value to use in the IP ToS field for VXLAN packets sent to other
-        physical hosts.
+<para>
+The value to use in the IP ToS field for VXLAN packets sent to other
+physical hosts.
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-Vxlan.Ttl">
@@ -99,8 +107,9 @@ Tos  readable   y
 <programlisting>
 Ttl  readable   y
 </programlisting>
-<para>        The value to use in the IP TTL field for VXLAN packets sent to other
-        physical hosts.
+<para>
+The value to use in the IP TTL field for VXLAN packets sent to other
+physical hosts.
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-Vxlan.Learning">
@@ -109,7 +118,8 @@ Ttl  readable   y
 <programlisting>
 Learning  readable   b
 </programlisting>
-<para>        True if the VXLAN dynamically learns remote IP addresses.
+<para>
+True if the VXLAN dynamically learns remote IP addresses.
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-Vxlan.Ageing">
@@ -118,7 +128,8 @@ Learning  readable   b
 <programlisting>
 Ageing  readable   u
 </programlisting>
-<para>        The interval in seconds at which the kernel purges stale cached addresses.
+<para>
+The interval in seconds at which the kernel purges stale cached addresses.
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-Vxlan.Limit">
@@ -127,8 +138,9 @@ Ageing  readable   u
 <programlisting>
 Limit  readable   u
 </programlisting>
-<para>        The maximum number of entries that can be added to the VXLAN's forwarding
-        table.
+<para>
+The maximum number of entries that can be added to the VXLAN's forwarding
+table.
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-Vxlan.DstPort">
@@ -137,7 +149,8 @@ Limit  readable   u
 <programlisting>
 DstPort  readable   q
 </programlisting>
-<para>        Destination port for outgoing VXLAN packets.
+<para>
+Destination port for outgoing VXLAN packets.
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-Vxlan.SrcPortMin">
@@ -146,7 +159,8 @@ DstPort  readable   q
 <programlisting>
 SrcPortMin  readable   q
 </programlisting>
-<para>        The lowest source port number to use for outgoing VXLAN packets.
+<para>
+The lowest source port number to use for outgoing VXLAN packets.
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-Vxlan.SrcPortMax">
@@ -155,7 +169,8 @@ SrcPortMin  readable   q
 <programlisting>
 SrcPortMax  readable   q
 </programlisting>
-<para>        The highest source port number to use for outgoing VXLAN packets.
+<para>
+The highest source port number to use for outgoing VXLAN packets.
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-Vxlan.Proxy">
@@ -164,7 +179,8 @@ SrcPortMax  readable   q
 <programlisting>
 Proxy  readable   b
 </programlisting>
-<para>        True if the VXLAN is implementing DOVE ARP proxying for remote clients.
+<para>
+True if the VXLAN is implementing DOVE ARP proxying for remote clients.
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-Vxlan.Rsc">
@@ -173,8 +189,9 @@ Proxy  readable   b
 <programlisting>
 Rsc  readable   b
 </programlisting>
-<para>        True if the VXLAN is implementing DOVE route short-circuiting of known
-        remote IP addresses.
+<para>
+True if the VXLAN is implementing DOVE route short-circuiting of known
+remote IP addresses.
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-Vxlan.L2miss">
@@ -183,7 +200,8 @@ Rsc  readable   b
 <programlisting>
 L2miss  readable   b
 </programlisting>
-<para>        True if the VXLAN will emit netlink notifications of L2 switch misses.
+<para>
+True if the VXLAN will emit netlink notifications of L2 switch misses.
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-Vxlan.L3miss">
@@ -192,7 +210,8 @@ L2miss  readable   b
 <programlisting>
 L3miss  readable   b
 </programlisting>
-<para>        True if the VXLAN will emit netlink notifications of L3 switch misses.
+<para>
+True if the VXLAN will emit netlink notifications of L3 switch misses.
 </para>
 </refsect2>
 </refsect1>

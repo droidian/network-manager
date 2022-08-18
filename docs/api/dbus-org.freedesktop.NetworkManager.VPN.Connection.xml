@@ -21,7 +21,8 @@
   </refsect1>
 <refsect1 role="desc" id="gdbus-interface-org-freedesktop-NetworkManager-VPN-Connection">
   <title role="desc.title">Description</title>
-  <para>      Represents an active connection to a Virtual Private Network.
+  <para>
+Represents an active connection to a Virtual Private Network.
 </para>
 </refsect1>
 <refsect1 role="details" id="gdbus-signals-org.freedesktop.NetworkManager.VPN.Connection">
@@ -33,16 +34,21 @@
 VpnStateChanged (u state,
                  u reason);
 </programlisting>
-<para>        Emitted when the state of the VPN connection has changed.
+<para>
+Emitted when the state of the VPN connection has changed.
 </para>
 <variablelist role="params">
 <varlistentry>
   <term><literal>u <parameter>state</parameter></literal>:</term>
-  <listitem><para>(<link linkend="NMVpnConnectionState">NMVpnConnectionState</link>) The new state of the VPN connection.</para></listitem>
+  <listitem><para>
+(<link linkend="NMVpnConnectionState">NMVpnConnectionState</link>) The new state of the VPN connection.
+</para></listitem>
 </varlistentry>
 <varlistentry>
   <term><literal>u <parameter>reason</parameter></literal>:</term>
-  <listitem><para>(<link linkend="NMActiveConnectionStateReason">NMActiveConnectionStateReason</link>) Reason code describing the change to the new state.</para></listitem>
+  <listitem><para>
+(<link linkend="NMActiveConnectionStateReason">NMActiveConnectionStateReason</link>) Reason code describing the change to the new state.
+</para></listitem>
 </varlistentry>
 </variablelist>
 </refsect2>
@@ -55,8 +61,10 @@ VpnStateChanged (u state,
 <programlisting>
 VpnState  readable   u
 </programlisting>
-<para>        The VPN-specific state of the connection.
-</para><para>        Returns: <link linkend="NMVpnConnectionState">NMVpnConnectionState</link>
+<para>
+The VPN-specific state of the connection.
+</para><para>
+Returns: <link linkend="NMVpnConnectionState">NMVpnConnectionState</link>
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-VPN-Connection.Banner">
@@ -65,7 +73,8 @@ VpnState  readable   u
 <programlisting>
 Banner  readable   s
 </programlisting>
-<para>        The banner string of the VPN connection.
+<para>
+The banner string of the VPN connection.
 </para>
 </refsect2>
 </refsect1>

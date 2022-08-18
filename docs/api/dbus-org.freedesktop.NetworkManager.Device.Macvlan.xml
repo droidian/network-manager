@@ -16,7 +16,9 @@
   </refsect1>
 <refsect1 role="desc" id="gdbus-interface-org-freedesktop-NetworkManager-Device-Macvlan">
   <title role="desc.title">Description</title>
-  <para></para>
+  <para>
+</para><para>
+</para>
 </refsect1>
 <refsect1 role="details" id="gdbus-properties-org.freedesktop.NetworkManager.Device.Macvlan">
   <title role="details.title">Property Details</title>
@@ -26,7 +28,8 @@
 <programlisting>
 Parent  readable   o
 </programlisting>
-<para>        The object path of the parent device.
+<para>
+The object path of the parent device.
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-Macvlan.Mode">
@@ -35,7 +38,8 @@ Parent  readable   o
 <programlisting>
 Mode  readable   s
 </programlisting>
-<para>        The macvlan mode, one of "private", "vepa", "bridge", or "passthru".
+<para>
+The macvlan mode, one of "private", "vepa", "bridge", or "passthru".
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-Macvlan.NoPromisc">
@@ -44,7 +48,8 @@ Mode  readable   s
 <programlisting>
 NoPromisc  readable   b
 </programlisting>
-<para>        Whether the device is blocked from going into promiscuous mode.
+<para>
+Whether the device is blocked from going into promiscuous mode.
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-Macvlan.Tap">
@@ -53,7 +58,8 @@ NoPromisc  readable   b
 <programlisting>
 Tap  readable   b
 </programlisting>
-<para>        Whether the device is a macvtap.
+<para>
+Whether the device is a macvtap.
 </para>
 </refsect2>
 </refsect1>

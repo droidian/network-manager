@@ -18,7 +18,9 @@
   </refsynopsisdiv>
 <refsect1 role="desc" id="gdbus-interface-org-freedesktop-NetworkManager-PPP">
   <title role="desc.title">Description</title>
-  <para></para>
+  <para>
+</para><para>
+</para>
 </refsect1>
 <refsect1 role="details" id="gdbus-methods-org.freedesktop.NetworkManager.PPP">
   <title role="details.title">Method Details</title>
@@ -29,15 +31,21 @@
 NeedSecrets (OUT s username,
              OUT s password);
 </programlisting>
-<para></para>
+<para>
+</para><para>
+</para>
 <variablelist role="params">
 <varlistentry>
   <term><literal>OUT s <parameter>username</parameter></literal>:</term>
-  <listitem><para></para></listitem>
+  <listitem><para>
+</para><para>
+</para></listitem>
 </varlistentry>
 <varlistentry>
   <term><literal>OUT s <parameter>password</parameter></literal>:</term>
-  <listitem><para></para></listitem>
+  <listitem><para>
+</para><para>
+</para></listitem>
 </varlistentry>
 </variablelist>
 </refsect2>
@@ -47,11 +55,15 @@ NeedSecrets (OUT s username,
 <programlisting>
 SetIp4Config (IN  a{sv} config);
 </programlisting>
-<para></para>
+<para>
+</para><para>
+</para>
 <variablelist role="params">
 <varlistentry>
   <term><literal>IN a{sv} <parameter>config</parameter></literal>:</term>
-  <listitem><para></para></listitem>
+  <listitem><para>
+</para><para>
+</para></listitem>
 </varlistentry>
 </variablelist>
 </refsect2>
@@ -61,11 +73,15 @@ SetIp4Config (IN  a{sv} config);
 <programlisting>
 SetIp6Config (IN  a{sv} config);
 </programlisting>
-<para></para>
+<para>
+</para><para>
+</para>
 <variablelist role="params">
 <varlistentry>
   <term><literal>IN a{sv} <parameter>config</parameter></literal>:</term>
-  <listitem><para></para></listitem>
+  <listitem><para>
+</para><para>
+</para></listitem>
 </varlistentry>
 </variablelist>
 </refsect2>
@@ -75,11 +91,15 @@ SetIp6Config (IN  a{sv} config);
 <programlisting>
 SetState (IN  u state);
 </programlisting>
-<para></para>
+<para>
+</para><para>
+</para>
 <variablelist role="params">
 <varlistentry>
   <term><literal>IN u <parameter>state</parameter></literal>:</term>
-  <listitem><para></para></listitem>
+  <listitem><para>
+</para><para>
+</para></listitem>
 </varlistentry>
 </variablelist>
 </refsect2>
@@ -89,11 +109,15 @@ SetState (IN  u state);
 <programlisting>
 SetIfindex (IN  i ifindex);
 </programlisting>
-<para></para>
+<para>
+</para><para>
+</para>
 <variablelist role="params">
 <varlistentry>
   <term><literal>IN i <parameter>ifindex</parameter></literal>:</term>
-  <listitem><para></para></listitem>
+  <listitem><para>
+</para><para>
+</para></listitem>
 </varlistentry>
 </variablelist>
 </refsect2>

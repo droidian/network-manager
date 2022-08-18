@@ -8,14 +8,16 @@
 <link rel="up" href="ch04.html" title="Device and Runtime Configuration API Reference">
 <link rel="prev" href="NMDeviceTun.html" title="NMDeviceTun">
 <link rel="next" href="NMDeviceVlan.html" title="NMDeviceVlan">
-<meta name="generator" content="GTK-Doc V1.33.0 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
 <table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
 <td width="100%" align="left" class="shortcuts">
 <a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
-                  <a href="#NMDeviceVeth.description" class="shortcut">Description</a></span>
+                  <a href="#NMDeviceVeth.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
+                  <a href="#NMDeviceVeth.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_properties">  <span class="dim">|</span> 
+                  <a href="#NMDeviceVeth.properties" class="shortcut">Properties</a></span>
 </td>
 <td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
 <td><a accesskey="u" href="ch04.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
@@ -49,17 +51,48 @@
 </table></div>
 </div>
 <div class="refsect1">
+<a name="NMDeviceVeth.properties"></a><h2>Properties</h2>
+<div class="informaltable"><table class="informaltable" border="0">
+<colgroup>
+<col width="150px" class="properties_type">
+<col width="300px" class="properties_name">
+<col width="200px" class="properties_flags">
+</colgroup>
+<tbody><tr>
+<td class="property_type">
+<a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a> *</td>
+<td class="property_name"><a class="link" href="NMDeviceVeth.html#NMDeviceVeth--peer" title="The “peer” property">peer</a></td>
+<td class="property_flags">Read</td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect1">
 <a name="NMDeviceVeth.other"></a><h2>Types and Values</h2>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="other_proto_type">
 <col class="other_proto_name">
 </colgroup>
-<tbody><tr>
+<tbody>
+<tr>
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMDeviceVeth.html#NM-DEVICE-VETH-PEER:CAPS" title="NM_DEVICE_VETH_PEER">NM_DEVICE_VETH_PEER</a></td>
-</tr></tbody>
+</tr>
+<tr>
+<td class="datatype_keyword"> </td>
+<td class="function_name"><a class="link" href="NMDeviceVeth.html#NMDeviceVeth-struct" title="NMDeviceVeth">NMDeviceVeth</a></td>
+</tr>
+</tbody>
 </table></div>
+</div>
+<div class="refsect1">
+<a name="NMDeviceVeth.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="screen">    <a href="https://developer.gnome.org/gobject/unstable/gobject-The-Base-Object-Type.html#GObject-struct">GObject</a>
+    <span class="lineart">╰──</span> <a class="link" href="NMObject.html" title="NMObject">NMObject</a>
+        <span class="lineart">╰──</span> <a class="link" href="NMDevice.html" title="NMDevice">NMDevice</a>
+            <span class="lineart">╰──</span> <a class="link" href="NMDeviceEthernet.html" title="NMDeviceEthernet">NMDeviceEthernet</a>
+                <span class="lineart">╰──</span> NMDeviceVeth
+</pre>
 </div>
 <div class="refsect1">
 <a name="NMDeviceVeth.description"></a><h2>Description</h2>
@@ -88,7 +121,7 @@ nm_device_veth_get_peer (<em class="parameter"><code><a class="link" href="NMDev
 <div class="refsect3">
 <a name="nm-device-veth-get-peer.returns"></a><h4>Returns</h4>
 <p>the device's peer device. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.30</p>
 </div>
@@ -100,9 +133,25 @@ nm_device_veth_get_peer (<em class="parameter"><code><a class="link" href="NMDev
 <pre class="programlisting">#define NM_DEVICE_VETH_PEER "peer"
 </pre>
 </div>
+<hr>
+<div class="refsect2">
+<a name="NMDeviceVeth-struct"></a><h3>NMDeviceVeth</h3>
+<pre class="programlisting">typedef struct _NMDeviceVeth NMDeviceVeth;</pre>
+</div>
+</div>
+<div class="refsect1">
+<a name="NMDeviceVeth.property-details"></a><h2>Property Details</h2>
+<div class="refsect2">
+<a name="NMDeviceVeth--peer"></a><h3>The <code class="literal">“peer”</code> property</h3>
+<pre class="programlisting">  “peer”                     <a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a> *</pre>
+<p>The device's peer device.</p>
+<p>Owner: NMDeviceVeth</p>
+<p>Flags: Read</p>
+<p class="since">Since: 1.30</p>
+</div>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.33.0</div>
+<hr>Generated by GTK-Doc V1.33.1</div>
 </body>
 </html>

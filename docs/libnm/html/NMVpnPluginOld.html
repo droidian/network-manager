@@ -8,7 +8,7 @@
 <link rel="up" href="ch06.html" title="VPN Plugin API Reference">
 <link rel="prev" href="NMVpnEditorPlugin.html" title="NMVpnEditorPlugin">
 <link rel="next" href="object-tree.html" title="Object Hierarchy">
-<meta name="generator" content="GTK-Doc V1.33.0 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -53,7 +53,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<a href="/usr/share/gtk-doc/html/NetworkManager/nm-vpn-dbus-types.html#NMVpnServiceState"><span class="returnvalue">NMVpnServiceState</span></a>
+<span class="returnvalue">NMVpnServiceState</span>
 </td>
 <td class="function_name">
 <a class="link" href="NMVpnPluginOld.html#nm-vpn-plugin-old-get-state" title="nm_vpn_plugin_old_get_state ()">nm_vpn_plugin_old_get_state</a> <span class="c_punctuation">()</span>
@@ -158,7 +158,7 @@
 <td class="property_flags">Read / Write / Construct Only</td>
 </tr>
 <tr>
-<td class="property_type"><a href="/usr/share/gtk-doc/html/NetworkManager/nm-vpn-dbus-types.html#NMVpnServiceState"><span class="type">NMVpnServiceState</span></a></td>
+<td class="property_type"><span class="type">NMVpnServiceState</span></td>
 <td class="property_name"><a class="link" href="NMVpnPluginOld.html#NMVpnPluginOld--state" title="The “state” property">state</a></td>
 <td class="property_flags">Read / Write</td>
 </tr>
@@ -268,13 +268,13 @@ nm_vpn_plugin_old_get_connection (<em class="parameter"><code><a class="link" hr
 <div class="refsect3">
 <a name="nm-vpn-plugin-old-get-connection.returns"></a><h4>Returns</h4>
 <p>. </p>
-<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
 <div class="refsect2">
 <a name="nm-vpn-plugin-old-get-state"></a><h3>nm_vpn_plugin_old_get_state ()</h3>
-<pre class="programlisting"><a href="/usr/share/gtk-doc/html/NetworkManager/nm-vpn-dbus-types.html#NMVpnServiceState"><span class="returnvalue">NMVpnServiceState</span></a>
+<pre class="programlisting"><span class="returnvalue">NMVpnServiceState</span>
 nm_vpn_plugin_old_get_state (<em class="parameter"><code><a class="link" href="NMVpnPluginOld.html" title="NMVpnPluginOld"><span class="type">NMVpnPluginOld</span></a> *plugin</code></em>);</pre>
 <div class="warning">
 <p><code class="literal">nm_vpn_plugin_old_get_state</code> has been deprecated since version 1.2 and should not be used in newly-written code.</p>
@@ -286,7 +286,7 @@ nm_vpn_plugin_old_get_state (<em class="parameter"><code><a class="link" href="N
 <a name="nm-vpn-plugin-old-set-state"></a><h3>nm_vpn_plugin_old_set_state ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>
 nm_vpn_plugin_old_set_state (<em class="parameter"><code><a class="link" href="NMVpnPluginOld.html" title="NMVpnPluginOld"><span class="type">NMVpnPluginOld</span></a> *plugin</code></em>,
-                             <em class="parameter"><code><a href="/usr/share/gtk-doc/html/NetworkManager/nm-vpn-dbus-types.html#NMVpnServiceState"><span class="type">NMVpnServiceState</span></a> state</code></em>);</pre>
+                             <em class="parameter"><code><span class="type">NMVpnServiceState</span> state</code></em>);</pre>
 <div class="warning">
 <p><code class="literal">nm_vpn_plugin_old_set_state</code> has been deprecated since version 1.2 and should not be used in newly-written code.</p>
 <p>Replaced by NMVpnServicePlugin.</p>
@@ -352,7 +352,7 @@ nm_vpn_plugin_old_set_login_banner (<em class="parameter"><code><a class="link" 
 <a name="nm-vpn-plugin-old-failure"></a><h3>nm_vpn_plugin_old_failure ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>
 nm_vpn_plugin_old_failure (<em class="parameter"><code><a class="link" href="NMVpnPluginOld.html" title="NMVpnPluginOld"><span class="type">NMVpnPluginOld</span></a> *plugin</code></em>,
-                           <em class="parameter"><code><a href="/usr/share/gtk-doc/html/NetworkManager/nm-vpn-dbus-types.html#NMVpnPluginFailure"><span class="type">NMVpnPluginFailure</span></a> reason</code></em>);</pre>
+                           <em class="parameter"><code><span class="type">NMVpnPluginFailure</span> reason</code></em>);</pre>
 <div class="warning">
 <p><code class="literal">nm_vpn_plugin_old_failure</code> has been deprecated since version 1.2 and should not be used in newly-written code.</p>
 <p>Replaced by NMVpnServicePlugin.</p>
@@ -433,13 +433,13 @@ an applet when the applet calls the authentication dialog of the VPN plugin.</p>
 <td class="parameter_name"><p>out_data</p></td>
 <td class="parameter_description"><p>on successful return, a hash table
 (mapping char*:char*) containing the key/value pairs of VPN data items. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>][<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>][<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></td>
 </tr>
 <tr>
 <td class="parameter_name"><p>out_secrets</p></td>
 <td class="parameter_description"><p>on successful return, a hash table
 (mapping char*:char*) containing the key/value pairsof VPN secrets. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>][<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>][<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></td>
 </tr>
 </tbody>
 </table></div>
@@ -516,7 +516,6 @@ to flags, <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macro
 <div class="refsect2">
 <a name="NMVpnPluginOld-struct"></a><h3>NMVpnPluginOld</h3>
 <pre class="programlisting">typedef struct _NMVpnPluginOld NMVpnPluginOld;</pre>
-<div class="warning"><p><code class="literal">NMVpnPluginOld</code> is deprecated and should not be used in newly-written code.</p></div>
 </div>
 </div>
 <div class="refsect1">
@@ -536,7 +535,7 @@ to flags, <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macro
 <hr>
 <div class="refsect2">
 <a name="NMVpnPluginOld--state"></a><h3>The <code class="literal">“state”</code> property</h3>
-<pre class="programlisting">  “state”                    <a href="/usr/share/gtk-doc/html/NetworkManager/nm-vpn-dbus-types.html#NMVpnServiceState"><span class="type">NMVpnServiceState</span></a></pre>
+<pre class="programlisting">  “state”                    <span class="type">NMVpnServiceState</span></pre>
 <p>The state of the plugin.</p>
 <div class="warning">
 <p><code class="literal">NMVpnPluginOld:state</code> has been deprecated since version 1.2 and should not be used in newly-written code.</p>
@@ -623,6 +622,6 @@ user_function (<a class="link" href="NMVpnPluginOld.html" title="NMVpnPluginOld"
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.33.0</div>
+<hr>Generated by GTK-Doc V1.33.1</div>
 </body>
 </html>

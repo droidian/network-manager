@@ -38,6 +38,8 @@ G_BEGIN_DECLS
 
 #define NM_SETTING_IP6_CONFIG_RA_TIMEOUT "ra-timeout"
 
+#define NM_SETTING_IP6_CONFIG_MTU "mtu"
+
 /**
  * NM_SETTING_IP6_CONFIG_METHOD_IGNORE:
  *
@@ -128,6 +130,10 @@ typedef enum {
  * is created by using a cryptographically secure hash of a secret host-specific
  * key along with the connection identification and the network address as
  * specified by RFC7217.
+ * @NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_DEFAULT_OR_EUI64: Fallback to the global
+ *   default, and if unspecified use "eui64". Since: 1.40.
+ * @NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_DEFAULT: Fallback to the global
+ *   default, and if unspecified use "stable-privacy". Since: 1.40.
  *
  * #NMSettingIP6ConfigAddrGenMode controls how the Interface Identifier for
  * RFC4862 Stateless Address Autoconfiguration is created.
@@ -135,8 +141,10 @@ typedef enum {
  * Since: 1.2
  */
 typedef enum {
-    NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_EUI64          = 0,
-    NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_STABLE_PRIVACY = 1,
+    NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_EUI64            = 0,
+    NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_STABLE_PRIVACY   = 1,
+    NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_DEFAULT_OR_EUI64 = 2,
+    NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_DEFAULT          = 3,
 } NMSettingIP6ConfigAddrGenMode;
 
 typedef struct _NMSettingIP6ConfigClass NMSettingIP6ConfigClass;
@@ -154,6 +162,8 @@ NM_AVAILABLE_IN_1_12
 const char *nm_setting_ip6_config_get_dhcp_duid(NMSettingIP6Config *setting);
 NM_AVAILABLE_IN_1_24
 gint32 nm_setting_ip6_config_get_ra_timeout(NMSettingIP6Config *setting);
+NM_AVAILABLE_IN_1_40
+guint32 nm_setting_ip6_config_get_mtu(NMSettingIP6Config *setting);
 
 G_END_DECLS
 

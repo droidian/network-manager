@@ -2,12 +2,12 @@
 .\"     Title: nmcli-examples
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 06/16/2022
+.\"      Date: 08/15/2022
 .\"    Manual: Examples
-.\"    Source: NetworkManager 1.38.2
+.\"    Source: NetworkManager 1.39.90
 .\"  Language: English
 .\"
-.TH "NMCLI\-EXAMPLES" "7" "" "NetworkManager 1\&.38\&.2" "Examples"
+.TH "NMCLI\-EXAMPLES" "7" "" "NetworkManager 1\&.39\&.90" "Examples"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -747,6 +747,79 @@ Finally, you can create a bluetooth hotspot\&. BlueZ implements those as a bridg
 .\}
 .nf
 $ \fBnmcli connection add type bluetooth con\-name "My Bluetooth Hotspot" autoconnect no ifname btnap0 bluetooth\&.type nap ipv4\&.method shared ipv6\&.method shared\fR
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+\fBExample\ \&18.\ \&Offline use\fR
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+$ \fBnmcli \-\-offline con add type ethernet \*(Aq
+  conn\&.id eth0 \e
+  conn\&.interface\-name eth0 \e
+  >/sysroot/etc/NetworkManager/system\-connections/eth0\&.nmconnection\fR
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+Creates a connection file in keyfile format without using the NetworkManager service\&. This allows for use of familiar
+\fBnmcli\fR
+syntax in situations where the service is not running, such as during system installation of image provisioning and ensures the resulting file is correctly formatted\&.
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+$ \fBnmcli \-\-offline con modify type ethernet \*(Aq
+  conn\&.id eth0\-ipv6 \e
+  ipv4\&.method disabled \e
+  </sysroot/etc/NetworkManager/system\-connections/eth0\&.nmconnection \e
+  >/sysroot/etc/NetworkManager/system\-connections/eth0\-ipv6\&.nmconnection\fR
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+Read and write a connection file without using the NetworkManager service, modifying some properties along the way\&.
+.PP
+This allows templating of the connection profiles using familiar
+\fBnmcli\fR
+syntax in situations where the service is not running\&.
+.PP
+\fBExample\ \&19.\ \&Device Checkpoint and Restore\fR
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+$ \fBnmcli dev checkpoint eth0 \-\- nmcli dev dis eth0\fR
+Device \*(Aqeth0\*(Aq successfully disconnected\&.
+Type "Yes" to commit the changes: No
+Checkpoint was removed\&.
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+In this example the device eth0 was disconnected with the eth0 checkpoint taken\&. The user didn\*(Aqt confirm that the change is good, so the eth0 was brought back to the state it was when the checkpoint was taken\&.
+.PP
+If the command being run unintentionaly brings down the remote connection (such as a
+\fBssh\fR(1)
+session) to the very machine it\*(Aqs being run on, the user wouldn\*(Aqt be able to confirm the success and the connectivity would end up being restored after a timeout\&.
+.PP
+If, on the other hand, the command results in a success, the user could just confirm, causing the checkpoint to be abandoned without a rollback:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+$ \fBnmcli dev checkpoint \-\- ip link del br0\fR
+Type "Yes" to commit the changes: \fBYes\fR
 .fi
 .if n \{\
 .RE

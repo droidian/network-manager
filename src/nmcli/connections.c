@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 /*
- * Copyright (C) 2010 - 2018 Red Hat, Inc.
+ * Copyright (C) 2010 - 2022 Red Hat, Inc.
  */
 
 #include "libnm-client-aux-extern/nm-default-client.h"
@@ -18,6 +18,7 @@
 #include <readline/history.h>
 #endif
 #include <fcntl.h>
+#include <gio/gunixoutputstream.h>
 
 #include "libnm-glib-aux/nm-dbus-aux.h"
 #include "libnmc-base/nm-client-utils.h"
@@ -51,6 +52,7 @@ typedef struct _OptionInfo {
                               NMConnection             *connection,
                               const struct _OptionInfo *option,
                               const char               *value,
+                              gboolean                  allow_reset,
                               GError                  **error);
     CompEntryFunc generator_func;
 } OptionInfo;
@@ -134,6 +136,131 @@ NM_AUTO_DEFINE_FCN(AddConnectionInfo *,
                    _add_connection_info_free);
 
 #define nm_auto_free_add_connection_info nm_auto(_nm_auto_free_add_connection_info)
+
+/*****************************************************************************/
+
+static guint progress_id = 0; /* ID of event source for displaying progress */
+
+static void
+quit(void)
+{
+    if (nm_clear_g_source(&progress_id))
+        nmc_terminal_erase_line();
+    g_main_loop_quit(loop);
+}
+
+typedef struct {
+    char  *data;
+    gsize  written;
+    gsize  length;
+    NmCli *nmc;
+} PrintConnData;
+
+static void print_connection_chunk(GOutputStream *stream, PrintConnData *print_conn_data);
+
+static void
+print_connection_done(GObject *source_object, GAsyncResult *res, gpointer user_data)
+{
+    GOutputStream *stream          = G_OUTPUT_STREAM(source_object);
+    PrintConnData *print_conn_data = user_data;
+    NmCli         *nmc             = print_conn_data->nmc;
+    GError        *error           = NULL;
+    gssize         written;
+
+    written = g_output_stream_write_finish(stream, res, &error);
+    if (written == -1) {
+        g_string_printf(nmc->return_text,
+                        _("Error: Error writting connection: %s"),
+                        error->message);
+        nmc->return_value = NMC_RESULT_ERROR_UNKNOWN;
+        nmc->should_wait--;
+        quit();
+        return;
+    }
+
+    print_conn_data->written += written;
+    if (print_conn_data->written != print_conn_data->length) {
+        g_return_if_fail(written);
+        g_return_if_fail(print_conn_data->written < print_conn_data->length);
+
+        print_connection_chunk(stream, print_conn_data);
+        return;
+    }
+
+    g_free(print_conn_data->data);
+    g_slice_free(PrintConnData, print_conn_data);
+
+    nmc->should_wait--;
+    quit();
+}
+
+static void
+print_connection_chunk(GOutputStream *stream, PrintConnData *print_conn_data)
+{
+    g_output_stream_write_async(stream,
+                                print_conn_data->data + print_conn_data->written,
+                                print_conn_data->length - print_conn_data->written,
+                                G_PRIORITY_DEFAULT,
+                                NULL,
+                                print_connection_done,
+                                print_conn_data);
+}
+
+static void
+nmc_print_connection_and_quit(NmCli *nmc, NMConnection *connection)
+{
+    gs_free_error GError           *error   = NULL;
+    nm_auto_unref_keyfile GKeyFile *keyfile = NULL;
+    gs_unref_object GOutputStream  *stream  = NULL;
+    PrintConnData                  *print_conn_data;
+
+    if (!nm_connection_normalize(connection, NULL, NULL, &error))
+        goto error;
+
+    keyfile = nm_keyfile_write(connection, NM_KEYFILE_HANDLER_FLAGS_NONE, NULL, NULL, &error);
+    if (!keyfile)
+        goto error;
+
+    stream                   = g_unix_output_stream_new(STDOUT_FILENO, FALSE);
+    print_conn_data          = g_slice_new(PrintConnData);
+    print_conn_data->data    = g_key_file_to_data(keyfile, &print_conn_data->length, NULL);
+    print_conn_data->written = 0;
+    print_conn_data->nmc     = nmc;
+    print_connection_chunk(stream, print_conn_data);
+    return;
+
+error:
+    g_string_printf(nmc->return_text, _("Error: Error writting connection: %s"), error->message);
+    nmc->return_value = NMC_RESULT_ERROR_UNKNOWN;
+    nmc->should_wait--;
+    quit();
+}
+
+static const GPtrArray *
+nmc_get_connections(const NmCli *nmc)
+{
+    if (nmc->offline) {
+        g_return_val_if_fail(!nmc->client, nmc->offline_connections);
+        return nmc->offline_connections;
+    } else {
+        g_return_val_if_fail(nmc->client, NULL);
+        return nm_client_get_connections(nmc->client);
+    }
+}
+
+static const GPtrArray *
+nmc_get_active_connections(const NmCli *nmc)
+{
+    static const GPtrArray offline_active_connections = {.len = 0};
+
+    if (nmc->offline) {
+        g_return_val_if_fail(!nmc->client, &offline_active_connections);
+        return &offline_active_connections;
+    } else {
+        g_return_val_if_fail(nmc->client, &offline_active_connections);
+        return nm_client_get_active_connections(nmc->client);
+    }
+}
 
 /*****************************************************************************/
 
@@ -942,8 +1069,6 @@ const NmcMetaGenericInfo *const nmc_fields_con_active_details_groups[] = {
 #define CON_SHOW_DETAIL_GROUP_PROFILE "profile"
 #define CON_SHOW_DETAIL_GROUP_ACTIVE  "active"
 
-static guint progress_id = 0; /* ID of event source for displaying progress */
-
 /* for readline TAB completion in editor */
 typedef struct {
     NmCli        *nmc;
@@ -1303,14 +1428,6 @@ usage_connection_migrate(void)
                  "\n"
                  "Migrate connection profiles to a different settings plugin,\n"
                  "such as \"keyfile\" (default) or \"ifcfg-rh\".\n\n"));
-}
-
-static void
-quit(void)
-{
-    if (nm_clear_g_source(&progress_id))
-        nmc_terminal_erase_line();
-    g_main_loop_quit(loop);
 }
 
 static char *
@@ -1952,7 +2069,7 @@ con_show_get_items(NmCli *nmc, gboolean active_only, gboolean show_active_fields
 
     row_hash = g_hash_table_new(nm_direct_hash, NULL);
 
-    arr = nm_client_get_connections(nmc->client);
+    arr = nmc_get_connections(nmc);
     for (i = 0; i < arr->len; i++) {
         /* Note: libnm will not expose connection that are invisible
          * to the user but currently inactive.
@@ -1971,7 +2088,7 @@ con_show_get_items(NmCli *nmc, gboolean active_only, gboolean show_active_fields
                             _metagen_con_show_row_data_new_for_connection(c, show_active_fields));
     }
 
-    arr = nm_client_get_active_connections(nmc->client);
+    arr = nmc_get_active_connections(nmc);
     for (i = 0; i < arr->len; i++) {
         NMActiveConnection *ac = arr->pdata[i];
 
@@ -2119,6 +2236,11 @@ get_connection(NmCli              *nmc,
     NM_SET_OUT(out_selector, NULL);
     NM_SET_OUT(out_value, NULL);
 
+    if (nmc->offline_connections && nmc->offline_connections->len)
+        return nmc->offline_connections->pdata[0];
+
+    g_return_val_if_fail(!nmc->offline, NULL);
+
     if (*argc == 0) {
         g_set_error_literal(error,
                             NMCLI_ERROR,
@@ -2259,7 +2381,7 @@ do_connections_show(const NMCCommand *cmd, NmCli *nmc, int argc, const char *con
     } else {
         gboolean         new_line       = FALSE;
         gboolean         without_fields = (nmc->required_fields == NULL);
-        const GPtrArray *active_cons    = nm_client_get_active_connections(nmc->client);
+        const GPtrArray *active_cons    = nmc_get_active_connections(nmc);
 
         /* multiline mode is default for 'connection show <ID>' */
         if (!nmc->mode_specified)
@@ -2315,7 +2437,7 @@ do_connections_show(const NMCCommand *cmd, NmCli *nmc, int argc, const char *con
             }
 
             /* Try to find connection by id, uuid or path first */
-            connections = nm_client_get_connections(nmc->client);
+            connections = nmc_get_connections(nmc);
             con         = nmc_find_connection(connections,
                                       selector,
                                       *argv,
@@ -2452,7 +2574,7 @@ get_default_active_connection(NmCli *nmc, NMDevice **device)
     g_return_val_if_fail(device, NULL);
     g_return_val_if_fail(*device == NULL, NULL);
 
-    connections = nm_client_get_active_connections(nmc->client);
+    connections = nmc_get_active_connections(nmc);
     for (i = 0; i < connections->len; i++) {
         NMActiveConnection *candidate = g_ptr_array_index(connections, i);
         const GPtrArray    *devices;
@@ -3276,7 +3398,7 @@ do_connection_down(const NMCCommand *cmd, NmCli *nmc, int argc, const char *cons
     }
 
     /* Get active connections */
-    active_cons = nm_client_get_active_connections(nmc->client);
+    active_cons = nmc_get_active_connections(nmc);
     while (arg_num > 0) {
         const char *selector = NULL;
 
@@ -3926,7 +4048,7 @@ set_default_interface_name(NmCli *nmc, NMSettingConnection *s_con)
         const GPtrArray *connections;
         gs_free char    *ifname = NULL;
 
-        connections = nm_client_get_connections(nmc->client);
+        connections = nmc_get_connections(nmc);
         ifname      = unique_master_iface_ifname(connections, default_name);
         g_object_set(s_con, NM_SETTING_CONNECTION_INTERFACE_NAME, ifname, NULL);
     }
@@ -4052,11 +4174,14 @@ enable_options(const char *setting_name, const char *property, const char *const
         for (i = 0; i < nm_meta_property_typ_data_bond.nested_len; i++) {
             const NMMetaNestedPropertyInfo *bi = &nm_meta_property_typ_data_bond.nested[i];
 
-            if (bi->base.inf_flags & NM_META_PROPERTY_INF_FLAG_DONT_ASK && bi->base.property_alias
-                && g_strv_contains(opts, bi->base.property_alias))
-                _dynamic_options_set((const NMMetaAbstractInfo *) bi,
-                                     PROPERTY_INF_FLAG_ENABLED,
-                                     PROPERTY_INF_FLAG_ENABLED);
+            if (opts) {
+                if (!bi->base.property_alias || !g_strv_contains(opts, bi->base.property_alias))
+                    continue;
+            }
+
+            _dynamic_options_set((const NMMetaAbstractInfo *) bi,
+                                 PROPERTY_INF_FLAG_ENABLED | PROPERTY_INF_FLAG_DISABLED,
+                                 PROPERTY_INF_FLAG_ENABLED);
         }
         return;
     }
@@ -4064,11 +4189,14 @@ enable_options(const char *setting_name, const char *property, const char *const
     if (!property_info->is_cli_option)
         g_return_if_reached();
 
-    if (property_info->inf_flags & NM_META_PROPERTY_INF_FLAG_DONT_ASK
-        && property_info->property_alias && g_strv_contains(opts, property_info->property_alias))
-        _dynamic_options_set((const NMMetaAbstractInfo *) property_info,
-                             PROPERTY_INF_FLAG_ENABLED,
-                             PROPERTY_INF_FLAG_ENABLED);
+    if (opts) {
+        if (!property_info->property_alias || !g_strv_contains(opts, property_info->property_alias))
+            return;
+    }
+
+    _dynamic_options_set((const NMMetaAbstractInfo *) property_info,
+                         PROPERTY_INF_FLAG_ENABLED | PROPERTY_INF_FLAG_DISABLED,
+                         PROPERTY_INF_FLAG_ENABLED);
 }
 
 /*
@@ -4254,7 +4382,7 @@ set_option(NmCli                    *nmc,
                        NULL,
                        NULL);
     if (option && option->check_and_set) {
-        return option->check_and_set(nmc, connection, option, value, error);
+        return option->check_and_set(nmc, connection, option, value, allow_reset, error);
     } else if (value || allow_reset) {
         return set_property(nmc->client,
                             connection,
@@ -4381,20 +4509,62 @@ gen_func_bond_lacp_rate(const char *text, int state)
 /*****************************************************************************/
 
 static gboolean
+enable_type_settings_and_options(NmCli *nmc, NMConnection *con, GError **error)
+{
+    const NMMetaSettingValidPartItem *const *type_settings;
+    const NMMetaSettingValidPartItem *const *slv_settings;
+    NMSettingConnection                     *s_con;
+
+    s_con = nm_connection_get_setting_connection(con);
+    g_return_val_if_fail(s_con, FALSE);
+
+    if (nm_setting_connection_get_slave_type(s_con))
+        enable_options(NM_SETTING_CONNECTION_SETTING_NAME, NM_SETTING_CONNECTION_MASTER, NULL);
+
+    if (NM_IN_STRSET(nm_setting_connection_get_connection_type(s_con),
+                     NM_SETTING_BLUETOOTH_SETTING_NAME,
+                     NM_SETTING_BOND_SETTING_NAME,
+                     NM_SETTING_BRIDGE_SETTING_NAME,
+                     NM_SETTING_DUMMY_SETTING_NAME,
+                     NM_SETTING_OVS_BRIDGE_SETTING_NAME,
+                     NM_SETTING_OVS_PATCH_SETTING_NAME,
+                     NM_SETTING_OVS_PORT_SETTING_NAME,
+                     NM_SETTING_TEAM_SETTING_NAME,
+                     NM_SETTING_VETH_SETTING_NAME,
+                     NM_SETTING_VRF_SETTING_NAME,
+                     NM_SETTING_WIREGUARD_SETTING_NAME)) {
+        enable_options(NM_SETTING_CONNECTION_SETTING_NAME,
+                       NM_SETTING_CONNECTION_INTERFACE_NAME,
+                       NULL);
+    }
+
+    if (!con_settings(con, &type_settings, &slv_settings, error))
+        return FALSE;
+
+    ensure_settings(con, slv_settings);
+    ensure_settings(con, type_settings);
+
+    /* For some software connection types we generate the interface name for the user. */
+    set_default_interface_name(nmc, s_con);
+
+    return TRUE;
+}
+
+static gboolean
 set_connection_type(NmCli            *nmc,
                     NMConnection     *con,
                     const OptionInfo *option,
                     const char       *value,
+                    gboolean          allow_reset,
                     GError          **error)
 {
-    const NMMetaSettingValidPartItem *const *type_settings;
-    const NMMetaSettingValidPartItem *const *slv_settings;
-    GError                                  *local      = NULL;
-    const char                              *master[]   = {"master", NULL};
-    const char                              *slave_type = NULL;
+    GError     *local      = NULL;
+    const char *slave_type = NULL;
 
     value = check_valid_name_toplevel(value, &slave_type, &local);
     if (!value) {
+        if (!allow_reset)
+            return TRUE;
         g_set_error(error,
                     NMCLI_ERROR,
                     NMC_RESULT_ERROR_USER_INPUT,
@@ -4414,16 +4584,6 @@ set_connection_type(NmCli            *nmc,
                           error)) {
             return FALSE;
         }
-        enable_options(NM_SETTING_CONNECTION_SETTING_NAME, NM_SETTING_CONNECTION_MASTER, master);
-    }
-
-    /* ifname is mandatory for all connection types except virtual ones (bond, team, bridge, vlan) */
-    if (NM_IN_STRSET(value,
-                     NM_SETTING_BOND_SETTING_NAME,
-                     NM_SETTING_TEAM_SETTING_NAME,
-                     NM_SETTING_BRIDGE_SETTING_NAME,
-                     NM_SETTING_VLAN_SETTING_NAME)) {
-        disable_options(NM_SETTING_CONNECTION_SETTING_NAME, NM_SETTING_CONNECTION_INTERFACE_NAME);
     }
 
     if (!set_property(nmc->client,
@@ -4435,13 +4595,7 @@ set_connection_type(NmCli            *nmc,
                       error))
         return FALSE;
 
-    if (!con_settings(con, &type_settings, &slv_settings, error))
-        return FALSE;
-
-    ensure_settings(con, slv_settings);
-    ensure_settings(con, type_settings);
-
-    return TRUE;
+    return enable_type_settings_and_options(nmc, con, error);
 }
 
 static gboolean
@@ -4449,12 +4603,15 @@ set_connection_iface(NmCli            *nmc,
                      NMConnection     *con,
                      const OptionInfo *option,
                      const char       *value,
+                     gboolean          allow_reset,
                      GError          **error)
 {
     if (value) {
         /* Special value of '*' means no specific interface name */
         if (nm_streq(value, "*"))
             value = NULL;
+    } else if (!allow_reset) {
+        return TRUE;
     }
 
     return set_property(nmc->client,
@@ -4471,6 +4628,7 @@ set_connection_master(NmCli            *nmc,
                       NMConnection     *con,
                       const OptionInfo *option,
                       const char       *value,
+                      gboolean          allow_reset,
                       GError          **error)
 {
     const GPtrArray     *connections;
@@ -4481,6 +4639,8 @@ set_connection_master(NmCli            *nmc,
     g_return_val_if_fail(s_con, FALSE);
 
     if (!value) {
+        if (!allow_reset)
+            return TRUE;
         g_set_error_literal(error,
                             NMCLI_ERROR,
                             NMC_RESULT_ERROR_USER_INPUT,
@@ -4489,7 +4649,7 @@ set_connection_master(NmCli            *nmc,
     }
 
     slave_type  = nm_setting_connection_get_slave_type(s_con);
-    connections = nm_client_get_connections(nmc->client);
+    connections = nmc_get_connections(nmc);
     value       = normalized_master_for_slave(connections, value, slave_type, &slave_type);
 
     if (!set_property(nmc->client,
@@ -4516,10 +4676,10 @@ set_bond_option(NmCli            *nmc,
                 NMConnection     *con,
                 const OptionInfo *option,
                 const char       *value,
+                gboolean          allow_reset,
                 GError          **error)
 {
     NMSettingBond *s_bond;
-    gboolean       success;
     gs_free char  *name = NULL;
     char          *p;
 
@@ -4533,26 +4693,25 @@ set_bond_option(NmCli            *nmc,
     }
 
     if (nm_str_is_empty(value)) {
-        nm_setting_bond_remove_option(s_bond, name);
-        success = TRUE;
-    } else
-        success = _nm_meta_setting_bond_add_option(NM_SETTING(s_bond), name, value, error);
+        if (allow_reset) {
+            nm_setting_bond_remove_option(s_bond, name);
+            return TRUE;
+        }
+    } else {
+        if (!_nm_meta_setting_bond_add_option(NM_SETTING(s_bond), name, value, error))
+            return FALSE;
+    }
 
-    if (!success)
-        return FALSE;
-
-    if (success) {
-        if (nm_streq(name, NM_SETTING_BOND_OPTION_MODE)) {
-            value = nmc_bond_validate_mode(value, error);
-            if (nm_streq(value, "active-backup")) {
-                enable_options(NM_SETTING_BOND_SETTING_NAME,
-                               NM_SETTING_BOND_OPTIONS,
-                               NM_MAKE_STRV("primary"));
-            }
+    if (nm_streq(name, NM_SETTING_BOND_OPTION_MODE)) {
+        value = nm_setting_bond_get_option_by_name(s_bond, name);
+        if (nm_streq(value, "active-backup")) {
+            enable_options(NM_SETTING_BOND_SETTING_NAME,
+                           NM_SETTING_BOND_OPTIONS,
+                           NM_MAKE_STRV("primary"));
         }
     }
 
-    return success;
+    return TRUE;
 }
 
 static gboolean
@@ -4560,6 +4719,7 @@ set_bond_monitoring_mode(NmCli            *nmc,
                          NMConnection     *con,
                          const OptionInfo *option,
                          const char       *value,
+                         gboolean          allow_reset,
                          GError          **error)
 {
     NMSettingBond *s_bond;
@@ -4600,6 +4760,7 @@ set_bluetooth_type(NmCli            *nmc,
                    NMConnection     *con,
                    const OptionInfo *option,
                    const char       *value,
+                   gboolean          allow_reset,
                    GError          **error)
 {
     NMSetting *setting;
@@ -4648,6 +4809,7 @@ set_ip4_address(NmCli            *nmc,
                 NMConnection     *con,
                 const OptionInfo *option,
                 const char       *value,
+                gboolean          allow_reset,
                 GError          **error)
 {
     NMSettingIPConfig *s_ip4;
@@ -4675,6 +4837,7 @@ set_ip6_address(NmCli            *nmc,
                 NMConnection     *con,
                 const OptionInfo *option,
                 const char       *value,
+                gboolean          allow_reset,
                 GError          **error)
 {
     NMSettingIPConfig *s_ip6;
@@ -5265,12 +5428,9 @@ connection_warnings(NmCli *nmc, NMConnection *connection)
     if (deprecated)
         g_printerr(_("Warning: %s.\n"), deprecated);
 
-    connections = nm_client_get_connections(nmc->client);
-    if (!connections)
-        return;
-
-    id    = nm_connection_get_id(connection);
-    found = 0;
+    connections = nmc_get_connections(nmc);
+    id          = nm_connection_get_id(connection);
+    found       = 0;
     for (i = 0; i < connections->len; i++) {
         NMConnection *candidate = NM_CONNECTION(connections->pdata[i]);
 
@@ -5346,15 +5506,6 @@ add_connection(NMClient           *client,
                               NULL,
                               callback,
                               user_data);
-}
-
-static void
-update_connection(NMRemoteConnection *connection,
-                  gboolean            temporary,
-                  GAsyncReadyCallback callback,
-                  gpointer            user_data)
-{
-    nm_remote_connection_commit_changes_async(connection, !temporary, NULL, callback, user_data);
 }
 
 static gboolean
@@ -5448,17 +5599,30 @@ ask_option(NmCli *nmc, NMConnection *connection, const NMMetaAbstractInfo *abstr
     GError                *error  = NULL;
     gs_free char          *prompt = NULL;
     gboolean               multi;
+    const char            *setting_name, *property_name;
     const char            *opt_prompt, *opt_def_hint;
+    gs_free char          *def_hint     = NULL;
+    gs_free char          *property_val = NULL;
     NMMetaPropertyInfFlags inf_flags;
+    NMSetting             *setting;
 
     _meta_abstract_get(abstract_info,
                        NULL,
-                       NULL,
-                       NULL,
+                       &setting_name,
+                       &property_name,
                        NULL,
                        &inf_flags,
                        &opt_prompt,
                        &opt_def_hint);
+
+    if (!opt_def_hint) {
+        setting = nm_connection_get_setting_by_name(connection, setting_name);
+        if (setting)
+            property_val = nmc_setting_get_property_parsable(setting, property_name, NULL);
+        if (property_val)
+            opt_def_hint = def_hint = g_strdup_printf("[%s]", property_val);
+    }
+
     prompt =
         g_strjoin("", gettext(opt_prompt), opt_def_hint ? " " : "", opt_def_hint ?: "", ": ", NULL);
 
@@ -5469,8 +5633,6 @@ ask_option(NmCli *nmc, NMConnection *connection, const NMMetaAbstractInfo *abstr
 
 again:
     value = nmc_readline(&nmc->nmc_config, "%s", prompt);
-    if (multi && !value)
-        return;
 
     if (!set_option(nmc, connection, abstract_info, value, FALSE, &error)) {
         g_printerr("%s\n", error->message);
@@ -5490,7 +5652,9 @@ connection_get_base_meta_setting_type(NMConnection *connection)
     const NMMetaSettingInfoEditor *editor;
 
     connection_type = nm_connection_get_connection_type(connection);
-    nm_assert(connection_type);
+    if (!connection_type)
+        return NM_META_SETTING_TYPE_UNKNOWN;
+
     base_setting = nm_connection_get_setting_by_name(connection, connection_type);
     nm_assert(base_setting);
     editor = nm_meta_setting_info_editor_find_by_setting(base_setting);
@@ -5546,10 +5710,15 @@ questionnaire_mandatory(NmCli *nmc, NMConnection *connection)
     NMMetaSettingType s, base;
 
     /* First ask connection properties */
-    questionnaire_mandatory_ask_setting(nmc, connection, NM_META_SETTING_TYPE_CONNECTION);
+    while (1) {
+        base = connection_get_base_meta_setting_type(connection);
+        if (base != NM_META_SETTING_TYPE_UNKNOWN)
+            break;
+        enable_options(NM_SETTING_CONNECTION_SETTING_NAME, NM_SETTING_CONNECTION_TYPE, NULL);
+        questionnaire_mandatory_ask_setting(nmc, connection, NM_META_SETTING_TYPE_CONNECTION);
+    }
 
     /* Ask properties of the base setting */
-    base = connection_get_base_meta_setting_type(connection);
     questionnaire_mandatory_ask_setting(nmc, connection, base);
 
     /* Remaining settings */
@@ -5564,16 +5733,14 @@ want_provide_opt_args(const NmcConfig *nmc_config, const char *type, guint num)
 {
     gs_free char *answer = NULL;
 
+    /* Don't ask to ask. */
+    if (num == 1)
+        return TRUE;
+
     /* Ask for optional arguments. */
-    g_print(ngettext("There is %d optional setting for %s.\n",
-                     "There are %d optional settings for %s.\n",
-                     num),
-            (int) num,
-            type);
-    answer = nmc_readline(
-        nmc_config,
-        ngettext("Do you want to provide it? %s", "Do you want to provide them? %s", num),
-        prompt_yes_no(TRUE, NULL));
+    g_print(_("There are %d optional settings for %s.\n"), (int) num, type);
+    answer =
+        nmc_readline(nmc_config, _("Do you want to provide them? %s"), prompt_yes_no(TRUE, NULL));
     nm_strstrip(answer);
     return !answer || matches(answer, WORD_YES);
 }
@@ -5662,6 +5829,20 @@ again:
 }
 
 static void
+nmc_add_connection(NmCli *nmc, NMConnection *connection, gboolean temporary)
+{
+    if (nmc->offline) {
+        nmc_print_connection_and_quit(nmc, connection);
+    } else {
+        add_connection(nmc->client,
+                       connection,
+                       temporary,
+                       add_connection_cb,
+                       _add_connection_info_new(nmc, NULL, connection));
+    }
+}
+
+static void
 do_connection_add(const NMCCommand *cmd, NmCli *nmc, int argc, const char *const *argv)
 {
     gs_unref_object NMConnection *connection = NULL;
@@ -5722,6 +5903,12 @@ read_properties:
     if (nmc->complete)
         goto finish;
 
+    if (!enable_type_settings_and_options(nmc, connection, &error)) {
+        g_string_assign(nmc->return_text, error->message);
+        nmc->return_value = error->code;
+        goto finish;
+    }
+
     /* Now ask user for the rest of the mandatory options. */
     if (nmc->ask)
         questionnaire_mandatory(nmc, connection);
@@ -5748,7 +5935,7 @@ read_properties:
             gs_free char    *default_name = NULL;
             const GPtrArray *connections;
 
-            connections = nm_client_get_connections(nmc->client);
+            connections = nmc_get_connections(nmc);
             try_name =
                 ifname ? g_strdup_printf("%s-%s", get_name_alias_toplevel(type, slave_type), ifname)
                        : g_strdup(get_name_alias_toplevel(type, slave_type));
@@ -5756,9 +5943,6 @@ read_properties:
             g_object_set(s_con, NM_SETTING_CONNECTION_ID, default_name, NULL);
         }
     }
-
-    /* For some software connection types we generate the interface name for the user. */
-    set_default_interface_name(nmc, s_con);
 
     /* Now see if there's something optional that needs to be asked for.
      * Keep asking until there's no more things to ask for. */
@@ -5813,11 +5997,7 @@ read_properties:
         }
     }
 
-    add_connection(nmc->client,
-                   connection,
-                   !save_bool,
-                   add_connection_cb,
-                   _add_connection_info_new(nmc, NULL, connection));
+    nmc_add_connection(nmc, connection, !save_bool);
     nmc->should_wait++;
 
 finish:
@@ -5839,7 +6019,7 @@ uuid_display_hook(char **array, int len, int max_len)
     char            *tmp;
     const char      *id;
     for (i = 1; i <= len; i++) {
-        connections = nm_client_get_connections(nmc_tab_completion.nmc->client);
+        connections = nmc_get_connections(nmc_tab_completion.nmc);
         con         = nmc_find_connection(connections, "uuid", array[i], NULL, FALSE);
         id          = con ? nm_connection_get_id(con) : NULL;
         if (id) {
@@ -6173,7 +6353,7 @@ gen_vpn_uuids(const char *text, int state)
     const char     **uuids;
     char            *ret;
 
-    connections = nm_client_get_connections(nm_cli_global_readline->client);
+    connections = nmc_get_connections(nm_cli_global_readline);
     if (connections->len < 1)
         return NULL;
 
@@ -6190,7 +6370,7 @@ gen_vpn_ids(const char *text, int state)
     const char     **ids;
     char            *ret;
 
-    connections = nm_client_get_connections(nm_cli_global_readline->client);
+    connections = nmc_get_connections(nm_cli_global_readline);
     if (connections->len < 1)
         return NULL;
 
@@ -8336,7 +8516,11 @@ editor_menu_main(NmCli *nmc, NMConnection *connection, const char *connection_ty
                     /* Save/update already saved (existing) connection */
                     nm_connection_replace_settings_from_connection(NM_CONNECTION(rem_con),
                                                                    connection);
-                    update_connection(rem_con, temporary, update_connection_editor_cb, NULL);
+                    nm_remote_connection_commit_changes_async(rem_con,
+                                                              !temporary,
+                                                              NULL,
+                                                              update_connection_editor_cb,
+                                                              NULL);
 
                     handler_id         = g_signal_connect(rem_con,
                                                   NM_CONNECTION_CHANGED,
@@ -8721,12 +8905,12 @@ do_connection_edit(const NMCCommand *cmd, NmCli *nmc, int argc, const char *cons
     gs_free_error GError         *error        = NULL;
     GError                       *err1         = NULL;
     nmc_arg_t                     exp_args[]   = {{"type", TRUE, &type, FALSE},
-                            {"con-name", TRUE, &con_name, FALSE},
-                            {"id", TRUE, &con_id, FALSE},
-                            {"uuid", TRUE, &con_uuid, FALSE},
-                            {"path", TRUE, &con_path, FALSE},
-                            {"filename", TRUE, &con_filename, FALSE},
-                            {NULL}};
+                                                  {"con-name", TRUE, &con_name, FALSE},
+                                                  {"id", TRUE, &con_id, FALSE},
+                                                  {"uuid", TRUE, &con_uuid, FALSE},
+                                                  {"path", TRUE, &con_path, FALSE},
+                                                  {"filename", TRUE, &con_filename, FALSE},
+                                                  {NULL}};
 
     next_arg(nmc, &argc, &argv, NULL);
     if (argc == 1 && nmc->complete)
@@ -8750,7 +8934,7 @@ do_connection_edit(const NMCCommand *cmd, NmCli *nmc, int argc, const char *cons
     /* Use ' ' and '.' as word break characters */
     rl_completer_word_break_characters = ". ";
 
-    connections = nm_client_get_connections(nmc->client);
+    connections = nmc_get_connections(nmc);
 
     if (!con) {
         if (con_id && !con_uuid && !con_path && !con_filename) {
@@ -8932,10 +9116,23 @@ modify_connection_cb(GObject *connection, GAsyncResult *result, gpointer user_da
 }
 
 static void
+nmc_update_connection(NmCli *nmc, NMConnection *connection, gboolean temporary)
+{
+    if (nmc->offline) {
+        nmc_print_connection_and_quit(nmc, connection);
+    } else {
+        nm_remote_connection_commit_changes_async(NM_REMOTE_CONNECTION(connection),
+                                                  !temporary,
+                                                  NULL,
+                                                  modify_connection_cb,
+                                                  nmc);
+    }
+}
+
+static void
 do_connection_modify(const NMCCommand *cmd, NmCli *nmc, int argc, const char *const *argv)
 {
     NMConnection         *connection = NULL;
-    NMRemoteConnection   *rc         = NULL;
     gs_free_error GError *error      = NULL;
     gboolean              temporary  = FALSE;
 
@@ -8951,25 +9148,19 @@ do_connection_modify(const NMCCommand *cmd, NmCli *nmc, int argc, const char *co
         return;
     }
 
-    rc = nm_client_get_connection_by_uuid(nmc->client, nm_connection_get_uuid(connection));
-    if (!rc) {
-        g_string_printf(nmc->return_text,
-                        _("Error: Unknown connection '%s'."),
-                        nm_connection_get_uuid(connection));
-        nmc->return_value = NMC_RESULT_ERROR_NOT_FOUND;
-        return;
-    }
-
-    if (!nmc_process_connection_properties(nmc, NM_CONNECTION(rc), &argc, &argv, TRUE, &error)) {
-        g_string_assign(nmc->return_text, error->message);
-        nmc->return_value = error->code;
-        return;
+    /* Don't insist on having argument if we're running in offline mode. */
+    if (!nmc->offline || argc > 0) {
+        if (!nmc_process_connection_properties(nmc, connection, &argc, &argv, TRUE, &error)) {
+            g_string_assign(nmc->return_text, error->message);
+            nmc->return_value = error->code;
+            return;
+        }
     }
 
     if (nmc->complete)
         return;
 
-    update_connection(rc, temporary, modify_connection_cb, nmc);
+    nmc_update_connection(nmc, connection, temporary);
     nmc->should_wait++;
 }
 
@@ -9267,7 +9458,7 @@ do_connection_monitor(const NMCCommand *cmd, NmCli *nmc, int argc, const char *c
         /* nmc_do_cmd() should not call this with argc=0. */
         g_return_if_fail(!nmc->complete);
 
-        connections = nm_client_get_connections(nmc->client);
+        connections = nmc_get_connections(nmc);
     } else {
         while (argc > 0) {
             if (!get_connection(nmc, &argc, &argv, NULL, NULL, &found_cons, &error)) {
@@ -9502,7 +9693,7 @@ do_connection_import(const NMCCommand *cmd, NmCli *nmc, int argc, const char *co
     }
 
     if (nm_streq(type, "wireguard"))
-        connection = nm_vpn_wireguard_import(filename, &error);
+        connection = nm_conn_wireguard_import(filename, &error);
     else {
         service_type = nm_vpn_plugin_info_list_find_service_type(nm_vpn_get_plugin_infos(), type);
         if (!service_type) {
@@ -9768,7 +9959,7 @@ do_connection_migrate(const NMCCommand *cmd, NmCli *nmc, int argc, const char *c
     if (!found_cons) {
         /* No connections specified explicitly? Fine, add all. */
         found_cons  = g_ptr_array_new();
-        connections = nm_client_get_connections(nmc->client);
+        connections = nmc_get_connections(nmc);
         for (i = 0; i < connections->len; i++) {
             connection = connections->pdata[i];
             g_ptr_array_add(found_cons, connection);
@@ -9815,7 +10006,7 @@ gen_func_connection_names(const char *text, int state)
     const char     **connection_names;
     char            *ret;
 
-    connections = nm_client_get_connections(nm_cli_global_readline->client);
+    connections = nmc_get_connections(nm_cli_global_readline);
     if (connections->len == 0)
         return NULL;
 
@@ -9841,7 +10032,7 @@ gen_func_active_connection_names(const char *text, int state)
     if (!nm_cli_global_readline->client)
         return NULL;
 
-    acs = nm_client_get_active_connections(nm_cli_global_readline->client);
+    acs = nmc_get_active_connections(nm_cli_global_readline);
     if (!acs || acs->len == 0)
         return NULL;
 
@@ -9905,12 +10096,12 @@ nmc_command_func_connection(const NMCCommand *cmd, NmCli *nmc, int argc, const c
         {"show", do_connections_show, usage_connection_show, TRUE, TRUE},
         {"up", do_connection_up, usage_connection_up, TRUE, TRUE},
         {"down", do_connection_down, usage_connection_down, TRUE, TRUE},
-        {"add", do_connection_add, usage_connection_add, TRUE, TRUE},
+        {"add", do_connection_add, usage_connection_add, TRUE, TRUE, TRUE},
         {"edit", do_connection_edit, usage_connection_edit, TRUE, TRUE},
         {"delete", do_connection_delete, usage_connection_delete, TRUE, TRUE},
         {"reload", do_connection_reload, usage_connection_reload, FALSE, FALSE},
         {"load", do_connection_load, usage_connection_load, TRUE, TRUE},
-        {"modify", do_connection_modify, usage_connection_modify, TRUE, TRUE},
+        {"modify", do_connection_modify, usage_connection_modify, TRUE, TRUE, TRUE, TRUE},
         {"clone", do_connection_clone, usage_connection_clone, TRUE, TRUE},
         {"import", do_connection_import, usage_connection_import, TRUE, TRUE},
         {"export", do_connection_export, usage_connection_export, TRUE, TRUE},

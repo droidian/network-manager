@@ -2,12 +2,12 @@
 .\"     Title: nm-initrd-generator
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 06/16/2022
+.\"      Date: 08/15/2022
 .\"    Manual: System Administration
-.\"    Source: NetworkManager 1.38.2
+.\"    Source: NetworkManager 1.39.90
 .\"  Language: English
 .\"
-.TH "NM\-INITRD\-GENERATOR" "8" "" "NetworkManager 1\&.38\&.2" "System Administration"
+.TH "NM\-INITRD\-GENERATOR" "8" "" "NetworkManager 1\&.39\&.90" "System Administration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -99,10 +99,19 @@ The options that appear on the kernel command line\&. The following options are 
 \fBnameserver\fR
 .RE
 .RS 4
+\fBnet\&.ifnames\fR
+.RE
+.RS 4
 \fBrd\&.peerdns\fR
 .RE
 .RS 4
+\fBrd\&.iscsi\&.ibft\fR
+.RE
+.RS 4
 \fBrd\&.bootif\fR
+.RE
+.RS 4
+\fBrd\&.neednet\fR
 .RE
 .RS 4
 \fBrd\&.ethtool\fR
@@ -111,13 +120,19 @@ The options that appear on the kernel command line\&. The following options are 
 \fBrd\&.net\&.timeout\&.dhcp\fR
 .RE
 .RS 4
+\fBrd\&.net\&.dhcp\&.retry\fR
+.RE
+.RS 4
+\fBrd\&.net\&.dhcp\&.vendor\-class\fR
+.RE
+.RS 4
 \fBrd\&.net\&.timeout\&.carrier\fR
 .RE
 .RS 4
 \fBrd\&.znet\fR
 .RE
 .RS 4
-\fBrd\&.znet_ifnames\fR
+\fBrd\&.znet_ifname\fR
 .RE
 .RS 4
 \fBBOOTIF\fR

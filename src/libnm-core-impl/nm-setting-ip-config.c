@@ -1197,6 +1197,10 @@ nm_ip_route_set_attribute(NMIPRoute *route, const char *name, GVariant *value)
 }
 
 static const NMVariantAttributeSpec *const ip_route_attribute_spec[] = {
+    NM_VARIANT_ATTRIBUTE_SPEC_DEFINE(NM_IP_ROUTE_ATTRIBUTE_ADVMSS,
+                                     G_VARIANT_TYPE_UINT32,
+                                     .v4 = TRUE,
+                                     .v6 = TRUE, ),
     NM_VARIANT_ATTRIBUTE_SPEC_DEFINE(NM_IP_ROUTE_ATTRIBUTE_CWND,
                                      G_VARIANT_TYPE_UINT32,
                                      .v4 = TRUE,
@@ -1211,6 +1215,10 @@ static const NMVariantAttributeSpec *const ip_route_attribute_spec[] = {
                                      .v6 = TRUE, ),
     NM_VARIANT_ATTRIBUTE_SPEC_DEFINE(NM_IP_ROUTE_ATTRIBUTE_INITRWND,
                                      G_VARIANT_TYPE_UINT32,
+                                     .v4 = TRUE,
+                                     .v6 = TRUE, ),
+    NM_VARIANT_ATTRIBUTE_SPEC_DEFINE(NM_IP_ROUTE_ATTRIBUTE_LOCK_ADVMSS,
+                                     G_VARIANT_TYPE_BOOLEAN,
                                      .v4 = TRUE,
                                      .v6 = TRUE, ),
     NM_VARIANT_ATTRIBUTE_SPEC_DEFINE(NM_IP_ROUTE_ATTRIBUTE_LOCK_CWND,
@@ -1239,6 +1247,14 @@ static const NMVariantAttributeSpec *const ip_route_attribute_spec[] = {
                                      .v6 = TRUE, ),
     NM_VARIANT_ATTRIBUTE_SPEC_DEFINE(NM_IP_ROUTE_ATTRIBUTE_ONLINK,
                                      G_VARIANT_TYPE_BOOLEAN,
+                                     .v4 = TRUE,
+                                     .v6 = TRUE, ),
+    NM_VARIANT_ATTRIBUTE_SPEC_DEFINE(NM_IP_ROUTE_ATTRIBUTE_QUICKACK,
+                                     G_VARIANT_TYPE_BOOLEAN,
+                                     .v4 = TRUE,
+                                     .v6 = TRUE, ),
+    NM_VARIANT_ATTRIBUTE_SPEC_DEFINE(NM_IP_ROUTE_ATTRIBUTE_RTO_MIN,
+                                     G_VARIANT_TYPE_UINT32,
                                      .v4 = TRUE,
                                      .v6 = TRUE, ),
     NM_VARIANT_ATTRIBUTE_SPEC_DEFINE(NM_IP_ROUTE_ATTRIBUTE_SCOPE,
@@ -2481,10 +2497,10 @@ nm_ip_routing_rule_set_suppress_prefixlength(NMIPRoutingRule *self, gint32 suppr
  *
  * Returns: %TRUE if a uid range is set.
  *
- * Since: 1.34
- *
  * This API was wrongly introduced in the header files for 1.32, but the
  * symbols were not exported. The API only works since 1.34 and newer.
+ *
+ * Since: 1.34
  */
 gboolean
 nm_ip_routing_rule_get_uid_range(const NMIPRoutingRule *self,
@@ -2509,10 +2525,10 @@ nm_ip_routing_rule_get_uid_range(const NMIPRoutingRule *self,
  * For a valid range, start must be less or equal to end.
  * If set to an invalid range, the range gets unset.
  *
- * Since: 1.34
- *
  * This API was wrongly introduced in the header files for 1.32, but the
  * symbols were not exported. The API only works since 1.34 and newer.
+ *
+ * Since: 1.34
  */
 void
 nm_ip_routing_rule_set_uid_range(NMIPRoutingRule *self,
@@ -3814,7 +3830,7 @@ nm_ip_routing_rule_to_string(const NMIPRoutingRule       *self,
         }
     }
 
-    nm_str_buf_init(&str, NM_UTILS_GET_NEXT_REALLOC_SIZE_32, FALSE);
+    str = NM_STR_BUF_INIT(NM_UTILS_GET_NEXT_REALLOC_SIZE_32, FALSE);
 
     if (self->priority_has) {
         nm_str_buf_append_printf(nm_str_buf_append_required_delimiter(&str, ' '),
@@ -6149,7 +6165,7 @@ nm_setting_ip_config_class_init(NMSettingIPConfigClass *klass)
     /**
      * NMSettingIPConfig:dns-search:
      *
-     * Array of DNS search domains. Domains starting with a tilde ('~')
+     * List of DNS search domains. Domains starting with a tilde ('~')
      * are considered 'routing' domains and are used only to decide the
      * interface over which a query must be forwarded; they are not used
      * to complete unqualified host names.
@@ -6158,6 +6174,12 @@ nm_setting_ip_config_class_init(NMSettingIPConfigClass *klass)
      * Split DNS, then the search domains specify which name servers to
      * query. This makes the behavior different from running with plain
      * /etc/resolv.conf. For more information see also the dns-priority setting.
+     *
+     * When set on a profile that also enabled DHCP, the DNS search list
+     * received automatically (option 119 for DHCPv4 and option 24 for DHCPv6)
+     * gets merged with the manual list. This can be prevented by setting
+     * "ignore-auto-dns". Note that if no DNS searches are configured, the
+     * fallback will be derived from the domain from DHCP (option 15).
      **/
     obj_properties[PROP_DNS_SEARCH] =
         g_param_spec_boxed(NM_SETTING_IP_CONFIG_DNS_SEARCH,

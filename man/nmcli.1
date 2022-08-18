@@ -2,12 +2,12 @@
 .\"     Title: nmcli
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 06/16/2022
+.\"      Date: 08/15/2022
 .\"    Manual: General Commands Manual
-.\"    Source: NetworkManager 1.38.2
+.\"    Source: NetworkManager 1.39.90
 .\"  Language: English
 .\"
-.TH "NMCLI" "1" "" "NetworkManager 1\&.38\&.2" "General Commands Manual"
+.TH "NMCLI" "1" "" "NetworkManager 1\&.39\&.90" "General Commands Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -218,6 +218,19 @@ will display passwords and secrets that might be present in an output of an oper
 \fB\-t\fR | \fB\-\-terse\fR
 .RS 4
 Output is terse\&. This mode is designed and suitable for computer (script) processing\&.
+.RE
+.PP
+\fB\-\-offline\fR
+.RS 4
+Work without a daemon\&. Makes
+\fBconnection add\fR
+and
+\fBconnection modify\fR
+commands accept and produce connection data via standard input/output\&. Ordinarily, nmcli would communicate with the NetworkManager service\&.
+.sp
+The connection data format (keyfile) is described in
+\fBnm-settings-keyfile\fR(5)
+manual\&.
 .RE
 .PP
 \fB\-v\fR | \fB\-\-version\fR
@@ -617,7 +630,7 @@ If
 option is not specified, the default timeout will be 10 seconds\&.
 .RE
 .PP
-\fBmodify\fR [\fB\-\-temporary\fR] [\fBid\fR | \fBuuid\fR | \fBpath\fR] \fIID\fR {\fIoption\fR\ \fIvalue\fR\ |\ [+|\-]\fIsetting\fR\&.\fIproperty\fR\ \fIvalue\fR}...
+\fBmodify\fR [\fB\-\-temporary\fR] [\fBid\fR | \fBuuid\fR | \fBpath\fR] [\fIID\fR] {\fIoption\fR\ \fIvalue\fR\ |\ [+|\-]\fIsetting\fR\&.\fIproperty\fR\ \fIvalue\fR}...
 .RS 4
 Add, modify or remove properties in the connection profile\&.
 .sp
@@ -654,7 +667,15 @@ is ambiguous, a keyword
 \fBuuid\fR
 or
 \fBpath\fR
-can be used\&.
+can be used\&. The
+\fIID\fR
+is not used with the global
+\fB\-\-offline\fR
+option\&.
+.sp
+When the global
+\fB\-\-offline\fR
+is used, the command reads the connection from the standard input and prints the modified connection to standard output instead of making the the NetworkManager daemon act upon specified connection\&.
 .RE
 .PP
 \fBmodify\fR [\fB\-\-temporary\fR] [\fBid\fR | \fBuuid\fR | \fBpath\fR] \fIID\fR \fBremove\fR\ \fIsetting\fR
@@ -1113,6 +1134,10 @@ If a single
 argument is encountered it is ignored\&. This is for compatibility with older versions on
 \fBnmcli\fR\&.
 .RE
+.sp
+When the global
+\fB\-\-offline\fR
+is used, the command prints the resulting connection to standard output instead of actually adding the connection via the NetworkManager daemon\&.
 .RE
 .PP
 \fBedit\fR {[\fBid\fR\ |\ \fBuuid\fR\ |\ \fBpath\fR]\ \fIID\fR | [\fBtype\fR\ \fItype\fR]\ [\fBcon\-name\fR\ \fIname\fR] }
@@ -1284,7 +1309,7 @@ option is not specified, the default timeout will be 10 seconds\&.
 .RE
 .SH "DEVICE MANAGEMENT COMMANDS"
 .HP \w'\fBnmcli\ device\fR\ 'u
-\fBnmcli device\fR {\fBstatus\fR | \fBshow\fR | \fBset\fR | \fBup\fR | \fBconnect\fR | \fBreapply\fR | \fBmodify\fR | \fBdown\fR | \fBdisconnect\fR | \fBdelete\fR | \fBmonitor\fR | \fBwifi\fR | \fBlldp\fR} [\fIARGUMENTS\fR...]
+\fBnmcli device\fR {\fBstatus\fR | \fBshow\fR | \fBset\fR | \fBup\fR | \fBconnect\fR | \fBreapply\fR | \fBmodify\fR | \fBdown\fR | \fBdisconnect\fR | \fBdelete\fR | \fBmonitor\fR | \fBwifi\fR | \fBlldp\fR | \fBcheckpoint\fR} [\fIARGUMENTS\fR...]
 .PP
 Show and manage network interfaces\&.
 .PP
@@ -1517,6 +1542,17 @@ Show the details of the active Wi\-Fi networks, including the secrets\&.
 Display information about neighboring devices learned through the Link Layer Discovery Protocol (LLDP)\&. The
 \fBifname\fR
 option can be used to list neighbors only for a given interface\&. The protocol must be enabled in the connection settings\&.
+.RE
+.PP
+\fBcheckpoint\fR [\fB\-\-timeout\fR\ \fIseconds\fR] [\fIifname\fR...] \fB\-\-\fR \fICOMMAND\fR...
+.RS 4
+Runs the command with a configuration checkpoint taken and asks for a confirmation when finished\&. When the confirmation is not given, the checkpoint is automatically restored after timeout\&.
+.sp
+This allows doing disruptive configuration changes over remote connections with an option of restoring the network configuration to a known good state in case of an error\&.
+.sp
+If the a list of interface names is specified, the checkpoint is taken, the checkpoint is takes only on the specified devices\&. Otherwise a checkpoint is taken for all devices\&.
+.sp
+Currently the timeout defaults to 15 seconds\&. This may change in a future version\&.
 .RE
 .SH "SECRET AGENT"
 .HP \w'\fBnmcli\ agent\fR\ 'u

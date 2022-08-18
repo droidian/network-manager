@@ -8,7 +8,7 @@
 <link rel="up" href="ref-dbus-devices.html" title="The /org/freedesktop/NetworkManager/Devices/* objects">
 <link rel="prev" href="gdbus-org.freedesktop.NetworkManager.Device.Wired.html" title="org.freedesktop.NetworkManager.Device.Wired">
 <link rel="next" href="gdbus-org.freedesktop.NetworkManager.Device.Wpan.html" title="org.freedesktop.NetworkManager.Device.Wpan">
-<meta name="generator" content="GTK-Doc V1.33.0 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -63,7 +63,10 @@
 </div>
 <div class="refsect1">
 <a name="gdbus-interface-org-freedesktop-NetworkManager-Device-Wireless"></a><h2>Description</h2>
-<p></p>
+<p>
+</p>
+<p>
+</p>
 </div>
 <div class="refsect1">
 <a name="gdbus-methods-org.freedesktop.NetworkManager.Device.Wireless"></a><h2>Method Details</h2>
@@ -72,10 +75,11 @@
 <pre class="programlisting">
 GetAccessPoints (OUT ao access_points);
 </pre>
-<p>        DEPRECATED. Get the list of access points visible to this device. Note
-        that this list does not include access points which hide their SSID. To
-        retrieve a list of all access points (including hidden ones) use the
-        GetAllAccessPoints() method.
+<p>
+DEPRECATED. Get the list of access points visible to this device. Note
+that this list does not include access points which hide their SSID. To
+retrieve a list of all access points (including hidden ones) use the
+GetAllAccessPoints() method.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -84,7 +88,9 @@ GetAccessPoints (OUT ao access_points);
 </colgroup>
 <tbody><tr>
 <td><p><span class="term"><code class="literal">OUT ao <em class="parameter"><code>access_points</code></em></code>:</span></p></td>
-<td><p>List of access point object paths.</p></td>
+<td><p>
+List of access point object paths.
+</p></td>
 </tr></tbody>
 </table></div>
 </div>
@@ -94,8 +100,9 @@ GetAccessPoints (OUT ao access_points);
 <pre class="programlisting">
 GetAllAccessPoints (OUT ao access_points);
 </pre>
-<p>        Get the list of all access points visible to this device, including hidden
-        ones for which the SSID is not yet known.
+<p>
+Get the list of all access points visible to this device, including hidden
+ones for which the SSID is not yet known.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -104,7 +111,9 @@ GetAllAccessPoints (OUT ao access_points);
 </colgroup>
 <tbody><tr>
 <td><p><span class="term"><code class="literal">OUT ao <em class="parameter"><code>access_points</code></em></code>:</span></p></td>
-<td><p>List of access point object paths.</p></td>
+<td><p>
+List of access point object paths.
+</p></td>
 </tr></tbody>
 </table></div>
 </div>
@@ -114,7 +123,8 @@ GetAllAccessPoints (OUT ao access_points);
 <pre class="programlisting">
 RequestScan (IN  a{sv} options);
 </pre>
-<p>        Request the device to scan. To know when the scan is finished, use the "PropertiesChanged" signal from "org.freedesktop.DBus.Properties" to listen to changes to the "LastScan" property.
+<p>
+Request the device to scan. To know when the scan is finished, use the "PropertiesChanged" signal from "org.freedesktop.DBus.Properties" to listen to changes to the "LastScan" property.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -123,7 +133,9 @@ RequestScan (IN  a{sv} options);
 </colgroup>
 <tbody><tr>
 <td><p><span class="term"><code class="literal">IN a{sv} <em class="parameter"><code>options</code></em></code>:</span></p></td>
-<td><p>Options of scan. Currently, 'ssids' option with value of "aay" type is supported.</p></td>
+<td><p>
+Options of scan. Currently, 'ssids' option with value of "aay" type is supported.
+</p></td>
 </tr></tbody>
 </table></div>
 </div>
@@ -135,7 +147,8 @@ RequestScan (IN  a{sv} options);
 <pre class="programlisting">
 AccessPointAdded (o access_point);
 </pre>
-<p>        Emitted when a new access point is found by the device.
+<p>
+Emitted when a new access point is found by the device.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -144,7 +157,9 @@ AccessPointAdded (o access_point);
 </colgroup>
 <tbody><tr>
 <td><p><span class="term"><code class="literal">o <em class="parameter"><code>access_point</code></em></code>:</span></p></td>
-<td><p>The object path of the newly found access point.</p></td>
+<td><p>
+The object path of the newly found access point.
+</p></td>
 </tr></tbody>
 </table></div>
 </div>
@@ -154,7 +169,8 @@ AccessPointAdded (o access_point);
 <pre class="programlisting">
 AccessPointRemoved (o access_point);
 </pre>
-<p>        Emitted when an access point disappears from view of the device.
+<p>
+Emitted when an access point disappears from view of the device.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -163,7 +179,9 @@ AccessPointRemoved (o access_point);
 </colgroup>
 <tbody><tr>
 <td><p><span class="term"><code class="literal">o <em class="parameter"><code>access_point</code></em></code>:</span></p></td>
-<td><p>The object path of the access point that has disappeared.</p></td>
+<td><p>
+The object path of the access point that has disappeared.
+</p></td>
 </tr></tbody>
 </table></div>
 </div>
@@ -175,9 +193,11 @@ AccessPointRemoved (o access_point);
 <pre class="programlisting">
 HwAddress  readable   s
 </pre>
-<p>        The active hardware address of the device.
+<p>
+The active hardware address of the device.
 </p>
-<p>        DEPRECATED. Use the "HwAddress" property in "org.freedesktop.NetworkManager.Device" instead which exists since version NetworkManager 1.24.0.
+<p>
+DEPRECATED. Use the "HwAddress" property in "org.freedesktop.NetworkManager.Device" instead which exists since version NetworkManager 1.24.0.
 </p>
 </div>
 <hr>
@@ -186,7 +206,8 @@ HwAddress  readable   s
 <pre class="programlisting">
 PermHwAddress  readable   s
 </pre>
-<p>        The permanent hardware address of the device.
+<p>
+The permanent hardware address of the device.
 </p>
 </div>
 <hr>
@@ -195,9 +216,11 @@ PermHwAddress  readable   s
 <pre class="programlisting">
 Mode  readable   u
 </pre>
-<p>        The operating mode of the wireless device.
+<p>
+The operating mode of the wireless device.
 </p>
-<p>        Returns: <a class="link" href="nm-dbus-types.html#NM80211Mode" title="enum NM80211Mode">NM80211Mode</a>
+<p>
+Returns: <a class="link" href="nm-dbus-types.html#NM80211Mode" title="enum NM80211Mode">NM80211Mode</a>
 </p>
 </div>
 <hr>
@@ -206,8 +229,9 @@ Mode  readable   u
 <pre class="programlisting">
 Bitrate  readable   u
 </pre>
-<p>        The bit rate currently used by the wireless device, in kilobits/second
-        (Kb/s).
+<p>
+The bit rate currently used by the wireless device, in kilobits/second
+(Kb/s).
 </p>
 </div>
 <hr>
@@ -216,7 +240,8 @@ Bitrate  readable   u
 <pre class="programlisting">
 AccessPoints  readable   ao
 </pre>
-<p>        List of object paths of access point visible to this wireless device.
+<p>
+List of object paths of access point visible to this wireless device.
 </p>
 </div>
 <hr>
@@ -225,7 +250,8 @@ AccessPoints  readable   ao
 <pre class="programlisting">
 ActiveAccessPoint  readable   o
 </pre>
-<p>        Object path of the access point currently used by the wireless device.
+<p>
+Object path of the access point currently used by the wireless device.
 </p>
 </div>
 <hr>
@@ -234,9 +260,11 @@ ActiveAccessPoint  readable   o
 <pre class="programlisting">
 WirelessCapabilities  readable   u
 </pre>
-<p>        The capabilities of the wireless device.
+<p>
+The capabilities of the wireless device.
 </p>
-<p>        Returns: <a class="link" href="nm-dbus-types.html#NMDeviceWifiCapabilities" title="enum NMDeviceWifiCapabilities">NMDeviceWifiCapabilities</a>
+<p>
+Returns: <a class="link" href="nm-dbus-types.html#NMDeviceWifiCapabilities" title="enum NMDeviceWifiCapabilities">NMDeviceWifiCapabilities</a>
 </p>
 </div>
 <hr>
@@ -245,14 +273,15 @@ WirelessCapabilities  readable   u
 <pre class="programlisting">
 LastScan  readable   x
 </pre>
-<p>        The timestamp (in CLOCK_BOOTTIME milliseconds) for the last finished network scan.
-        A value of -1 means the device never scanned for access points.
+<p>
+The timestamp (in CLOCK_BOOTTIME milliseconds) for the last finished network scan.
+A value of -1 means the device never scanned for access points.
 </p>
 <p class="since">Since 1.12</p>
 </div>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.33.0</div>
+<hr>Generated by GTK-Doc V1.33.1</div>
 </body>
 </html>

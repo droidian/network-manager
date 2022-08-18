@@ -8,14 +8,16 @@
 <link rel="up" href="ch04.html" title="Device and Runtime Configuration API Reference">
 <link rel="prev" href="NMDeviceModem.html" title="NMDeviceModem">
 <link rel="next" href="NMDeviceOvsBridge.html" title="NMDeviceOvsBridge">
-<meta name="generator" content="GTK-Doc V1.33.0 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
 <table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
 <td width="100%" align="left" class="shortcuts">
 <a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
-                  <a href="#NMDeviceOlpcMesh.description" class="shortcut">Description</a></span>
+                  <a href="#NMDeviceOlpcMesh.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
+                  <a href="#NMDeviceOlpcMesh.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_properties">  <span class="dim">|</span> 
+                  <a href="#NMDeviceOlpcMesh.properties" class="shortcut">Properties</a></span>
 </td>
 <td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
 <td><a accesskey="u" href="ch04.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
@@ -66,6 +68,29 @@
 </table></div>
 </div>
 <div class="refsect1">
+<a name="NMDeviceOlpcMesh.properties"></a><h2>Properties</h2>
+<div class="informaltable"><table class="informaltable" border="0">
+<colgroup>
+<col width="150px" class="properties_type">
+<col width="300px" class="properties_name">
+<col width="200px" class="properties_flags">
+</colgroup>
+<tbody>
+<tr>
+<td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></td>
+<td class="property_name"><a class="link" href="NMDeviceOlpcMesh.html#NMDeviceOlpcMesh--active-channel" title="The “active-channel” property">active-channel</a></td>
+<td class="property_flags">Read</td>
+</tr>
+<tr>
+<td class="property_type">
+<a class="link" href="NMDeviceWifi.html" title="NMDeviceWifi"><span class="type">NMDeviceWifi</span></a> *</td>
+<td class="property_name"><a class="link" href="NMDeviceOlpcMesh.html#NMDeviceOlpcMesh--companion" title="The “companion” property">companion</a></td>
+<td class="property_flags">Read</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
 <a name="NMDeviceOlpcMesh.other"></a><h2>Types and Values</h2>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
@@ -85,8 +110,20 @@
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMDeviceOlpcMesh.html#NM-DEVICE-OLPC-MESH-ACTIVE-CHANNEL:CAPS" title="NM_DEVICE_OLPC_MESH_ACTIVE_CHANNEL">NM_DEVICE_OLPC_MESH_ACTIVE_CHANNEL</a></td>
 </tr>
+<tr>
+<td class="datatype_keyword"> </td>
+<td class="function_name"><a class="link" href="NMDeviceOlpcMesh.html#NMDeviceOlpcMesh-struct" title="NMDeviceOlpcMesh">NMDeviceOlpcMesh</a></td>
+</tr>
 </tbody>
 </table></div>
+</div>
+<div class="refsect1">
+<a name="NMDeviceOlpcMesh.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="screen">    <a href="https://developer.gnome.org/gobject/unstable/gobject-The-Base-Object-Type.html#GObject-struct">GObject</a>
+    <span class="lineart">╰──</span> <a class="link" href="NMObject.html" title="NMObject">NMObject</a>
+        <span class="lineart">╰──</span> <a class="link" href="NMDevice.html" title="NMDevice">NMDevice</a>
+            <span class="lineart">╰──</span> NMDeviceOlpcMesh
+</pre>
 </div>
 <div class="refsect1">
 <a name="NMDeviceOlpcMesh.description"></a><h2>Description</h2>
@@ -148,7 +185,7 @@ nm_device_olpc_mesh_get_companion (<em class="parameter"><code><a class="link" h
 <div class="refsect3">
 <a name="nm-device-olpc-mesh-get-companion.returns"></a><h4>Returns</h4>
 <p>the companion of the device of <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -198,9 +235,33 @@ nm_device_olpc_mesh_get_active_channel
 <pre class="programlisting">#define NM_DEVICE_OLPC_MESH_ACTIVE_CHANNEL "active-channel"
 </pre>
 </div>
+<hr>
+<div class="refsect2">
+<a name="NMDeviceOlpcMesh-struct"></a><h3>NMDeviceOlpcMesh</h3>
+<pre class="programlisting">typedef struct _NMDeviceOlpcMesh NMDeviceOlpcMesh;</pre>
+</div>
+</div>
+<div class="refsect1">
+<a name="NMDeviceOlpcMesh.property-details"></a><h2>Property Details</h2>
+<div class="refsect2">
+<a name="NMDeviceOlpcMesh--active-channel"></a><h3>The <code class="literal">“active-channel”</code> property</h3>
+<pre class="programlisting">  “active-channel”           <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></pre>
+<p>The device's active channel.</p>
+<p>Owner: NMDeviceOlpcMesh</p>
+<p>Flags: Read</p>
+<p>Default value: 0</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMDeviceOlpcMesh--companion"></a><h3>The <code class="literal">“companion”</code> property</h3>
+<pre class="programlisting">  “companion”                <a class="link" href="NMDeviceWifi.html" title="NMDeviceWifi"><span class="type">NMDeviceWifi</span></a> *</pre>
+<p>The companion device.</p>
+<p>Owner: NMDeviceOlpcMesh</p>
+<p>Flags: Read</p>
+</div>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.33.0</div>
+<hr>Generated by GTK-Doc V1.33.1</div>
 </body>
 </html>

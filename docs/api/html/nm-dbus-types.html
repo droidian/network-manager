@@ -8,7 +8,7 @@
 <link rel="up" href="dbus-types.html" title="Types">
 <link rel="prev" href="dbus-types.html" title="Types">
 <link rel="next" href="secret-agents.html" title="Part IV. Secret Agent D-Bus API Reference">
-<meta name="generator" content="GTK-Doc V1.33.0 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -5319,8 +5319,147 @@
 </table></div>
 </div>
 </div>
+<hr>
+<div class="refsect2">
+<a name="NMMptcpFlags"></a><h3>enum NMMptcpFlags</h3>
+<p>Since: 1.40</p>
+<p></p>
+<div class="refsect3">
+<a name="id-1.4.17.2.36.4"></a><h4>Values</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="300px" class="enum_members_name">
+<col width="100px" class="enum_members_value">
+<col class="enum_members_description">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td class="enum_member_name">
+<p>NM_MPTCP_FLAGS_NONE</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">0</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>The default, meaning that no MPTCP flags are set.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_MPTCP_FLAGS_DISABLED</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">0x1</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>don't configure MPTCP endpoints on the device.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_MPTCP_FLAGS_ENABLED_ON_GLOBAL_IFACE</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">0x2</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>MPTCP handling is enabled or disabled depending on whether a /0 default route (either IPv4 or IPv6) is configured in the main routing table.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_MPTCP_FLAGS_ENABLED</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">0x4</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>MPTCP is enabled and endpoints will be configured. This flag is implied if any of the other flags indicate that MPTCP is enabled and therefore in most cases unnecessary.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_MPTCP_FLAGS_SIGNAL</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">0x10</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>Flag for the MPTCP endpoint. The endpoint will be announced/signaled to each peer via an MPTCP ADD_ADDR sub-option.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_MPTCP_FLAGS_SUBFLOW</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">0x20</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>Flag for the MPTCP endpoint. If additional subflow creation is allowed by the MPTCP limits, the MPTCP path manager will try to create an additional subflow using this endpoint as the source address after the MPTCP connection is established.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_MPTCP_FLAGS_BACKUP</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">0x40</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>Flag for the MPTCP endpoint. If this is a subflow endpoint, the subflows created using this endpoint will have the backup flag set during the connection process. This flag instructs the peer to only send data on a given subflow when all non-backup subflows are unavailable. This does not affect outgoing data, where subflow priority is determined by the backup/non-backup flag received from the peer</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_MPTCP_FLAGS_FULLMESH</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">0x80</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>Flag for the MPTCP endpoint. If this is a subflow endpoint and additional subflow creation is allowed by the MPTCP limits, the MPTCP path manager will try to create an additional subflow for each known peer address, using this endpoint as the source address. This will occur after the MPTCP connection is established. If the peer did not announce any additional addresses using the MPTCP ADD_ADDR sub-option, this will behave the same as a plain subflow endpoint. When the peer does announce addresses, each received ADD_ADDR sub-option will trigger creation of an additional subflow to generate a full mesh topology.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.33.0</div>
+<hr>Generated by GTK-Doc V1.33.1</div>
 </body>
 </html>

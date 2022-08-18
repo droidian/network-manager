@@ -20,6 +20,7 @@
 #include "devices/nm-device-factory.h"
 #include "devices/nm-device-generic.h"
 #include "devices/nm-device.h"
+#include "dns/nm-dns-manager.h"
 #include "dhcp/nm-dhcp-manager.h"
 #include "libnm-core-aux-intern/nm-common-macros.h"
 #include "libnm-core-intern/nm-core-internal.h"
@@ -144,6 +145,9 @@ NM_GOBJECT_PROPERTIES_DEFINE(NMManager,
 typedef struct {
     NMPlatform *platform;
 
+    NMDnsManager *dns_mgr;
+    gulong        dns_mgr_update_pending_signal_id;
+
     GArray *capabilities;
 
     CList               active_connections_lst_head; /* Oldest ACs at the beginning */
@@ -208,6 +212,10 @@ typedef struct {
     bool net_enabled : 1;
 
     unsigned connectivity_check_enabled_last : 2;
+
+    /* List of GDBusMethodInvocation of in progress Sleep() and Enable()
+     * calls. They return only if all in-flight deactivations finished. */
+    GSList *sleep_invocations;
 
     guint delete_volatile_connection_idle_id;
     CList delete_volatile_connection_lst_head;
@@ -345,6 +353,9 @@ static NMActiveConnection *_new_active_connection(NMManager             *self,
                                                   GError               **error);
 
 static void policy_activating_ac_changed(GObject *object, GParamSpec *pspec, gpointer user_data);
+
+static void device_has_pending_action_changed(NMDevice *device, GParamSpec *pspec, NMManager *self);
+static void check_if_startup_complete(NMManager *self);
 
 static gboolean find_master(NMManager             *self,
                             NMConnection          *connection,
@@ -1601,7 +1612,11 @@ manager_device_state_changed(NMDevice           *device,
         nm_settings_device_added(priv->settings, device);
 }
 
-static void device_has_pending_action_changed(NMDevice *device, GParamSpec *pspec, NMManager *self);
+static void
+_dns_mgr_update_pending_cb(NMDevice *device, GParamSpec *pspec, NMManager *self)
+{
+    check_if_startup_complete(self);
+}
 
 static void
 check_if_startup_complete(NMManager *self)
@@ -1615,6 +1630,20 @@ check_if_startup_complete(NMManager *self)
 
     if (!priv->devices_inited)
         return;
+
+    if (nm_dns_manager_get_update_pending(nm_manager_get_dns_manager(self))) {
+        if (priv->dns_mgr_update_pending_signal_id == 0) {
+            priv->dns_mgr_update_pending_signal_id =
+                g_signal_connect(nm_manager_get_dns_manager(self),
+                                 "notify::" NM_DNS_MANAGER_UPDATE_PENDING,
+                                 G_CALLBACK(_dns_mgr_update_pending_cb),
+                                 self);
+        }
+        return;
+    }
+
+    nm_clear_g_signal_handler(nm_manager_get_dns_manager(self),
+                              &priv->dns_mgr_update_pending_signal_id);
 
     c_list_for_each_entry (device, &priv->devices_lst_head, devices_lst) {
         reason = nm_device_has_pending_action_reason(device);
@@ -2219,6 +2248,18 @@ connection_updated_cb(NMSettings           *settings,
                       NMManager            *self)
 {
     connection_changed(self, sett_conn);
+}
+
+static void
+connections_changed(NMManager *self)
+{
+    NMManagerPrivate            *priv = NM_MANAGER_GET_PRIVATE(self);
+    NMSettingsConnection *const *connections;
+    guint                        i;
+
+    connections = nm_settings_get_connections_sorted_by_autoconnect_priority(priv->settings, NULL);
+    for (i = 0; connections[i]; i++)
+        connection_changed(self, connections[i]);
 }
 
 /*****************************************************************************/
@@ -6336,6 +6377,22 @@ done:
     g_clear_object(&subject);
 }
 
+static void
+sleep_devices_check_empty(NMManager *self)
+{
+    NMManagerPrivate      *priv = NM_MANAGER_GET_PRIVATE(self);
+    GDBusMethodInvocation *invocation;
+
+    if (g_hash_table_size(priv->sleep_devices) > 0)
+        return;
+
+    while (priv->sleep_invocations) {
+        invocation = priv->sleep_invocations->data;
+        g_dbus_method_invocation_return_value(invocation, NULL);
+        priv->sleep_invocations = g_slist_remove(priv->sleep_invocations, invocation);
+    }
+}
+
 static gboolean
 sleep_devices_add(NMManager *self, NMDevice *device, gboolean suspending)
 {
@@ -6378,6 +6435,9 @@ sleep_devices_remove(NMManager *self, NMDevice *device)
     g_signal_handlers_disconnect_by_func(device, device_sleep_cb, self);
     g_hash_table_remove(priv->sleep_devices, device);
     g_object_unref(device);
+
+    sleep_devices_check_empty(self);
+
     return TRUE;
 }
 
@@ -6389,9 +6449,6 @@ sleep_devices_clear(NMManager *self)
     NMSleepMonitorInhibitorHandle *handle;
     GHashTableIter                 iter;
 
-    if (!priv->sleep_devices)
-        return;
-
     g_hash_table_iter_init(&iter, priv->sleep_devices);
     while (g_hash_table_iter_next(&iter, (gpointer *) &device, (gpointer *) &handle)) {
         g_signal_handlers_disconnect_by_func(device, device_sleep_cb, self);
@@ -6400,6 +6457,8 @@ sleep_devices_clear(NMManager *self)
         g_object_unref(device);
         g_hash_table_iter_remove(&iter);
     }
+
+    sleep_devices_check_empty(self);
 }
 
 static void
@@ -6551,6 +6610,10 @@ do_sleep_wake(NMManager *self, gboolean sleeping_changed)
                                              FALSE,
                                              NM_DEVICE_STATE_REASON_NOW_MANAGED);
         }
+
+        /* Give the connections a chance to recreate the virtual devices.
+	 * We've torn them down on sleep. */
+        connections_changed(self);
     }
 
     nm_manager_update_state(self);
@@ -6628,7 +6691,10 @@ impl_manager_sleep(NMDBusObject                      *obj,
                             TRUE,
                             subject,
                             NULL);
-    g_dbus_method_invocation_return_value(invocation, NULL);
+
+    priv->sleep_invocations = g_slist_prepend(priv->sleep_invocations, invocation);
+    sleep_devices_check_empty(self);
+
     return;
 }
 
@@ -6668,10 +6734,11 @@ _internal_enable(NMManager *self, gboolean enable)
 static void
 enable_net_done_cb(NMAuthChain *chain, GDBusMethodInvocation *context, gpointer user_data)
 {
-    NMManager       *self = NM_MANAGER(user_data);
-    NMAuthCallResult result;
-    gboolean         enable;
-    NMAuthSubject   *subject;
+    NMManager        *self = NM_MANAGER(user_data);
+    NMManagerPrivate *priv = NM_MANAGER_GET_PRIVATE(self);
+    NMAuthCallResult  result;
+    gboolean          enable;
+    NMAuthSubject    *subject;
 
     nm_assert(G_IS_DBUS_METHOD_INVOCATION(context));
 
@@ -6696,8 +6763,10 @@ enable_net_done_cb(NMAuthChain *chain, GDBusMethodInvocation *context, gpointer 
     }
 
     _internal_enable(self, enable);
-    g_dbus_method_invocation_return_value(context, NULL);
     nm_audit_log_control_op(NM_AUDIT_OP_NET_CONTROL, enable ? "on" : "off", TRUE, subject, NULL);
+
+    priv->sleep_invocations = g_slist_prepend(priv->sleep_invocations, context);
+    sleep_devices_check_empty(self);
 }
 
 static void
@@ -7014,10 +7083,6 @@ nm_manager_write_device_state(NMManager *self, NMDevice *device, int *out_ifinde
     guint32                        route_metric_default_aspired;
     guint32                        route_metric_default_effective;
     NMTernary                      nm_owned;
-    NMDhcpConfig                  *dhcp_config;
-    const char                    *next_server   = NULL;
-    const char                    *root_path     = NULL;
-    const char                    *dhcp_bootfile = NULL;
 
     NM_SET_OUT(out_ifindex, 0);
 
@@ -7059,15 +7124,6 @@ nm_manager_write_device_state(NMManager *self, NMDevice *device, int *out_ifinde
                                                               TRUE,
                                                               &route_metric_default_aspired);
 
-    dhcp_config = nm_device_get_dhcp_config(device, AF_INET);
-    if (dhcp_config) {
-        root_path     = nm_dhcp_config_get_option(dhcp_config, "root_path");
-        next_server   = nm_dhcp_config_get_option(dhcp_config, "next_server");
-        dhcp_bootfile = nm_dhcp_config_get_option(dhcp_config, "filename");
-        if (!dhcp_bootfile)
-            dhcp_bootfile = nm_dhcp_config_get_option(dhcp_config, "bootfile_name");
-    }
-
     if (!nm_config_device_state_write(ifindex,
                                       managed_type,
                                       perm_hw_addr_fake,
@@ -7075,9 +7131,8 @@ nm_manager_write_device_state(NMManager *self, NMDevice *device, int *out_ifinde
                                       nm_owned,
                                       route_metric_default_aspired,
                                       route_metric_default_effective,
-                                      next_server,
-                                      root_path,
-                                      dhcp_bootfile))
+                                      nm_device_get_dhcp_config(device, AF_INET),
+                                      nm_device_get_dhcp_config(device, AF_INET6)))
         return FALSE;
 
     NM_SET_OUT(out_ifindex, ifindex);
@@ -7119,9 +7174,8 @@ devices_inited_cb(gpointer user_data)
 gboolean
 nm_manager_start(NMManager *self, GError **error)
 {
-    NMManagerPrivate            *priv = NM_MANAGER_GET_PRIVATE(self);
-    NMSettingsConnection *const *connections;
-    guint                        i;
+    NMManagerPrivate *priv = NM_MANAGER_GET_PRIVATE(self);
+    guint             i;
 
     nm_device_factory_manager_load_factories(_register_device_factory, self);
 
@@ -7175,9 +7229,10 @@ nm_manager_start(NMManager *self, GError **error)
                      NM_SETTINGS_SIGNAL_CONNECTION_UPDATED,
                      G_CALLBACK(connection_updated_cb),
                      self);
-    connections = nm_settings_get_connections_sorted_by_autoconnect_priority(priv->settings, NULL);
-    for (i = 0; connections[i]; i++)
-        connection_changed(self, connections[i]);
+
+    /* Make sure virtual devices for all connections are created so
+     * that they could be autoconnected.  */
+    connections_changed(self);
 
     nm_clear_g_source(&priv->devices_inited_id);
     priv->devices_inited_id = g_idle_add_full(G_PRIORITY_LOW + 10, devices_inited_cb, self, NULL);
@@ -7790,6 +7845,28 @@ impl_manager_checkpoint_adjust_rollback_timeout(NMDBusObject                    
 
 /*****************************************************************************/
 
+NMDnsManager *
+nm_manager_get_dns_manager(NMManager *self)
+{
+    NMManagerPrivate *priv;
+
+    g_return_val_if_fail(NM_IS_MANAGER(self), NULL);
+
+    priv = NM_MANAGER_GET_PRIVATE(self);
+
+    if (G_UNLIKELY(!priv->dns_mgr)) {
+        /* Initialize lazily on first use.
+         *
+         * But keep a reference. This is to ensure proper lifetimes between
+         * singleton instances (i.e. nm_dns_manager_get() outlives NMManager). */
+        priv->dns_mgr = g_object_ref(nm_dns_manager_get());
+    }
+
+    return priv->dns_mgr;
+}
+
+/*****************************************************************************/
+
 static void
 auth_mgr_changed(NMAuthManager *auth_manager, gpointer user_data)
 {
@@ -8250,6 +8327,9 @@ dispose(GObject *object)
         g_clear_object(&priv->concheck_mgr);
     }
 
+    nm_clear_g_signal_handler(priv->dns_mgr, &priv->dns_mgr_update_pending_signal_id);
+    g_clear_object(&priv->dns_mgr);
+
     if (priv->auth_mgr) {
         g_signal_handlers_disconnect_by_func(priv->auth_mgr, G_CALLBACK(auth_mgr_changed), self);
         g_clear_object(&priv->auth_mgr);
@@ -8300,8 +8380,10 @@ dispose(GObject *object)
 
     g_clear_object(&priv->vpn_manager);
 
-    sleep_devices_clear(self);
-    nm_clear_pointer(&priv->sleep_devices, g_hash_table_unref);
+    if (priv->sleep_devices) {
+        sleep_devices_clear(self);
+        nm_clear_pointer(&priv->sleep_devices, g_hash_table_unref);
+    }
 
     if (priv->sleep_monitor) {
         g_signal_handlers_disconnect_by_func(priv->sleep_monitor, sleeping_cb, self);

@@ -111,13 +111,16 @@ software_add(NMLinkType link_type, const char *name)
     {
         gboolean bond0_exists = !!nm_platform_link_get_by_ifname(NM_PLATFORM_GET, "bond0");
         int      r;
+        const NMPlatformLnkBond nm_platform_lnk_bond_default = {
+            .mode = 3,
+        };
 
-        r = nm_platform_link_bond_add(NM_PLATFORM_GET, name, NULL);
+        r = nm_platform_link_bond_add(NM_PLATFORM_GET, name, &nm_platform_lnk_bond_default, NULL);
 
         /* Check that bond0 is *not* automatically created. */
         if (!bond0_exists)
             g_assert(!nm_platform_link_get_by_ifname(NM_PLATFORM_GET, "bond0"));
-        return r >= 0;
+        return NMTST_NM_ERR_SUCCESS(r);
     }
     case NM_LINK_TYPE_TEAM:
         return NMTST_NM_ERR_SUCCESS(nm_platform_link_team_add(NM_PLATFORM_GET, name, NULL));
@@ -853,7 +856,7 @@ static void
 _test_wireguard_change(NMPlatform *platform, int ifindex, int test_mode)
 {
     const KeyPair self_key  = {"yOWEsaXFxX9/DOkQPzqB9RufZOpfSP4LZZCErP0N0Xo=",
-                              "s6pVT2xPwktor9O5bVOSzcPqBu9uzQOUzPQHXLU2jmk="};
+                               "s6pVT2xPwktor9O5bVOSzcPqBu9uzQOUzPQHXLU2jmk="};
     const KeyPair keys[100] = {
         {"+BDHMh11bkheGfvlQpqt8P/H7N1sPXtVi05XraZS0E8=",
          "QItu7PJadBVXFXGv55CMtVnbRHdrI6E2CGlu2N5oGx4=",

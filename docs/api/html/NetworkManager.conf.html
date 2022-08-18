@@ -8,7 +8,7 @@
 <link rel="up" href="manpages.html" title="Part I. Manual Pages">
 <link rel="prev" href="NetworkManager.html" title="NetworkManager">
 <link rel="next" href="NetworkManager-dispatcher.html" title="NetworkManager-dispatcher">
-<meta name="generator" content="GTK-Doc V1.33.0 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -334,17 +334,11 @@ no-auto-default=*
         manual page for more details).</p>
 <p><code class="literal">systemd-resolved</code>: NetworkManager will
         push the DNS configuration to systemd-resolved</p>
-<p><code class="literal">unbound</code>: NetworkManager will talk
-        to unbound and dnssec-triggerd, using "Conditional Forwarding"
-        with DNSSEC support. <code class="filename">/etc/resolv.conf</code>
-        will be managed by dnssec-trigger daemon. This option is
-        deprecated. Note that dnssec-trigger ships a NetworkManager dispatcher
-        script so this DNS plugin is not necessary.</p>
 <p><code class="literal">none</code>: NetworkManager will not
         modify resolv.conf. This implies
         <code class="literal">rc-manager</code> <code class="literal">unmanaged</code></p>
-<p>Note that the plugins <code class="literal">dnsmasq</code>, <code class="literal">systemd-resolved</code>
-        and <code class="literal">unbound</code> are caching local nameservers.
+<p>Note that the plugins <code class="literal">dnsmasq</code> and <code class="literal">systemd-resolved</code>
+        are caching local nameservers.
         Hence, when NetworkManager writes <code class="filename">/run/NetworkManager/resolv.conf</code>
         and <code class="filename">/etc/resolv.conf</code> (according to <code class="literal">rc-manager</code>
         setting below), the name server there will be localhost only.
@@ -619,6 +613,19 @@ unmanaged-devices=mac:00:22:68:1c:59:b1;mac:00:1E:65:30:D1:C4;interface-name:eth
     to collect everything.
     </p>
 <p>
+    The recommended way for enabling logging is with a file <code class="filename">/etc/NetworkManager/conf.d/95-logging.conf</code>
+    that contains
+</p>
+<pre class="programlisting">
+[logging]
+level=TRACE
+domains=ALL
+</pre>
+<p>
+    and restart the daemon with <span class="command"><strong>systemctl restart NetworkManager</strong></span>. Then
+    reproduce the problem. You can find the logs in syslog (for example <span class="command"><strong>journalctl</strong></span>).
+    </p>
+<p>
     Any settings here are overridden by the <code class="option">--log-level</code>
     and <code class="option">--log-domains</code> command-line options.
     Logging can also be reconfigured at runtime with
@@ -629,11 +636,17 @@ unmanaged-devices=mac:00:22:68:1c:59:b1;mac:00:1E:65:30:D1:C4;interface-name:eth
     early on.
     </p>
 <p>
+    By setting <code class="option">nm.debug</code> on the kernel command line (either from
+    <code class="filename">/run/NetworkManager/proc-cmdline</code> or <code class="filename">/proc/cmdline</code>),
+    debug logging is enabled. This overrides both the command-line options and the settings
+    from NetworkManager.conf.
+    </p>
+<p>
     NetworkManager's logging aims not to contain private sensitive data
     and you should be fine sharing the debug logs. Still, there will
     be IP addresses and your network setup, if you consider that private
-    then review the log before sharing. Do not mangle the logfile in
-    a way that distorts the meaning too much.
+    then review the log before sharing. However, try not to mangle the logfile
+    in a way that distorts the meaning too much.
     </p>
 <p>
     NetworkManager uses syslog or systemd-journald, depending on configuration.
@@ -804,6 +817,10 @@ ipv6.ip6-privacy=0
 <td><p>If unspecified, the ultimate default values depends on the DNS plugin. With systemd-resolved the default currently is "no" (0) and for all other plugins also "no" (0).</p></td>
 </tr>
 <tr>
+<td><p><span class="term"><code class="varname">connection.mptcp-flags</code></span></p></td>
+<td><p>If unspecified, the fallback is either 0 (<code class="literal">"disabled"</code>) or 0x22 (<code class="literal">"enabled-on-global-iface,subflow"</code>), depending on <code class="literal">/proc/sys/net/mptcp/enabled</code>.</p></td>
+</tr>
+<tr>
 <td><p><span class="term"><code class="varname">connection.dns-over-tls</code></span></p></td>
 <td><p>If unspecified, the ultimate default values depends on the DNS plugin. With systemd-resolved the default currently is global setting and for all other plugins "no" (0).</p></td>
 </tr>
@@ -890,6 +907,10 @@ ipv6.ip6-privacy=0
 <td></td>
 </tr>
 <tr>
+<td><p><span class="term"><code class="varname">ipv4.link-local</code></span></p></td>
+<td><p>If left unspecified, fallback to "auto" which makes it dependent on "ipv4.method" setting.</p></td>
+</tr>
+<tr>
 <td><p><span class="term"><code class="varname">ipv4.route-metric</code></span></p></td>
 <td></td>
 </tr>
@@ -899,6 +920,12 @@ ipv6.ip6-privacy=0
             is different from explicitly selecting the main table 254, because of how NetworkManager
             removes extraneous routes from the tables.
           </p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="varname">ipv6.addr-gen-mode</code></span></p></td>
+<td><p>If the per-profile setting is either "default" or "default-or-eui64", the
+            global default is used. If the default is unspecified, the fallback value is either "stable-privacy"
+            or "eui64", depending on whether the per-profile setting is "default" or "default-or-eui64, respectively.</p></td>
 </tr>
 <tr>
 <td><p><span class="term"><code class="varname">ipv6.ra-timeout</code></span></p></td>
@@ -1841,6 +1868,6 @@ interface-name:vboxnet*,except:interface-name:vboxnet2
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.33.0</div>
+<hr>Generated by GTK-Doc V1.33.1</div>
 </body>
 </html>

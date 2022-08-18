@@ -13,7 +13,9 @@
   </refsect1>
 <refsect1 role="desc" id="gdbus-interface-org-freedesktop-NetworkManager-Device-Veth">
   <title role="desc.title">Description</title>
-  <para></para>
+  <para>
+</para><para>
+</para>
 </refsect1>
 <refsect1 role="details" id="gdbus-properties-org.freedesktop.NetworkManager.Device.Veth">
   <title role="details.title">Property Details</title>
@@ -23,7 +25,8 @@
 <programlisting>
 Peer  readable   o
 </programlisting>
-<para>        The object path of the device's peer.
+<para>
+The object path of the device's peer.
 </para>
 </refsect2>
 </refsect1>

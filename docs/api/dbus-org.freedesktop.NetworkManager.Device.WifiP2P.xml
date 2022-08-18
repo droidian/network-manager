@@ -28,7 +28,9 @@
   </refsect1>
 <refsect1 role="desc" id="gdbus-interface-org-freedesktop-NetworkManager-Device-WifiP2P">
   <title role="desc.title">Description</title>
-  <para></para>
+  <para>
+</para><para>
+</para>
   <para role="since">Since 1.16</para>
 </refsect1>
 <refsect1 role="details" id="gdbus-methods-org.freedesktop.NetworkManager.Device.WifiP2P">
@@ -39,20 +41,25 @@
 <programlisting>
 StartFind (IN  a{sv} options);
 </programlisting>
-<para>        Start a find operation for Wi-Fi P2P peers.
-</para><para>        The <constant>options</constant> argument accepts the following keys:
-</para><para>        <variablelist>
-        <varlistentry>
-          <term><literal>i timeout</literal>:</term>
-          <listitem><para>Timeout value in the range of 1-600 seconds.</para>
-          <para>The default is 30 seconds.</para></listitem>
-        </varlistentry>
-        </variablelist>
+<para>
+Start a find operation for Wi-Fi P2P peers.
+</para><para>
+The <constant>options</constant> argument accepts the following keys:
+</para><para>
+<variablelist>
+<varlistentry>
+<term><literal>i timeout</literal>:</term>
+<listitem><para>Timeout value in the range of 1-600 seconds.</para>
+<para>The default is 30 seconds.</para></listitem>
+</varlistentry>
+</variablelist>
 </para>
 <variablelist role="params">
 <varlistentry>
   <term><literal>IN a{sv} <parameter>options</parameter></literal>:</term>
-  <listitem><para>Options of find.</para></listitem>
+  <listitem><para>
+Options of find.
+</para></listitem>
 </varlistentry>
 </variablelist>
 <para role="since">Since 1.16</para>
@@ -63,7 +70,8 @@ StartFind (IN  a{sv} options);
 <programlisting>
 StopFind ();
 </programlisting>
-<para>        Stop an ongoing find operation again.
+<para>
+Stop an ongoing find operation again.
 </para>
 <para role="since">Since 1.16</para>
 </refsect2>
@@ -76,12 +84,15 @@ StopFind ();
 <programlisting>
 PeerAdded (o peer);
 </programlisting>
-<para>        Emitted when a new Wi-Fi P2P peer is found by the device.
+<para>
+Emitted when a new Wi-Fi P2P peer is found by the device.
 </para>
 <variablelist role="params">
 <varlistentry>
   <term><literal>o <parameter>peer</parameter></literal>:</term>
-  <listitem><para>The object path of the newly found access point.</para></listitem>
+  <listitem><para>
+The object path of the newly found access point.
+</para></listitem>
 </varlistentry>
 </variablelist>
 <para role="since">Since 1.16</para>
@@ -92,12 +103,15 @@ PeerAdded (o peer);
 <programlisting>
 PeerRemoved (o peer);
 </programlisting>
-<para>        Emitted when a Wi-Fi P2P peer disappears from view of the device.
+<para>
+Emitted when a Wi-Fi P2P peer disappears from view of the device.
 </para>
 <variablelist role="params">
 <varlistentry>
   <term><literal>o <parameter>peer</parameter></literal>:</term>
-  <listitem><para>The object path of the Wi-Fi P2P peer that has disappeared.</para></listitem>
+  <listitem><para>
+The object path of the Wi-Fi P2P peer that has disappeared.
+</para></listitem>
 </varlistentry>
 </variablelist>
 <para role="since">Since 1.16</para>
@@ -111,8 +125,10 @@ PeerRemoved (o peer);
 <programlisting>
 HwAddress  readable   s
 </programlisting>
-<para>        The active hardware address of the device.
-</para><para>        DEPRECATED. Use the "HwAddress" property in "org.freedesktop.NetworkManager.Device" instead which exists since version NetworkManager 1.24.0.
+<para>
+The active hardware address of the device.
+</para><para>
+DEPRECATED. Use the "HwAddress" property in "org.freedesktop.NetworkManager.Device" instead which exists since version NetworkManager 1.24.0.
 </para>
 <para role="since">Since 1.16</para>
 </refsect2>
@@ -122,7 +138,8 @@ HwAddress  readable   s
 <programlisting>
 Peers  readable   ao
 </programlisting>
-<para>        List of object paths of peers visible to this Wi-Fi P2P device.
+<para>
+List of object paths of peers visible to this Wi-Fi P2P device.
 </para>
 <para role="since">Since 1.16</para>
 </refsect2>

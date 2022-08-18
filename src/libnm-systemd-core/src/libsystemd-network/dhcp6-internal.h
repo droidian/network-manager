@@ -64,13 +64,14 @@ struct sd_dhcp6_client {
         struct duid duid;
         size_t duid_len;
         be16_t *req_opts;
-        size_t req_opts_len;
+        size_t n_req_opts;
         char *fqdn;
         char *mudurl;
         char **user_class;
         char **vendor_class;
         OrderedHashmap *extra_options;
         OrderedSet *vendor_options;
+        bool rapid_commit;
 
         struct sd_dhcp6_lease *lease;
 

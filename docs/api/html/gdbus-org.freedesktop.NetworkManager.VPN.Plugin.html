@@ -8,7 +8,7 @@
 <link rel="up" href="dbus-vpn-plugin.html" title="VPN services">
 <link rel="prev" href="dbus-vpn-plugin.html" title="VPN services">
 <link rel="next" href="dbus-vpn-types.html" title="Types">
-<meta name="generator" content="GTK-Doc V1.33.0 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -70,8 +70,9 @@
 </div>
 <div class="refsect1">
 <a name="gdbus-interface-org-freedesktop-NetworkManager-VPN-Plugin"></a><h2>Description</h2>
-<p>      This interface is provided by plugins providing VPN services to the
-      NetworkManager daemon.
+<p>
+This interface is provided by plugins providing VPN services to the
+NetworkManager daemon.
 </p>
 </div>
 <div class="refsect1">
@@ -81,8 +82,9 @@
 <pre class="programlisting">
 Connect (IN  a{sa{sv}} connection);
 </pre>
-<p>        Tells the plugin to connect. Interactive secrets requests (eg, emitting
-        the SecretsRequired signal) are not allowed.
+<p>
+Tells the plugin to connect. Interactive secrets requests (eg, emitting
+the SecretsRequired signal) are not allowed.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -91,7 +93,9 @@ Connect (IN  a{sa{sv}} connection);
 </colgroup>
 <tbody><tr>
 <td><p><span class="term"><code class="literal">IN a{sa{sv}} <em class="parameter"><code>connection</code></em></code>:</span></p></td>
-<td><p>Describes the connection to be established.</p></td>
+<td><p>
+Describes the connection to be established.
+</p></td>
 </tr></tbody>
 </table></div>
 </div>
@@ -102,9 +106,10 @@ Connect (IN  a{sa{sv}} connection);
 ConnectInteractive (IN  a{sa{sv}} connection,
                     IN  a{sv}     details);
 </pre>
-<p>        Tells the plugin to connect, allowing interactive secrets requests (eg the
-        plugin is allowed to emit the SecretsRequired signal if the VPN service
-        indicates that it needs additional secrets during the connect process).
+<p>
+Tells the plugin to connect, allowing interactive secrets requests (eg the
+plugin is allowed to emit the SecretsRequired signal if the VPN service
+indicates that it needs additional secrets during the connect process).
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -114,11 +119,15 @@ ConnectInteractive (IN  a{sa{sv}} connection,
 <tbody>
 <tr>
 <td><p><span class="term"><code class="literal">IN a{sa{sv}} <em class="parameter"><code>connection</code></em></code>:</span></p></td>
-<td><p>Describes the connection to be established.</p></td>
+<td><p>
+Describes the connection to be established.
+</p></td>
 </tr>
 <tr>
 <td><p><span class="term"><code class="literal">IN a{sv} <em class="parameter"><code>details</code></em></code>:</span></p></td>
-<td><p>Additional details about the Connect process.</p></td>
+<td><p>
+Additional details about the Connect process.
+</p></td>
 </tr>
 </tbody>
 </table></div>
@@ -130,8 +139,9 @@ ConnectInteractive (IN  a{sa{sv}} connection,
 NeedSecrets (IN  a{sa{sv}} settings,
              OUT s         setting_name);
 </pre>
-<p>        Asks the plugin whether the provided connection will require secrets to
-        connect successfully.
+<p>
+Asks the plugin whether the provided connection will require secrets to
+connect successfully.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -141,11 +151,15 @@ NeedSecrets (IN  a{sa{sv}} settings,
 <tbody>
 <tr>
 <td><p><span class="term"><code class="literal">IN a{sa{sv}} <em class="parameter"><code>settings</code></em></code>:</span></p></td>
-<td><p>Describes the connection that may need secrets.</p></td>
+<td><p>
+Describes the connection that may need secrets.
+</p></td>
 </tr>
 <tr>
 <td><p><span class="term"><code class="literal">OUT s <em class="parameter"><code>setting_name</code></em></code>:</span></p></td>
-<td><p>The setting name within the provided connection that requires secrets, if any.</p></td>
+<td><p>
+The setting name within the provided connection that requires secrets, if any.
+</p></td>
 </tr>
 </tbody>
 </table></div>
@@ -156,7 +170,8 @@ NeedSecrets (IN  a{sa{sv}} settings,
 <pre class="programlisting">
 Disconnect ();
 </pre>
-<p>        Disconnect the plugin.
+<p>
+Disconnect the plugin.
 </p>
 </div>
 <hr>
@@ -165,7 +180,8 @@ Disconnect ();
 <pre class="programlisting">
 SetConfig (IN  a{sv} config);
 </pre>
-<p>        Set generic connection details on the connection.
+<p>
+Set generic connection details on the connection.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -174,7 +190,9 @@ SetConfig (IN  a{sv} config);
 </colgroup>
 <tbody><tr>
 <td><p><span class="term"><code class="literal">IN a{sv} <em class="parameter"><code>config</code></em></code>:</span></p></td>
-<td><p>Generic configuration details for the connection.</p></td>
+<td><p>
+Generic configuration details for the connection.
+</p></td>
 </tr></tbody>
 </table></div>
 </div>
@@ -184,7 +202,8 @@ SetConfig (IN  a{sv} config);
 <pre class="programlisting">
 SetIp4Config (IN  a{sv} config);
 </pre>
-<p>        Set IPv4 details on the connection.
+<p>
+Set IPv4 details on the connection.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -193,7 +212,9 @@ SetIp4Config (IN  a{sv} config);
 </colgroup>
 <tbody><tr>
 <td><p><span class="term"><code class="literal">IN a{sv} <em class="parameter"><code>config</code></em></code>:</span></p></td>
-<td><p>Ip4Config details for the connection. You must call SetConfig() before calling this.</p></td>
+<td><p>
+Ip4Config details for the connection. You must call SetConfig() before calling this.
+</p></td>
 </tr></tbody>
 </table></div>
 </div>
@@ -203,7 +224,8 @@ SetIp4Config (IN  a{sv} config);
 <pre class="programlisting">
 SetIp6Config (IN  a{sv} config);
 </pre>
-<p>        Set IPv6 details on the connection.
+<p>
+Set IPv6 details on the connection.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -212,7 +234,9 @@ SetIp6Config (IN  a{sv} config);
 </colgroup>
 <tbody><tr>
 <td><p><span class="term"><code class="literal">IN a{sv} <em class="parameter"><code>config</code></em></code>:</span></p></td>
-<td><p>Ip6Config details for the connection. You must call SetConfig() before calling this.</p></td>
+<td><p>
+Ip6Config details for the connection. You must call SetConfig() before calling this.
+</p></td>
 </tr></tbody>
 </table></div>
 </div>
@@ -222,7 +246,8 @@ SetIp6Config (IN  a{sv} config);
 <pre class="programlisting">
 SetFailure (IN  s reason);
 </pre>
-<p>        Indicate a failure to the plugin.
+<p>
+Indicate a failure to the plugin.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -231,7 +256,9 @@ SetFailure (IN  s reason);
 </colgroup>
 <tbody><tr>
 <td><p><span class="term"><code class="literal">IN s <em class="parameter"><code>reason</code></em></code>:</span></p></td>
-<td><p>The reason for the failure.</p></td>
+<td><p>
+The reason for the failure.
+</p></td>
 </tr></tbody>
 </table></div>
 </div>
@@ -241,8 +268,9 @@ SetFailure (IN  s reason);
 <pre class="programlisting">
 NewSecrets (IN  a{sa{sv}} connection);
 </pre>
-<p>        Called in response to a SecretsRequired signal to deliver updated secrets
-        or other information to the plugin.
+<p>
+Called in response to a SecretsRequired signal to deliver updated secrets
+or other information to the plugin.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -251,7 +279,9 @@ NewSecrets (IN  a{sa{sv}} connection);
 </colgroup>
 <tbody><tr>
 <td><p><span class="term"><code class="literal">IN a{sa{sv}} <em class="parameter"><code>connection</code></em></code>:</span></p></td>
-<td><p>Describes the connection including the new secrets.</p></td>
+<td><p>
+Describes the connection including the new secrets.
+</p></td>
 </tr></tbody>
 </table></div>
 </div>
@@ -263,7 +293,8 @@ NewSecrets (IN  a{sa{sv}} connection);
 <pre class="programlisting">
 StateChanged (u state);
 </pre>
-<p>        Emitted when the plugin state changes.
+<p>
+Emitted when the plugin state changes.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -272,7 +303,9 @@ StateChanged (u state);
 </colgroup>
 <tbody><tr>
 <td><p><span class="term"><code class="literal">u <em class="parameter"><code>state</code></em></code>:</span></p></td>
-<td><p>(<a class="link" href="nm-vpn-dbus-types.html#NMVpnServiceState" title="enum NMVpnServiceState">NMVpnServiceState</a>) The new state of the plugin.</p></td>
+<td><p>
+(<a class="link" href="nm-vpn-dbus-types.html#NMVpnServiceState" title="enum NMVpnServiceState">NMVpnServiceState</a>) The new state of the plugin.
+</p></td>
 </tr></tbody>
 </table></div>
 </div>
@@ -283,9 +316,10 @@ StateChanged (u state);
 SecretsRequired (s  message,
                  as secrets);
 </pre>
-<p>        Emitted during an ongoing ConnectInteractive() request when the plugin has
-        determined that new secrets are required. NetworkManager will then call
-        the NewSecrets() method with a connection hash including the new secrets.
+<p>
+Emitted during an ongoing ConnectInteractive() request when the plugin has
+determined that new secrets are required. NetworkManager will then call
+the NewSecrets() method with a connection hash including the new secrets.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -295,11 +329,15 @@ SecretsRequired (s  message,
 <tbody>
 <tr>
 <td><p><span class="term"><code class="literal">s <em class="parameter"><code>message</code></em></code>:</span></p></td>
-<td><p>Informational message, if any, about the request. For example, if a second PIN is required, could indicate to the user to wait for the token code to change until entering the next PIN.</p></td>
+<td><p>
+Informational message, if any, about the request. For example, if a second PIN is required, could indicate to the user to wait for the token code to change until entering the next PIN.
+</p></td>
 </tr>
 <tr>
 <td><p><span class="term"><code class="literal">as <em class="parameter"><code>secrets</code></em></code>:</span></p></td>
-<td><p>Array of strings of VPN secret names which the plugin thinks secrets may be required for, or other VPN-specific data to be processed by the VPN's front-end.</p></td>
+<td><p>
+Array of strings of VPN secret names which the plugin thinks secrets may be required for, or other VPN-specific data to be processed by the VPN's front-end.
+</p></td>
 </tr>
 </tbody>
 </table></div>
@@ -310,7 +348,8 @@ SecretsRequired (s  message,
 <pre class="programlisting">
 Config (a{sv} config);
 </pre>
-<p>        The plugin obtained generic configuration information.
+<p>
+The plugin obtained generic configuration information.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -319,7 +358,9 @@ Config (a{sv} config);
 </colgroup>
 <tbody><tr>
 <td><p><span class="term"><code class="literal">a{sv} <em class="parameter"><code>config</code></em></code>:</span></p></td>
-<td><p>The configuration information.</p></td>
+<td><p>
+The configuration information.
+</p></td>
 </tr></tbody>
 </table></div>
 </div>
@@ -329,7 +370,8 @@ Config (a{sv} config);
 <pre class="programlisting">
 Ip4Config (a{sv} ip4config);
 </pre>
-<p>        The plugin obtained an IPv4 configuration.
+<p>
+The plugin obtained an IPv4 configuration.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -338,7 +380,9 @@ Ip4Config (a{sv} ip4config);
 </colgroup>
 <tbody><tr>
 <td><p><span class="term"><code class="literal">a{sv} <em class="parameter"><code>ip4config</code></em></code>:</span></p></td>
-<td><p>The IPv4 configuration.</p></td>
+<td><p>
+The IPv4 configuration.
+</p></td>
 </tr></tbody>
 </table></div>
 </div>
@@ -348,7 +392,8 @@ Ip4Config (a{sv} ip4config);
 <pre class="programlisting">
 Ip6Config (a{sv} ip6config);
 </pre>
-<p>        The plugin obtained an IPv6 configuration.
+<p>
+The plugin obtained an IPv6 configuration.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -357,7 +402,9 @@ Ip6Config (a{sv} ip6config);
 </colgroup>
 <tbody><tr>
 <td><p><span class="term"><code class="literal">a{sv} <em class="parameter"><code>ip6config</code></em></code>:</span></p></td>
-<td><p>The IPv6 configuration.</p></td>
+<td><p>
+The IPv6 configuration.
+</p></td>
 </tr></tbody>
 </table></div>
 </div>
@@ -367,7 +414,8 @@ Ip6Config (a{sv} ip6config);
 <pre class="programlisting">
 LoginBanner (s banner);
 </pre>
-<p>        Emitted when the plugin receives a login banner from the VPN service.
+<p>
+Emitted when the plugin receives a login banner from the VPN service.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -376,7 +424,9 @@ LoginBanner (s banner);
 </colgroup>
 <tbody><tr>
 <td><p><span class="term"><code class="literal">s <em class="parameter"><code>banner</code></em></code>:</span></p></td>
-<td><p>The login banner string.</p></td>
+<td><p>
+The login banner string.
+</p></td>
 </tr></tbody>
 </table></div>
 </div>
@@ -386,7 +436,8 @@ LoginBanner (s banner);
 <pre class="programlisting">
 Failure (u reason);
 </pre>
-<p>        Emitted when a failure in the VPN plugin occurs.
+<p>
+Emitted when a failure in the VPN plugin occurs.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -395,7 +446,9 @@ Failure (u reason);
 </colgroup>
 <tbody><tr>
 <td><p><span class="term"><code class="literal">u <em class="parameter"><code>reason</code></em></code>:</span></p></td>
-<td><p>(<a class="link" href="nm-vpn-dbus-types.html#NMVpnPluginFailure" title="enum NMVpnPluginFailure">NMVpnPluginFailure</a>) Reason code for the failure.</p></td>
+<td><p>
+(<a class="link" href="nm-vpn-dbus-types.html#NMVpnPluginFailure" title="enum NMVpnPluginFailure">NMVpnPluginFailure</a>) Reason code for the failure.
+</p></td>
 </tr></tbody>
 </table></div>
 </div>
@@ -407,14 +460,16 @@ Failure (u reason);
 <pre class="programlisting">
 State  readable   u
 </pre>
-<p>        The state of the plugin.
+<p>
+The state of the plugin.
 </p>
-<p>        Returns: <a class="link" href="nm-vpn-dbus-types.html#NMVpnServiceState" title="enum NMVpnServiceState">NMVpnServiceState</a>
+<p>
+Returns: <a class="link" href="nm-vpn-dbus-types.html#NMVpnServiceState" title="enum NMVpnServiceState">NMVpnServiceState</a>
 </p>
 </div>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.33.0</div>
+<hr>Generated by GTK-Doc V1.33.1</div>
 </body>
 </html>

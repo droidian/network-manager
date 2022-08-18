@@ -35,7 +35,9 @@
   </refsect1>
 <refsect1 role="desc" id="gdbus-interface-org-freedesktop-NetworkManager-Device-Wireless">
   <title role="desc.title">Description</title>
-  <para></para>
+  <para>
+</para><para>
+</para>
 </refsect1>
 <refsect1 role="details" id="gdbus-methods-org.freedesktop.NetworkManager.Device.Wireless">
   <title role="details.title">Method Details</title>
@@ -45,15 +47,18 @@
 <programlisting>
 GetAccessPoints (OUT ao access_points);
 </programlisting>
-<para>        DEPRECATED. Get the list of access points visible to this device. Note
-        that this list does not include access points which hide their SSID. To
-        retrieve a list of all access points (including hidden ones) use the
-        GetAllAccessPoints() method.
+<para>
+DEPRECATED. Get the list of access points visible to this device. Note
+that this list does not include access points which hide their SSID. To
+retrieve a list of all access points (including hidden ones) use the
+GetAllAccessPoints() method.
 </para>
 <variablelist role="params">
 <varlistentry>
   <term><literal>OUT ao <parameter>access_points</parameter></literal>:</term>
-  <listitem><para>List of access point object paths.</para></listitem>
+  <listitem><para>
+List of access point object paths.
+</para></listitem>
 </varlistentry>
 </variablelist>
 </refsect2>
@@ -63,13 +68,16 @@ GetAccessPoints (OUT ao access_points);
 <programlisting>
 GetAllAccessPoints (OUT ao access_points);
 </programlisting>
-<para>        Get the list of all access points visible to this device, including hidden
-        ones for which the SSID is not yet known.
+<para>
+Get the list of all access points visible to this device, including hidden
+ones for which the SSID is not yet known.
 </para>
 <variablelist role="params">
 <varlistentry>
   <term><literal>OUT ao <parameter>access_points</parameter></literal>:</term>
-  <listitem><para>List of access point object paths.</para></listitem>
+  <listitem><para>
+List of access point object paths.
+</para></listitem>
 </varlistentry>
 </variablelist>
 </refsect2>
@@ -79,12 +87,15 @@ GetAllAccessPoints (OUT ao access_points);
 <programlisting>
 RequestScan (IN  a{sv} options);
 </programlisting>
-<para>        Request the device to scan. To know when the scan is finished, use the "PropertiesChanged" signal from "org.freedesktop.DBus.Properties" to listen to changes to the "LastScan" property.
+<para>
+Request the device to scan. To know when the scan is finished, use the "PropertiesChanged" signal from "org.freedesktop.DBus.Properties" to listen to changes to the "LastScan" property.
 </para>
 <variablelist role="params">
 <varlistentry>
   <term><literal>IN a{sv} <parameter>options</parameter></literal>:</term>
-  <listitem><para>Options of scan. Currently, 'ssids' option with value of "aay" type is supported.</para></listitem>
+  <listitem><para>
+Options of scan. Currently, 'ssids' option with value of "aay" type is supported.
+</para></listitem>
 </varlistentry>
 </variablelist>
 </refsect2>
@@ -97,12 +108,15 @@ RequestScan (IN  a{sv} options);
 <programlisting>
 AccessPointAdded (o access_point);
 </programlisting>
-<para>        Emitted when a new access point is found by the device.
+<para>
+Emitted when a new access point is found by the device.
 </para>
 <variablelist role="params">
 <varlistentry>
   <term><literal>o <parameter>access_point</parameter></literal>:</term>
-  <listitem><para>The object path of the newly found access point.</para></listitem>
+  <listitem><para>
+The object path of the newly found access point.
+</para></listitem>
 </varlistentry>
 </variablelist>
 </refsect2>
@@ -112,12 +126,15 @@ AccessPointAdded (o access_point);
 <programlisting>
 AccessPointRemoved (o access_point);
 </programlisting>
-<para>        Emitted when an access point disappears from view of the device.
+<para>
+Emitted when an access point disappears from view of the device.
 </para>
 <variablelist role="params">
 <varlistentry>
   <term><literal>o <parameter>access_point</parameter></literal>:</term>
-  <listitem><para>The object path of the access point that has disappeared.</para></listitem>
+  <listitem><para>
+The object path of the access point that has disappeared.
+</para></listitem>
 </varlistentry>
 </variablelist>
 </refsect2>
@@ -130,8 +147,10 @@ AccessPointRemoved (o access_point);
 <programlisting>
 HwAddress  readable   s
 </programlisting>
-<para>        The active hardware address of the device.
-</para><para>        DEPRECATED. Use the "HwAddress" property in "org.freedesktop.NetworkManager.Device" instead which exists since version NetworkManager 1.24.0.
+<para>
+The active hardware address of the device.
+</para><para>
+DEPRECATED. Use the "HwAddress" property in "org.freedesktop.NetworkManager.Device" instead which exists since version NetworkManager 1.24.0.
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-Wireless.PermHwAddress">
@@ -140,7 +159,8 @@ HwAddress  readable   s
 <programlisting>
 PermHwAddress  readable   s
 </programlisting>
-<para>        The permanent hardware address of the device.
+<para>
+The permanent hardware address of the device.
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-Wireless.Mode">
@@ -149,8 +169,10 @@ PermHwAddress  readable   s
 <programlisting>
 Mode  readable   u
 </programlisting>
-<para>        The operating mode of the wireless device.
-</para><para>        Returns: <link linkend="NM80211Mode">NM80211Mode</link>
+<para>
+The operating mode of the wireless device.
+</para><para>
+Returns: <link linkend="NM80211Mode">NM80211Mode</link>
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-Wireless.Bitrate">
@@ -159,8 +181,9 @@ Mode  readable   u
 <programlisting>
 Bitrate  readable   u
 </programlisting>
-<para>        The bit rate currently used by the wireless device, in kilobits/second
-        (Kb/s).
+<para>
+The bit rate currently used by the wireless device, in kilobits/second
+(Kb/s).
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-Wireless.AccessPoints">
@@ -169,7 +192,8 @@ Bitrate  readable   u
 <programlisting>
 AccessPoints  readable   ao
 </programlisting>
-<para>        List of object paths of access point visible to this wireless device.
+<para>
+List of object paths of access point visible to this wireless device.
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-Wireless.ActiveAccessPoint">
@@ -178,7 +202,8 @@ AccessPoints  readable   ao
 <programlisting>
 ActiveAccessPoint  readable   o
 </programlisting>
-<para>        Object path of the access point currently used by the wireless device.
+<para>
+Object path of the access point currently used by the wireless device.
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-Wireless.WirelessCapabilities">
@@ -187,8 +212,10 @@ ActiveAccessPoint  readable   o
 <programlisting>
 WirelessCapabilities  readable   u
 </programlisting>
-<para>        The capabilities of the wireless device.
-</para><para>        Returns: <link linkend="NMDeviceWifiCapabilities">NMDeviceWifiCapabilities</link>
+<para>
+The capabilities of the wireless device.
+</para><para>
+Returns: <link linkend="NMDeviceWifiCapabilities">NMDeviceWifiCapabilities</link>
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-Wireless.LastScan">
@@ -197,8 +224,9 @@ WirelessCapabilities  readable   u
 <programlisting>
 LastScan  readable   x
 </programlisting>
-<para>        The timestamp (in CLOCK_BOOTTIME milliseconds) for the last finished network scan.
-        A value of -1 means the device never scanned for access points.
+<para>
+The timestamp (in CLOCK_BOOTTIME milliseconds) for the last finished network scan.
+A value of -1 means the device never scanned for access points.
 </para>
 <para role="since">Since 1.12</para>
 </refsect2>

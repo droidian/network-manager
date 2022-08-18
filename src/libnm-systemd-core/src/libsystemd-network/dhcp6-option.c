@@ -53,18 +53,20 @@ bool dhcp6_option_can_request(uint16_t option) {
                 return false;
         case SD_DHCP6_OPTION_SIP_SERVER_DOMAIN_NAME:
         case SD_DHCP6_OPTION_SIP_SERVER_ADDRESS:
-        case SD_DHCP6_OPTION_DNS_SERVERS:
-        case SD_DHCP6_OPTION_DOMAIN_LIST:
+        case SD_DHCP6_OPTION_DNS_SERVER:
+        case SD_DHCP6_OPTION_DOMAIN:
                 return true;
         case SD_DHCP6_OPTION_IA_PD:
         case SD_DHCP6_OPTION_IA_PD_PREFIX:
                 return false;
-        case SD_DHCP6_OPTION_NIS_SERVERS:
-        case SD_DHCP6_OPTION_NISP_SERVERS:
+        case SD_DHCP6_OPTION_NIS_SERVER:
+        case SD_DHCP6_OPTION_NISP_SERVER:
         case SD_DHCP6_OPTION_NIS_DOMAIN_NAME:
         case SD_DHCP6_OPTION_NISP_DOMAIN_NAME:
-        case SD_DHCP6_OPTION_SNTP_SERVERS:
+        case SD_DHCP6_OPTION_SNTP_SERVER:
+                return true;
         case SD_DHCP6_OPTION_INFORMATION_REFRESH_TIME:
+                return false; /* This is automatically set when sending INFORMATION_REQUEST message. */
         case SD_DHCP6_OPTION_BCMCS_SERVER_D:
         case SD_DHCP6_OPTION_BCMCS_SERVER_A:
         case SD_DHCP6_OPTION_GEOCONF_CIVIC:
@@ -126,9 +128,9 @@ bool dhcp6_option_can_request(uint16_t option) {
         case SD_DHCP6_OPTION_CLIENT_LINKLAYER_ADDR:
         case SD_DHCP6_OPTION_LINK_ADDRESS:
         case SD_DHCP6_OPTION_RADIUS:
+        case SD_DHCP6_OPTION_SOL_MAX_RT: /* Automatically set when sending SOLICIT message. */
+        case SD_DHCP6_OPTION_INF_MAX_RT: /* Automatically set when sending INFORMATION_REQUEST message. */
                 return false;
-        case SD_DHCP6_OPTION_SOL_MAX_RT:
-        case SD_DHCP6_OPTION_INF_MAX_RT:
         case SD_DHCP6_OPTION_ADDRSEL:
         case SD_DHCP6_OPTION_ADDRSEL_TABLE:
         case SD_DHCP6_OPTION_V6_PCP_SERVER:
@@ -508,7 +510,7 @@ int dhcp6_option_parse(
         if (buflen < offsetof(DHCP6Option, data))
                 return -EBADMSG;
 
-        if (*offset >= buflen - offsetof(DHCP6Option, data))
+        if (*offset > buflen - offsetof(DHCP6Option, data))
                 return -EBADMSG;
 
         len = unaligned_read_be16(buf + *offset + offsetof(DHCP6Option, len));
@@ -518,14 +520,14 @@ int dhcp6_option_parse(
 
         *ret_option_code = unaligned_read_be16(buf + *offset + offsetof(DHCP6Option, code));
         *ret_option_data_len = len;
-        *ret_option_data = buf + *offset + offsetof(DHCP6Option, data);
+        *ret_option_data = len == 0 ? NULL : buf + *offset + offsetof(DHCP6Option, data);
         *offset += offsetof(DHCP6Option, data) + len;
 
         return 0;
 }
 
 int dhcp6_option_parse_status(const uint8_t *data, size_t data_len, char **ret_status_message) {
-        assert(data);
+        assert(data || data_len == 0);
 
         if (data_len < sizeof(uint16_t))
                 return -EBADMSG;
@@ -803,7 +805,7 @@ int dhcp6_option_parse_addresses(
                 struct in6_addr **addrs,
                 size_t *count) {
 
-        assert(optval);
+        assert(optval || optlen == 0);
         assert(addrs);
         assert(count);
 
@@ -826,8 +828,8 @@ static int parse_domain(const uint8_t **data, size_t *len, char **ret) {
         int r;
 
         assert(data);
-        assert(*data);
         assert(len);
+        assert(*data || *len == 0);
         assert(ret);
 
         optval = *data;
@@ -891,7 +893,7 @@ int dhcp6_option_parse_domainname(const uint8_t *optval, size_t optlen, char **r
         _cleanup_free_ char *domain = NULL;
         int r;
 
-        assert(optval);
+        assert(optval || optlen == 0);
         assert(ret);
 
         r = parse_domain(&optval, &optlen, &domain);
@@ -910,7 +912,7 @@ int dhcp6_option_parse_domainname_list(const uint8_t *optval, size_t optlen, cha
         _cleanup_strv_free_ char **names = NULL;
         int r;
 
-        assert(optval);
+        assert(optval || optlen == 0);
         assert(ret);
 
         if (optlen <= 1)

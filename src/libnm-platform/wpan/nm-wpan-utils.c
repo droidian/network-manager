@@ -37,9 +37,9 @@
 
 struct NMWpanUtils {
     GObject         parent;
-    int             ifindex;
     struct nl_sock *nl_sock;
-    int             id;
+    int             ifindex;
+    guint16         genl_family_id;
 };
 
 typedef struct {
@@ -51,7 +51,7 @@ G_DEFINE_TYPE(NMWpanUtils, nm_wpan_utils, G_TYPE_OBJECT)
 /*****************************************************************************/
 
 static int
-ack_handler(struct nl_msg *msg, void *arg)
+ack_handler(const struct nl_msg *msg, void *arg)
 {
     int *done = arg;
     *done     = 1;
@@ -59,7 +59,7 @@ ack_handler(struct nl_msg *msg, void *arg)
 }
 
 static int
-finish_handler(struct nl_msg *msg, void *arg)
+finish_handler(const struct nl_msg *msg, void *arg)
 {
     int *done = arg;
     *done     = 1;
@@ -67,7 +67,7 @@ finish_handler(struct nl_msg *msg, void *arg)
 }
 
 static int
-error_handler(struct sockaddr_nl *nla, struct nlmsgerr *err, void *arg)
+error_handler(const struct sockaddr_nl *nla, const struct nlmsgerr *err, void *arg)
 {
     int *done = arg;
     *done     = err->error;
@@ -75,12 +75,13 @@ error_handler(struct sockaddr_nl *nla, struct nlmsgerr *err, void *arg)
 }
 
 static struct nl_msg *
-_nl802154_alloc_msg(int id, int ifindex, guint32 cmd, guint32 flags)
+_nl802154_alloc_msg(guint16 genl_family_id, int ifindex, uint8_t cmd, uint16_t flags)
 {
     nm_auto_nlmsg struct nl_msg *msg = NULL;
 
     msg = nlmsg_alloc();
-    genlmsg_put(msg, 0, 0, id, 0, flags, cmd, 0);
+    if (!genlmsg_put(msg, NL_AUTO_PORT, NL_AUTO_SEQ, genl_family_id, 0, flags, cmd, 0))
+        goto nla_put_failure;
     NLA_PUT_U32(msg, NL802154_ATTR_IFINDEX, ifindex);
     return g_steal_pointer(&msg);
 
@@ -89,15 +90,15 @@ nla_put_failure:
 }
 
 static struct nl_msg *
-nl802154_alloc_msg(NMWpanUtils *self, guint32 cmd, guint32 flags)
+nl802154_alloc_msg(NMWpanUtils *self, uint8_t cmd, uint16_t flags)
 {
-    return _nl802154_alloc_msg(self->id, self->ifindex, cmd, flags);
+    return _nl802154_alloc_msg(self->genl_family_id, self->ifindex, cmd, flags);
 }
 
 static int
 nl802154_send_and_recv(NMWpanUtils   *self,
                        struct nl_msg *msg,
-                       int (*valid_handler)(struct nl_msg *, void *),
+                       int (*valid_handler)(const struct nl_msg *, void *),
                        void *valid_data)
 {
     int                err;
@@ -143,7 +144,7 @@ struct nl802154_interface {
 };
 
 static int
-nl802154_get_interface_handler(struct nl_msg *msg, void *arg)
+nl802154_get_interface_handler(const struct nl_msg *msg, void *arg)
 {
     static const struct nla_policy nl802154_policy[] = {
         [NL802154_ATTR_PAN_ID]     = {.type = NLA_U16},
@@ -264,7 +265,7 @@ nm_wpan_utils_class_init(NMWpanUtilsClass *klass)
 {}
 
 NMWpanUtils *
-nm_wpan_utils_new(int ifindex, struct nl_sock *genl, gboolean check_scan)
+nm_wpan_utils_new(struct nl_sock *genl, guint16 genl_family_id, int ifindex, gboolean check_scan)
 {
     NMWpanUtils *self;
 
@@ -273,16 +274,13 @@ nm_wpan_utils_new(int ifindex, struct nl_sock *genl, gboolean check_scan)
     if (!genl)
         return NULL;
 
-    self          = g_object_new(NM_TYPE_WPAN_UTILS, NULL);
-    self->ifindex = ifindex;
-    self->nl_sock = genl;
-    self->id      = genl_ctrl_resolve(genl, "nl802154");
-
-    if (self->id < 0) {
-        _LOGD(LOGD_PLATFORM, "genl_ctrl_resolve: failed to resolve \"nl802154\"");
-        g_object_unref(self);
+    if (!genl_family_id)
         return NULL;
-    }
+
+    self                 = g_object_new(NM_TYPE_WPAN_UTILS, NULL);
+    self->ifindex        = ifindex;
+    self->nl_sock        = genl;
+    self->genl_family_id = genl_family_id;
 
     return self;
 }

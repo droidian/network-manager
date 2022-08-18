@@ -2,12 +2,12 @@
 .\"     Title: nm-settings-nmcli
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 06/16/2022
+.\"      Date: 08/15/2022
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.38.2
+.\"    Source: NetworkManager 1.39.90
 .\"  Language: English
 .\"
-.TH "NM\-SETTINGS\-NMCLI" "5" "" "NetworkManager 1\&.38\&.2" "Configuration"
+.TH "NM\-SETTINGS\-NMCLI" "5" "" "NetworkManager 1\&.39\&.90" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -70,7 +70,9 @@ Properties:
 .PP
 \fBauth\-retries\fR
 .RS 4
-The number of retries for the authentication\&. Zero means to try indefinitely; \-1 means to use a global default\&. If the global default is not set, the authentication retries for 3 times before failing the connection\&. Currently, this only applies to 802\-1x authentication\&.
+The number of retries for the authentication\&. Zero means to try indefinitely; \-1 means to use a global default\&. If the global default is not set, the authentication retries for 3 times before failing the connection\&.
+.sp
+Currently, this only applies to 802\-1x authentication\&.
 .sp
 Format: int32
 .RE
@@ -79,7 +81,15 @@ Format: int32
 .RS 4
 Alias: autoconnect
 .sp
-Whether or not the connection should be automatically connected by NetworkManager when the resources for the connection are available\&. TRUE to automatically activate the connection, FALSE to require manual intervention to activate the connection\&. Autoconnect happens when the circumstances are suitable\&. That means for example that the device is currently managed and not active\&. Autoconnect thus never replaces or competes with an already active profile\&. Note that autoconnect is not implemented for VPN profiles\&. See "secondaries" as an alternative to automatically connect VPN profiles\&. If multiple profiles are ready to autoconnect on the same device, the one with the better "connection\&.autoconnect\-priority" is chosen\&. If the priorities are equal, then the most recently connected profile is activated\&. If the profiles were not connected earlier or their "connection\&.timestamp" is identical, the choice is undefined\&. Depending on "connection\&.multi\-connect", a profile can (auto)connect only once at a time or multiple times\&.
+Whether or not the connection should be automatically connected by NetworkManager when the resources for the connection are available\&. TRUE to automatically activate the connection, FALSE to require manual intervention to activate the connection\&.
+.sp
+Autoconnect happens when the circumstances are suitable\&. That means for example that the device is currently managed and not active\&. Autoconnect thus never replaces or competes with an already active profile\&.
+.sp
+Note that autoconnect is not implemented for VPN profiles\&. See "secondaries" as an alternative to automatically connect VPN profiles\&.
+.sp
+If multiple profiles are ready to autoconnect on the same device, the one with the better "connection\&.autoconnect\-priority" is chosen\&. If the priorities are equal, then the most recently connected profile is activated\&. If the profiles were not connected earlier or their "connection\&.timestamp" is identical, the choice is undefined\&.
+.sp
+Depending on "connection\&.multi\-connect", a profile can (auto)connect only once at a time or multiple times\&.
 .sp
 Format: boolean
 .RE
@@ -107,7 +117,11 @@ Format: NMSettingConnectionAutoconnectSlaves (int32)
 .PP
 \fBdns\-over\-tls\fR
 .RS 4
-Whether DNSOverTls (dns\-over\-tls) is enabled for the connection\&. DNSOverTls is a technology which uses TLS to encrypt dns traffic\&. The permitted values are: "yes" (2) use DNSOverTls and disabled fallback, "opportunistic" (1) use DNSOverTls but allow fallback to unencrypted resolution, "no" (0) don\*(Aqt ever use DNSOverTls\&. If unspecified "default" depends on the plugin used\&. Systemd\-resolved uses global setting\&. This feature requires a plugin which supports DNSOverTls\&. Otherwise, the setting has no effect\&. One such plugin is dns\-systemd\-resolved\&.
+Whether DNSOverTls (dns\-over\-tls) is enabled for the connection\&. DNSOverTls is a technology which uses TLS to encrypt dns traffic\&.
+.sp
+The permitted values are: "yes" (2) use DNSOverTls and disabled fallback, "opportunistic" (1) use DNSOverTls but allow fallback to unencrypted resolution, "no" (0) don\*(Aqt ever use DNSOverTls\&. If unspecified "default" depends on the plugin used\&. Systemd\-resolved uses global setting\&.
+.sp
+This feature requires a plugin which supports DNSOverTls\&. Otherwise, the setting has no effect\&. One such plugin is dns\-systemd\-resolved\&.
 .sp
 Format: int32
 .RE
@@ -132,7 +146,11 @@ Format: string
 .RS 4
 Alias: ifname
 .sp
-The name of the network interface this connection is bound to\&. If not set, then the connection can be attached to any interface of the appropriate type (subject to restrictions imposed by other settings)\&. For software devices this specifies the name of the created device\&. For connection types where interface names cannot easily be made persistent (e\&.g\&. mobile broadband or USB Ethernet), this property should not be used\&. Setting this property restricts the interfaces a connection can be used with, and if interface names change or are reordered the connection may be applied to the wrong interface\&.
+The name of the network interface this connection is bound to\&. If not set, then the connection can be attached to any interface of the appropriate type (subject to restrictions imposed by other settings)\&.
+.sp
+For software devices this specifies the name of the created device\&.
+.sp
+For connection types where interface names cannot easily be made persistent (e\&.g\&. mobile broadband or USB Ethernet), this property should not be used\&. Setting this property restricts the interfaces a connection can be used with, and if interface names change or are reordered the connection may be applied to the wrong interface\&.
 .sp
 Format: string
 .RE
@@ -146,7 +164,11 @@ Format: int32
 .PP
 \fBllmnr\fR
 .RS 4
-Whether Link\-Local Multicast Name Resolution (LLMNR) is enabled for the connection\&. LLMNR is a protocol based on the Domain Name System (DNS) packet format that allows both IPv4 and IPv6 hosts to perform name resolution for hosts on the same local link\&. The permitted values are: "yes" (2) register hostname and resolving for the connection, "no" (0) disable LLMNR for the interface, "resolve" (1) do not register hostname but allow resolving of LLMNR host names If unspecified, "default" ultimately depends on the DNS plugin (which for systemd\-resolved currently means "yes")\&. This feature requires a plugin which supports LLMNR\&. Otherwise, the setting has no effect\&. One such plugin is dns\-systemd\-resolved\&.
+Whether Link\-Local Multicast Name Resolution (LLMNR) is enabled for the connection\&. LLMNR is a protocol based on the Domain Name System (DNS) packet format that allows both IPv4 and IPv6 hosts to perform name resolution for hosts on the same local link\&.
+.sp
+The permitted values are: "yes" (2) register hostname and resolving for the connection, "no" (0) disable LLMNR for the interface, "resolve" (1) do not register hostname but allow resolving of LLMNR host names If unspecified, "default" ultimately depends on the DNS plugin (which for systemd\-resolved currently means "yes")\&.
+.sp
+This feature requires a plugin which supports LLMNR\&. Otherwise, the setting has no effect\&. One such plugin is dns\-systemd\-resolved\&.
 .sp
 Format: int32
 .RE
@@ -162,21 +184,52 @@ Format: string
 .PP
 \fBmdns\fR
 .RS 4
-Whether mDNS is enabled for the connection\&. The permitted values are: "yes" (2) register hostname and resolving for the connection, "no" (0) disable mDNS for the interface, "resolve" (1) do not register hostname but allow resolving of mDNS host names and "default" (\-1) to allow lookup of a global default in NetworkManager\&.conf\&. If unspecified, "default" ultimately depends on the DNS plugin (which for systemd\-resolved currently means "no")\&. This feature requires a plugin which supports mDNS\&. Otherwise, the setting has no effect\&. One such plugin is dns\-systemd\-resolved\&.
+Whether mDNS is enabled for the connection\&.
+.sp
+The permitted values are: "yes" (2) register hostname and resolving for the connection, "no" (0) disable mDNS for the interface, "resolve" (1) do not register hostname but allow resolving of mDNS host names and "default" (\-1) to allow lookup of a global default in NetworkManager\&.conf\&. If unspecified, "default" ultimately depends on the DNS plugin (which for systemd\-resolved currently means "no")\&.
+.sp
+This feature requires a plugin which supports mDNS\&. Otherwise, the setting has no effect\&. One such plugin is dns\-systemd\-resolved\&.
 .sp
 Format: int32
 .RE
 .PP
 \fBmetered\fR
 .RS 4
-Whether the connection is metered\&. When updating this property on a currently activated connection, the change takes effect immediately\&.
+Whether the connection is metered\&.
+.sp
+When updating this property on a currently activated connection, the change takes effect immediately\&.
 .sp
 Format: NMMetered (int32)
 .RE
 .PP
+\fBmptcp\-flags\fR
+.RS 4
+Whether to configure MPTCP endpoints and the address flags\&. If MPTCP is enabled in NetworkManager, it will configure the addresses of the interface as MPTCP endpoints\&. Note that IPv4 loopback addresses (127\&.0\&.0\&.0/8), IPv4 link local addresses (169\&.254\&.0\&.0/16), the IPv6 loopback address (::1), IPv6 link local addresses (fe80::/10), IPv6 unique local addresses (ULA, fc00::/7) and IPv6 privacy extension addresses (rfc3041, ipv6\&.ip6\-privacy) will be excluded from being configured as endpoints\&.
+.sp
+If "disabled" (0x1), MPTCP handling for the interface is disabled and no endpoints are registered\&.
+.sp
+The flag "enabled\-on\-global\-iface" (0x2) means that MPTCP handling is enabled if the interface configures a default route in the main routing table\&. This choice is per\-address family, for example if there is an IPv4 default route 0\&.0\&.0\&.0/0, IPv4 endpoints are configured\&.
+.sp
+The "enabled" (0x4) flag means that MPTCP handling is explicitly enabled\&. This flag can also be implied from the presence of other flags\&.
+.sp
+If MPTCP handling is enabled, then endpoints will be configured with the specified address flags "signal" (0x10), "subflow" (0x20), "backup" (0x40), "fullmesh" (0x80)\&. See ip\-mptcp(8) manual for additional information about the flags\&.
+.sp
+If the flags are zero, the global connection default from NetworkManager\&.conf is honored\&. If still unspecified, the fallback is either "disabled" or "enabled\-on\-global\-iface,subflow" depending on "/proc/sys/net/mptcp/enabled"\&.
+.sp
+NetworkManager does not change the MPTCP limits nor enable MPTCP via "/proc/sys/net/mptcp/enabled"\&. That is a host configuration which the admin can change via sysctl and ip\-mptcp\&.
+.sp
+Strict reverse path filtering (rp_filter) breaks many MPTCP use cases, so when MPTCP handling for IPv4 addresses on the interface is enabled, NetworkManager would loosen the strict reverse path filtering (1) to the loose setting (2)\&.
+.sp
+Format: uint32
+.RE
+.PP
 \fBmud\-url\fR
 .RS 4
-If configured, set to a Manufacturer Usage Description (MUD) URL that points to manufacturer\-recommended network policies for IoT devices\&. It is transmitted as a DHCPv4 or DHCPv6 option\&. The value must be a valid URL starting with "https://"\&. The special value "none" is allowed to indicate that no MUD URL is used\&. If the per\-profile value is unspecified (the default), a global connection default gets consulted\&. If still unspecified, the ultimate default is "none"\&.
+If configured, set to a Manufacturer Usage Description (MUD) URL that points to manufacturer\-recommended network policies for IoT devices\&. It is transmitted as a DHCPv4 or DHCPv6 option\&. The value must be a valid URL starting with "https://"\&.
+.sp
+The special value "none" is allowed to indicate that no MUD URL is used\&.
+.sp
+If the per\-profile value is unspecified (the default), a global connection default gets consulted\&. If still unspecified, the ultimate default is "none"\&.
 .sp
 Format: string
 .RE
@@ -190,7 +243,9 @@ Format: int32
 .PP
 \fBpermissions\fR
 .RS 4
-An array of strings defining what access a given user has to this connection\&. If this is NULL or empty, all users are allowed to access this connection; otherwise users are allowed if and only if they are in this list\&. When this is not empty, the connection can be active only when one of the specified users is logged into an active session\&. Each entry is of the form "[type]:[id]:[reserved]"; for example, "user:dcbw:blah"\&. At this time only the "user" [type] is allowed\&. Any other values are ignored and reserved for future use\&. [id] is the username that this permission refers to, which may not contain the ":" character\&. Any [reserved] information present must be ignored and is reserved for future use\&. All of [type], [id], and [reserved] must be valid UTF\-8\&.
+An array of strings defining what access a given user has to this connection\&. If this is NULL or empty, all users are allowed to access this connection; otherwise users are allowed if and only if they are in this list\&. When this is not empty, the connection can be active only when one of the specified users is logged into an active session\&. Each entry is of the form "[type]:[id]:[reserved]"; for example, "user:dcbw:blah"\&.
+.sp
+At this time only the "user" [type] is allowed\&. Any other values are ignored and reserved for future use\&. [id] is the username that this permission refers to, which may not contain the ":" character\&. Any [reserved] information present must be ignored and is reserved for future use\&. All of [type], [id], and [reserved] must be valid UTF\-8\&.
 .sp
 Format: array of string
 .RE
@@ -220,14 +275,24 @@ Format: string
 .PP
 \fBstable\-id\fR
 .RS 4
-This represents the identity of the connection used for various purposes\&. It allows to configure multiple profiles to share the identity\&. Also, the stable\-id can contain placeholders that are substituted dynamically and deterministically depending on the context\&. The stable\-id is used for generating IPv6 stable private addresses with ipv6\&.addr\-gen\-mode=stable\-privacy\&. It is also used to seed the generated cloned MAC address for ethernet\&.cloned\-mac\-address=stable and wifi\&.cloned\-mac\-address=stable\&. It is also used as DHCP client identifier with ipv4\&.dhcp\-client\-id=stable and to derive the DHCP DUID with ipv6\&.dhcp\-duid=stable\-[llt,ll,uuid]\&. Note that depending on the context where it is used, other parameters are also seeded into the generation algorithm\&. For example, a per\-host key is commonly also included, so that different systems end up generating different IDs\&. Or with ipv6\&.addr\-gen\-mode=stable\-privacy, also the device\*(Aqs name is included, so that different interfaces yield different addresses\&. The per\-host key is the identity of your machine and stored in /var/lib/NetworkManager/secret_key\&. See NetworkManager(8) manual about the secret\-key and the host identity\&. The \*(Aq$\*(Aq character is treated special to perform dynamic substitutions at runtime\&. Currently, supported are "${CONNECTION}", "${DEVICE}", "${MAC}", "${BOOT}", "${RANDOM}"\&. These effectively create unique IDs per\-connection, per\-device, per\-boot, or every time\&. Note that "${DEVICE}" corresponds to the interface name of the device and "${MAC}" is the permanent MAC address of the device\&. Any unrecognized patterns following \*(Aq$\*(Aq are treated verbatim, however are reserved for future use\&. You are thus advised to avoid \*(Aq$\*(Aq or escape it as "$$"\&. For example, set it to "${CONNECTION}\-${BOOT}\-${DEVICE}" to create a unique id for this connection that changes with every reboot and differs depending on the interface where the profile activates\&. If the value is unset, a global connection default is consulted\&. If the value is still unset, the default is similar to "${CONNECTION}" and uses a unique, fixed ID for the connection\&.
+This represents the identity of the connection used for various purposes\&. It allows to configure multiple profiles to share the identity\&. Also, the stable\-id can contain placeholders that are substituted dynamically and deterministically depending on the context\&.
+.sp
+The stable\-id is used for generating IPv6 stable private addresses with ipv6\&.addr\-gen\-mode=stable\-privacy\&. It is also used to seed the generated cloned MAC address for ethernet\&.cloned\-mac\-address=stable and wifi\&.cloned\-mac\-address=stable\&. It is also used as DHCP client identifier with ipv4\&.dhcp\-client\-id=stable and to derive the DHCP DUID with ipv6\&.dhcp\-duid=stable\-[llt,ll,uuid]\&.
+.sp
+Note that depending on the context where it is used, other parameters are also seeded into the generation algorithm\&. For example, a per\-host key is commonly also included, so that different systems end up generating different IDs\&. Or with ipv6\&.addr\-gen\-mode=stable\-privacy, also the device\*(Aqs name is included, so that different interfaces yield different addresses\&. The per\-host key is the identity of your machine and stored in /var/lib/NetworkManager/secret_key\&. See NetworkManager(8) manual about the secret\-key and the host identity\&.
+.sp
+The \*(Aq$\*(Aq character is treated special to perform dynamic substitutions at runtime\&. Currently, supported are "${CONNECTION}", "${DEVICE}", "${MAC}", "${BOOT}", "${RANDOM}"\&. These effectively create unique IDs per\-connection, per\-device, per\-boot, or every time\&. Note that "${DEVICE}" corresponds to the interface name of the device and "${MAC}" is the permanent MAC address of the device\&. Any unrecognized patterns following \*(Aq$\*(Aq are treated verbatim, however are reserved for future use\&. You are thus advised to avoid \*(Aq$\*(Aq or escape it as "$$"\&. For example, set it to "${CONNECTION}\-${BOOT}\-${DEVICE}" to create a unique id for this connection that changes with every reboot and differs depending on the interface where the profile activates\&.
+.sp
+If the value is unset, a global connection default is consulted\&. If the value is still unset, the default is similar to "${CONNECTION}" and uses a unique, fixed ID for the connection\&.
 .sp
 Format: string
 .RE
 .PP
 \fBtimestamp\fR
 .RS 4
-The time, in seconds since the Unix Epoch, that the connection was last _successfully_ fully activated\&. NetworkManager updates the connection timestamp periodically when the connection is active to ensure that an active connection has the latest timestamp\&. The property is only meant for reading (changes to this property will not be preserved)\&.
+The time, in seconds since the Unix Epoch, that the connection was last _successfully_ fully activated\&.
+.sp
+NetworkManager updates the connection timestamp periodically when the connection is active to ensure that an active connection has the latest timestamp\&. The property is only meant for reading (changes to this property will not be preserved)\&.
 .sp
 Format: uint64
 .RE
@@ -243,21 +308,36 @@ Format: string
 .PP
 \fBuuid\fR
 .RS 4
-A universally unique identifier for the connection, for example generated with libuuid\&. It should be assigned when the connection is created, and never changed as long as the connection still applies to the same network\&. For example, it should not be changed when the "id" property or NMSettingIP4Config changes, but might need to be re\-created when the Wi\-Fi SSID, mobile broadband network provider, or "type" property changes\&. The UUID must be in the format "2815492f\-7e56\-435e\-b2e9\-246bd7cdc664" (ie, contains only hexadecimal characters and "\-")\&.
+A universally unique identifier for the connection, for example generated with libuuid\&. It should be assigned when the connection is created, and never changed as long as the connection still applies to the same network\&. For example, it should not be changed when the "id" property or NMSettingIP4Config changes, but might need to be re\-created when the Wi\-Fi SSID, mobile broadband network provider, or "type" property changes\&.
+.sp
+The UUID must be in the format "2815492f\-7e56\-435e\-b2e9\-246bd7cdc664" (ie, contains only hexadecimal characters and "\-")\&.
 .sp
 Format: string
 .RE
 .PP
+\fBwait\-activation\-delay\fR
+.RS 4
+Time in milliseconds to wait for connection to be considered activated\&. The wait will start after the pre\-up dispatcher event\&.
+.sp
+The value 0 means no wait time\&. The default value is \-1, which currently has the same meaning as no wait time\&.
+.sp
+Format: int32
+.RE
+.PP
 \fBwait\-device\-timeout\fR
 .RS 4
-Timeout in milliseconds to wait for device at startup\&. During boot, devices may take a while to be detected by the driver\&. This property will cause to delay NetworkManager\-wait\-online\&.service and nm\-online to give the device a chance to appear\&. This works by waiting for the given timeout until a compatible device for the profile is available and managed\&. The value 0 means no wait time\&. The default value is \-1, which currently has the same meaning as no wait time\&.
+Timeout in milliseconds to wait for device at startup\&. During boot, devices may take a while to be detected by the driver\&. This property will cause to delay NetworkManager\-wait\-online\&.service and nm\-online to give the device a chance to appear\&. This works by waiting for the given timeout until a compatible device for the profile is available and managed\&.
+.sp
+The value 0 means no wait time\&. The default value is \-1, which currently has the same meaning as no wait time\&.
 .sp
 Format: int32
 .RE
 .PP
 \fBzone\fR
 .RS 4
-The trust level of a the connection\&. Free form case\-insensitive string (for example "Home", "Work", "Public")\&. NULL or unspecified zone means the connection will be placed in the default zone as defined by the firewall\&. When updating this property on a currently activated connection, the change takes effect immediately\&.
+The trust level of a the connection\&. Free form case\-insensitive string (for example "Home", "Work", "Public")\&. NULL or unspecified zone means the connection will be placed in the default zone as defined by the firewall\&.
+.sp
+When updating this property on a currently activated connection, the change takes effect immediately\&.
 .sp
 Format: string
 .RE
@@ -304,7 +384,11 @@ Format: int32
 .PP
 \fBca\-cert\fR
 .RS 4
-Contains the CA certificate if used by the EAP method specified in the "eap" property\&. Certificate data is specified using a "scheme"; three are currently supported: blob, path and pkcs#11 URL\&. When using the blob scheme this property should be set to the certificate\*(Aqs DER encoded data\&. When using the path scheme, this property should be set to the full UTF\-8 encoded path of the certificate, prefixed with the string "file://" and ending with a terminating NUL byte\&. This property can be unset even if the EAP method supports CA certificates, but this allows man\-in\-the\-middle attacks and is NOT recommended\&. Note that enabling NMSetting8021x:system\-ca\-certs will override this setting to use the built\-in path, if the built\-in path is not a directory\&.
+Contains the CA certificate if used by the EAP method specified in the "eap" property\&.
+.sp
+Certificate data is specified using a "scheme"; three are currently supported: blob, path and pkcs#11 URL\&. When using the blob scheme this property should be set to the certificate\*(Aqs DER encoded data\&. When using the path scheme, this property should be set to the full UTF\-8 encoded path of the certificate, prefixed with the string "file://" and ending with a terminating NUL byte\&. This property can be unset even if the EAP method supports CA certificates, but this allows man\-in\-the\-middle attacks and is NOT recommended\&.
+.sp
+Note that enabling NMSetting8021x:system\-ca\-certs will override this setting to use the built\-in path, if the built\-in path is not a directory\&.
 .sp
 Format: byte array
 .RE
@@ -318,23 +402,25 @@ Format: string
 .PP
 \fBca\-cert\-password\-flags\fR
 .RS 4
-Flags indicating how to handle the "ca\-cert\-password" property\&. See
-the section called \(lqSecret flag types:\(rq
-for flag values\&.
+Flags indicating how to handle the "ca\-cert\-password" property\&.
 .sp
 Format: NMSettingSecretFlags (uint32)
 .RE
 .PP
 \fBca\-path\fR
 .RS 4
-UTF\-8 encoded path to a directory containing PEM or DER formatted certificates to be added to the verification chain in addition to the certificate specified in the "ca\-cert" property\&. If NMSetting8021x:system\-ca\-certs is enabled and the built\-in CA path is an existing directory, then this setting is ignored\&.
+UTF\-8 encoded path to a directory containing PEM or DER formatted certificates to be added to the verification chain in addition to the certificate specified in the "ca\-cert" property\&.
+.sp
+If NMSetting8021x:system\-ca\-certs is enabled and the built\-in CA path is an existing directory, then this setting is ignored\&.
 .sp
 Format: string
 .RE
 .PP
 \fBclient\-cert\fR
 .RS 4
-Contains the client certificate if used by the EAP method specified in the "eap" property\&. Certificate data is specified using a "scheme"; two are currently supported: blob and path\&. When using the blob scheme (which is backwards compatible with NM 0\&.7\&.x) this property should be set to the certificate\*(Aqs DER encoded data\&. When using the path scheme, this property should be set to the full UTF\-8 encoded path of the certificate, prefixed with the string "file://" and ending with a terminating NUL byte\&.
+Contains the client certificate if used by the EAP method specified in the "eap" property\&.
+.sp
+Certificate data is specified using a "scheme"; two are currently supported: blob and path\&. When using the blob scheme (which is backwards compatible with NM 0\&.7\&.x) this property should be set to the certificate\*(Aqs DER encoded data\&. When using the path scheme, this property should be set to the full UTF\-8 encoded path of the certificate, prefixed with the string "file://" and ending with a terminating NUL byte\&.
 .sp
 Format: byte array
 .RE
@@ -348,9 +434,7 @@ Format: string
 .PP
 \fBclient\-cert\-password\-flags\fR
 .RS 4
-Flags indicating how to handle the "client\-cert\-password" property\&. See
-the section called \(lqSecret flag types:\(rq
-for flag values\&.
+Flags indicating how to handle the "client\-cert\-password" property\&.
 .sp
 Format: NMSettingSecretFlags (uint32)
 .RE
@@ -406,9 +490,7 @@ Format: string
 .PP
 \fBpassword\-flags\fR
 .RS 4
-Flags indicating how to handle the "password" property\&. See
-the section called \(lqSecret flag types:\(rq
-for flag values\&.
+Flags indicating how to handle the "password" property\&.
 .sp
 Format: NMSettingSecretFlags (uint32)
 .RE
@@ -422,9 +504,7 @@ Format: byte array
 .PP
 \fBpassword\-raw\-flags\fR
 .RS 4
-Flags indicating how to handle the "password\-raw" property\&. See
-the section called \(lqSecret flag types:\(rq
-for flag values\&.
+Flags indicating how to handle the "password\-raw" property\&.
 .sp
 Format: NMSettingSecretFlags (uint32)
 .RE
@@ -480,7 +560,11 @@ Format: string
 .PP
 \fBphase2\-ca\-cert\fR
 .RS 4
-Contains the "phase 2" CA certificate if used by the EAP method specified in the "phase2\-auth" or "phase2\-autheap" properties\&. Certificate data is specified using a "scheme"; three are currently supported: blob, path and pkcs#11 URL\&. When using the blob scheme this property should be set to the certificate\*(Aqs DER encoded data\&. When using the path scheme, this property should be set to the full UTF\-8 encoded path of the certificate, prefixed with the string "file://" and ending with a terminating NUL byte\&. This property can be unset even if the EAP method supports CA certificates, but this allows man\-in\-the\-middle attacks and is NOT recommended\&. Note that enabling NMSetting8021x:system\-ca\-certs will override this setting to use the built\-in path, if the built\-in path is not a directory\&.
+Contains the "phase 2" CA certificate if used by the EAP method specified in the "phase2\-auth" or "phase2\-autheap" properties\&.
+.sp
+Certificate data is specified using a "scheme"; three are currently supported: blob, path and pkcs#11 URL\&. When using the blob scheme this property should be set to the certificate\*(Aqs DER encoded data\&. When using the path scheme, this property should be set to the full UTF\-8 encoded path of the certificate, prefixed with the string "file://" and ending with a terminating NUL byte\&. This property can be unset even if the EAP method supports CA certificates, but this allows man\-in\-the\-middle attacks and is NOT recommended\&.
+.sp
+Note that enabling NMSetting8021x:system\-ca\-certs will override this setting to use the built\-in path, if the built\-in path is not a directory\&.
 .sp
 Format: byte array
 .RE
@@ -494,23 +578,25 @@ Format: string
 .PP
 \fBphase2\-ca\-cert\-password\-flags\fR
 .RS 4
-Flags indicating how to handle the "phase2\-ca\-cert\-password" property\&. See
-the section called \(lqSecret flag types:\(rq
-for flag values\&.
+Flags indicating how to handle the "phase2\-ca\-cert\-password" property\&.
 .sp
 Format: NMSettingSecretFlags (uint32)
 .RE
 .PP
 \fBphase2\-ca\-path\fR
 .RS 4
-UTF\-8 encoded path to a directory containing PEM or DER formatted certificates to be added to the verification chain in addition to the certificate specified in the "phase2\-ca\-cert" property\&. If NMSetting8021x:system\-ca\-certs is enabled and the built\-in CA path is an existing directory, then this setting is ignored\&.
+UTF\-8 encoded path to a directory containing PEM or DER formatted certificates to be added to the verification chain in addition to the certificate specified in the "phase2\-ca\-cert" property\&.
+.sp
+If NMSetting8021x:system\-ca\-certs is enabled and the built\-in CA path is an existing directory, then this setting is ignored\&.
 .sp
 Format: string
 .RE
 .PP
 \fBphase2\-client\-cert\fR
 .RS 4
-Contains the "phase 2" client certificate if used by the EAP method specified in the "phase2\-auth" or "phase2\-autheap" properties\&. Certificate data is specified using a "scheme"; two are currently supported: blob and path\&. When using the blob scheme (which is backwards compatible with NM 0\&.7\&.x) this property should be set to the certificate\*(Aqs DER encoded data\&. When using the path scheme, this property should be set to the full UTF\-8 encoded path of the certificate, prefixed with the string "file://" and ending with a terminating NUL byte\&. This property can be unset even if the EAP method supports CA certificates, but this allows man\-in\-the\-middle attacks and is NOT recommended\&.
+Contains the "phase 2" client certificate if used by the EAP method specified in the "phase2\-auth" or "phase2\-autheap" properties\&.
+.sp
+Certificate data is specified using a "scheme"; two are currently supported: blob and path\&. When using the blob scheme (which is backwards compatible with NM 0\&.7\&.x) this property should be set to the certificate\*(Aqs DER encoded data\&. When using the path scheme, this property should be set to the full UTF\-8 encoded path of the certificate, prefixed with the string "file://" and ending with a terminating NUL byte\&. This property can be unset even if the EAP method supports CA certificates, but this allows man\-in\-the\-middle attacks and is NOT recommended\&.
 .sp
 Format: byte array
 .RE
@@ -524,9 +610,7 @@ Format: string
 .PP
 \fBphase2\-client\-cert\-password\-flags\fR
 .RS 4
-Flags indicating how to handle the "phase2\-client\-cert\-password" property\&. See
-the section called \(lqSecret flag types:\(rq
-for flag values\&.
+Flags indicating how to handle the "phase2\-client\-cert\-password" property\&.
 .sp
 Format: NMSettingSecretFlags (uint32)
 .RE
@@ -547,7 +631,9 @@ Format: string
 .PP
 \fBphase2\-private\-key\fR
 .RS 4
-Contains the "phase 2" inner private key when the "phase2\-auth" or "phase2\-autheap" property is set to "tls"\&. Key data is specified using a "scheme"; two are currently supported: blob and path\&. When using the blob scheme and private keys, this property should be set to the key\*(Aqs encrypted PEM encoded data\&. When using private keys with the path scheme, this property should be set to the full UTF\-8 encoded path of the key, prefixed with the string "file://" and ending with a terminating NUL byte\&. When using PKCS#12 format private keys and the blob scheme, this property should be set to the PKCS#12 data and the "phase2\-private\-key\-password" property must be set to password used to decrypt the PKCS#12 certificate and key\&. When using PKCS#12 files and the path scheme, this property should be set to the full UTF\-8 encoded path of the key, prefixed with the string "file://" and ending with a terminating NUL byte, and as with the blob scheme the "phase2\-private\-key\-password" property must be set to the password used to decode the PKCS#12 private key and certificate\&.
+Contains the "phase 2" inner private key when the "phase2\-auth" or "phase2\-autheap" property is set to "tls"\&.
+.sp
+Key data is specified using a "scheme"; two are currently supported: blob and path\&. When using the blob scheme and private keys, this property should be set to the key\*(Aqs encrypted PEM encoded data\&. When using private keys with the path scheme, this property should be set to the full UTF\-8 encoded path of the key, prefixed with the string "file://" and ending with a terminating NUL byte\&. When using PKCS#12 format private keys and the blob scheme, this property should be set to the PKCS#12 data and the "phase2\-private\-key\-password" property must be set to password used to decrypt the PKCS#12 certificate and key\&. When using PKCS#12 files and the path scheme, this property should be set to the full UTF\-8 encoded path of the key, prefixed with the string "file://" and ending with a terminating NUL byte, and as with the blob scheme the "phase2\-private\-key\-password" property must be set to the password used to decode the PKCS#12 private key and certificate\&.
 .sp
 Format: byte array
 .RE
@@ -561,9 +647,7 @@ Format: string
 .PP
 \fBphase2\-private\-key\-password\-flags\fR
 .RS 4
-Flags indicating how to handle the "phase2\-private\-key\-password" property\&. See
-the section called \(lqSecret flag types:\(rq
-for flag values\&.
+Flags indicating how to handle the "phase2\-private\-key\-password" property\&.
 .sp
 Format: NMSettingSecretFlags (uint32)
 .RE
@@ -584,16 +668,18 @@ Format: string
 .PP
 \fBpin\-flags\fR
 .RS 4
-Flags indicating how to handle the "pin" property\&. See
-the section called \(lqSecret flag types:\(rq
-for flag values\&.
+Flags indicating how to handle the "pin" property\&.
 .sp
 Format: NMSettingSecretFlags (uint32)
 .RE
 .PP
 \fBprivate\-key\fR
 .RS 4
-Contains the private key when the "eap" property is set to "tls"\&. Key data is specified using a "scheme"; two are currently supported: blob and path\&. When using the blob scheme and private keys, this property should be set to the key\*(Aqs encrypted PEM encoded data\&. When using private keys with the path scheme, this property should be set to the full UTF\-8 encoded path of the key, prefixed with the string "file://" and ending with a terminating NUL byte\&. When using PKCS#12 format private keys and the blob scheme, this property should be set to the PKCS#12 data and the "private\-key\-password" property must be set to password used to decrypt the PKCS#12 certificate and key\&. When using PKCS#12 files and the path scheme, this property should be set to the full UTF\-8 encoded path of the key, prefixed with the string "file://" and ending with a terminating NUL byte, and as with the blob scheme the "private\-key\-password" property must be set to the password used to decode the PKCS#12 private key and certificate\&. WARNING: "private\-key" is not a "secret" property, and thus unencrypted private key data using the BLOB scheme may be readable by unprivileged users\&. Private keys should always be encrypted with a private key password to prevent unauthorized access to unencrypted private key data\&.
+Contains the private key when the "eap" property is set to "tls"\&.
+.sp
+Key data is specified using a "scheme"; two are currently supported: blob and path\&. When using the blob scheme and private keys, this property should be set to the key\*(Aqs encrypted PEM encoded data\&. When using private keys with the path scheme, this property should be set to the full UTF\-8 encoded path of the key, prefixed with the string "file://" and ending with a terminating NUL byte\&. When using PKCS#12 format private keys and the blob scheme, this property should be set to the PKCS#12 data and the "private\-key\-password" property must be set to password used to decrypt the PKCS#12 certificate and key\&. When using PKCS#12 files and the path scheme, this property should be set to the full UTF\-8 encoded path of the key, prefixed with the string "file://" and ending with a terminating NUL byte, and as with the blob scheme the "private\-key\-password" property must be set to the password used to decode the PKCS#12 private key and certificate\&.
+.sp
+WARNING: "private\-key" is not a "secret" property, and thus unencrypted private key data using the BLOB scheme may be readable by unprivileged users\&. Private keys should always be encrypted with a private key password to prevent unauthorized access to unencrypted private key data\&.
 .sp
 Format: byte array
 .RE
@@ -607,9 +693,7 @@ Format: string
 .PP
 \fBprivate\-key\-password\-flags\fR
 .RS 4
-Flags indicating how to handle the "private\-key\-password" property\&. See
-the section called \(lqSecret flag types:\(rq
-for flag values\&.
+Flags indicating how to handle the "private\-key\-password" property\&.
 .sp
 Format: NMSettingSecretFlags (uint32)
 .RE
@@ -653,9 +737,7 @@ Format: string
 .PP
 \fBpassword\-flags\fR
 .RS 4
-Flags indicating how to handle the "password" property\&. See
-the section called \(lqSecret flag types:\(rq
-for flag values\&.
+Flags indicating how to handle the "password" property\&.
 .sp
 Format: NMSettingSecretFlags (uint32)
 .RE
@@ -752,7 +834,9 @@ Format: uint32
 .PP
 \fBgroup\-address\fR
 .RS 4
-If specified, The MAC address of the multicast group this bridge uses for STP\&. The address must be a link\-local address in standard Ethernet MAC address format, ie an address of the form 01:80:C2:00:00:0X, with X in [0, 4\&.\&.F]\&. If not specified the default value is 01:80:C2:00:00:00\&.
+If specified, The MAC address of the multicast group this bridge uses for STP\&.
+.sp
+The address must be a link\-local address in standard Ethernet MAC address format, ie an address of the form 01:80:C2:00:00:0X, with X in [0, 4\&.\&.F]\&. If not specified the default value is 01:80:C2:00:00:00\&.
 .sp
 Format: byte array
 .RE
@@ -779,7 +863,9 @@ Format: uint32
 .RS 4
 Alias: mac
 .sp
-If specified, the MAC address of bridge\&. When creating a new bridge, this MAC address will be set\&. If this field is left unspecified, the "ethernet\&.cloned\-mac\-address" is referred instead to generate the initial MAC address\&. Note that setting "ethernet\&.cloned\-mac\-address" anyway overwrites the MAC address of the bridge later while activating the bridge\&. Hence, this property is deprecated\&. Deprecated: 1
+If specified, the MAC address of bridge\&. When creating a new bridge, this MAC address will be set\&.
+.sp
+If this field is left unspecified, the "ethernet\&.cloned\-mac\-address" is referred instead to generate the initial MAC address\&. Note that setting "ethernet\&.cloned\-mac\-address" anyway overwrites the MAC address of the bridge later while activating the bridge\&. Hence, this property is deprecated\&. Deprecated: 1
 .sp
 Format: byte array
 .RE
@@ -858,7 +944,9 @@ Format: boolean
 .PP
 \fBmulticast\-router\fR
 .RS 4
-Sets bridge\*(Aqs multicast router\&. Multicast\-snooping must be enabled for this option to work\&. Supported values are: \*(Aqauto\*(Aq, \*(Aqdisabled\*(Aq, \*(Aqenabled\*(Aq to which kernel assigns the numbers 1, 0, and 2, respectively\&. If not specified the default value is \*(Aqauto\*(Aq (1)\&.
+Sets bridge\*(Aqs multicast router\&. Multicast\-snooping must be enabled for this option to work\&.
+.sp
+Supported values are: \*(Aqauto\*(Aq, \*(Aqdisabled\*(Aq, \*(Aqenabled\*(Aq to which kernel assigns the numbers 1, 0, and 2, respectively\&. If not specified the default value is \*(Aqauto\*(Aq (1)\&.
 .sp
 Format: string
 .RE
@@ -920,7 +1008,9 @@ Format: boolean
 .PP
 \fBvlan\-protocol\fR
 .RS 4
-If specified, the protocol used for VLAN filtering\&. Supported values are: \*(Aq802\&.1Q\*(Aq, \*(Aq802\&.1ad\*(Aq\&. If not specified the default value is \*(Aq802\&.1Q\*(Aq\&.
+If specified, the protocol used for VLAN filtering\&.
+.sp
+Supported values are: \*(Aq802\&.1Q\*(Aq, \*(Aq802\&.1ad\*(Aq\&. If not specified the default value is \*(Aq802\&.1Q\*(Aq\&.
 .sp
 Format: string
 .RE
@@ -934,7 +1024,13 @@ Format: boolean
 .PP
 \fBvlans\fR
 .RS 4
-Array of bridge VLAN objects\&. In addition to the VLANs specified here, the bridge will also have the default\-pvid VLAN configured by the bridge\&.vlan\-default\-pvid property\&. In nmcli the VLAN list can be specified with the following syntax: $vid [pvid] [untagged] [, $vid [pvid] [untagged]]\&.\&.\&. where $vid is either a single id between 1 and 4094 or a range, represented as a couple of ids separated by a dash\&.
+Array of bridge VLAN objects\&. In addition to the VLANs specified here, the bridge will also have the default\-pvid VLAN configured by the bridge\&.vlan\-default\-pvid property\&.
+.sp
+In nmcli the VLAN list can be specified with the following syntax:
+.sp
+$vid [pvid] [untagged] [, $vid [pvid] [untagged]]\&.\&.\&.
+.sp
+where $vid is either a single id between 1 and 4094 or a range, represented as a couple of ids separated by a dash\&.
 .sp
 Format: array of vardict
 .RE
@@ -973,7 +1069,13 @@ Format: uint32
 .PP
 \fBvlans\fR
 .RS 4
-Array of bridge VLAN objects\&. In addition to the VLANs specified here, the port will also have the default\-pvid VLAN configured on the bridge by the bridge\&.vlan\-default\-pvid property\&. In nmcli the VLAN list can be specified with the following syntax: $vid [pvid] [untagged] [, $vid [pvid] [untagged]]\&.\&.\&. where $vid is either a single id between 1 and 4094 or a range, represented as a couple of ids separated by a dash\&.
+Array of bridge VLAN objects\&. In addition to the VLANs specified here, the port will also have the default\-pvid VLAN configured on the bridge by the bridge\&.vlan\-default\-pvid property\&.
+.sp
+In nmcli the VLAN list can be specified with the following syntax:
+.sp
+$vid [pvid] [untagged] [, $vid [pvid] [untagged]]\&.\&.\&.
+.sp
+where $vid is either a single id between 1 and 4094 or a range, represented as a couple of ids separated by a dash\&.
 .sp
 Format: array of vardict
 .RE
@@ -1008,9 +1110,7 @@ Format: string
 .PP
 \fBpassword\-flags\fR
 .RS 4
-Flags indicating how to handle the "password" property\&. See
-the section called \(lqSecret flag types:\(rq
-for flag values\&.
+Flags indicating how to handle the "password" property\&.
 .sp
 Format: NMSettingSecretFlags (uint32)
 .RE
@@ -1038,7 +1138,9 @@ Format: NMSettingDcbFlags (uint32)
 .PP
 \fBapp\-fcoe\-mode\fR
 .RS 4
-The FCoE controller mode; either "fabric" or "vn2vn"\&. Since 1\&.34, NULL is the default and means "fabric"\&. Before 1\&.34, NULL was rejected as invalid and the default was "fabric"\&.
+The FCoE controller mode; either "fabric" or "vn2vn"\&.
+.sp
+Since 1\&.34, NULL is the default and means "fabric"\&. Before 1\&.34, NULL was rejected as invalid and the default was "fabric"\&.
 .sp
 Format: string
 .RE
@@ -1461,17 +1563,14 @@ Properties:
 .PP
 \fBpause\-autoneg\fR
 .RS 4
-Whether to automatically negotiate on pause frame of flow control mechanism defined by IEEE 802\&.3x standard\&.
 .RE
 .PP
 \fBpause\-rx\fR
 .RS 4
-Whether RX pause should be enabled\&. Only valid when automatic negotiation is disabled
 .RE
 .PP
 \fBpause\-tx\fR
 .RS 4
-Whether TX pause should be enabled\&. Only valid when automatic negotiation is disabled
 .RE
 .PP
 \fBring\-rx\fR
@@ -1557,9 +1656,7 @@ Format: string
 .PP
 \fBpassword\-flags\fR
 .RS 4
-Flags indicating how to handle the "password" property\&. See
-the section called \(lqSecret flag types:\(rq
-for flag values\&.
+Flags indicating how to handle the "password" property\&.
 .sp
 Format: NMSettingSecretFlags (uint32)
 .RE
@@ -1573,9 +1670,7 @@ Format: string
 .PP
 \fBpin\-flags\fR
 .RS 4
-Flags indicating how to handle the "pin" property\&. See
-the section called \(lqSecret flag types:\(rq
-for flag values\&.
+Flags indicating how to handle the "pin" property\&.
 .sp
 Format: NMSettingSecretFlags (uint32)
 .RE
@@ -1662,21 +1757,33 @@ Properties:
 .RS 4
 Alias: ip4
 .sp
-A list of IPv4 addresses and their prefix length\&. Multiple addresses can be separated by comma\&. For example "192\&.168\&.1\&.5/24, 10\&.1\&.0\&.5/24"\&. The addresses are listed in decreasing priority, meaning the first address will be the primary address\&.
+Array of IP addresses\&.
 .sp
 Format: a comma separated list of addresses
 .RE
 .PP
 \fBdad\-timeout\fR
 .RS 4
-Timeout in milliseconds used to check for the presence of duplicate IP addresses on the network\&. If an address conflict is detected, the activation will fail\&. A zero value means that no duplicate address detection is performed, \-1 means the default value (either configuration ipvx\&.dad\-timeout override or zero)\&. A value greater than zero is a timeout in milliseconds\&. The property is currently implemented only for IPv4\&.
+Timeout in milliseconds used to check for the presence of duplicate IP addresses on the network\&. If an address conflict is detected, the activation will fail\&. A zero value means that no duplicate address detection is performed, \-1 means the default value (either configuration ipvx\&.dad\-timeout override or zero)\&. A value greater than zero is a timeout in milliseconds\&.
+.sp
+The property is currently implemented only for IPv4\&.
 .sp
 Format: int32
 .RE
 .PP
 \fBdhcp\-client\-id\fR
 .RS 4
-A string sent to the DHCP server to identify the local machine which the DHCP server may use to customize the DHCP lease and options\&. When the property is a hex string (\*(Aqaa:bb:cc\*(Aq) it is interpreted as a binary client ID, in which case the first byte is assumed to be the \*(Aqtype\*(Aq field as per RFC 2132 section 9\&.14 and the remaining bytes may be an hardware address (e\&.g\&. \*(Aq01:xx:xx:xx:xx:xx:xx\*(Aq where 1 is the Ethernet ARP type and the rest is a MAC address)\&. If the property is not a hex string it is considered as a non\-hardware\-address client ID and the \*(Aqtype\*(Aq field is set to 0\&. The special values "mac" and "perm\-mac" are supported, which use the current or permanent MAC address of the device to generate a client identifier with type ethernet (01)\&. Currently, these options only work for ethernet type of links\&. The special value "ipv6\-duid" uses the DUID from "ipv6\&.dhcp\-duid" property as an RFC4361\-compliant client identifier\&. As IAID it uses "ipv4\&.dhcp\-iaid" and falls back to "ipv6\&.dhcp\-iaid" if unset\&. The special value "duid" generates a RFC4361\-compliant client identifier based on "ipv4\&.dhcp\-iaid" and uses a DUID generated by hashing /etc/machine\-id\&. The special value "stable" is supported to generate a type 0 client identifier based on the stable\-id (see connection\&.stable\-id) and a per\-host key\&. If you set the stable\-id, you may want to include the "${DEVICE}" or "${MAC}" specifier to get a per\-device key\&. If unset, a globally configured default is used\&. If still unset, the default depends on the DHCP plugin\&.
+A string sent to the DHCP server to identify the local machine which the DHCP server may use to customize the DHCP lease and options\&. When the property is a hex string (\*(Aqaa:bb:cc\*(Aq) it is interpreted as a binary client ID, in which case the first byte is assumed to be the \*(Aqtype\*(Aq field as per RFC 2132 section 9\&.14 and the remaining bytes may be an hardware address (e\&.g\&. \*(Aq01:xx:xx:xx:xx:xx:xx\*(Aq where 1 is the Ethernet ARP type and the rest is a MAC address)\&. If the property is not a hex string it is considered as a non\-hardware\-address client ID and the \*(Aqtype\*(Aq field is set to 0\&.
+.sp
+The special values "mac" and "perm\-mac" are supported, which use the current or permanent MAC address of the device to generate a client identifier with type ethernet (01)\&. Currently, these options only work for ethernet type of links\&.
+.sp
+The special value "ipv6\-duid" uses the DUID from "ipv6\&.dhcp\-duid" property as an RFC4361\-compliant client identifier\&. As IAID it uses "ipv4\&.dhcp\-iaid" and falls back to "ipv6\&.dhcp\-iaid" if unset\&.
+.sp
+The special value "duid" generates a RFC4361\-compliant client identifier based on "ipv4\&.dhcp\-iaid" and uses a DUID generated by hashing /etc/machine\-id\&.
+.sp
+The special value "stable" is supported to generate a type 0 client identifier based on the stable\-id (see connection\&.stable\-id) and a per\-host key\&. If you set the stable\-id, you may want to include the "${DEVICE}" or "${MAC}" specifier to get a per\-device key\&.
+.sp
+If unset, a globally configured default is used\&. If still unset, the default depends on the DHCP plugin\&.
 .sp
 Format: string
 .RE
@@ -1697,7 +1804,11 @@ Format: string
 .PP
 \fBdhcp\-hostname\-flags\fR
 .RS 4
-Flags for the DHCP hostname and FQDN\&. Currently, this property only includes flags to control the FQDN flags set in the DHCP FQDN option\&. Supported FQDN flags are NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE (0x1), NM_DHCP_HOSTNAME_FLAG_FQDN_ENCODED (0x2) and NM_DHCP_HOSTNAME_FLAG_FQDN_NO_UPDATE (0x4)\&. When no FQDN flag is set and NM_DHCP_HOSTNAME_FLAG_FQDN_CLEAR_FLAGS (0x8) is set, the DHCP FQDN option will contain no flag\&. Otherwise, if no FQDN flag is set and NM_DHCP_HOSTNAME_FLAG_FQDN_CLEAR_FLAGS (0x8) is not set, the standard FQDN flags are set in the request: NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE (0x1), NM_DHCP_HOSTNAME_FLAG_FQDN_ENCODED (0x2) for IPv4 and NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE (0x1) for IPv6\&. When this property is set to the default value NM_DHCP_HOSTNAME_FLAG_NONE (0x0), a global default is looked up in NetworkManager configuration\&. If that value is unset or also NM_DHCP_HOSTNAME_FLAG_NONE (0x0), then the standard FQDN flags described above are sent in the DHCP requests\&.
+Flags for the DHCP hostname and FQDN\&.
+.sp
+Currently, this property only includes flags to control the FQDN flags set in the DHCP FQDN option\&. Supported FQDN flags are NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE (0x1), NM_DHCP_HOSTNAME_FLAG_FQDN_ENCODED (0x2) and NM_DHCP_HOSTNAME_FLAG_FQDN_NO_UPDATE (0x4)\&. When no FQDN flag is set and NM_DHCP_HOSTNAME_FLAG_FQDN_CLEAR_FLAGS (0x8) is set, the DHCP FQDN option will contain no flag\&. Otherwise, if no FQDN flag is set and NM_DHCP_HOSTNAME_FLAG_FQDN_CLEAR_FLAGS (0x8) is not set, the standard FQDN flags are set in the request: NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE (0x1), NM_DHCP_HOSTNAME_FLAG_FQDN_ENCODED (0x2) for IPv4 and NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE (0x1) for IPv6\&.
+.sp
+When this property is set to the default value NM_DHCP_HOSTNAME_FLAG_NONE (0x0), a global default is looked up in NetworkManager configuration\&. If that value is unset or also NM_DHCP_HOSTNAME_FLAG_NONE (0x0), then the standard FQDN flags described above are sent in the DHCP requests\&.
 .sp
 Format: uint32
 .RE
@@ -1711,7 +1822,11 @@ Format: string
 .PP
 \fBdhcp\-reject\-servers\fR
 .RS 4
-Array of servers from which DHCP offers must be rejected\&. This property is useful to avoid getting a lease from misconfigured or rogue servers\&. For DHCPv4, each element must be an IPv4 address, optionally followed by a slash and a prefix length (e\&.g\&. "192\&.168\&.122\&.0/24")\&. This property is currently not implemented for DHCPv6\&.
+Array of servers from which DHCP offers must be rejected\&. This property is useful to avoid getting a lease from misconfigured or rogue servers\&.
+.sp
+For DHCPv4, each element must be an IPv4 address, optionally followed by a slash and a prefix length (e\&.g\&. "192\&.168\&.122\&.0/24")\&.
+.sp
+This property is currently not implemented for DHCPv6\&.
 .sp
 Format: array of string
 .RE
@@ -1725,14 +1840,18 @@ Format: boolean
 .PP
 \fBdhcp\-timeout\fR
 .RS 4
-A timeout for a DHCP transaction in seconds\&. If zero (the default), a globally configured default is used\&. If still unspecified, a device specific timeout is used (usually 45 seconds)\&. Set to 2147483647 (MAXINT32) for infinity\&.
+A timeout for a DHCP transaction in seconds\&. If zero (the default), a globally configured default is used\&. If still unspecified, a device specific timeout is used (usually 45 seconds)\&.
+.sp
+Set to 2147483647 (MAXINT32) for infinity\&.
 .sp
 Format: int32
 .RE
 .PP
 \fBdhcp\-vendor\-class\-identifier\fR
 .RS 4
-The Vendor Class Identifier DHCP option (60)\&. Special characters in the data string may be escaped using C\-style escapes, nevertheless this property cannot contain nul bytes\&. If the per\-profile value is unspecified (the default), a global connection default gets consulted\&. If still unspecified, the DHCP option is not sent to the server\&. Since 1\&.28
+The Vendor Class Identifier DHCP option (60)\&. Special characters in the data string may be escaped using C\-style escapes, nevertheless this property cannot contain nul bytes\&. If the per\-profile value is unspecified (the default), a global connection default gets consulted\&. If still unspecified, the DHCP option is not sent to the server\&.
+.sp
+Since 1\&.28
 .sp
 Format: string
 .RE
@@ -1746,21 +1865,47 @@ Format: array of uint32
 .PP
 \fBdns\-options\fR
 .RS 4
-Array of DNS options as described in man 5 resolv\&.conf\&. NULL means that the options are unset and left at the default\&. In this case NetworkManager will use default options\&. This is distinct from an empty list of properties\&. The currently supported options are "attempts", "debug", "edns0", "inet6", "ip6\-bytestring", "ip6\-dotint", "ndots", "no\-check\-names", "no\-ip6\-dotint", "no\-reload", "no\-tld\-query", "rotate", "single\-request", "single\-request\-reopen", "timeout", "trust\-ad", "use\-vc"\&. The "trust\-ad" setting is only honored if the profile contributes name servers to resolv\&.conf, and if all contributing profiles have "trust\-ad" enabled\&. When using a caching DNS plugin (dnsmasq or systemd\-resolved in NetworkManager\&.conf) then "edns0" and "trust\-ad" are automatically added\&.
+Array of DNS options as described in man 5 resolv\&.conf\&.
+.sp
+NULL means that the options are unset and left at the default\&. In this case NetworkManager will use default options\&. This is distinct from an empty list of properties\&.
+.sp
+The currently supported options are "attempts", "debug", "edns0", "inet6", "ip6\-bytestring", "ip6\-dotint", "ndots", "no\-check\-names", "no\-ip6\-dotint", "no\-reload", "no\-tld\-query", "rotate", "single\-request", "single\-request\-reopen", "timeout", "trust\-ad", "use\-vc"\&.
+.sp
+The "trust\-ad" setting is only honored if the profile contributes name servers to resolv\&.conf, and if all contributing profiles have "trust\-ad" enabled\&.
+.sp
+When using a caching DNS plugin (dnsmasq or systemd\-resolved in NetworkManager\&.conf) then "edns0" and "trust\-ad" are automatically added\&.
 .sp
 Format: array of string
 .RE
 .PP
 \fBdns\-priority\fR
 .RS 4
-DNS servers priority\&. The relative priority for DNS servers specified by this setting\&. A lower numerical value is better (higher priority)\&. Negative values have the special effect of excluding other configurations with a greater numerical priority value; so in presence of at least one negative priority, only DNS servers from connections with the lowest priority value will be used\&. To avoid all DNS leaks, set the priority of the profile that should be used to the most negative value of all active connections profiles\&. Zero selects a globally configured default value\&. If the latter is missing or zero too, it defaults to 50 for VPNs (including WireGuard) and 100 for other connections\&. Note that the priority is to order DNS settings for multiple active connections\&. It does not disambiguate multiple DNS servers within the same connection profile\&. When multiple devices have configurations with the same priority, VPNs will be considered first, then devices with the best (lowest metric) default route and then all other devices\&. When using dns=default, servers with higher priority will be on top of resolv\&.conf\&. To prioritize a given server over another one within the same connection, just specify them in the desired order\&. Note that commonly the resolver tries name servers in /etc/resolv\&.conf in the order listed, proceeding with the next server in the list on failure\&. See for example the "rotate" option of the dns\-options setting\&. If there are any negative DNS priorities, then only name servers from the devices with that lowest priority will be considered\&. When using a DNS resolver that supports Conditional Forwarding or Split DNS (with dns=dnsmasq or dns=systemd\-resolved settings), each connection is used to query domains in its search list\&. The search domains determine which name servers to ask, and the DNS priority is used to prioritize name servers based on the domain\&. Queries for domains not present in any search list are routed through connections having the \*(Aq~\&.\*(Aq special wildcard domain, which is added automatically to connections with the default route (or can be added manually)\&. When multiple connections specify the same domain, the one with the best priority (lowest numerical value) wins\&. If a sub domain is configured on another interface it will be accepted regardless the priority, unless parent domain on the other interface has a negative priority, which causes the sub domain to be shadowed\&. With Split DNS one can avoid undesired DNS leaks by properly configuring DNS priorities and the search domains, so that only name servers of the desired interface are configured\&.
+DNS servers priority\&.
+.sp
+The relative priority for DNS servers specified by this setting\&. A lower numerical value is better (higher priority)\&.
+.sp
+Negative values have the special effect of excluding other configurations with a greater numerical priority value; so in presence of at least one negative priority, only DNS servers from connections with the lowest priority value will be used\&. To avoid all DNS leaks, set the priority of the profile that should be used to the most negative value of all active connections profiles\&.
+.sp
+Zero selects a globally configured default value\&. If the latter is missing or zero too, it defaults to 50 for VPNs (including WireGuard) and 100 for other connections\&.
+.sp
+Note that the priority is to order DNS settings for multiple active connections\&. It does not disambiguate multiple DNS servers within the same connection profile\&.
+.sp
+When multiple devices have configurations with the same priority, VPNs will be considered first, then devices with the best (lowest metric) default route and then all other devices\&.
+.sp
+When using dns=default, servers with higher priority will be on top of resolv\&.conf\&. To prioritize a given server over another one within the same connection, just specify them in the desired order\&. Note that commonly the resolver tries name servers in /etc/resolv\&.conf in the order listed, proceeding with the next server in the list on failure\&. See for example the "rotate" option of the dns\-options setting\&. If there are any negative DNS priorities, then only name servers from the devices with that lowest priority will be considered\&.
+.sp
+When using a DNS resolver that supports Conditional Forwarding or Split DNS (with dns=dnsmasq or dns=systemd\-resolved settings), each connection is used to query domains in its search list\&. The search domains determine which name servers to ask, and the DNS priority is used to prioritize name servers based on the domain\&. Queries for domains not present in any search list are routed through connections having the \*(Aq~\&.\*(Aq special wildcard domain, which is added automatically to connections with the default route (or can be added manually)\&. When multiple connections specify the same domain, the one with the best priority (lowest numerical value) wins\&. If a sub domain is configured on another interface it will be accepted regardless the priority, unless parent domain on the other interface has a negative priority, which causes the sub domain to be shadowed\&. With Split DNS one can avoid undesired DNS leaks by properly configuring DNS priorities and the search domains, so that only name servers of the desired interface are configured\&.
 .sp
 Format: int32
 .RE
 .PP
 \fBdns\-search\fR
 .RS 4
-Array of DNS search domains\&. Domains starting with a tilde (\*(Aq~\*(Aq) are considered \*(Aqrouting\*(Aq domains and are used only to decide the interface over which a query must be forwarded; they are not used to complete unqualified host names\&. When using a DNS plugin that supports Conditional Forwarding or Split DNS, then the search domains specify which name servers to query\&. This makes the behavior different from running with plain /etc/resolv\&.conf\&. For more information see also the dns\-priority setting\&.
+List of DNS search domains\&. Domains starting with a tilde (\*(Aq~\*(Aq) are considered \*(Aqrouting\*(Aq domains and are used only to decide the interface over which a query must be forwarded; they are not used to complete unqualified host names\&.
+.sp
+When using a DNS plugin that supports Conditional Forwarding or Split DNS, then the search domains specify which name servers to query\&. This makes the behavior different from running with plain /etc/resolv\&.conf\&. For more information see also the dns\-priority setting\&.
+.sp
+When set on a profile that also enabled DHCP, the DNS search list received automatically (option 119 for DHCPv4 and option 24 for DHCPv6) gets merged with the manual list\&. This can be prevented by setting "ignore\-auto\-dns"\&. Note that if no DNS searches are configured, the fallback will be derived from the domain from DHCP (option 15)\&.
 .sp
 Format: array of string
 .RE
@@ -1769,7 +1914,11 @@ Format: array of string
 .RS 4
 Alias: gw4
 .sp
-The gateway associated with this configuration\&. This is only meaningful if "addresses" is also set\&. The gateway\*(Aqs main purpose is to control the next hop of the standard default route on the device\&. Hence, the gateway property conflicts with "never\-default" and will be automatically dropped if the IP configuration is set to never\-default\&. As an alternative to set the gateway, configure a static default route with /0 as prefix length\&.
+The gateway associated with this configuration\&. This is only meaningful if "addresses" is also set\&.
+.sp
+The gateway\*(Aqs main purpose is to control the next hop of the standard default route on the device\&. Hence, the gateway property conflicts with "never\-default" and will be automatically dropped if the IP configuration is set to never\-default\&.
+.sp
+As an alternative to set the gateway, configure a static default route with /0 as prefix length\&.
 .sp
 Format: string
 .RE
@@ -1788,6 +1937,17 @@ When "method" is set to "auto" and this property to TRUE, automatically configur
 Format: boolean
 .RE
 .PP
+\fBlink\-local\fR
+.RS 4
+Enable and disable the IPv4 link\-local configuration independently of the ipv4\&.method configuration\&. This allows a link\-local address (169\&.254\&.x\&.y/16) to be obtained in addition to other addresses, such as those manually configured or obtained from a DHCP server\&.
+.sp
+When set to "auto", the value is dependent on "ipv4\&.method"\&. When set to "default", it honors the global connection default, before falling back to "auto"\&. Note that if "ipv4\&.method" is "disabled", then link local addressing is always disabled too\&. The default is "default"\&.
+.sp
+Since 1\&.40
+.sp
+Format: int32
+.RE
+.PP
 \fBmay\-fail\fR
 .RS 4
 If TRUE, allow overall network configuration to proceed even if the configuration specified by this property times out\&. Note that at least one IP configuration must succeed or overall network configuration will still fail\&. For example, in IPv6\-only networks, setting this property to TRUE on the NMSettingIP4Config allows the overall network configuration to succeed if IPv4 configuration fails but IPv6 configuration completes successfully\&.
@@ -1797,7 +1957,15 @@ Format: boolean
 .PP
 \fBmethod\fR
 .RS 4
-IP configuration method\&. NMSettingIP4Config and NMSettingIP6Config both support "disabled", "auto", "manual", and "link\-local"\&. See the subclass\-specific documentation for other values\&. In general, for the "auto" method, properties such as "dns" and "routes" specify information that is added on to the information returned from automatic configuration\&. The "ignore\-auto\-routes" and "ignore\-auto\-dns" properties modify this behavior\&. For methods that imply no upstream network, such as "shared" or "link\-local", these properties must be empty\&. For IPv4 method "shared", the IP subnet can be configured by adding one manual IPv4 address or otherwise 10\&.42\&.x\&.0/24 is chosen\&. Note that the shared method must be configured on the interface which shares the internet to a subnet, not on the uplink which is shared\&.
+IP configuration method\&.
+.sp
+NMSettingIP4Config and NMSettingIP6Config both support "disabled", "auto", "manual", and "link\-local"\&. See the subclass\-specific documentation for other values\&.
+.sp
+In general, for the "auto" method, properties such as "dns" and "routes" specify information that is added on to the information returned from automatic configuration\&. The "ignore\-auto\-routes" and "ignore\-auto\-dns" properties modify this behavior\&.
+.sp
+For methods that imply no upstream network, such as "shared" or "link\-local", these properties must be empty\&.
+.sp
+For IPv4 method "shared", the IP subnet can be configured by adding one manual IPv4 address or otherwise 10\&.42\&.x\&.0/24 is chosen\&. Note that the shared method must be configured on the interface which shares the internet to a subnet, not on the uplink which is shared\&.
 .sp
 Format: string
 .RE
@@ -1811,7 +1979,13 @@ Format: boolean
 .PP
 \fBrequired\-timeout\fR
 .RS 4
-The minimum time interval in milliseconds for which dynamic IP configuration should be tried before the connection succeeds\&. This property is useful for example if both IPv4 and IPv6 are enabled and are allowed to fail\&. Normally the connection succeeds as soon as one of the two address families completes; by setting a required timeout for e\&.g\&. IPv4, one can ensure that even if IP6 succeeds earlier than IPv4, NetworkManager waits some time for IPv4 before the connection becomes active\&. Note that if "may\-fail" is FALSE for the same address family, this property has no effect as NetworkManager needs to wait for the full DHCP timeout\&. A zero value means that no required timeout is present, \-1 means the default value (either configuration ipvx\&.required\-timeout override or zero)\&.
+The minimum time interval in milliseconds for which dynamic IP configuration should be tried before the connection succeeds\&.
+.sp
+This property is useful for example if both IPv4 and IPv6 are enabled and are allowed to fail\&. Normally the connection succeeds as soon as one of the two address families completes; by setting a required timeout for e\&.g\&. IPv4, one can ensure that even if IP6 succeeds earlier than IPv4, NetworkManager waits some time for IPv4 before the connection becomes active\&.
+.sp
+Note that if "may\-fail" is FALSE for the same address family, this property has no effect as NetworkManager needs to wait for the full DHCP timeout\&.
+.sp
+A zero value means that no required timeout is present, \-1 means the default value (either configuration ipvx\&.required\-timeout override or zero)\&.
 .sp
 Format: int32
 .RE
@@ -1825,7 +1999,13 @@ Format: int64
 .PP
 \fBroute\-table\fR
 .RS 4
-Enable policy routing (source routing) and set the routing table used when adding routes\&. This affects all routes, including device\-routes, IPv4LL, DHCP, SLAAC, default\-routes and static routes\&. But note that static routes can individually overwrite the setting by explicitly specifying a non\-zero routing table\&. If the table setting is left at zero, it is eligible to be overwritten via global configuration\&. If the property is zero even after applying the global configuration value, policy routing is disabled for the address family of this connection\&. Policy routing disabled means that NetworkManager will add all routes to the main table (except static routes that explicitly configure a different table)\&. Additionally, NetworkManager will not delete any extraneous routes from tables except the main table\&. This is to preserve backward compatibility for users who manage routing tables outside of NetworkManager\&.
+Enable policy routing (source routing) and set the routing table used when adding routes\&.
+.sp
+This affects all routes, including device\-routes, IPv4LL, DHCP, SLAAC, default\-routes and static routes\&. But note that static routes can individually overwrite the setting by explicitly specifying a non\-zero routing table\&.
+.sp
+If the table setting is left at zero, it is eligible to be overwritten via global configuration\&. If the property is zero even after applying the global configuration value, policy routing is disabled for the address family of this connection\&.
+.sp
+Policy routing disabled means that NetworkManager will add all routes to the main table (except static routes that explicitly configure a different table)\&. Additionally, NetworkManager will not delete any extraneous routes from tables except the main table\&. This is to preserve backward compatibility for users who manage routing tables outside of NetworkManager\&.
 .sp
 Format: uint32
 .RE
@@ -1835,6 +2015,18 @@ Format: uint32
 A list of IPv4 destination addresses, prefix length, optional IPv4 next hop addresses, optional route metric, optional attribute\&. The valid syntax is: "ip[/prefix] [next\-hop] [metric] [attribute=val]\&.\&.\&.[,ip[/prefix]\&.\&.\&.]"\&. For example "192\&.0\&.2\&.0/24 10\&.1\&.1\&.1 77, 198\&.51\&.100\&.0/24"\&.
 .sp
 Various attributes are supported:
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+"advmss"
+\- an unsigned 32 bit integer\&.
+.RE
 .sp
 .RS 4
 .ie n \{\
@@ -1870,6 +2062,18 @@ Various attributes are supported:
 .\}
 "initrwnd"
 \- an unsigned 32 bit integer\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+"lock\-advmss"
+\- a boolean value\&.
 .RE
 .sp
 .RS 4
@@ -1954,6 +2158,30 @@ Various attributes are supported:
 .\}
 "onlink"
 \- a boolean value\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+"quickack"
+\- a boolean value\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+"rto_min"
+\- an unsigned 32 bit integer\&. The value is in milliseconds\&.
 .RE
 .sp
 .RS 4
@@ -2059,7 +2287,17 @@ Properties:
 .PP
 \fBaddr\-gen\-mode\fR
 .RS 4
-Configure method for creating the address for use with RFC4862 IPv6 Stateless Address Autoconfiguration\&. The permitted values are: NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_EUI64 (0) or NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_STABLE_PRIVACY (1)\&. If the property is set to EUI64, the addresses will be generated using the interface tokens derived from hardware address\&. This makes the host part of the address to stay constant, making it possible to track host\*(Aqs presence when it changes networks\&. The address changes when the interface hardware is replaced\&. The value of stable\-privacy enables use of cryptographically secure hash of a secret host\-specific key along with the connection\*(Aqs stable\-id and the network address as specified by RFC7217\&. This makes it impossible to use the address track host\*(Aqs presence, and makes the address stable when the network interface hardware is replaced\&. On D\-Bus, the absence of an addr\-gen\-mode setting equals enabling stable\-privacy\&. For keyfile plugin, the absence of the setting on disk means EUI64 so that the property doesn\*(Aqt change on upgrade from older versions\&. Note that this setting is distinct from the Privacy Extensions as configured by "ip6\-privacy" property and it does not affect the temporary addresses configured with this option\&.
+Configure method for creating the address for use with RFC4862 IPv6 Stateless Address Autoconfiguration\&. The permitted values are: NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_EUI64 (0), NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_STABLE_PRIVACY (1)\&. NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_DEFAULT_OR_EUI64 (2) or NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_DEFAULT (3)\&.
+.sp
+If the property is set to EUI64, the addresses will be generated using the interface tokens derived from hardware address\&. This makes the host part of the address to stay constant, making it possible to track host\*(Aqs presence when it changes networks\&. The address changes when the interface hardware is replaced\&.
+.sp
+The value of stable\-privacy enables use of cryptographically secure hash of a secret host\-specific key along with the connection\*(Aqs stable\-id and the network address as specified by RFC7217\&. This makes it impossible to use the address track host\*(Aqs presence, and makes the address stable when the network interface hardware is replaced\&.
+.sp
+The special values "default" and "default\-or\-eui64" will fallback to the global connection default in as documented in NetworkManager\&.conf(5) manual\&. If the global default is not specified, the fallback value is "stable\-privacy" or "eui64", respectively\&.
+.sp
+For libnm, the property defaults to "default" since 1\&.40\&. Previously it defaulted to "stable\-privacy"\&. On D\-Bus, the absence of an addr\-gen\-mode setting equals "default"\&. For keyfile plugin, the absence of the setting on disk means "default\-or\-eui64" so that the property doesn\*(Aqt change on upgrade from older versions\&.
+.sp
+Note that this setting is distinct from the Privacy Extensions as configured by "ip6\-privacy" property and it does not affect the temporary addresses configured with this option\&.
 .sp
 Format: int32
 .RE
@@ -2068,14 +2306,22 @@ Format: int32
 .RS 4
 Alias: ip6
 .sp
-A list of IPv6 addresses and their prefix length\&. Multiple addresses can be separated by comma\&. For example "2001:db8:85a3::8a2e:370:7334/64, 2001:db8:85a3::5/64"\&. The addresses are listed in decreasing priority, meaning the first address will be the primary address\&. This can make a difference with IPv6 source address selection (RFC 6724, section 5)\&.
+Array of IP addresses\&.
 .sp
 Format: a comma separated list of addresses
 .RE
 .PP
 \fBdhcp\-duid\fR
 .RS 4
-A string containing the DHCPv6 Unique Identifier (DUID) used by the dhcp client to identify itself to DHCPv6 servers (RFC 3315)\&. The DUID is carried in the Client Identifier option\&. If the property is a hex string (\*(Aqaa:bb:cc\*(Aq) it is interpreted as a binary DUID and filled as an opaque value in the Client Identifier option\&. The special value "lease" will retrieve the DUID previously used from the lease file belonging to the connection\&. If no DUID is found and "dhclient" is the configured dhcp client, the DUID is searched in the system\-wide dhclient lease file\&. If still no DUID is found, or another dhcp client is used, a global and permanent DUID\-UUID (RFC 6355) will be generated based on the machine\-id\&. The special values "llt" and "ll" will generate a DUID of type LLT or LL (see RFC 3315) based on the current MAC address of the device\&. In order to try providing a stable DUID\-LLT, the time field will contain a constant timestamp that is used globally (for all profiles) and persisted to disk\&. The special values "stable\-llt", "stable\-ll" and "stable\-uuid" will generate a DUID of the corresponding type, derived from the connection\*(Aqs stable\-id and a per\-host unique key\&. You may want to include the "${DEVICE}" or "${MAC}" specifier in the stable\-id, in case this profile gets activated on multiple devices\&. So, the link\-layer address of "stable\-ll" and "stable\-llt" will be a generated address derived from the stable id\&. The DUID\-LLT time value in the "stable\-llt" option will be picked among a static timespan of three years (the upper bound of the interval is the same constant timestamp used in "llt")\&. When the property is unset, the global value provided for "ipv6\&.dhcp\-duid" is used\&. If no global value is provided, the default "lease" value is assumed\&.
+A string containing the DHCPv6 Unique Identifier (DUID) used by the dhcp client to identify itself to DHCPv6 servers (RFC 3315)\&. The DUID is carried in the Client Identifier option\&. If the property is a hex string (\*(Aqaa:bb:cc\*(Aq) it is interpreted as a binary DUID and filled as an opaque value in the Client Identifier option\&.
+.sp
+The special value "lease" will retrieve the DUID previously used from the lease file belonging to the connection\&. If no DUID is found and "dhclient" is the configured dhcp client, the DUID is searched in the system\-wide dhclient lease file\&. If still no DUID is found, or another dhcp client is used, a global and permanent DUID\-UUID (RFC 6355) will be generated based on the machine\-id\&.
+.sp
+The special values "llt" and "ll" will generate a DUID of type LLT or LL (see RFC 3315) based on the current MAC address of the device\&. In order to try providing a stable DUID\-LLT, the time field will contain a constant timestamp that is used globally (for all profiles) and persisted to disk\&.
+.sp
+The special values "stable\-llt", "stable\-ll" and "stable\-uuid" will generate a DUID of the corresponding type, derived from the connection\*(Aqs stable\-id and a per\-host unique key\&. You may want to include the "${DEVICE}" or "${MAC}" specifier in the stable\-id, in case this profile gets activated on multiple devices\&. So, the link\-layer address of "stable\-ll" and "stable\-llt" will be a generated address derived from the stable id\&. The DUID\-LLT time value in the "stable\-llt" option will be picked among a static timespan of three years (the upper bound of the interval is the same constant timestamp used in "llt")\&.
+.sp
+When the property is unset, the global value provided for "ipv6\&.dhcp\-duid" is used\&. If no global value is provided, the default "lease" value is assumed\&.
 .sp
 Format: string
 .RE
@@ -2089,7 +2335,11 @@ Format: string
 .PP
 \fBdhcp\-hostname\-flags\fR
 .RS 4
-Flags for the DHCP hostname and FQDN\&. Currently, this property only includes flags to control the FQDN flags set in the DHCP FQDN option\&. Supported FQDN flags are NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE (0x1), NM_DHCP_HOSTNAME_FLAG_FQDN_ENCODED (0x2) and NM_DHCP_HOSTNAME_FLAG_FQDN_NO_UPDATE (0x4)\&. When no FQDN flag is set and NM_DHCP_HOSTNAME_FLAG_FQDN_CLEAR_FLAGS (0x8) is set, the DHCP FQDN option will contain no flag\&. Otherwise, if no FQDN flag is set and NM_DHCP_HOSTNAME_FLAG_FQDN_CLEAR_FLAGS (0x8) is not set, the standard FQDN flags are set in the request: NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE (0x1), NM_DHCP_HOSTNAME_FLAG_FQDN_ENCODED (0x2) for IPv4 and NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE (0x1) for IPv6\&. When this property is set to the default value NM_DHCP_HOSTNAME_FLAG_NONE (0x0), a global default is looked up in NetworkManager configuration\&. If that value is unset or also NM_DHCP_HOSTNAME_FLAG_NONE (0x0), then the standard FQDN flags described above are sent in the DHCP requests\&.
+Flags for the DHCP hostname and FQDN\&.
+.sp
+Currently, this property only includes flags to control the FQDN flags set in the DHCP FQDN option\&. Supported FQDN flags are NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE (0x1), NM_DHCP_HOSTNAME_FLAG_FQDN_ENCODED (0x2) and NM_DHCP_HOSTNAME_FLAG_FQDN_NO_UPDATE (0x4)\&. When no FQDN flag is set and NM_DHCP_HOSTNAME_FLAG_FQDN_CLEAR_FLAGS (0x8) is set, the DHCP FQDN option will contain no flag\&. Otherwise, if no FQDN flag is set and NM_DHCP_HOSTNAME_FLAG_FQDN_CLEAR_FLAGS (0x8) is not set, the standard FQDN flags are set in the request: NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE (0x1), NM_DHCP_HOSTNAME_FLAG_FQDN_ENCODED (0x2) for IPv4 and NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE (0x1) for IPv6\&.
+.sp
+When this property is set to the default value NM_DHCP_HOSTNAME_FLAG_NONE (0x0), a global default is looked up in NetworkManager configuration\&. If that value is unset or also NM_DHCP_HOSTNAME_FLAG_NONE (0x0), then the standard FQDN flags described above are sent in the DHCP requests\&.
 .sp
 Format: uint32
 .RE
@@ -2110,7 +2360,9 @@ Format: boolean
 .PP
 \fBdhcp\-timeout\fR
 .RS 4
-A timeout for a DHCP transaction in seconds\&. If zero (the default), a globally configured default is used\&. If still unspecified, a device specific timeout is used (usually 45 seconds)\&. Set to 2147483647 (MAXINT32) for infinity\&.
+A timeout for a DHCP transaction in seconds\&. If zero (the default), a globally configured default is used\&. If still unspecified, a device specific timeout is used (usually 45 seconds)\&.
+.sp
+Set to 2147483647 (MAXINT32) for infinity\&.
 .sp
 Format: int32
 .RE
@@ -2124,21 +2376,47 @@ Format: array of byte array
 .PP
 \fBdns\-options\fR
 .RS 4
-Array of DNS options as described in man 5 resolv\&.conf\&. NULL means that the options are unset and left at the default\&. In this case NetworkManager will use default options\&. This is distinct from an empty list of properties\&. The currently supported options are "attempts", "debug", "edns0", "inet6", "ip6\-bytestring", "ip6\-dotint", "ndots", "no\-check\-names", "no\-ip6\-dotint", "no\-reload", "no\-tld\-query", "rotate", "single\-request", "single\-request\-reopen", "timeout", "trust\-ad", "use\-vc"\&. The "trust\-ad" setting is only honored if the profile contributes name servers to resolv\&.conf, and if all contributing profiles have "trust\-ad" enabled\&. When using a caching DNS plugin (dnsmasq or systemd\-resolved in NetworkManager\&.conf) then "edns0" and "trust\-ad" are automatically added\&.
+Array of DNS options as described in man 5 resolv\&.conf\&.
+.sp
+NULL means that the options are unset and left at the default\&. In this case NetworkManager will use default options\&. This is distinct from an empty list of properties\&.
+.sp
+The currently supported options are "attempts", "debug", "edns0", "inet6", "ip6\-bytestring", "ip6\-dotint", "ndots", "no\-check\-names", "no\-ip6\-dotint", "no\-reload", "no\-tld\-query", "rotate", "single\-request", "single\-request\-reopen", "timeout", "trust\-ad", "use\-vc"\&.
+.sp
+The "trust\-ad" setting is only honored if the profile contributes name servers to resolv\&.conf, and if all contributing profiles have "trust\-ad" enabled\&.
+.sp
+When using a caching DNS plugin (dnsmasq or systemd\-resolved in NetworkManager\&.conf) then "edns0" and "trust\-ad" are automatically added\&.
 .sp
 Format: array of string
 .RE
 .PP
 \fBdns\-priority\fR
 .RS 4
-DNS servers priority\&. The relative priority for DNS servers specified by this setting\&. A lower numerical value is better (higher priority)\&. Negative values have the special effect of excluding other configurations with a greater numerical priority value; so in presence of at least one negative priority, only DNS servers from connections with the lowest priority value will be used\&. To avoid all DNS leaks, set the priority of the profile that should be used to the most negative value of all active connections profiles\&. Zero selects a globally configured default value\&. If the latter is missing or zero too, it defaults to 50 for VPNs (including WireGuard) and 100 for other connections\&. Note that the priority is to order DNS settings for multiple active connections\&. It does not disambiguate multiple DNS servers within the same connection profile\&. When multiple devices have configurations with the same priority, VPNs will be considered first, then devices with the best (lowest metric) default route and then all other devices\&. When using dns=default, servers with higher priority will be on top of resolv\&.conf\&. To prioritize a given server over another one within the same connection, just specify them in the desired order\&. Note that commonly the resolver tries name servers in /etc/resolv\&.conf in the order listed, proceeding with the next server in the list on failure\&. See for example the "rotate" option of the dns\-options setting\&. If there are any negative DNS priorities, then only name servers from the devices with that lowest priority will be considered\&. When using a DNS resolver that supports Conditional Forwarding or Split DNS (with dns=dnsmasq or dns=systemd\-resolved settings), each connection is used to query domains in its search list\&. The search domains determine which name servers to ask, and the DNS priority is used to prioritize name servers based on the domain\&. Queries for domains not present in any search list are routed through connections having the \*(Aq~\&.\*(Aq special wildcard domain, which is added automatically to connections with the default route (or can be added manually)\&. When multiple connections specify the same domain, the one with the best priority (lowest numerical value) wins\&. If a sub domain is configured on another interface it will be accepted regardless the priority, unless parent domain on the other interface has a negative priority, which causes the sub domain to be shadowed\&. With Split DNS one can avoid undesired DNS leaks by properly configuring DNS priorities and the search domains, so that only name servers of the desired interface are configured\&.
+DNS servers priority\&.
+.sp
+The relative priority for DNS servers specified by this setting\&. A lower numerical value is better (higher priority)\&.
+.sp
+Negative values have the special effect of excluding other configurations with a greater numerical priority value; so in presence of at least one negative priority, only DNS servers from connections with the lowest priority value will be used\&. To avoid all DNS leaks, set the priority of the profile that should be used to the most negative value of all active connections profiles\&.
+.sp
+Zero selects a globally configured default value\&. If the latter is missing or zero too, it defaults to 50 for VPNs (including WireGuard) and 100 for other connections\&.
+.sp
+Note that the priority is to order DNS settings for multiple active connections\&. It does not disambiguate multiple DNS servers within the same connection profile\&.
+.sp
+When multiple devices have configurations with the same priority, VPNs will be considered first, then devices with the best (lowest metric) default route and then all other devices\&.
+.sp
+When using dns=default, servers with higher priority will be on top of resolv\&.conf\&. To prioritize a given server over another one within the same connection, just specify them in the desired order\&. Note that commonly the resolver tries name servers in /etc/resolv\&.conf in the order listed, proceeding with the next server in the list on failure\&. See for example the "rotate" option of the dns\-options setting\&. If there are any negative DNS priorities, then only name servers from the devices with that lowest priority will be considered\&.
+.sp
+When using a DNS resolver that supports Conditional Forwarding or Split DNS (with dns=dnsmasq or dns=systemd\-resolved settings), each connection is used to query domains in its search list\&. The search domains determine which name servers to ask, and the DNS priority is used to prioritize name servers based on the domain\&. Queries for domains not present in any search list are routed through connections having the \*(Aq~\&.\*(Aq special wildcard domain, which is added automatically to connections with the default route (or can be added manually)\&. When multiple connections specify the same domain, the one with the best priority (lowest numerical value) wins\&. If a sub domain is configured on another interface it will be accepted regardless the priority, unless parent domain on the other interface has a negative priority, which causes the sub domain to be shadowed\&. With Split DNS one can avoid undesired DNS leaks by properly configuring DNS priorities and the search domains, so that only name servers of the desired interface are configured\&.
 .sp
 Format: int32
 .RE
 .PP
 \fBdns\-search\fR
 .RS 4
-Array of DNS search domains\&. Domains starting with a tilde (\*(Aq~\*(Aq) are considered \*(Aqrouting\*(Aq domains and are used only to decide the interface over which a query must be forwarded; they are not used to complete unqualified host names\&. When using a DNS plugin that supports Conditional Forwarding or Split DNS, then the search domains specify which name servers to query\&. This makes the behavior different from running with plain /etc/resolv\&.conf\&. For more information see also the dns\-priority setting\&.
+List of DNS search domains\&. Domains starting with a tilde (\*(Aq~\*(Aq) are considered \*(Aqrouting\*(Aq domains and are used only to decide the interface over which a query must be forwarded; they are not used to complete unqualified host names\&.
+.sp
+When using a DNS plugin that supports Conditional Forwarding or Split DNS, then the search domains specify which name servers to query\&. This makes the behavior different from running with plain /etc/resolv\&.conf\&. For more information see also the dns\-priority setting\&.
+.sp
+When set on a profile that also enabled DHCP, the DNS search list received automatically (option 119 for DHCPv4 and option 24 for DHCPv6) gets merged with the manual list\&. This can be prevented by setting "ignore\-auto\-dns"\&. Note that if no DNS searches are configured, the fallback will be derived from the domain from DHCP (option 15)\&.
 .sp
 Format: array of string
 .RE
@@ -2147,7 +2425,11 @@ Format: array of string
 .RS 4
 Alias: gw6
 .sp
-The gateway associated with this configuration\&. This is only meaningful if "addresses" is also set\&. The gateway\*(Aqs main purpose is to control the next hop of the standard default route on the device\&. Hence, the gateway property conflicts with "never\-default" and will be automatically dropped if the IP configuration is set to never\-default\&. As an alternative to set the gateway, configure a static default route with /0 as prefix length\&.
+The gateway associated with this configuration\&. This is only meaningful if "addresses" is also set\&.
+.sp
+The gateway\*(Aqs main purpose is to control the next hop of the standard default route on the device\&. Hence, the gateway property conflicts with "never\-default" and will be automatically dropped if the IP configuration is set to never\-default\&.
+.sp
+As an alternative to set the gateway, configure a static default route with /0 as prefix length\&.
 .sp
 Format: string
 .RE
@@ -2168,7 +2450,13 @@ Format: boolean
 .PP
 \fBip6\-privacy\fR
 .RS 4
-Configure IPv6 Privacy Extensions for SLAAC, described in RFC4941\&. If enabled, it makes the kernel generate a temporary IPv6 address in addition to the public one generated from MAC address via modified EUI\-64\&. This enhances privacy, but could cause problems in some applications, on the other hand\&. The permitted values are: \-1: unknown, 0: disabled, 1: enabled (prefer public address), 2: enabled (prefer temporary addresses)\&. Having a per\-connection setting set to "\-1" (unknown) means fallback to global configuration "ipv6\&.ip6\-privacy"\&. If also global configuration is unspecified or set to "\-1", fallback to read "/proc/sys/net/ipv6/conf/default/use_tempaddr"\&. Note that this setting is distinct from the Stable Privacy addresses that can be enabled with the "addr\-gen\-mode" property\*(Aqs "stable\-privacy" setting as another way of avoiding host tracking with IPv6 addresses\&.
+Configure IPv6 Privacy Extensions for SLAAC, described in RFC4941\&. If enabled, it makes the kernel generate a temporary IPv6 address in addition to the public one generated from MAC address via modified EUI\-64\&. This enhances privacy, but could cause problems in some applications, on the other hand\&. The permitted values are: \-1: unknown, 0: disabled, 1: enabled (prefer public address), 2: enabled (prefer temporary addresses)\&.
+.sp
+Having a per\-connection setting set to "\-1" (unknown) means fallback to global configuration "ipv6\&.ip6\-privacy"\&.
+.sp
+If also global configuration is unspecified or set to "\-1", fallback to read "/proc/sys/net/ipv6/conf/default/use_tempaddr"\&.
+.sp
+Note that this setting is distinct from the Stable Privacy addresses that can be enabled with the "addr\-gen\-mode" property\*(Aqs "stable\-privacy" setting as another way of avoiding host tracking with IPv6 addresses\&.
 .sp
 Format: NMSettingIP6ConfigPrivacy (int32)
 .RE
@@ -2182,9 +2470,24 @@ Format: boolean
 .PP
 \fBmethod\fR
 .RS 4
-IP configuration method\&. NMSettingIP4Config and NMSettingIP6Config both support "disabled", "auto", "manual", and "link\-local"\&. See the subclass\-specific documentation for other values\&. In general, for the "auto" method, properties such as "dns" and "routes" specify information that is added on to the information returned from automatic configuration\&. The "ignore\-auto\-routes" and "ignore\-auto\-dns" properties modify this behavior\&. For methods that imply no upstream network, such as "shared" or "link\-local", these properties must be empty\&. For IPv4 method "shared", the IP subnet can be configured by adding one manual IPv4 address or otherwise 10\&.42\&.x\&.0/24 is chosen\&. Note that the shared method must be configured on the interface which shares the internet to a subnet, not on the uplink which is shared\&.
+IP configuration method\&.
+.sp
+NMSettingIP4Config and NMSettingIP6Config both support "disabled", "auto", "manual", and "link\-local"\&. See the subclass\-specific documentation for other values\&.
+.sp
+In general, for the "auto" method, properties such as "dns" and "routes" specify information that is added on to the information returned from automatic configuration\&. The "ignore\-auto\-routes" and "ignore\-auto\-dns" properties modify this behavior\&.
+.sp
+For methods that imply no upstream network, such as "shared" or "link\-local", these properties must be empty\&.
+.sp
+For IPv4 method "shared", the IP subnet can be configured by adding one manual IPv4 address or otherwise 10\&.42\&.x\&.0/24 is chosen\&. Note that the shared method must be configured on the interface which shares the internet to a subnet, not on the uplink which is shared\&.
 .sp
 Format: string
+.RE
+.PP
+\fBmtu\fR
+.RS 4
+Maximum transmission unit size, in bytes\&. If zero (the default), the MTU is set automatically from router advertisements or is left equal to the link\-layer MTU\&. If greater than the link\-layer MTU, or greater than zero but less than the minimum IPv6 MTU of 1280, this value has no effect\&.
+.sp
+Format: uint32
 .RE
 .PP
 \fBnever\-default\fR
@@ -2196,14 +2499,22 @@ Format: boolean
 .PP
 \fBra\-timeout\fR
 .RS 4
-A timeout for waiting Router Advertisements in seconds\&. If zero (the default), a globally configured default is used\&. If still unspecified, the timeout depends on the sysctl settings of the device\&. Set to 2147483647 (MAXINT32) for infinity\&.
+A timeout for waiting Router Advertisements in seconds\&. If zero (the default), a globally configured default is used\&. If still unspecified, the timeout depends on the sysctl settings of the device\&.
+.sp
+Set to 2147483647 (MAXINT32) for infinity\&.
 .sp
 Format: int32
 .RE
 .PP
 \fBrequired\-timeout\fR
 .RS 4
-The minimum time interval in milliseconds for which dynamic IP configuration should be tried before the connection succeeds\&. This property is useful for example if both IPv4 and IPv6 are enabled and are allowed to fail\&. Normally the connection succeeds as soon as one of the two address families completes; by setting a required timeout for e\&.g\&. IPv4, one can ensure that even if IP6 succeeds earlier than IPv4, NetworkManager waits some time for IPv4 before the connection becomes active\&. Note that if "may\-fail" is FALSE for the same address family, this property has no effect as NetworkManager needs to wait for the full DHCP timeout\&. A zero value means that no required timeout is present, \-1 means the default value (either configuration ipvx\&.required\-timeout override or zero)\&.
+The minimum time interval in milliseconds for which dynamic IP configuration should be tried before the connection succeeds\&.
+.sp
+This property is useful for example if both IPv4 and IPv6 are enabled and are allowed to fail\&. Normally the connection succeeds as soon as one of the two address families completes; by setting a required timeout for e\&.g\&. IPv4, one can ensure that even if IP6 succeeds earlier than IPv4, NetworkManager waits some time for IPv4 before the connection becomes active\&.
+.sp
+Note that if "may\-fail" is FALSE for the same address family, this property has no effect as NetworkManager needs to wait for the full DHCP timeout\&.
+.sp
+A zero value means that no required timeout is present, \-1 means the default value (either configuration ipvx\&.required\-timeout override or zero)\&.
 .sp
 Format: int32
 .RE
@@ -2217,7 +2528,13 @@ Format: int64
 .PP
 \fBroute\-table\fR
 .RS 4
-Enable policy routing (source routing) and set the routing table used when adding routes\&. This affects all routes, including device\-routes, IPv4LL, DHCP, SLAAC, default\-routes and static routes\&. But note that static routes can individually overwrite the setting by explicitly specifying a non\-zero routing table\&. If the table setting is left at zero, it is eligible to be overwritten via global configuration\&. If the property is zero even after applying the global configuration value, policy routing is disabled for the address family of this connection\&. Policy routing disabled means that NetworkManager will add all routes to the main table (except static routes that explicitly configure a different table)\&. Additionally, NetworkManager will not delete any extraneous routes from tables except the main table\&. This is to preserve backward compatibility for users who manage routing tables outside of NetworkManager\&.
+Enable policy routing (source routing) and set the routing table used when adding routes\&.
+.sp
+This affects all routes, including device\-routes, IPv4LL, DHCP, SLAAC, default\-routes and static routes\&. But note that static routes can individually overwrite the setting by explicitly specifying a non\-zero routing table\&.
+.sp
+If the table setting is left at zero, it is eligible to be overwritten via global configuration\&. If the property is zero even after applying the global configuration value, policy routing is disabled for the address family of this connection\&.
+.sp
+Policy routing disabled means that NetworkManager will add all routes to the main table (except static routes that explicitly configure a different table)\&. Additionally, NetworkManager will not delete any extraneous routes from tables except the main table\&. This is to preserve backward compatibility for users who manage routing tables outside of NetworkManager\&.
 .sp
 Format: uint32
 .RE
@@ -2227,6 +2544,18 @@ Format: uint32
 A list of IPv6 destination addresses, prefix length, optional IPv6 next hop addresses, optional route metric, optional attribute\&. The valid syntax is: "ip[/prefix] [next\-hop] [metric] [attribute=val]\&.\&.\&.[,ip[/prefix]\&.\&.\&.]"\&.
 .sp
 Various attributes are supported:
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+"advmss"
+\- an unsigned 32 bit integer\&.
+.RE
 .sp
 .RS 4
 .ie n \{\
@@ -2274,6 +2603,18 @@ Various attributes are supported:
 .\}
 "initrwnd"
 \- an unsigned 32 bit integer\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+"lock\-advmss"
+\- a boolean value\&.
 .RE
 .sp
 .RS 4
@@ -2358,6 +2699,30 @@ Various attributes are supported:
 .\}
 "onlink"
 \- a boolean value\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+"quickack"
+\- a boolean value\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+"rto_min"
+\- an unsigned 32 bit integer\&. The value is in milliseconds\&.
 .RE
 .sp
 .RS 4
@@ -2568,9 +2933,7 @@ Format: string
 .PP
 \fBmka\-cak\-flags\fR
 .RS 4
-Flags indicating how to handle the "mka\-cak" property\&. See
-the section called \(lqSecret flag types:\(rq
-for flag values\&.
+Flags indicating how to handle the "mka\-cak" property\&.
 .sp
 Format: NMSettingSecretFlags (uint32)
 .RE
@@ -2671,28 +3034,42 @@ Properties:
 .PP
 \fBdriver\fR
 .RS 4
-A list of driver names to match\&. Each element is a shell wildcard pattern\&. See NMSettingMatch:interface\-name for how special characters \*(Aq|\*(Aq, \*(Aq&\*(Aq, \*(Aq!\*(Aq and \*(Aq\e\*(Aq are used for optional and mandatory matches and inverting the pattern\&.
+A list of driver names to match\&. Each element is a shell wildcard pattern\&.
+.sp
+See NMSettingMatch:interface\-name for how special characters \*(Aq|\*(Aq, \*(Aq&\*(Aq, \*(Aq!\*(Aq and \*(Aq\e\e\*(Aq are used for optional and mandatory matches and inverting the pattern\&.
 .sp
 Format: array of string
 .RE
 .PP
 \fBinterface\-name\fR
 .RS 4
-A list of interface names to match\&. Each element is a shell wildcard pattern\&. An element can be prefixed with a pipe symbol (|) or an ampersand (&)\&. The former means that the element is optional and the latter means that it is mandatory\&. If there are any optional elements, than the match evaluates to true if at least one of the optional element matches (logical OR)\&. If there are any mandatory elements, then they all must match (logical AND)\&. By default, an element is optional\&. This means that an element "foo" behaves the same as "|foo"\&. An element can also be inverted with exclamation mark (!) between the pipe symbol (or the ampersand) and before the pattern\&. Note that "!foo" is a shortcut for the mandatory match "&!foo"\&. Finally, a backslash can be used at the beginning of the element (after the optional special characters) to escape the start of the pattern\&. For example, "&\e!a" is an mandatory match for literally "!a"\&.
+A list of interface names to match\&. Each element is a shell wildcard pattern\&.
+.sp
+An element can be prefixed with a pipe symbol (|) or an ampersand (&)\&. The former means that the element is optional and the latter means that it is mandatory\&. If there are any optional elements, than the match evaluates to true if at least one of the optional element matches (logical OR)\&. If there are any mandatory elements, then they all must match (logical AND)\&. By default, an element is optional\&. This means that an element "foo" behaves the same as "|foo"\&. An element can also be inverted with exclamation mark (!) between the pipe symbol (or the ampersand) and before the pattern\&. Note that "!foo" is a shortcut for the mandatory match "&!foo"\&. Finally, a backslash can be used at the beginning of the element (after the optional special characters) to escape the start of the pattern\&. For example, "&\e\e!a" is an mandatory match for literally "!a"\&.
 .sp
 Format: array of string
 .RE
 .PP
 \fBkernel\-command\-line\fR
 .RS 4
-A list of kernel command line arguments to match\&. This may be used to check whether a specific kernel command line option is set (or unset, if prefixed with the exclamation mark)\&. The argument must either be a single word, or an assignment (i\&.e\&. two words, joined by "=")\&. In the former case the kernel command line is searched for the word appearing as is, or as left hand side of an assignment\&. In the latter case, the exact assignment is looked for with right and left hand side matching\&. Wildcard patterns are not supported\&. See NMSettingMatch:interface\-name for how special characters \*(Aq|\*(Aq, \*(Aq&\*(Aq, \*(Aq!\*(Aq and \*(Aq\e\*(Aq are used for optional and mandatory matches and inverting the match\&.
+A list of kernel command line arguments to match\&. This may be used to check whether a specific kernel command line option is set (or unset, if prefixed with the exclamation mark)\&. The argument must either be a single word, or an assignment (i\&.e\&. two words, joined by "=")\&. In the former case the kernel command line is searched for the word appearing as is, or as left hand side of an assignment\&. In the latter case, the exact assignment is looked for with right and left hand side matching\&. Wildcard patterns are not supported\&.
+.sp
+See NMSettingMatch:interface\-name for how special characters \*(Aq|\*(Aq, \*(Aq&\*(Aq, \*(Aq!\*(Aq and \*(Aq\e\e\*(Aq are used for optional and mandatory matches and inverting the match\&.
 .sp
 Format: array of string
 .RE
 .PP
 \fBpath\fR
 .RS 4
-A list of paths to match against the ID_PATH udev property of devices\&. ID_PATH represents the topological persistent path of a device\&. It typically contains a subsystem string (pci, usb, platform, etc\&.) and a subsystem\-specific identifier\&. For PCI devices the path has the form "pci\-$domain:$bus:$device\&.$function", where each variable is an hexadecimal value; for example "pci\-0000:0a:00\&.0"\&. The path of a device can be obtained with "udevadm info /sys/class/net/$dev | grep ID_PATH=" or by looking at the "path" property exported by NetworkManager ("nmcli \-f general\&.path device show $dev")\&. Each element of the list is a shell wildcard pattern\&. See NMSettingMatch:interface\-name for how special characters \*(Aq|\*(Aq, \*(Aq&\*(Aq, \*(Aq!\*(Aq and \*(Aq\e\*(Aq are used for optional and mandatory matches and inverting the pattern\&.
+A list of paths to match against the ID_PATH udev property of devices\&. ID_PATH represents the topological persistent path of a device\&. It typically contains a subsystem string (pci, usb, platform, etc\&.) and a subsystem\-specific identifier\&.
+.sp
+For PCI devices the path has the form "pci\-$domain:$bus:$device\&.$function", where each variable is an hexadecimal value; for example "pci\-0000:0a:00\&.0"\&.
+.sp
+The path of a device can be obtained with "udevadm info /sys/class/net/$dev | grep ID_PATH=" or by looking at the "path" property exported by NetworkManager ("nmcli \-f general\&.path device show $dev")\&.
+.sp
+Each element of the list is a shell wildcard pattern\&.
+.sp
+See NMSettingMatch:interface\-name for how special characters \*(Aq|\*(Aq, \*(Aq&\*(Aq, \*(Aq!\*(Aq and \*(Aq\e\e\*(Aq are used for optional and mandatory matches and inverting the pattern\&.
 .sp
 Format: array of string
 .RE
@@ -2717,7 +3094,9 @@ Format: uint32
 .RS 4
 Alias: dhcp\-anycast
 .sp
-Anycast DHCP MAC address used when requesting an IP address via DHCP\&. The specific anycast address used determines which DHCP server class answers the request\&. This is currently only implemented by dhclient DHCP plugin\&.
+Anycast DHCP MAC address used when requesting an IP address via DHCP\&. The specific anycast address used determines which DHCP server class answers the request\&.
+.sp
+This is currently only implemented by dhclient DHCP plugin\&.
 .sp
 Format: byte array
 .RE
@@ -3017,9 +3396,7 @@ Format: string
 .PP
 \fBpassword\-flags\fR
 .RS 4
-Flags indicating how to handle the "password" property\&. See
-the section called \(lqSecret flag types:\(rq
-for flag values\&.
+Flags indicating how to handle the "password" property\&.
 .sp
 Format: NMSettingSecretFlags (uint32)
 .RE
@@ -3069,7 +3446,7 @@ Format: int32
 .RS 4
 Alias: pac\-script
 .sp
-The PAC script\&. In the profile this must be an UTF\-8 encoded javascript code that defines a FindProxyForURL() function\&. When setting the property in nmcli, a filename is accepted too\&. In that case, nmcli will read the content of the file and set the script\&. The prefixes "file://" and "js://" are supported to explicitly differentiate between the two\&.
+PAC script for the connection\&. This is an UTF\-8 encoded javascript code that defines a FindProxyForURL() function\&.
 .sp
 Format: string
 .RE
@@ -3130,21 +3507,47 @@ Properties:
 .PP
 \fBautoprobe\-drivers\fR
 .RS 4
-Whether to autoprobe virtual functions by a compatible driver\&. If set to NM_TERNARY_TRUE (1), the kernel will try to bind VFs to a compatible driver and if this succeeds a new network interface will be instantiated for each VF\&. If set to NM_TERNARY_FALSE (0), VFs will not be claimed and no network interfaces will be created for them\&. When set to NM_TERNARY_DEFAULT (\-1), the global default is used; in case the global default is unspecified it is assumed to be NM_TERNARY_TRUE (1)\&.
+Whether to autoprobe virtual functions by a compatible driver\&.
+.sp
+If set to NM_TERNARY_TRUE (1), the kernel will try to bind VFs to a compatible driver and if this succeeds a new network interface will be instantiated for each VF\&.
+.sp
+If set to NM_TERNARY_FALSE (0), VFs will not be claimed and no network interfaces will be created for them\&.
+.sp
+When set to NM_TERNARY_DEFAULT (\-1), the global default is used; in case the global default is unspecified it is assumed to be NM_TERNARY_TRUE (1)\&.
 .sp
 Format: NMTernary (int32)
 .RE
 .PP
 \fBtotal\-vfs\fR
 .RS 4
-The total number of virtual functions to create\&. Note that when the sriov setting is present NetworkManager enforces the number of virtual functions on the interface (also when it is zero) during activation and resets it upon deactivation\&. To prevent any changes to SR\-IOV parameters don\*(Aqt add a sriov setting to the connection\&.
+The total number of virtual functions to create\&.
+.sp
+Note that when the sriov setting is present NetworkManager enforces the number of virtual functions on the interface (also when it is zero) during activation and resets it upon deactivation\&. To prevent any changes to SR\-IOV parameters don\*(Aqt add a sriov setting to the connection\&.
 .sp
 Format: uint32
 .RE
 .PP
 \fBvfs\fR
 .RS 4
-Array of virtual function descriptors\&. Each VF descriptor is a dictionary mapping attribute names to GVariant values\&. The \*(Aqindex\*(Aq entry is mandatory for each VF\&. When represented as string a VF is in the form: "INDEX [ATTR=VALUE[ ATTR=VALUE]\&.\&.\&.]"\&. for example: "2 mac=00:11:22:33:44:55 spoof\-check=true"\&. Multiple VFs can be specified using a comma as separator\&. Currently, the following attributes are supported: mac, spoof\-check, trust, min\-tx\-rate, max\-tx\-rate, vlans\&. The "vlans" attribute is represented as a semicolon\-separated list of VLAN descriptors, where each descriptor has the form "ID[\&.PRIORITY[\&.PROTO]]"\&. PROTO can be either \*(Aqq\*(Aq for 802\&.1Q (the default) or \*(Aqad\*(Aq for 802\&.1ad\&.
+Array of virtual function descriptors\&.
+.sp
+Each VF descriptor is a dictionary mapping attribute names to GVariant values\&. The \*(Aqindex\*(Aq entry is mandatory for each VF\&.
+.sp
+When represented as string a VF is in the form:
+.sp
+"INDEX [ATTR=VALUE[ ATTR=VALUE]\&.\&.\&.]"\&.
+.sp
+for example:
+.sp
+"2 mac=00:11:22:33:44:55 spoof\-check=true"\&.
+.sp
+Multiple VFs can be specified using a comma as separator\&. Currently, the following attributes are supported: mac, spoof\-check, trust, min\-tx\-rate, max\-tx\-rate, vlans\&.
+.sp
+The "vlans" attribute is represented as a semicolon\-separated list of VLAN descriptors, where each descriptor has the form
+.sp
+"ID[\&.PRIORITY[\&.PROTO]]"\&.
+.sp
+PROTO can be either \*(Aqq\*(Aq for 802\&.1Q (the default) or \*(Aqad\*(Aq for 802\&.1ad\&.
 .sp
 Format: array of vardict
 .RE
@@ -3593,7 +3996,9 @@ Format: array of string
 .RS 4
 Alias: flags
 .sp
-One or more flags which control the behavior and features of the VLAN interface\&. Flags include NM_VLAN_FLAG_REORDER_HEADERS (0x1) (reordering of output packet headers), NM_VLAN_FLAG_GVRP (0x2) (use of the GVRP protocol), and NM_VLAN_FLAG_LOOSE_BINDING (0x4) (loose binding of the interface to its master device\*(Aqs operating state)\&. NM_VLAN_FLAG_MVRP (0x8) (use of the MVRP protocol)\&. The default value of this property is NM_VLAN_FLAG_REORDER_HEADERS, but it used to be 0\&. To preserve backward compatibility, the default\-value in the D\-Bus API continues to be 0 and a missing property on D\-Bus is still considered as 0\&.
+One or more flags which control the behavior and features of the VLAN interface\&. Flags include NM_VLAN_FLAG_REORDER_HEADERS (0x1) (reordering of output packet headers), NM_VLAN_FLAG_GVRP (0x2) (use of the GVRP protocol), and NM_VLAN_FLAG_LOOSE_BINDING (0x4) (loose binding of the interface to its master device\*(Aqs operating state)\&. NM_VLAN_FLAG_MVRP (0x8) (use of the MVRP protocol)\&.
+.sp
+The default value of this property is NM_VLAN_FLAG_REORDER_HEADERS, but it used to be 0\&. To preserve backward compatibility, the default\-value in the D\-Bus API continues to be 0 and a missing property on D\-Bus is still considered as 0\&.
 .sp
 Format: NMVlanFlags (uint32)
 .RE
@@ -3837,14 +4242,18 @@ Format: string
 .PP
 \fBwfd\-ies\fR
 .RS 4
-The Wi\-Fi Display (WFD) Information Elements (IEs) to set\&. Wi\-Fi Display requires a protocol specific information element to be set in certain Wi\-Fi frames\&. These can be specified here for the purpose of establishing a connection\&. This setting is only useful when implementing a Wi\-Fi Display client\&.
+The Wi\-Fi Display (WFD) Information Elements (IEs) to set\&.
+.sp
+Wi\-Fi Display requires a protocol specific information element to be set in certain Wi\-Fi frames\&. These can be specified here for the purpose of establishing a connection\&. This setting is only useful when implementing a Wi\-Fi Display client\&.
 .sp
 Format: byte array
 .RE
 .PP
 \fBwps\-method\fR
 .RS 4
-Flags indicating which mode of WPS is to be used\&. There\*(Aqs little point in changing the default setting as NetworkManager will automatically determine the best method to use\&.
+Flags indicating which mode of WPS is to be used\&.
+.sp
+There\*(Aqs little point in changing the default setting as NetworkManager will automatically determine the best method to use\&.
 .sp
 Format: uint32
 .RE
@@ -3897,7 +4306,13 @@ Format: boolean
 .RS 4
 Alias: cloned\-mac
 .sp
-If specified, request that the device use this MAC address instead\&. This is known as MAC cloning or spoofing\&. Beside explicitly specifying a MAC address, the special values "preserve", "permanent", "random" and "stable" are supported\&. "preserve" means not to touch the MAC address on activation\&. "permanent" means to use the permanent hardware address if the device has one (otherwise this is treated as "preserve")\&. "random" creates a random MAC address on each connect\&. "stable" creates a hashed MAC address based on connection\&.stable\-id and a machine dependent key\&. If unspecified, the value can be overwritten via global defaults, see manual of NetworkManager\&.conf\&. If still unspecified, it defaults to "preserve" (older versions of NetworkManager may use a different default value)\&. On D\-Bus, this field is expressed as "assigned\-mac\-address" or the deprecated "cloned\-mac\-address"\&.
+If specified, request that the device use this MAC address instead\&. This is known as MAC cloning or spoofing\&.
+.sp
+Beside explicitly specifying a MAC address, the special values "preserve", "permanent", "random" and "stable" are supported\&. "preserve" means not to touch the MAC address on activation\&. "permanent" means to use the permanent hardware address if the device has one (otherwise this is treated as "preserve")\&. "random" creates a random MAC address on each connect\&. "stable" creates a hashed MAC address based on connection\&.stable\-id and a machine dependent key\&.
+.sp
+If unspecified, the value can be overwritten via global defaults, see manual of NetworkManager\&.conf\&. If still unspecified, it defaults to "preserve" (older versions of NetworkManager may use a different default value)\&.
+.sp
+On D\-Bus, this field is expressed as "assigned\-mac\-address" or the deprecated "cloned\-mac\-address"\&.
 .sp
 Format: byte array
 .RE
@@ -3911,7 +4326,15 @@ Format: string
 .PP
 \fBgenerate\-mac\-address\-mask\fR
 .RS 4
-With "cloned\-mac\-address" setting "random" or "stable", by default all bits of the MAC address are scrambled and a locally\-administered, unicast MAC address is created\&. This property allows to specify that certain bits are fixed\&. Note that the least significant bit of the first MAC address will always be unset to create a unicast MAC address\&. If the property is NULL, it is eligible to be overwritten by a default connection setting\&. If the value is still NULL or an empty string, the default is to create a locally\-administered, unicast MAC address\&. If the value contains one MAC address, this address is used as mask\&. The set bits of the mask are to be filled with the current MAC address of the device, while the unset bits are subject to randomization\&. Setting "FE:FF:FF:00:00:00" means to preserve the OUI of the current MAC address and only randomize the lower 3 bytes using the "random" or "stable" algorithm\&. If the value contains one additional MAC address after the mask, this address is used instead of the current MAC address to fill the bits that shall not be randomized\&. For example, a value of "FE:FF:FF:00:00:00 68:F7:28:00:00:00" will set the OUI of the MAC address to 68:F7:28, while the lower bits are randomized\&. A value of "02:00:00:00:00:00 00:00:00:00:00:00" will create a fully scrambled globally\-administered, burned\-in MAC address\&. If the value contains more than one additional MAC addresses, one of them is chosen randomly\&. For example, "02:00:00:00:00:00 00:00:00:00:00:00 02:00:00:00:00:00" will create a fully scrambled MAC address, randomly locally or globally administered\&.
+With "cloned\-mac\-address" setting "random" or "stable", by default all bits of the MAC address are scrambled and a locally\-administered, unicast MAC address is created\&. This property allows to specify that certain bits are fixed\&. Note that the least significant bit of the first MAC address will always be unset to create a unicast MAC address\&.
+.sp
+If the property is NULL, it is eligible to be overwritten by a default connection setting\&. If the value is still NULL or an empty string, the default is to create a locally\-administered, unicast MAC address\&.
+.sp
+If the value contains one MAC address, this address is used as mask\&. The set bits of the mask are to be filled with the current MAC address of the device, while the unset bits are subject to randomization\&. Setting "FE:FF:FF:00:00:00" means to preserve the OUI of the current MAC address and only randomize the lower 3 bytes using the "random" or "stable" algorithm\&.
+.sp
+If the value contains one additional MAC address after the mask, this address is used instead of the current MAC address to fill the bits that shall not be randomized\&. For example, a value of "FE:FF:FF:00:00:00 68:F7:28:00:00:00" will set the OUI of the MAC address to 68:F7:28, while the lower bits are randomized\&. A value of "02:00:00:00:00:00 00:00:00:00:00:00" will create a fully scrambled globally\-administered, burned\-in MAC address\&.
+.sp
+If the value contains more than one additional MAC addresses, one of them is chosen randomly\&. For example, "02:00:00:00:00:00 00:00:00:00:00:00 02:00:00:00:00:00" will create a fully scrambled MAC address, randomly locally or globally administered\&.
 .sp
 Format: string
 .RE
@@ -3957,7 +4380,9 @@ Format: string
 .PP
 \fBs390\-options\fR
 .RS 4
-Dictionary of key/value pairs of s390\-specific device options\&. Both keys and values must be strings\&. Allowed keys include "portno", "layer2", "portname", "protocol", among others\&. Key names must contain only alphanumeric characters (ie, [a\-zA\-Z0\-9])\&. Currently, NetworkManager itself does nothing with this information\&. However, s390utils ships a udev rule which parses this information and applies it to the interface\&.
+Dictionary of key/value pairs of s390\-specific device options\&. Both keys and values must be strings\&. Allowed keys include "portno", "layer2", "portname", "protocol", among others\&. Key names must contain only alphanumeric characters (ie, [a\-zA\-Z0\-9])\&.
+.sp
+Currently, NetworkManager itself does nothing with this information\&. However, s390utils ships a udev rule which parses this information and applies it to the interface\&.
 .sp
 Format: dict of string to string
 .RE
@@ -3997,14 +4422,20 @@ Properties:
 .PP
 \fBfwmark\fR
 .RS 4
-The use of fwmark is optional and is by default off\&. Setting it to 0 disables it\&. Otherwise, it is a 32\-bit fwmark for outgoing packets\&. Note that "ip4\-auto\-default\-route" or "ip6\-auto\-default\-route" enabled, implies to automatically choose a fwmark\&.
+The use of fwmark is optional and is by default off\&. Setting it to 0 disables it\&. Otherwise, it is a 32\-bit fwmark for outgoing packets\&.
+.sp
+Note that "ip4\-auto\-default\-route" or "ip6\-auto\-default\-route" enabled, implies to automatically choose a fwmark\&.
 .sp
 Format: uint32
 .RE
 .PP
 \fBip4\-auto\-default\-route\fR
 .RS 4
-Whether to enable special handling of the IPv4 default route\&. If enabled, the IPv4 default route from wireguard\&.peer\-routes will be placed to a dedicated routing\-table and two policy routing rules will be added\&. The fwmark number is also used as routing\-table for the default\-route, and if fwmark is zero, an unused fwmark/table is chosen automatically\&. This corresponds to what wg\-quick does with Table=auto and what WireGuard calls "Improved Rule\-based Routing"\&. Note that for this automatism to work, you usually don\*(Aqt want to set ipv4\&.gateway, because that will result in a conflicting default route\&. Leaving this at the default will enable this option automatically if ipv4\&.never\-default is not set and there are any peers that use a default\-route as allowed\-ips\&.
+Whether to enable special handling of the IPv4 default route\&. If enabled, the IPv4 default route from wireguard\&.peer\-routes will be placed to a dedicated routing\-table and two policy routing rules will be added\&. The fwmark number is also used as routing\-table for the default\-route, and if fwmark is zero, an unused fwmark/table is chosen automatically\&. This corresponds to what wg\-quick does with Table=auto and what WireGuard calls "Improved Rule\-based Routing"\&.
+.sp
+Note that for this automatism to work, you usually don\*(Aqt want to set ipv4\&.gateway, because that will result in a conflicting default route\&.
+.sp
+Leaving this at the default will enable this option automatically if ipv4\&.never\-default is not set and there are any peers that use a default\-route as allowed\-ips\&. Since this automatism only makes sense if you also have a peer with an /0 allowed\-ips, it is usually not necessary to enable this explicitly\&. However, you can disable it if you want to configure your own routing and rules\&.
 .sp
 Format: NMTernary (int32)
 .RE
@@ -4025,14 +4456,18 @@ Format: uint32
 .PP
 \fBmtu\fR
 .RS 4
-If non\-zero, only transmit packets of the specified size or smaller, breaking larger packets up into multiple fragments\&. If zero a default MTU is used\&. Note that contrary to wg\-quick\*(Aqs MTU setting, this does not take into account the current routes at the time of activation\&.
+If non\-zero, only transmit packets of the specified size or smaller, breaking larger packets up into multiple fragments\&.
+.sp
+If zero a default MTU is used\&. Note that contrary to wg\-quick\*(Aqs MTU setting, this does not take into account the current routes at the time of activation\&.
 .sp
 Format: uint32
 .RE
 .PP
 \fBpeer\-routes\fR
 .RS 4
-Whether to automatically add routes for the AllowedIPs ranges of the peers\&. If TRUE (the default), NetworkManager will automatically add routes in the routing tables according to ipv4\&.route\-table and ipv6\&.route\-table\&. Usually you want this automatism enabled\&. If FALSE, no such routes are added automatically\&. In this case, the user may want to configure static routes in ipv4\&.routes and ipv6\&.routes, respectively\&. Note that if the peer\*(Aqs AllowedIPs is "0\&.0\&.0\&.0/0" or "::/0" and the profile\*(Aqs ipv4\&.never\-default or ipv6\&.never\-default setting is enabled, the peer route for this peer won\*(Aqt be added automatically\&.
+Whether to automatically add routes for the AllowedIPs ranges of the peers\&. If TRUE (the default), NetworkManager will automatically add routes in the routing tables according to ipv4\&.route\-table and ipv6\&.route\-table\&. Usually you want this automatism enabled\&. If FALSE, no such routes are added automatically\&. In this case, the user may want to configure static routes in ipv4\&.routes and ipv6\&.routes, respectively\&.
+.sp
+Note that if the peer\*(Aqs AllowedIPs is "0\&.0\&.0\&.0/0" or "::/0" and the profile\*(Aqs ipv4\&.never\-default or ipv6\&.never\-default setting is enabled, the peer route for this peer won\*(Aqt be added automatically\&.
 .sp
 Format: boolean
 .RE
@@ -4046,9 +4481,7 @@ Format: string
 .PP
 \fBprivate\-key\-flags\fR
 .RS 4
-Flags indicating how to handle the "private\-key" property\&. See
-the section called \(lqSecret flag types:\(rq
-for flag values\&.
+Flags indicating how to handle the "private\-key" property\&.
 .sp
 Format: NMSettingSecretFlags (uint32)
 .RE
@@ -4062,7 +4495,13 @@ Properties:
 .PP
 \fBap\-isolation\fR
 .RS 4
-Configures AP isolation, which prevents communication between wireless devices connected to this AP\&. This property can be set to a value different from NM_TERNARY_DEFAULT (\-1) only when the interface is configured in AP mode\&. If set to NM_TERNARY_TRUE (1), devices are not able to communicate with each other\&. This increases security because it protects devices against attacks from other clients in the network\&. At the same time, it prevents devices to access resources on the same wireless networks as file shares, printers, etc\&. If set to NM_TERNARY_FALSE (0), devices can talk to each other\&. When set to NM_TERNARY_DEFAULT (\-1), the global default is used; in case the global default is unspecified it is assumed to be NM_TERNARY_FALSE (0)\&.
+Configures AP isolation, which prevents communication between wireless devices connected to this AP\&. This property can be set to a value different from NM_TERNARY_DEFAULT (\-1) only when the interface is configured in AP mode\&.
+.sp
+If set to NM_TERNARY_TRUE (1), devices are not able to communicate with each other\&. This increases security because it protects devices against attacks from other clients in the network\&. At the same time, it prevents devices to access resources on the same wireless networks as file shares, printers, etc\&.
+.sp
+If set to NM_TERNARY_FALSE (0), devices can talk to each other\&.
+.sp
+When set to NM_TERNARY_DEFAULT (\-1), the global default is used; in case the global default is unspecified it is assumed to be NM_TERNARY_FALSE (0)\&.
 .sp
 Format: NMTernary (int32)
 .RE
@@ -4078,6 +4517,8 @@ Format: string
 .RS 4
 If specified, directs the device to only associate with the given access point\&. This capability is highly driver dependent and not supported by all devices\&. Note: this property does not control the BSSID used when creating an Ad\-Hoc network and is unlikely to in the future\&.
 .sp
+Locking a client profile to a certain BSSID will prevent roaming and also disable background scanning\&. That can be useful, if there is only one access point for the SSID\&.
+.sp
 Format: byte array
 .RE
 .PP
@@ -4092,21 +4533,41 @@ Format: uint32
 .RS 4
 Alias: cloned\-mac
 .sp
-If specified, request that the device use this MAC address instead\&. This is known as MAC cloning or spoofing\&. Beside explicitly specifying a MAC address, the special values "preserve", "permanent", "random" and "stable" are supported\&. "preserve" means not to touch the MAC address on activation\&. "permanent" means to use the permanent hardware address of the device\&. "random" creates a random MAC address on each connect\&. "stable" creates a hashed MAC address based on connection\&.stable\-id and a machine dependent key\&. If unspecified, the value can be overwritten via global defaults, see manual of NetworkManager\&.conf\&. If still unspecified, it defaults to "preserve" (older versions of NetworkManager may use a different default value)\&. On D\-Bus, this field is expressed as "assigned\-mac\-address" or the deprecated "cloned\-mac\-address"\&.
+If specified, request that the device use this MAC address instead\&. This is known as MAC cloning or spoofing\&.
+.sp
+Beside explicitly specifying a MAC address, the special values "preserve", "permanent", "random" and "stable" are supported\&. "preserve" means not to touch the MAC address on activation\&. "permanent" means to use the permanent hardware address of the device\&. "random" creates a random MAC address on each connect\&. "stable" creates a hashed MAC address based on connection\&.stable\-id and a machine dependent key\&.
+.sp
+If unspecified, the value can be overwritten via global defaults, see manual of NetworkManager\&.conf\&. If still unspecified, it defaults to "preserve" (older versions of NetworkManager may use a different default value)\&.
+.sp
+On D\-Bus, this field is expressed as "assigned\-mac\-address" or the deprecated "cloned\-mac\-address"\&.
 .sp
 Format: byte array
 .RE
 .PP
 \fBgenerate\-mac\-address\-mask\fR
 .RS 4
-With "cloned\-mac\-address" setting "random" or "stable", by default all bits of the MAC address are scrambled and a locally\-administered, unicast MAC address is created\&. This property allows to specify that certain bits are fixed\&. Note that the least significant bit of the first MAC address will always be unset to create a unicast MAC address\&. If the property is NULL, it is eligible to be overwritten by a default connection setting\&. If the value is still NULL or an empty string, the default is to create a locally\-administered, unicast MAC address\&. If the value contains one MAC address, this address is used as mask\&. The set bits of the mask are to be filled with the current MAC address of the device, while the unset bits are subject to randomization\&. Setting "FE:FF:FF:00:00:00" means to preserve the OUI of the current MAC address and only randomize the lower 3 bytes using the "random" or "stable" algorithm\&. If the value contains one additional MAC address after the mask, this address is used instead of the current MAC address to fill the bits that shall not be randomized\&. For example, a value of "FE:FF:FF:00:00:00 68:F7:28:00:00:00" will set the OUI of the MAC address to 68:F7:28, while the lower bits are randomized\&. A value of "02:00:00:00:00:00 00:00:00:00:00:00" will create a fully scrambled globally\-administered, burned\-in MAC address\&. If the value contains more than one additional MAC addresses, one of them is chosen randomly\&. For example, "02:00:00:00:00:00 00:00:00:00:00:00 02:00:00:00:00:00" will create a fully scrambled MAC address, randomly locally or globally administered\&.
+With "cloned\-mac\-address" setting "random" or "stable", by default all bits of the MAC address are scrambled and a locally\-administered, unicast MAC address is created\&. This property allows to specify that certain bits are fixed\&. Note that the least significant bit of the first MAC address will always be unset to create a unicast MAC address\&.
+.sp
+If the property is NULL, it is eligible to be overwritten by a default connection setting\&. If the value is still NULL or an empty string, the default is to create a locally\-administered, unicast MAC address\&.
+.sp
+If the value contains one MAC address, this address is used as mask\&. The set bits of the mask are to be filled with the current MAC address of the device, while the unset bits are subject to randomization\&. Setting "FE:FF:FF:00:00:00" means to preserve the OUI of the current MAC address and only randomize the lower 3 bytes using the "random" or "stable" algorithm\&.
+.sp
+If the value contains one additional MAC address after the mask, this address is used instead of the current MAC address to fill the bits that shall not be randomized\&. For example, a value of "FE:FF:FF:00:00:00 68:F7:28:00:00:00" will set the OUI of the MAC address to 68:F7:28, while the lower bits are randomized\&. A value of "02:00:00:00:00:00 00:00:00:00:00:00" will create a fully scrambled globally\-administered, burned\-in MAC address\&.
+.sp
+If the value contains more than one additional MAC addresses, one of them is chosen randomly\&. For example, "02:00:00:00:00:00 00:00:00:00:00:00 02:00:00:00:00:00" will create a fully scrambled MAC address, randomly locally or globally administered\&.
 .sp
 Format: string
 .RE
 .PP
 \fBhidden\fR
 .RS 4
-If TRUE, indicates that the network is a non\-broadcasting network that hides its SSID\&. This works both in infrastructure and AP mode\&. In infrastructure mode, various workarounds are used for a more reliable discovery of hidden networks, such as probe\-scanning the SSID\&. However, these workarounds expose inherent insecurities with hidden SSID networks, and thus hidden SSID networks should be used with caution\&. In AP mode, the created network does not broadcast its SSID\&. Note that marking the network as hidden may be a privacy issue for you (in infrastructure mode) or client stations (in AP mode), as the explicit probe\-scans are distinctly recognizable on the air\&.
+If TRUE, indicates that the network is a non\-broadcasting network that hides its SSID\&. This works both in infrastructure and AP mode\&.
+.sp
+In infrastructure mode, various workarounds are used for a more reliable discovery of hidden networks, such as probe\-scanning the SSID\&. However, these workarounds expose inherent insecurities with hidden SSID networks, and thus hidden SSID networks should be used with caution\&.
+.sp
+In AP mode, the created network does not broadcast its SSID\&.
+.sp
+Note that marking the network as hidden may be a privacy issue for you (in infrastructure mode) or client stations (in AP mode), as the explicit probe\-scans are distinctly recognizable on the air\&.
 .sp
 Format: boolean
 .RE
@@ -4226,7 +4687,9 @@ Format: array of string
 .PP
 \fBkey\-mgmt\fR
 .RS 4
-Key management used for the connection\&. One of "none" (WEP or no password protection), "ieee8021x" (Dynamic WEP), "owe" (Opportunistic Wireless Encryption), "wpa\-psk" (WPA2 + WPA3 personal), "sae" (WPA3 personal only), "wpa\-eap" (WPA2 + WPA3 enterprise) or "wpa\-eap\-suite\-b\-192" (WPA3 enterprise only)\&. This property must be set for any Wi\-Fi connection that uses security\&.
+Key management used for the connection\&. One of "none" (WEP or no password protection), "ieee8021x" (Dynamic WEP), "owe" (Opportunistic Wireless Encryption), "wpa\-psk" (WPA2 + WPA3 personal), "sae" (WPA3 personal only), "wpa\-eap" (WPA2 + WPA3 enterprise) or "wpa\-eap\-suite\-b\-192" (WPA3 enterprise only)\&.
+.sp
+This property must be set for any Wi\-Fi connection that uses security\&.
 .sp
 Format: string
 .RE
@@ -4240,9 +4703,7 @@ Format: string
 .PP
 \fBleap\-password\-flags\fR
 .RS 4
-Flags indicating how to handle the "leap\-password" property\&. See
-the section called \(lqSecret flag types:\(rq
-for flag values\&.
+Flags indicating how to handle the "leap\-password" property\&.
 .sp
 Format: NMSettingSecretFlags (uint32)
 .RE
@@ -4284,18 +4745,14 @@ Format: string
 .PP
 \fBpsk\-flags\fR
 .RS 4
-Flags indicating how to handle the "psk" property\&. See
-the section called \(lqSecret flag types:\(rq
-for flag values\&.
+Flags indicating how to handle the "psk" property\&.
 .sp
 Format: NMSettingSecretFlags (uint32)
 .RE
 .PP
 \fBwep\-key\-flags\fR
 .RS 4
-Flags indicating how to handle the "wep\-key0", "wep\-key1", "wep\-key2", and "wep\-key3" properties\&. See
-the section called \(lqSecret flag types:\(rq
-for flag values\&.
+Flags indicating how to handle the "wep\-key0", "wep\-key1", "wep\-key2", and "wep\-key3" properties\&.
 .sp
 Format: NMSettingSecretFlags (uint32)
 .RE
@@ -4344,7 +4801,11 @@ Format: uint32
 .PP
 \fBwps\-method\fR
 .RS 4
-Flags indicating which mode of WPS is to be used if any\&. There\*(Aqs little point in changing the default setting as NetworkManager will automatically determine whether it\*(Aqs feasible to start WPS enrollment from the Access Point capabilities\&. WPS can be disabled by setting this property to a value of 1\&.
+Flags indicating which mode of WPS is to be used if any\&.
+.sp
+There\*(Aqs little point in changing the default setting as NetworkManager will automatically determine whether it\*(Aqs feasible to start WPS enrollment from the Access Point capabilities\&.
+.sp
+WPS can be disabled by setting this property to a value of 1\&.
 .sp
 Format: uint32
 .RE
@@ -4420,28 +4881,40 @@ Properties:
 .PP
 \fBfrom\-dhcp\fR
 .RS 4
-Whether the system hostname can be determined from DHCP on this connection\&. When set to NM_TERNARY_DEFAULT (\-1), the value from global configuration is used\&. If the property doesn\*(Aqt have a value in the global configuration, NetworkManager assumes the value to be NM_TERNARY_TRUE (1)\&.
+Whether the system hostname can be determined from DHCP on this connection\&.
+.sp
+When set to NM_TERNARY_DEFAULT (\-1), the value from global configuration is used\&. If the property doesn\*(Aqt have a value in the global configuration, NetworkManager assumes the value to be NM_TERNARY_TRUE (1)\&.
 .sp
 Format: NMTernary (int32)
 .RE
 .PP
 \fBfrom\-dns\-lookup\fR
 .RS 4
-Whether the system hostname can be determined from reverse DNS lookup of addresses on this device\&. When set to NM_TERNARY_DEFAULT (\-1), the value from global configuration is used\&. If the property doesn\*(Aqt have a value in the global configuration, NetworkManager assumes the value to be NM_TERNARY_TRUE (1)\&.
+Whether the system hostname can be determined from reverse DNS lookup of addresses on this device\&.
+.sp
+When set to NM_TERNARY_DEFAULT (\-1), the value from global configuration is used\&. If the property doesn\*(Aqt have a value in the global configuration, NetworkManager assumes the value to be NM_TERNARY_TRUE (1)\&.
 .sp
 Format: NMTernary (int32)
 .RE
 .PP
 \fBonly\-from\-default\fR
 .RS 4
-If set to NM_TERNARY_TRUE (1), NetworkManager attempts to get the hostname via DHCPv4/DHCPv6 or reverse DNS lookup on this device only when the device has the default route for the given address family (IPv4/IPv6)\&. If set to NM_TERNARY_FALSE (0), the hostname can be set from this device even if it doesn\*(Aqt have the default route\&. When set to NM_TERNARY_DEFAULT (\-1), the value from global configuration is used\&. If the property doesn\*(Aqt have a value in the global configuration, NetworkManager assumes the value to be NM_TERNARY_FALSE (0)\&.
+If set to NM_TERNARY_TRUE (1), NetworkManager attempts to get the hostname via DHCPv4/DHCPv6 or reverse DNS lookup on this device only when the device has the default route for the given address family (IPv4/IPv6)\&.
+.sp
+If set to NM_TERNARY_FALSE (0), the hostname can be set from this device even if it doesn\*(Aqt have the default route\&.
+.sp
+When set to NM_TERNARY_DEFAULT (\-1), the value from global configuration is used\&. If the property doesn\*(Aqt have a value in the global configuration, NetworkManager assumes the value to be NM_TERNARY_FALSE (0)\&.
 .sp
 Format: NMTernary (int32)
 .RE
 .PP
 \fBpriority\fR
 .RS 4
-The relative priority of this connection to determine the system hostname\&. A lower numerical value is better (higher priority)\&. A connection with higher priority is considered before connections with lower priority\&. If the value is zero, it can be overridden by a global value from NetworkManager configuration\&. If the property doesn\*(Aqt have a value in the global configuration, the value is assumed to be 100\&. Negative values have the special effect of excluding other connections with a greater numerical priority value; so in presence of at least one negative priority, only connections with the lowest priority value will be used to determine the hostname\&.
+The relative priority of this connection to determine the system hostname\&. A lower numerical value is better (higher priority)\&. A connection with higher priority is considered before connections with lower priority\&.
+.sp
+If the value is zero, it can be overridden by a global value from NetworkManager configuration\&. If the property doesn\*(Aqt have a value in the global configuration, the value is assumed to be 100\&.
+.sp
+Negative values have the special effect of excluding other connections with a greater numerical priority value; so in presence of at least one negative priority, only connections with the lowest priority value will be used to determine the hostname\&.
 .sp
 Format: int32
 .RE

@@ -8,14 +8,16 @@
 <link rel="up" href="ch04.html" title="Device and Runtime Configuration API Reference">
 <link rel="prev" href="NMVpnConnection.html" title="NMVpnConnection">
 <link rel="next" href="NMWifiP2PPeer.html" title="NMWifiP2PPeer">
-<meta name="generator" content="GTK-Doc V1.33.0 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
 <table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
 <td width="100%" align="left" class="shortcuts">
 <a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
-                  <a href="#NMAccessPoint.description" class="shortcut">Description</a></span>
+                  <a href="#NMAccessPoint.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
+                  <a href="#NMAccessPoint.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_properties">  <span class="dim">|</span> 
+                  <a href="#NMAccessPoint.properties" class="shortcut">Properties</a></span>
 </td>
 <td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
 <td><a accesskey="u" href="ch04.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
@@ -138,6 +140,76 @@
 </table></div>
 </div>
 <div class="refsect1">
+<a name="NMAccessPoint.properties"></a><h2>Properties</h2>
+<div class="informaltable"><table class="informaltable" border="0">
+<colgroup>
+<col width="150px" class="properties_type">
+<col width="300px" class="properties_name">
+<col width="200px" class="properties_flags">
+</colgroup>
+<tbody>
+<tr>
+<td class="property_type">
+<span class="type">char</span> *</td>
+<td class="property_name"><a class="link" href="NMAccessPoint.html#NMAccessPoint--bssid" title="The “bssid” property">bssid</a></td>
+<td class="property_flags">Read</td>
+</tr>
+<tr>
+<td class="property_type"><a class="link" href="libnm-nm-dbus-interface.html#NM80211ApFlags" title="enum NM80211ApFlags"><span class="type">NM80211ApFlags</span></a></td>
+<td class="property_name"><a class="link" href="NMAccessPoint.html#NMAccessPoint--flags" title="The “flags” property">flags</a></td>
+<td class="property_flags">Read</td>
+</tr>
+<tr>
+<td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></td>
+<td class="property_name"><a class="link" href="NMAccessPoint.html#NMAccessPoint--frequency" title="The “frequency” property">frequency</a></td>
+<td class="property_flags">Read</td>
+</tr>
+<tr>
+<td class="property_type">
+<span class="type">char</span> *</td>
+<td class="property_name"><a class="link" href="NMAccessPoint.html#NMAccessPoint--hw-address" title="The “hw-address” property">hw-address</a></td>
+<td class="property_flags">Read</td>
+</tr>
+<tr>
+<td class="property_type"><span class="type">int</span></td>
+<td class="property_name"><a class="link" href="NMAccessPoint.html#NMAccessPoint--last-seen" title="The “last-seen” property">last-seen</a></td>
+<td class="property_flags">Read</td>
+</tr>
+<tr>
+<td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></td>
+<td class="property_name"><a class="link" href="NMAccessPoint.html#NMAccessPoint--max-bitrate" title="The “max-bitrate” property">max-bitrate</a></td>
+<td class="property_flags">Read</td>
+</tr>
+<tr>
+<td class="property_type"><a class="link" href="libnm-nm-dbus-interface.html#NM80211Mode" title="enum NM80211Mode"><span class="type">NM80211Mode</span></a></td>
+<td class="property_name"><a class="link" href="NMAccessPoint.html#NMAccessPoint--mode" title="The “mode” property">mode</a></td>
+<td class="property_flags">Read</td>
+</tr>
+<tr>
+<td class="property_type"><a class="link" href="libnm-nm-dbus-interface.html#NM80211ApSecurityFlags" title="enum NM80211ApSecurityFlags"><span class="type">NM80211ApSecurityFlags</span></a></td>
+<td class="property_name"><a class="link" href="NMAccessPoint.html#NMAccessPoint--rsn-flags" title="The “rsn-flags” property">rsn-flags</a></td>
+<td class="property_flags">Read</td>
+</tr>
+<tr>
+<td class="property_type">
+<a href="https://developer.gnome.org/glib/unstable/glib-Byte-Arrays.html#GBytes"><span class="type">GBytes</span></a> *</td>
+<td class="property_name"><a class="link" href="NMAccessPoint.html#NMAccessPoint--ssid" title="The “ssid” property">ssid</a></td>
+<td class="property_flags">Read</td>
+</tr>
+<tr>
+<td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guchar"><span class="type">guchar</span></a></td>
+<td class="property_name"><a class="link" href="NMAccessPoint.html#NMAccessPoint--strength" title="The “strength” property">strength</a></td>
+<td class="property_flags">Read</td>
+</tr>
+<tr>
+<td class="property_type"><a class="link" href="libnm-nm-dbus-interface.html#NM80211ApSecurityFlags" title="enum NM80211ApSecurityFlags"><span class="type">NM80211ApSecurityFlags</span></a></td>
+<td class="property_name"><a class="link" href="NMAccessPoint.html#NMAccessPoint--wpa-flags" title="The “wpa-flags” property">wpa-flags</a></td>
+<td class="property_flags">Read</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
 <a name="NMAccessPoint.other"></a><h2>Types and Values</h2>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
@@ -189,8 +261,19 @@
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMAccessPoint.html#NM-ACCESS-POINT-HW-ADDRESS:CAPS" title="NM_ACCESS_POINT_HW_ADDRESS">NM_ACCESS_POINT_HW_ADDRESS</a></td>
 </tr>
+<tr>
+<td class="datatype_keyword"> </td>
+<td class="function_name"><a class="link" href="NMAccessPoint.html#NMAccessPoint-struct" title="NMAccessPoint">NMAccessPoint</a></td>
+</tr>
 </tbody>
 </table></div>
+</div>
+<div class="refsect1">
+<a name="NMAccessPoint.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="screen">    <a href="https://developer.gnome.org/gobject/unstable/gobject-The-Base-Object-Type.html#GObject-struct">GObject</a>
+    <span class="lineart">╰──</span> <a class="link" href="NMObject.html" title="NMObject">NMObject</a>
+        <span class="lineart">╰──</span> NMAccessPoint
+</pre>
 </div>
 <div class="refsect1">
 <a name="NMAccessPoint.description"></a><h2>Description</h2>
@@ -300,7 +383,7 @@ nm_access_point_get_ssid (<em class="parameter"><code><a class="link" href="NMAc
 <a name="nm-access-point-get-ssid.returns"></a><h4>Returns</h4>
 <p>the <a href="https://developer.gnome.org/glib/unstable/glib-Byte-Arrays.html#GBytes"><span class="type">GBytes</span></a> containing the SSID, or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if the
 SSID is unknown. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -510,7 +593,7 @@ be freed with <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Ar
 <p>WARNING: the transfer annotation for this function may not work correctly
 with bindings. See https://gitlab.gnome.org/GNOME/gobject-introspection/-/issues/305.
 You can filter the list yourself with <a class="link" href="NMAccessPoint.html#nm-access-point-connection-valid" title="nm_access_point_connection_valid ()"><code class="function">nm_access_point_connection_valid()</code></a>. </p>
-<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMConnection]</span></p>
+<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMConnection]</span></p>
 </div>
 </div>
 <hr>
@@ -622,9 +705,122 @@ against</p></td>
 <pre class="programlisting">#define NM_ACCESS_POINT_HW_ADDRESS "hw-address"
 </pre>
 </div>
+<hr>
+<div class="refsect2">
+<a name="NMAccessPoint-struct"></a><h3>NMAccessPoint</h3>
+<pre class="programlisting">typedef struct _NMAccessPoint NMAccessPoint;</pre>
+</div>
+</div>
+<div class="refsect1">
+<a name="NMAccessPoint.property-details"></a><h2>Property Details</h2>
+<div class="refsect2">
+<a name="NMAccessPoint--bssid"></a><h3>The <code class="literal">“bssid”</code> property</h3>
+<pre class="programlisting">  “bssid”                    <span class="type">char</span> *</pre>
+<p>The BSSID of the access point.</p>
+<p>Owner: NMAccessPoint</p>
+<p>Flags: Read</p>
+<p>Default value: NULL</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMAccessPoint--flags"></a><h3>The <code class="literal">“flags”</code> property</h3>
+<pre class="programlisting">  “flags”                    <a class="link" href="libnm-nm-dbus-interface.html#NM80211ApFlags" title="enum NM80211ApFlags"><span class="type">NM80211ApFlags</span></a></pre>
+<p>The flags of the access point.</p>
+<p>Owner: NMAccessPoint</p>
+<p>Flags: Read</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMAccessPoint--frequency"></a><h3>The <code class="literal">“frequency”</code> property</h3>
+<pre class="programlisting">  “frequency”                <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></pre>
+<p>The frequency of the access point.</p>
+<p>Owner: NMAccessPoint</p>
+<p>Flags: Read</p>
+<p>Allowed values: &lt;= 10000</p>
+<p>Default value: 0</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMAccessPoint--hw-address"></a><h3>The <code class="literal">“hw-address”</code> property</h3>
+<pre class="programlisting">  “hw-address”               <span class="type">char</span> *</pre>
+<p>Alias for <a class="link" href="NMAccessPoint.html#NMAccessPoint--bssid" title="The “bssid” property"><span class="type">“bssid”</span></a>.</p>
+<div class="warning">
+<p><code class="literal">NMAccessPoint:hw-address</code> has been deprecated since version 1.0 and should not be used in newly-written code.</p>
+<p>Use <a class="link" href="NMAccessPoint.html#NMAccessPoint--bssid" title="The “bssid” property"><span class="type">“bssid”</span></a>.</p>
+</div>
+<p>Owner: NMAccessPoint</p>
+<p>Flags: Read</p>
+<p>Default value: NULL</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMAccessPoint--last-seen"></a><h3>The <code class="literal">“last-seen”</code> property</h3>
+<pre class="programlisting">  “last-seen”                <span class="type">int</span></pre>
+<p>The timestamp (in CLOCK_BOOTTIME seconds) for the last time the
+access point was found in scan results.  A value of -1 means the
+access point has not been found in a scan.</p>
+<p>Owner: NMAccessPoint</p>
+<p>Flags: Read</p>
+<p>Allowed values: &gt;= -1</p>
+<p>Default value: -1</p>
+<p class="since">Since: 1.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMAccessPoint--max-bitrate"></a><h3>The <code class="literal">“max-bitrate”</code> property</h3>
+<pre class="programlisting">  “max-bitrate”              <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></pre>
+<p>The maximum bit rate of the access point in kbit/s.</p>
+<p>Owner: NMAccessPoint</p>
+<p>Flags: Read</p>
+<p>Default value: 0</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMAccessPoint--mode"></a><h3>The <code class="literal">“mode”</code> property</h3>
+<pre class="programlisting">  “mode”                     <a class="link" href="libnm-nm-dbus-interface.html#NM80211Mode" title="enum NM80211Mode"><span class="type">NM80211Mode</span></a></pre>
+<p>The mode of the access point; either "infrastructure" (a central
+coordinator of the wireless network allowing clients to connect) or
+"ad-hoc" (a network with no central controller).</p>
+<p>Owner: NMAccessPoint</p>
+<p>Flags: Read</p>
+<p>Default value: NM_802_11_MODE_UNKNOWN</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMAccessPoint--rsn-flags"></a><h3>The <code class="literal">“rsn-flags”</code> property</h3>
+<pre class="programlisting">  “rsn-flags”                <a class="link" href="libnm-nm-dbus-interface.html#NM80211ApSecurityFlags" title="enum NM80211ApSecurityFlags"><span class="type">NM80211ApSecurityFlags</span></a></pre>
+<p>The RSN flags of the access point.</p>
+<p>Owner: NMAccessPoint</p>
+<p>Flags: Read</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMAccessPoint--ssid"></a><h3>The <code class="literal">“ssid”</code> property</h3>
+<pre class="programlisting">  “ssid”                     <a href="https://developer.gnome.org/glib/unstable/glib-Byte-Arrays.html#GBytes"><span class="type">GBytes</span></a> *</pre>
+<p>The SSID of the access point, or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if it is not known.</p>
+<p>Owner: NMAccessPoint</p>
+<p>Flags: Read</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMAccessPoint--strength"></a><h3>The <code class="literal">“strength”</code> property</h3>
+<pre class="programlisting">  “strength”                 <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guchar"><span class="type">guchar</span></a></pre>
+<p>The current signal strength of the access point.</p>
+<p>Owner: NMAccessPoint</p>
+<p>Flags: Read</p>
+<p>Default value: 0</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMAccessPoint--wpa-flags"></a><h3>The <code class="literal">“wpa-flags”</code> property</h3>
+<pre class="programlisting">  “wpa-flags”                <a class="link" href="libnm-nm-dbus-interface.html#NM80211ApSecurityFlags" title="enum NM80211ApSecurityFlags"><span class="type">NM80211ApSecurityFlags</span></a></pre>
+<p>The WPA flags of the access point.</p>
+<p>Owner: NMAccessPoint</p>
+<p>Flags: Read</p>
+</div>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.33.0</div>
+<hr>Generated by GTK-Doc V1.33.1</div>
 </body>
 </html>

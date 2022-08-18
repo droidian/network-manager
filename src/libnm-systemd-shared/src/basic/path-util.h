@@ -45,12 +45,16 @@
 #endif
 
 static inline bool is_path(const char *p) {
-        assert(p);
+        if (!p) /* A NULL pointer is definitely not a path */
+                return false;
+
         return strchr(p, '/');
 }
 
 static inline bool path_is_absolute(const char *p) {
-        assert(p);
+        if (!p) /* A NULL pointer is definitely not an absolute path */
+                return false;
+
         return p[0] == '/';
 }
 
@@ -78,14 +82,6 @@ char* path_extend_internal(char **x, ...);
 #define path_join(...) path_extend_internal(NULL, __VA_ARGS__, POINTER_MAX)
 
 char* path_simplify(char *path);
-
-enum {
-        PATH_CHECK_FATAL    = 1 << 0,  /* If not set, then error message is appended with 'ignoring'. */
-        PATH_CHECK_ABSOLUTE = 1 << 1,
-        PATH_CHECK_RELATIVE = 1 << 2,
-};
-
-int path_simplify_and_warn(char *path, unsigned flag, const char *unit, const char *filename, unsigned line, const char *lvalue);
 
 static inline bool path_equal_ptr(const char *a, const char *b) {
         return !!a == !!b && (!a || path_equal(a, b));
@@ -167,10 +163,10 @@ int path_extract_directory(const char *path, char **ret);
 bool filename_is_valid(const char *p) _pure_;
 bool path_is_valid_full(const char *p, bool accept_dot_dot) _pure_;
 static inline bool path_is_valid(const char *p) {
-        return path_is_valid_full(p, true);
+        return path_is_valid_full(p, /* accept_dot_dot= */ true);
 }
 static inline bool path_is_safe(const char *p) {
-        return path_is_valid_full(p, false);
+        return path_is_valid_full(p, /* accept_dot_dot= */ false);
 }
 bool path_is_normalized(const char *p) _pure_;
 
@@ -182,8 +178,6 @@ bool is_device_path(const char *path);
 
 bool valid_device_node_path(const char *path);
 bool valid_device_allow_pattern(const char *path);
-
-int systemd_installation_has_version(const char *root, unsigned minimal_version);
 
 bool dot_or_dot_dot(const char *path);
 

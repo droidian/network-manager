@@ -8,7 +8,7 @@
 <link rel="up" href="ch03.html" title="Connection and Setting API Reference">
 <link rel="prev" href="NMSetting.html" title="NMSetting">
 <link rel="next" href="NMSetting6Lowpan.html" title="NMSetting6Lowpan">
-<meta name="generator" content="GTK-Doc V1.33.0 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -313,10 +313,26 @@
 </tr>
 <tr>
 <td class="function_type">
+<a class="link" href="libnm-nm-dbus-interface.html#NMMptcpFlags" title="enum NMMptcpFlags"><span class="returnvalue">NMMptcpFlags</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="NMSettingConnection.html#nm-setting-connection-get-mptcp-flags" title="nm_setting_connection_get_mptcp_flags ()">nm_setting_connection_get_mptcp_flags</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
 <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint32"><span class="returnvalue">gint32</span></a>
 </td>
 <td class="function_name">
 <a class="link" href="NMSettingConnection.html#nm-setting-connection-get-wait-device-timeout" title="nm_setting_connection_get_wait_device_timeout ()">nm_setting_connection_get_wait_device_timeout</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint32"><span class="returnvalue">gint32</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="NMSettingConnection.html#nm-setting-connection-get-wait-activation-delay" title="nm_setting_connection_get_wait_activation_delay ()">nm_setting_connection_get_wait_activation_delay</a> <span class="c_punctuation">()</span>
 </td>
 </tr>
 <tr>
@@ -451,11 +467,19 @@
 </tr>
 <tr>
 <td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingConnection.html#NM-SETTING-CONNECTION-MPTCP-FLAGS:CAPS" title="NM_SETTING_CONNECTION_MPTCP_FLAGS">NM_SETTING_CONNECTION_MPTCP_FLAGS</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMSettingConnection.html#NM-SETTING-CONNECTION-WAIT-DEVICE-TIMEOUT:CAPS" title="NM_SETTING_CONNECTION_WAIT_DEVICE_TIMEOUT">NM_SETTING_CONNECTION_WAIT_DEVICE_TIMEOUT</a></td>
 </tr>
 <tr>
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMSettingConnection.html#NM-SETTING-CONNECTION-MUD-URL:CAPS" title="NM_SETTING_CONNECTION_MUD_URL">NM_SETTING_CONNECTION_MUD_URL</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingConnection.html#NM-SETTING-CONNECTION-WAIT-ACTIVATION-DELAY:CAPS" title="NM_SETTING_CONNECTION_WAIT_ACTIVATION_DELAY">NM_SETTING_CONNECTION_WAIT_ACTIVATION_DELAY</a></td>
 </tr>
 <tr>
 <td class="datatype_keyword">enum</td>
@@ -1566,6 +1590,32 @@ nm_setting_connection_get_dns_over_tls
 </div>
 <hr>
 <div class="refsect2">
+<a name="nm-setting-connection-get-mptcp-flags"></a><h3>nm_setting_connection_get_mptcp_flags ()</h3>
+<pre class="programlisting"><a class="link" href="libnm-nm-dbus-interface.html#NMMptcpFlags" title="enum NMMptcpFlags"><span class="returnvalue">NMMptcpFlags</span></a>
+nm_setting_connection_get_mptcp_flags (<em class="parameter"><code><a class="link" href="NMSettingConnection.html" title="NMSettingConnection"><span class="type">NMSettingConnection</span></a> *setting</code></em>);</pre>
+<div class="refsect3">
+<a name="nm-setting-connection-get-mptcp-flags.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>setting</p></td>
+<td class="parameter_description"><p>the <a class="link" href="NMSettingConnection.html" title="NMSettingConnection"><span class="type">NMSettingConnection</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="nm-setting-connection-get-mptcp-flags.returns"></a><h4>Returns</h4>
+<p> the <span class="type">“mptcp-flags”</span> property of the setting.</p>
+</div>
+<p class="since">Since: 1.40</p>
+</div>
+<hr>
+<div class="refsect2">
 <a name="nm-setting-connection-get-wait-device-timeout"></a><h3>nm_setting_connection_get_wait_device_timeout ()</h3>
 <pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint32"><span class="returnvalue">gint32</span></a>
 nm_setting_connection_get_wait_device_timeout
@@ -1591,6 +1641,34 @@ nm_setting_connection_get_wait_device_timeout
 the timeout in milliseconds. -1 is the default.</p>
 </div>
 <p class="since">Since: 1.20</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-connection-get-wait-activation-delay"></a><h3>nm_setting_connection_get_wait_activation_delay ()</h3>
+<pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint32"><span class="returnvalue">gint32</span></a>
+nm_setting_connection_get_wait_activation_delay
+                               (<em class="parameter"><code><a class="link" href="NMSettingConnection.html" title="NMSettingConnection"><span class="type">NMSettingConnection</span></a> *setting</code></em>);</pre>
+<div class="refsect3">
+<a name="nm-setting-connection-get-wait-activation-delay.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>setting</p></td>
+<td class="parameter_description"><p>the <a class="link" href="NMSettingConnection.html" title="NMSettingConnection"><span class="type">NMSettingConnection</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="nm-setting-connection-get-wait-activation-delay.returns"></a><h4>Returns</h4>
+<p> the <a class="link" href="NMSettingConnection.html#NM-SETTING-CONNECTION-WAIT-ACTIVATION-DELAY:CAPS" title="NM_SETTING_CONNECTION_WAIT_ACTIVATION_DELAY"><code class="literal">NM_SETTING_CONNECTION_WAIT_ACTIVATION_DELAY</code></a> property with
+the delay in milliseconds. -1 is the default.</p>
+</div>
+<p class="since">Since: 1.40</p>
 </div>
 <hr>
 <div class="refsect2">
@@ -1645,157 +1723,169 @@ property.</p>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-CONNECTION-ID:CAPS"></a><h3>NM_SETTING_CONNECTION_ID</h3>
-<pre class="programlisting">#define NM_SETTING_CONNECTION_ID                   "id"
+<pre class="programlisting">#define NM_SETTING_CONNECTION_ID                    "id"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-CONNECTION-UUID:CAPS"></a><h3>NM_SETTING_CONNECTION_UUID</h3>
-<pre class="programlisting">#define NM_SETTING_CONNECTION_UUID                 "uuid"
+<pre class="programlisting">#define NM_SETTING_CONNECTION_UUID                  "uuid"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-CONNECTION-STABLE-ID:CAPS"></a><h3>NM_SETTING_CONNECTION_STABLE_ID</h3>
-<pre class="programlisting">#define NM_SETTING_CONNECTION_STABLE_ID            "stable-id"
+<pre class="programlisting">#define NM_SETTING_CONNECTION_STABLE_ID             "stable-id"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-CONNECTION-INTERFACE-NAME:CAPS"></a><h3>NM_SETTING_CONNECTION_INTERFACE_NAME</h3>
-<pre class="programlisting">#define NM_SETTING_CONNECTION_INTERFACE_NAME       "interface-name"
+<pre class="programlisting">#define NM_SETTING_CONNECTION_INTERFACE_NAME        "interface-name"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-CONNECTION-TYPE:CAPS"></a><h3>NM_SETTING_CONNECTION_TYPE</h3>
-<pre class="programlisting">#define NM_SETTING_CONNECTION_TYPE                 "type"
+<pre class="programlisting">#define NM_SETTING_CONNECTION_TYPE                  "type"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-CONNECTION-AUTOCONNECT:CAPS"></a><h3>NM_SETTING_CONNECTION_AUTOCONNECT</h3>
-<pre class="programlisting">#define NM_SETTING_CONNECTION_AUTOCONNECT          "autoconnect"
+<pre class="programlisting">#define NM_SETTING_CONNECTION_AUTOCONNECT           "autoconnect"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-CONNECTION-AUTOCONNECT-PRIORITY:CAPS"></a><h3>NM_SETTING_CONNECTION_AUTOCONNECT_PRIORITY</h3>
-<pre class="programlisting">#define NM_SETTING_CONNECTION_AUTOCONNECT_PRIORITY "autoconnect-priority"
+<pre class="programlisting">#define NM_SETTING_CONNECTION_AUTOCONNECT_PRIORITY  "autoconnect-priority"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-CONNECTION-AUTOCONNECT-RETRIES:CAPS"></a><h3>NM_SETTING_CONNECTION_AUTOCONNECT_RETRIES</h3>
-<pre class="programlisting">#define NM_SETTING_CONNECTION_AUTOCONNECT_RETRIES  "autoconnect-retries"
+<pre class="programlisting">#define NM_SETTING_CONNECTION_AUTOCONNECT_RETRIES   "autoconnect-retries"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-CONNECTION-MULTI-CONNECT:CAPS"></a><h3>NM_SETTING_CONNECTION_MULTI_CONNECT</h3>
-<pre class="programlisting">#define NM_SETTING_CONNECTION_MULTI_CONNECT        "multi-connect"
+<pre class="programlisting">#define NM_SETTING_CONNECTION_MULTI_CONNECT         "multi-connect"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-CONNECTION-TIMESTAMP:CAPS"></a><h3>NM_SETTING_CONNECTION_TIMESTAMP</h3>
-<pre class="programlisting">#define NM_SETTING_CONNECTION_TIMESTAMP            "timestamp"
+<pre class="programlisting">#define NM_SETTING_CONNECTION_TIMESTAMP             "timestamp"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-CONNECTION-READ-ONLY:CAPS"></a><h3>NM_SETTING_CONNECTION_READ_ONLY</h3>
-<pre class="programlisting">#define NM_SETTING_CONNECTION_READ_ONLY            "read-only"
+<pre class="programlisting">#define NM_SETTING_CONNECTION_READ_ONLY             "read-only"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-CONNECTION-PERMISSIONS:CAPS"></a><h3>NM_SETTING_CONNECTION_PERMISSIONS</h3>
-<pre class="programlisting">#define NM_SETTING_CONNECTION_PERMISSIONS          "permissions"
+<pre class="programlisting">#define NM_SETTING_CONNECTION_PERMISSIONS           "permissions"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-CONNECTION-ZONE:CAPS"></a><h3>NM_SETTING_CONNECTION_ZONE</h3>
-<pre class="programlisting">#define NM_SETTING_CONNECTION_ZONE                 "zone"
+<pre class="programlisting">#define NM_SETTING_CONNECTION_ZONE                  "zone"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-CONNECTION-MASTER:CAPS"></a><h3>NM_SETTING_CONNECTION_MASTER</h3>
-<pre class="programlisting">#define NM_SETTING_CONNECTION_MASTER               "master"
+<pre class="programlisting">#define NM_SETTING_CONNECTION_MASTER                "master"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-CONNECTION-SLAVE-TYPE:CAPS"></a><h3>NM_SETTING_CONNECTION_SLAVE_TYPE</h3>
-<pre class="programlisting">#define NM_SETTING_CONNECTION_SLAVE_TYPE           "slave-type"
+<pre class="programlisting">#define NM_SETTING_CONNECTION_SLAVE_TYPE            "slave-type"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-CONNECTION-AUTOCONNECT-SLAVES:CAPS"></a><h3>NM_SETTING_CONNECTION_AUTOCONNECT_SLAVES</h3>
-<pre class="programlisting">#define NM_SETTING_CONNECTION_AUTOCONNECT_SLAVES   "autoconnect-slaves"
+<pre class="programlisting">#define NM_SETTING_CONNECTION_AUTOCONNECT_SLAVES    "autoconnect-slaves"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-CONNECTION-SECONDARIES:CAPS"></a><h3>NM_SETTING_CONNECTION_SECONDARIES</h3>
-<pre class="programlisting">#define NM_SETTING_CONNECTION_SECONDARIES          "secondaries"
+<pre class="programlisting">#define NM_SETTING_CONNECTION_SECONDARIES           "secondaries"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-CONNECTION-GATEWAY-PING-TIMEOUT:CAPS"></a><h3>NM_SETTING_CONNECTION_GATEWAY_PING_TIMEOUT</h3>
-<pre class="programlisting">#define NM_SETTING_CONNECTION_GATEWAY_PING_TIMEOUT "gateway-ping-timeout"
+<pre class="programlisting">#define NM_SETTING_CONNECTION_GATEWAY_PING_TIMEOUT  "gateway-ping-timeout"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-CONNECTION-METERED:CAPS"></a><h3>NM_SETTING_CONNECTION_METERED</h3>
-<pre class="programlisting">#define NM_SETTING_CONNECTION_METERED              "metered"
+<pre class="programlisting">#define NM_SETTING_CONNECTION_METERED               "metered"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-CONNECTION-LLDP:CAPS"></a><h3>NM_SETTING_CONNECTION_LLDP</h3>
-<pre class="programlisting">#define NM_SETTING_CONNECTION_LLDP                 "lldp"
+<pre class="programlisting">#define NM_SETTING_CONNECTION_LLDP                  "lldp"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-CONNECTION-AUTH-RETRIES:CAPS"></a><h3>NM_SETTING_CONNECTION_AUTH_RETRIES</h3>
-<pre class="programlisting">#define NM_SETTING_CONNECTION_AUTH_RETRIES         "auth-retries"
+<pre class="programlisting">#define NM_SETTING_CONNECTION_AUTH_RETRIES          "auth-retries"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-CONNECTION-MDNS:CAPS"></a><h3>NM_SETTING_CONNECTION_MDNS</h3>
-<pre class="programlisting">#define NM_SETTING_CONNECTION_MDNS                 "mdns"
+<pre class="programlisting">#define NM_SETTING_CONNECTION_MDNS                  "mdns"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-CONNECTION-LLMNR:CAPS"></a><h3>NM_SETTING_CONNECTION_LLMNR</h3>
-<pre class="programlisting">#define NM_SETTING_CONNECTION_LLMNR                "llmnr"
+<pre class="programlisting">#define NM_SETTING_CONNECTION_LLMNR                 "llmnr"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-CONNECTION-DNS-OVER-TLS:CAPS"></a><h3>NM_SETTING_CONNECTION_DNS_OVER_TLS</h3>
-<pre class="programlisting">#define NM_SETTING_CONNECTION_DNS_OVER_TLS         "dns-over-tls"
+<pre class="programlisting">#define NM_SETTING_CONNECTION_DNS_OVER_TLS          "dns-over-tls"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-CONNECTION-MPTCP-FLAGS:CAPS"></a><h3>NM_SETTING_CONNECTION_MPTCP_FLAGS</h3>
+<pre class="programlisting">#define NM_SETTING_CONNECTION_MPTCP_FLAGS           "mptcp-flags"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-CONNECTION-WAIT-DEVICE-TIMEOUT:CAPS"></a><h3>NM_SETTING_CONNECTION_WAIT_DEVICE_TIMEOUT</h3>
-<pre class="programlisting">#define NM_SETTING_CONNECTION_WAIT_DEVICE_TIMEOUT  "wait-device-timeout"
+<pre class="programlisting">#define NM_SETTING_CONNECTION_WAIT_DEVICE_TIMEOUT   "wait-device-timeout"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-CONNECTION-MUD-URL:CAPS"></a><h3>NM_SETTING_CONNECTION_MUD_URL</h3>
-<pre class="programlisting">#define NM_SETTING_CONNECTION_MUD_URL              "mud-url"
+<pre class="programlisting">#define NM_SETTING_CONNECTION_MUD_URL               "mud-url"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-CONNECTION-WAIT-ACTIVATION-DELAY:CAPS"></a><h3>NM_SETTING_CONNECTION_WAIT_ACTIVATION_DELAY</h3>
+<pre class="programlisting">#define NM_SETTING_CONNECTION_WAIT_ACTIVATION_DELAY "wait-activation-delay"
 </pre>
 </div>
 <hr>
@@ -2018,6 +2108,6 @@ master is activated</p>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.33.0</div>
+<hr>Generated by GTK-Doc V1.33.1</div>
 </body>
 </html>

@@ -8,14 +8,17 @@
 <link rel="up" href="ch04.html" title="Device and Runtime Configuration API Reference">
 <link rel="prev" href="NMDeviceVxlan.html" title="NMDeviceVxlan">
 <link rel="next" href="NMDeviceWifi.html" title="NMDeviceWifi">
-<meta name="generator" content="GTK-Doc V1.33.0 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
 <table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
 <td width="100%" align="left" class="shortcuts">
 <a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
-                  <a href="#NMDeviceWifiP2P.description" class="shortcut">Description</a></span>
+                  <a href="#NMDeviceWifiP2P.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
+                  <a href="#NMDeviceWifiP2P.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_properties">  <span class="dim">|</span> 
+                  <a href="#NMDeviceWifiP2P.properties" class="shortcut">Properties</a></span><span id="nav_signals">  <span class="dim">|</span> 
+                  <a href="#NMDeviceWifiP2P.signals" class="shortcut">Signals</a></span>
 </td>
 <td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
 <td><a accesskey="u" href="ch04.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
@@ -98,6 +101,44 @@
 </table></div>
 </div>
 <div class="refsect1">
+<a name="NMDeviceWifiP2P.properties"></a><h2>Properties</h2>
+<div class="informaltable"><table class="informaltable" border="0">
+<colgroup>
+<col width="150px" class="properties_type">
+<col width="300px" class="properties_name">
+<col width="200px" class="properties_flags">
+</colgroup>
+<tbody><tr>
+<td class="property_type">
+<a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> *</td>
+<td class="property_name"><a class="link" href="NMDeviceWifiP2P.html#NMDeviceWifiP2P--peers" title="The “peers” property">peers</a></td>
+<td class="property_flags">Read</td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="NMDeviceWifiP2P.signals"></a><h2>Signals</h2>
+<div class="informaltable"><table class="informaltable" border="0">
+<colgroup>
+<col width="150px" class="signal_proto_type">
+<col width="300px" class="signal_proto_name">
+<col width="200px" class="signal_proto_flags">
+</colgroup>
+<tbody>
+<tr>
+<td class="signal_type"><span class="returnvalue">void</span></td>
+<td class="signal_name"><a class="link" href="NMDeviceWifiP2P.html#NMDeviceWifiP2P-peer-added" title="The “peer-added” signal">peer-added</a></td>
+<td class="signal_flags"><a href="https://developer.gnome.org/gobject/unstable/gobject-Signals.html#G-SIGNAL-RUN-FIRST:CAPS">Run First</a></td>
+</tr>
+<tr>
+<td class="signal_type"><span class="returnvalue">void</span></td>
+<td class="signal_name"><a class="link" href="NMDeviceWifiP2P.html#NMDeviceWifiP2P-peer-removed" title="The “peer-removed” signal">peer-removed</a></td>
+<td class="signal_flags"><a href="https://developer.gnome.org/gobject/unstable/gobject-Signals.html#G-SIGNAL-RUN-FIRST:CAPS">Run First</a></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
 <a name="NMDeviceWifiP2P.other"></a><h2>Types and Values</h2>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
@@ -117,8 +158,20 @@
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMDeviceWifiP2P.html#NM-DEVICE-WIFI-P2P-WFDIES:CAPS" title="NM_DEVICE_WIFI_P2P_WFDIES">NM_DEVICE_WIFI_P2P_WFDIES</a></td>
 </tr>
+<tr>
+<td class="datatype_keyword"> </td>
+<td class="function_name"><a class="link" href="NMDeviceWifiP2P.html#NMDeviceWifiP2P-struct" title="NMDeviceWifiP2P">NMDeviceWifiP2P</a></td>
+</tr>
 </tbody>
 </table></div>
+</div>
+<div class="refsect1">
+<a name="NMDeviceWifiP2P.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="screen">    <a href="https://developer.gnome.org/gobject/unstable/gobject-The-Base-Object-Type.html#GObject-struct">GObject</a>
+    <span class="lineart">╰──</span> <a class="link" href="NMObject.html" title="NMObject">NMObject</a>
+        <span class="lineart">╰──</span> <a class="link" href="NMDevice.html" title="NMDevice">NMDevice</a>
+            <span class="lineart">╰──</span> NMDeviceWifiP2P
+</pre>
 </div>
 <div class="refsect1">
 <a name="NMDeviceWifiP2P.description"></a><h2>Description</h2>
@@ -163,7 +216,7 @@ nm_device_wifi_p2p_get_peer_by_path (<em class="parameter"><code><a class="link"
 <div class="refsect3">
 <a name="nm-device-wifi-p2p-get-peer-by-path.returns"></a><h4>Returns</h4>
 <p>the peer or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if none is found. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.16</p>
 </div>
@@ -191,7 +244,7 @@ nm_device_wifi_p2p_get_peers (<em class="parameter"><code><a class="link" href="
 <div class="refsect3">
 <a name="nm-device-wifi-p2p-get-peers.returns"></a><h4>Returns</h4>
 <p>a <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> containing all the
-found <span class="type">NMWifiP2PPeers</span>.
+found <a href="NMWifiP2PPeer.html#NMWifiP2PPeer-struct"><span class="type">NMWifiP2PPeers</span></a>.
 The returned array is owned by the client and should not be modified. </p>
 <p><span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMWifiP2PPeer]</span></p>
 </div>
@@ -399,9 +452,105 @@ nm_device_wifi_p2p_stop_find_finish (<em class="parameter"><code><a class="link"
 <pre class="programlisting">#define NM_DEVICE_WIFI_P2P_WFDIES     "wfdies"
 </pre>
 </div>
+<hr>
+<div class="refsect2">
+<a name="NMDeviceWifiP2P-struct"></a><h3>NMDeviceWifiP2P</h3>
+<pre class="programlisting">typedef struct _NMDeviceWifiP2P NMDeviceWifiP2P;</pre>
+<p class="since">Since: 1.16</p>
+</div>
+</div>
+<div class="refsect1">
+<a name="NMDeviceWifiP2P.property-details"></a><h2>Property Details</h2>
+<div class="refsect2">
+<a name="NMDeviceWifiP2P--peers"></a><h3>The <code class="literal">“peers”</code> property</h3>
+<pre class="programlisting">  “peers”                    <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> *</pre>
+<p>List of all Wi-Fi P2P peers the device can see.</p>
+<p><span class="annotation">[<acronym title="Override the parsed C type with given type."><span class="acronym">type</span></acronym> GPtrArray(NMWifiP2PPeer)]</span></p>
+<p>Owner: NMDeviceWifiP2P</p>
+<p>Flags: Read</p>
+<p class="since">Since: 1.16</p>
+</div>
+</div>
+<div class="refsect1">
+<a name="NMDeviceWifiP2P.signal-details"></a><h2>Signal Details</h2>
+<div class="refsect2">
+<a name="NMDeviceWifiP2P-peer-added"></a><h3>The <code class="literal">“peer-added”</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+user_function (<a class="link" href="NMDeviceWifiP2P.html" title="NMDeviceWifiP2P"><span class="type">NMDeviceWifiP2P</span></a> *device,
+               <a href="https://developer.gnome.org/gobject/unstable/gobject-The-Base-Object-Type.html#GObject-struct"><span class="type">GObject</span></a>         *peer,
+               <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>         user_data)</pre>
+<p>Notifies that a <a class="link" href="NMWifiP2PPeer.html" title="NMWifiP2PPeer"><span class="type">NMWifiP2PPeer</span></a> is added to the Wi-Fi P2P device.</p>
+<div class="refsect3">
+<a name="NMDeviceWifiP2P-peer-added.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>device</p></td>
+<td class="parameter_description"><p>the Wi-Fi P2P device that received the signal</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>peer</p></td>
+<td class="parameter_description"><p>the new access point</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>user_data</p></td>
+<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p>Flags: <a href="https://developer.gnome.org/gobject/unstable/gobject-Signals.html#G-SIGNAL-RUN-FIRST:CAPS">Run First</a></p>
+<p class="since">Since: 1.16</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMDeviceWifiP2P-peer-removed"></a><h3>The <code class="literal">“peer-removed”</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+user_function (<a class="link" href="NMDeviceWifiP2P.html" title="NMDeviceWifiP2P"><span class="type">NMDeviceWifiP2P</span></a> *device,
+               <a href="https://developer.gnome.org/gobject/unstable/gobject-The-Base-Object-Type.html#GObject-struct"><span class="type">GObject</span></a>         *peer,
+               <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>         user_data)</pre>
+<p>Notifies that a <a class="link" href="NMWifiP2PPeer.html" title="NMWifiP2PPeer"><span class="type">NMWifiP2PPeer</span></a> is removed from the Wi-Fi P2P device.</p>
+<div class="refsect3">
+<a name="NMDeviceWifiP2P-peer-removed.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>device</p></td>
+<td class="parameter_description"><p>the Wi-Fi P2P device that received the signal</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>peer</p></td>
+<td class="parameter_description"><p>the removed access point</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>user_data</p></td>
+<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p>Flags: <a href="https://developer.gnome.org/gobject/unstable/gobject-Signals.html#G-SIGNAL-RUN-FIRST:CAPS">Run First</a></p>
+<p class="since">Since: 1.16</p>
+</div>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.33.0</div>
+<hr>Generated by GTK-Doc V1.33.1</div>
 </body>
 </html>

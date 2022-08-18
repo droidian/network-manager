@@ -12,7 +12,6 @@
 #include "libnm-log-core/nm-logging.h"
 #include "libnm-core-intern/nm-core-internal.h"
 #include "nm-initrd-generator.h"
-#include "libnm-systemd-shared/nm-sd-utils-shared.h"
 
 /*****************************************************************************/
 
@@ -134,7 +133,7 @@ reader_create_connection(Reader                  *reader,
                  NM_SETTING_IP_CONFIG_MAY_FAIL,
                  TRUE,
                  NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE,
-                 (int) NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_EUI64,
+                 (int) NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_DEFAULT_OR_EUI64,
                  NM_SETTING_IP_CONFIG_IGNORE_AUTO_DNS,
                  reader->ignore_auto_dns,
                  NM_SETTING_IP_CONFIG_DHCP_TIMEOUT,
@@ -535,8 +534,8 @@ reader_parse_ip(Reader *reader, const char *sysfs_dir, char *argument)
     int                            client_ip_prefix           = -1;
     gboolean                       clear_ip4_required_timeout = TRUE;
     const char                    *dns[2]                     = {
-        NULL,
-        NULL,
+                                               NULL,
+                                               NULL,
     };
     int dns_addr_family[2] = {
         AF_UNSPEC,
@@ -586,7 +585,7 @@ reader_parse_ip(Reader *reader, const char *sysfs_dir, char *argument)
             }
         }
 
-        if (client_hostname && !nm_sd_hostname_is_valid(client_hostname, FALSE))
+        if (client_hostname && !nm_hostname_is_valid(client_hostname, FALSE))
             client_hostname = NULL;
 
         if (client_hostname) {
@@ -634,7 +633,7 @@ reader_parse_ip(Reader *reader, const char *sysfs_dir, char *argument)
         NMIPAddr addr;
 
         if (is_ipv4 && nm_utils_parse_inaddr_bin(AF_INET, netmask, NULL, &addr))
-            client_ip_prefix = nm_utils_ip4_netmask_to_prefix(addr.addr4);
+            client_ip_prefix = _nm_utils_ip4_netmask_to_prefix(addr.addr4);
         else
             client_ip_prefix = _nm_utils_ascii_str_to_int64(netmask, 10, 0, is_ipv4 ? 32 : 128, -1);
 

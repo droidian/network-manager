@@ -8,14 +8,17 @@
 <link rel="up" href="ch04.html" title="Device and Runtime Configuration API Reference">
 <link rel="prev" href="NMDeviceWpan.html" title="NMDeviceWpan">
 <link rel="next" href="NMVpnConnection.html" title="NMVpnConnection">
-<meta name="generator" content="GTK-Doc V1.33.0 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
 <table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
 <td width="100%" align="left" class="shortcuts">
 <a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
-                  <a href="#NMActiveConnection.description" class="shortcut">Description</a></span>
+                  <a href="#NMActiveConnection.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
+                  <a href="#NMActiveConnection.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_properties">  <span class="dim">|</span> 
+                  <a href="#NMActiveConnection.properties" class="shortcut">Properties</a></span><span id="nav_signals">  <span class="dim">|</span> 
+                  <a href="#NMActiveConnection.signals" class="shortcut">Signals</a></span>
 </td>
 <td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
 <td><a accesskey="u" href="ch04.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
@@ -107,8 +110,7 @@
 </td>
 </tr>
 <tr>
-<td class="function_type">
-<a class="link" href="NMDevice.html" title="NMDevice"><span class="returnvalue">NMDevice</span></a> *
+<td class="function_type">struct <a class="link" href="NMDevice.html" title="NMDevice"><span class="returnvalue">_NMDevice</span></a> *
 </td>
 <td class="function_name">
 <a class="link" href="NMActiveConnection.html#nm-active-connection-get-master" title="nm_active_connection_get_master ()">nm_active_connection_get_master</a> <span class="c_punctuation">()</span>
@@ -171,6 +173,124 @@
 </td>
 </tr>
 </tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="NMActiveConnection.properties"></a><h2>Properties</h2>
+<div class="informaltable"><table class="informaltable" border="0">
+<colgroup>
+<col width="150px" class="properties_type">
+<col width="300px" class="properties_name">
+<col width="200px" class="properties_flags">
+</colgroup>
+<tbody>
+<tr>
+<td class="property_type">
+<a class="link" href="NMRemoteConnection.html" title="NMRemoteConnection"><span class="type">NMRemoteConnection</span></a> *</td>
+<td class="property_name"><a class="link" href="NMActiveConnection.html#NMActiveConnection--connection" title="The “connection” property">connection</a></td>
+<td class="property_flags">Read</td>
+</tr>
+<tr>
+<td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></td>
+<td class="property_name"><a class="link" href="NMActiveConnection.html#NMActiveConnection--default" title="The “default” property">default</a></td>
+<td class="property_flags">Read</td>
+</tr>
+<tr>
+<td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></td>
+<td class="property_name"><a class="link" href="NMActiveConnection.html#NMActiveConnection--default6" title="The “default6” property">default6</a></td>
+<td class="property_flags">Read</td>
+</tr>
+<tr>
+<td class="property_type">
+<a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> *</td>
+<td class="property_name"><a class="link" href="NMActiveConnection.html#NMActiveConnection--devices" title="The “devices” property">devices</a></td>
+<td class="property_flags">Read</td>
+</tr>
+<tr>
+<td class="property_type">
+<a class="link" href="NMDhcpConfig.html" title="NMDhcpConfig"><span class="type">NMDhcpConfig</span></a> *</td>
+<td class="property_name"><a class="link" href="NMActiveConnection.html#NMActiveConnection--dhcp4-config" title="The “dhcp4-config” property">dhcp4-config</a></td>
+<td class="property_flags">Read</td>
+</tr>
+<tr>
+<td class="property_type">
+<a class="link" href="NMDhcpConfig.html" title="NMDhcpConfig"><span class="type">NMDhcpConfig</span></a> *</td>
+<td class="property_name"><a class="link" href="NMActiveConnection.html#NMActiveConnection--dhcp6-config" title="The “dhcp6-config” property">dhcp6-config</a></td>
+<td class="property_flags">Read</td>
+</tr>
+<tr>
+<td class="property_type">
+<span class="type">char</span> *</td>
+<td class="property_name"><a class="link" href="NMActiveConnection.html#NMActiveConnection--id" title="The “id” property">id</a></td>
+<td class="property_flags">Read</td>
+</tr>
+<tr>
+<td class="property_type">
+<a class="link" href="NMIPConfig.html" title="NMIPConfig"><span class="type">NMIPConfig</span></a> *</td>
+<td class="property_name"><a class="link" href="NMActiveConnection.html#NMActiveConnection--ip4-config" title="The “ip4-config” property">ip4-config</a></td>
+<td class="property_flags">Read</td>
+</tr>
+<tr>
+<td class="property_type">
+<a class="link" href="NMIPConfig.html" title="NMIPConfig"><span class="type">NMIPConfig</span></a> *</td>
+<td class="property_name"><a class="link" href="NMActiveConnection.html#NMActiveConnection--ip6-config" title="The “ip6-config” property">ip6-config</a></td>
+<td class="property_flags">Read</td>
+</tr>
+<tr>
+<td class="property_type">
+<a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a> *</td>
+<td class="property_name"><a class="link" href="NMActiveConnection.html#NMActiveConnection--master" title="The “master” property">master</a></td>
+<td class="property_flags">Read</td>
+</tr>
+<tr>
+<td class="property_type">
+<span class="type">char</span> *</td>
+<td class="property_name"><a class="link" href="NMActiveConnection.html#NMActiveConnection--specific-object-path" title="The “specific-object-path” property">specific-object-path</a></td>
+<td class="property_flags">Read</td>
+</tr>
+<tr>
+<td class="property_type"><a class="link" href="libnm-nm-dbus-interface.html#NMActiveConnectionState" title="enum NMActiveConnectionState"><span class="type">NMActiveConnectionState</span></a></td>
+<td class="property_name"><a class="link" href="NMActiveConnection.html#NMActiveConnection--state" title="The “state” property">state</a></td>
+<td class="property_flags">Read</td>
+</tr>
+<tr>
+<td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></td>
+<td class="property_name"><a class="link" href="NMActiveConnection.html#NMActiveConnection--state-flags" title="The “state-flags” property">state-flags</a></td>
+<td class="property_flags">Read</td>
+</tr>
+<tr>
+<td class="property_type">
+<span class="type">char</span> *</td>
+<td class="property_name"><a class="link" href="NMActiveConnection.html#NMActiveConnection--type" title="The “type” property">type</a></td>
+<td class="property_flags">Read</td>
+</tr>
+<tr>
+<td class="property_type">
+<span class="type">char</span> *</td>
+<td class="property_name"><a class="link" href="NMActiveConnection.html#NMActiveConnection--uuid" title="The “uuid” property">uuid</a></td>
+<td class="property_flags">Read</td>
+</tr>
+<tr>
+<td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></td>
+<td class="property_name"><a class="link" href="NMActiveConnection.html#NMActiveConnection--vpn" title="The “vpn” property">vpn</a></td>
+<td class="property_flags">Read</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="NMActiveConnection.signals"></a><h2>Signals</h2>
+<div class="informaltable"><table class="informaltable" border="0">
+<colgroup>
+<col width="150px" class="signal_proto_type">
+<col width="300px" class="signal_proto_name">
+<col width="200px" class="signal_proto_flags">
+</colgroup>
+<tbody><tr>
+<td class="signal_type"><span class="returnvalue">void</span></td>
+<td class="signal_name"><a class="link" href="NMActiveConnection.html#NMActiveConnection-state-changed" title="The “state-changed” signal">state-changed</a></td>
+<td class="signal_flags"><a href="https://developer.gnome.org/gobject/unstable/gobject-Signals.html#G-SIGNAL-RUN-FIRST:CAPS">Run First</a></td>
+</tr></tbody>
 </table></div>
 </div>
 <div class="refsect1">
@@ -245,8 +365,20 @@
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMActiveConnection.html#NM-ACTIVE-CONNECTION-MASTER:CAPS" title="NM_ACTIVE_CONNECTION_MASTER">NM_ACTIVE_CONNECTION_MASTER</a></td>
 </tr>
+<tr>
+<td class="datatype_keyword"> </td>
+<td class="function_name"><a class="link" href="NMActiveConnection.html#NMActiveConnection-struct" title="NMActiveConnection">NMActiveConnection</a></td>
+</tr>
 </tbody>
 </table></div>
+</div>
+<div class="refsect1">
+<a name="NMActiveConnection.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="screen">    <a href="https://developer.gnome.org/gobject/unstable/gobject-The-Base-Object-Type.html#GObject-struct">GObject</a>
+    <span class="lineart">╰──</span> <a class="link" href="NMObject.html" title="NMObject">NMObject</a>
+        <span class="lineart">╰──</span> NMActiveConnection
+            <span class="lineart">╰──</span> <a class="link" href="NMVpnConnection.html" title="NMVpnConnection">NMVpnConnection</a>
+</pre>
 </div>
 <div class="refsect1">
 <a name="NMActiveConnection.description"></a><h2>Description</h2>
@@ -278,7 +410,7 @@ nm_active_connection_get_connection (<em class="parameter"><code><a class="link"
 <a name="nm-active-connection-get-connection.returns"></a><h4>Returns</h4>
 <p>the <a class="link" href="NMRemoteConnection.html" title="NMRemoteConnection"><span class="type">NMRemoteConnection</span></a> which this
 <a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a> is an active instance of. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -508,7 +640,7 @@ nm_active_connection_get_state_reason (<em class="parameter"><code><a class="lin
 <hr>
 <div class="refsect2">
 <a name="nm-active-connection-get-master"></a><h3>nm_active_connection_get_master ()</h3>
-<pre class="programlisting"><a class="link" href="NMDevice.html" title="NMDevice"><span class="returnvalue">NMDevice</span></a> *
+<pre class="programlisting">struct <a class="link" href="NMDevice.html" title="NMDevice"><span class="returnvalue">_NMDevice</span></a> *
 nm_active_connection_get_master (<em class="parameter"><code><a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a> *connection</code></em>);</pre>
 <p>Gets the master <a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a> of the connection.</p>
 <div class="refsect3">
@@ -529,7 +661,7 @@ nm_active_connection_get_master (<em class="parameter"><code><a class="link" hre
 <div class="refsect3">
 <a name="nm-active-connection-get-master.returns"></a><h4>Returns</h4>
 <p>the master <a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a> of the <a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a>. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -584,7 +716,7 @@ nm_active_connection_get_ip4_config (<em class="parameter"><code><a class="link"
 <a name="nm-active-connection-get-ip4-config.returns"></a><h4>Returns</h4>
 <p>the IPv4 <a class="link" href="NMIPConfig.html" title="NMIPConfig"><span class="type">NMIPConfig</span></a>, or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if the connection is
 not in the <a class="link" href="libnm-nm-dbus-interface.html#NM-ACTIVE-CONNECTION-STATE-ACTIVATED:CAPS"><code class="literal">NM_ACTIVE_CONNECTION_STATE_ACTIVATED</code></a> state. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -614,7 +746,7 @@ nm_active_connection_get_dhcp4_config (<em class="parameter"><code><a class="lin
 <p>the IPv4 <a class="link" href="NMDhcpConfig.html" title="NMDhcpConfig"><span class="type">NMDhcpConfig</span></a>, or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if the connection
 does not use DHCP, or is not in the <a class="link" href="libnm-nm-dbus-interface.html#NM-ACTIVE-CONNECTION-STATE-ACTIVATED:CAPS"><code class="literal">NM_ACTIVE_CONNECTION_STATE_ACTIVATED</code></a>
 state. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -669,7 +801,7 @@ nm_active_connection_get_ip6_config (<em class="parameter"><code><a class="link"
 <a name="nm-active-connection-get-ip6-config.returns"></a><h4>Returns</h4>
 <p>the IPv6 <a class="link" href="NMIPConfig.html" title="NMIPConfig"><span class="type">NMIPConfig</span></a>, or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if the connection is
 not in the <a class="link" href="libnm-nm-dbus-interface.html#NM-ACTIVE-CONNECTION-STATE-ACTIVATED:CAPS"><code class="literal">NM_ACTIVE_CONNECTION_STATE_ACTIVATED</code></a> state. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -699,7 +831,7 @@ nm_active_connection_get_dhcp6_config (<em class="parameter"><code><a class="lin
 <p>the IPv6 <a class="link" href="NMDhcpConfig.html" title="NMDhcpConfig"><span class="type">NMDhcpConfig</span></a>, or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if the connection
 does not use DHCPv6, or is not in the <a class="link" href="libnm-nm-dbus-interface.html#NM-ACTIVE-CONNECTION-STATE-ACTIVATED:CAPS"><code class="literal">NM_ACTIVE_CONNECTION_STATE_ACTIVATED</code></a>
 state. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -826,9 +958,200 @@ nm_active_connection_get_vpn (<em class="parameter"><code><a class="link" href="
 <pre class="programlisting">#define NM_ACTIVE_CONNECTION_MASTER               "master"
 </pre>
 </div>
+<hr>
+<div class="refsect2">
+<a name="NMActiveConnection-struct"></a><h3>NMActiveConnection</h3>
+<pre class="programlisting">typedef struct _NMActiveConnection NMActiveConnection;</pre>
+</div>
+</div>
+<div class="refsect1">
+<a name="NMActiveConnection.property-details"></a><h2>Property Details</h2>
+<div class="refsect2">
+<a name="NMActiveConnection--connection"></a><h3>The <code class="literal">“connection”</code> property</h3>
+<pre class="programlisting">  “connection”               <a class="link" href="NMRemoteConnection.html" title="NMRemoteConnection"><span class="type">NMRemoteConnection</span></a> *</pre>
+<p>The connection that this is an active instance of.</p>
+<p>Owner: NMActiveConnection</p>
+<p>Flags: Read</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMActiveConnection--default"></a><h3>The <code class="literal">“default”</code> property</h3>
+<pre class="programlisting">  “default”                  <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></pre>
+<p>Whether the active connection is the default IPv4 one.</p>
+<p>Owner: NMActiveConnection</p>
+<p>Flags: Read</p>
+<p>Default value: FALSE</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMActiveConnection--default6"></a><h3>The <code class="literal">“default6”</code> property</h3>
+<pre class="programlisting">  “default6”                 <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></pre>
+<p>Whether the active connection is the default IPv6 one.</p>
+<p>Owner: NMActiveConnection</p>
+<p>Flags: Read</p>
+<p>Default value: FALSE</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMActiveConnection--devices"></a><h3>The <code class="literal">“devices”</code> property</h3>
+<pre class="programlisting">  “devices”                  <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> *</pre>
+<p>The devices of the active connection.</p>
+<p><span class="annotation">[<acronym title="Override the parsed C type with given type."><span class="acronym">type</span></acronym> GPtrArray(NMDevice)]</span></p>
+<p>Owner: NMActiveConnection</p>
+<p>Flags: Read</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMActiveConnection--dhcp4-config"></a><h3>The <code class="literal">“dhcp4-config”</code> property</h3>
+<pre class="programlisting">  “dhcp4-config”             <a class="link" href="NMDhcpConfig.html" title="NMDhcpConfig"><span class="type">NMDhcpConfig</span></a> *</pre>
+<p>The IPv4 <a class="link" href="NMDhcpConfig.html" title="NMDhcpConfig"><span class="type">NMDhcpConfig</span></a> of the connection.</p>
+<p>Owner: NMActiveConnection</p>
+<p>Flags: Read</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMActiveConnection--dhcp6-config"></a><h3>The <code class="literal">“dhcp6-config”</code> property</h3>
+<pre class="programlisting">  “dhcp6-config”             <a class="link" href="NMDhcpConfig.html" title="NMDhcpConfig"><span class="type">NMDhcpConfig</span></a> *</pre>
+<p>The IPv6 <a class="link" href="NMDhcpConfig.html" title="NMDhcpConfig"><span class="type">NMDhcpConfig</span></a> of the connection.</p>
+<p>Owner: NMActiveConnection</p>
+<p>Flags: Read</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMActiveConnection--id"></a><h3>The <code class="literal">“id”</code> property</h3>
+<pre class="programlisting">  “id”                       <span class="type">char</span> *</pre>
+<p>The active connection's ID</p>
+<p>Owner: NMActiveConnection</p>
+<p>Flags: Read</p>
+<p>Default value: NULL</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMActiveConnection--ip4-config"></a><h3>The <code class="literal">“ip4-config”</code> property</h3>
+<pre class="programlisting">  “ip4-config”               <a class="link" href="NMIPConfig.html" title="NMIPConfig"><span class="type">NMIPConfig</span></a> *</pre>
+<p>The IPv4 <a class="link" href="NMIPConfig.html" title="NMIPConfig"><span class="type">NMIPConfig</span></a> of the connection.</p>
+<p>Owner: NMActiveConnection</p>
+<p>Flags: Read</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMActiveConnection--ip6-config"></a><h3>The <code class="literal">“ip6-config”</code> property</h3>
+<pre class="programlisting">  “ip6-config”               <a class="link" href="NMIPConfig.html" title="NMIPConfig"><span class="type">NMIPConfig</span></a> *</pre>
+<p>The IPv6 <a class="link" href="NMIPConfig.html" title="NMIPConfig"><span class="type">NMIPConfig</span></a> of the connection.</p>
+<p>Owner: NMActiveConnection</p>
+<p>Flags: Read</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMActiveConnection--master"></a><h3>The <code class="literal">“master”</code> property</h3>
+<pre class="programlisting">  “master”                   <a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a> *</pre>
+<p>The master device if one exists.</p>
+<p>Owner: NMActiveConnection</p>
+<p>Flags: Read</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMActiveConnection--specific-object-path"></a><h3>The <code class="literal">“specific-object-path”</code> property</h3>
+<pre class="programlisting">  “specific-object-path”     <span class="type">char</span> *</pre>
+<p>The path to the "specific object" of the active connection; see
+<a class="link" href="NMActiveConnection.html#nm-active-connection-get-specific-object-path" title="nm_active_connection_get_specific_object_path ()"><code class="function">nm_active_connection_get_specific_object_path()</code></a> for more details.</p>
+<p>Owner: NMActiveConnection</p>
+<p>Flags: Read</p>
+<p>Default value: NULL</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMActiveConnection--state"></a><h3>The <code class="literal">“state”</code> property</h3>
+<pre class="programlisting">  “state”                    <a class="link" href="libnm-nm-dbus-interface.html#NMActiveConnectionState" title="enum NMActiveConnectionState"><span class="type">NMActiveConnectionState</span></a></pre>
+<p>The state of the active connection.</p>
+<p>Owner: NMActiveConnection</p>
+<p>Flags: Read</p>
+<p>Default value: NM_ACTIVE_CONNECTION_STATE_UNKNOWN</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMActiveConnection--state-flags"></a><h3>The <code class="literal">“state-flags”</code> property</h3>
+<pre class="programlisting">  “state-flags”              <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></pre>
+<p>The state flags of the active connection.</p>
+<p>Owner: NMActiveConnection</p>
+<p>Flags: Read</p>
+<p>Default value: 0</p>
+<p class="since">Since: 1.10</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMActiveConnection--type"></a><h3>The <code class="literal">“type”</code> property</h3>
+<pre class="programlisting">  “type”                     <span class="type">char</span> *</pre>
+<p>The active connection's type</p>
+<p>Owner: NMActiveConnection</p>
+<p>Flags: Read</p>
+<p>Default value: NULL</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMActiveConnection--uuid"></a><h3>The <code class="literal">“uuid”</code> property</h3>
+<pre class="programlisting">  “uuid”                     <span class="type">char</span> *</pre>
+<p>The active connection's UUID</p>
+<p>Owner: NMActiveConnection</p>
+<p>Flags: Read</p>
+<p>Default value: NULL</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMActiveConnection--vpn"></a><h3>The <code class="literal">“vpn”</code> property</h3>
+<pre class="programlisting">  “vpn”                      <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></pre>
+<p>Whether the active connection is a VPN connection.</p>
+<p>Owner: NMActiveConnection</p>
+<p>Flags: Read</p>
+<p>Default value: FALSE</p>
+</div>
+</div>
+<div class="refsect1">
+<a name="NMActiveConnection.signal-details"></a><h2>Signal Details</h2>
+<div class="refsect2">
+<a name="NMActiveConnection-state-changed"></a><h3>The <code class="literal">“state-changed”</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+user_function (<a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a> *active_connection,
+               <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a>               state,
+               <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a>               reason,
+               <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>            user_data)</pre>
+<div class="refsect3">
+<a name="NMActiveConnection-state-changed.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>active_connection</p></td>
+<td class="parameter_description"><p>the source <a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>state</p></td>
+<td class="parameter_description"><p>the new state number (<a class="link" href="libnm-nm-dbus-interface.html#NMActiveConnectionState" title="enum NMActiveConnectionState"><span class="type">NMActiveConnectionState</span></a>)</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>reason</p></td>
+<td class="parameter_description"><p>the state change reason (<a class="link" href="libnm-nm-dbus-interface.html#NMActiveConnectionStateReason" title="enum NMActiveConnectionStateReason"><span class="type">NMActiveConnectionStateReason</span></a>)</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>user_data</p></td>
+<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p>Flags: <a href="https://developer.gnome.org/gobject/unstable/gobject-Signals.html#G-SIGNAL-RUN-FIRST:CAPS">Run First</a></p>
+</div>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.33.0</div>
+<hr>Generated by GTK-Doc V1.33.1</div>
 </body>
 </html>

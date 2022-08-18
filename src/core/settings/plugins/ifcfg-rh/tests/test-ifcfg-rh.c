@@ -668,8 +668,8 @@ test_read_miscellaneous_variables(void)
     NMSettingWired               *s_wired;
     NMSettingIPConfig            *s_ip4;
     char                         *expected_mac_blacklist[3] = {"00:16:41:11:22:88",
-                                       "00:16:41:11:22:99",
-                                       "6a:5d:5a:fa:dd:f0"};
+                                                               "00:16:41:11:22:99",
+                                                               "6a:5d:5a:fa:dd:f0"};
     int                           mac_blacklist_num, i;
     guint64                       expected_timestamp = 0;
 
@@ -1352,6 +1352,7 @@ test_read_wired_static_routes(void)
     g_assert_cmpint(nm_ip_route_get_prefix(ip4_route), ==, 32);
     g_assert_cmpstr(nm_ip_route_get_next_hop(ip4_route), ==, "192.168.1.7");
     g_assert_cmpint(nm_ip_route_get_metric(ip4_route), ==, 3);
+    nmtst_assert_route_attribute_uint32(ip4_route, NM_IP_ROUTE_ATTRIBUTE_ADVMSS, 1300);
     nmtst_assert_route_attribute_byte(ip4_route, NM_IP_ROUTE_ATTRIBUTE_TOS, 0x28);
     nmtst_assert_route_attribute_uint32(ip4_route, NM_IP_ROUTE_ATTRIBUTE_WINDOW, 30000);
     nmtst_assert_route_attribute_uint32(ip4_route, NM_IP_ROUTE_ATTRIBUTE_CWND, 12);
@@ -1360,6 +1361,8 @@ test_read_wired_static_routes(void)
     nmtst_assert_route_attribute_uint32(ip4_route, NM_IP_ROUTE_ATTRIBUTE_MTU, 9000);
     nmtst_assert_route_attribute_boolean(ip4_route, NM_IP_ROUTE_ATTRIBUTE_LOCK_MTU, TRUE);
     nmtst_assert_route_attribute_boolean(ip4_route, NM_IP_ROUTE_ATTRIBUTE_LOCK_INITCWND, TRUE);
+    nmtst_assert_route_attribute_uint32(ip4_route, NM_IP_ROUTE_ATTRIBUTE_RTO_MIN, 300);
+    nmtst_assert_route_attribute_boolean(ip4_route, NM_IP_ROUTE_ATTRIBUTE_QUICKACK, TRUE);
     nmtst_assert_route_attribute_string(ip4_route, NM_IP_ROUTE_ATTRIBUTE_SRC, "1.1.1.1");
     nmtst_assert_route_attribute_byte(ip4_route, NM_IP_ROUTE_ATTRIBUTE_SCOPE, 10);
 
@@ -2027,17 +2030,17 @@ test_read_wired_aliases_good(gconstpointer test_data)
     NMSettingIPConfig            *s_ip4;
     int                           expected_num_addresses;
     const char                   *expected_address_0[] = {"192.168.1.5",
-                                        "192.168.1.6",
-                                        "192.168.1.9",
-                                        "192.168.1.99",
-                                        NULL};
+                                                          "192.168.1.6",
+                                                          "192.168.1.9",
+                                                          "192.168.1.99",
+                                                          NULL};
     const char                   *expected_address_3[] = {"192.168.1.5", "192.168.1.6", NULL};
     const char                   *expected_label_0[]   = {
-        NULL,
-        "aliasem0:1",
-        "aliasem0:2",
-        "aliasem0:99",
-        NULL,
+                            NULL,
+                            "aliasem0:1",
+                            "aliasem0:2",
+                            "aliasem0:99",
+                            NULL,
     };
     const char *expected_label_3[] = {
         NULL,
@@ -4538,7 +4541,12 @@ test_write_routing_rules(void)
     _nm_connection_new_setting(connection, NM_TYPE_SETTING_WIRED);
 
     s_ip4 = _nm_connection_new_setting(connection, NM_TYPE_SETTING_IP4_CONFIG);
-    g_object_set(s_ip4, NM_SETTING_IP_CONFIG_METHOD, NM_SETTING_IP4_CONFIG_METHOD_AUTO, NULL);
+    g_object_set(s_ip4,
+                 NM_SETTING_IP_CONFIG_METHOD,
+                 NM_SETTING_IP4_CONFIG_METHOD_AUTO,
+                 NM_SETTING_IP4_CONFIG_LINK_LOCAL,
+                 NM_SETTING_IP4_LL_ENABLED,
+                 NULL);
 
     s_ip6 = _nm_connection_new_setting(connection, NM_TYPE_SETTING_IP6_CONFIG);
     g_object_set(s_ip6, NM_SETTING_IP_CONFIG_METHOD, NM_SETTING_IP6_CONFIG_METHOD_AUTO, NULL);
@@ -4631,6 +4639,34 @@ test_write_wired_dhcp_plus_ip(void)
     reread = _connection_from_file(testfile, NULL, TYPE_ETHERNET, NULL);
 
     nmtst_assert_connection_equals(connection, TRUE, reread, FALSE);
+}
+
+static void
+test_read_write_link_local(void)
+{
+    nmtst_auto_unlinkfile char   *testfile   = NULL;
+    gs_unref_object NMConnection *connection = NULL;
+    gs_unref_object NMConnection *reread     = NULL;
+    NMSettingIPConfig            *s_ip4;
+
+    connection =
+        _connection_from_file(TEST_IFCFG_DIR "/ifcfg-test-link_local", NULL, TYPE_ETHERNET, NULL);
+
+    s_ip4 = nmtst_connection_assert_setting(connection, NM_TYPE_SETTING_IP4_CONFIG);
+    g_assert(nm_setting_ip4_config_get_link_local(NM_SETTING_IP4_CONFIG(s_ip4))
+             == NM_SETTING_IP4_LL_ENABLED);
+
+    g_object_set(s_ip4, NM_SETTING_IP4_CONFIG_LINK_LOCAL, NM_SETTING_IP4_LL_DISABLED, NULL);
+
+    _writer_new_connection(connection, TEST_SCRATCH_DIR, &testfile);
+
+    reread = _connection_from_file(testfile, NULL, TYPE_ETHERNET, NULL);
+
+    nmtst_assert_connection_equals(connection, TRUE, reread, FALSE);
+
+    s_ip4 = nmtst_connection_assert_setting(reread, NM_TYPE_SETTING_IP4_CONFIG);
+    g_assert(nm_setting_ip4_config_get_link_local(NM_SETTING_IP4_CONFIG(s_ip4))
+             == NM_SETTING_IP4_LL_DISABLED);
 }
 
 static void
@@ -8153,8 +8189,8 @@ test_read_infiniband(void)
     char                         *unmanaged = NULL;
     const char                   *mac;
     char        expected_mac_address[INFINIBAND_ALEN] = {0x80, 0x00, 0x11, 0x22, 0x33, 0x44, 0x55,
-                                                  0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc,
-                                                  0xdd, 0xee, 0xff, 0x00, 0x11, 0x22};
+                                                         0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc,
+                                                         0xdd, 0xee, 0xff, 0x00, 0x11, 0x22};
     const char *transport_mode;
 
     connection = _connection_from_file(TEST_IFCFG_DIR "/ifcfg-test-infiniband",
@@ -10245,6 +10281,7 @@ main(int argc, char **argv)
     g_test_add_func(TPATH "read-dhcp", test_read_wired_dhcp);
     g_test_add_func(TPATH "read-dhcp-plus-ip", test_read_wired_dhcp_plus_ip);
     g_test_add_func(TPATH "read-shared-plus-ip", test_read_wired_shared_plus_ip);
+    g_test_add_func(TPATH "read-write-link-local", test_read_write_link_local);
     g_test_add_func(TPATH "read-dhcp-send-hostname", test_read_write_wired_dhcp_send_hostname);
     g_test_add_func(TPATH "read-dhcpv6-hostname-fallback",
                     test_read_wired_dhcpv6_hostname_fallback);

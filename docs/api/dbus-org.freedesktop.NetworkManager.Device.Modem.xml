@@ -17,7 +17,9 @@
   </refsect1>
 <refsect1 role="desc" id="gdbus-interface-org-freedesktop-NetworkManager-Device-Modem">
   <title role="desc.title">Description</title>
-  <para></para>
+  <para>
+</para><para>
+</para>
 </refsect1>
 <refsect1 role="details" id="gdbus-properties-org.freedesktop.NetworkManager.Device.Modem">
   <title role="details.title">Property Details</title>
@@ -27,11 +29,13 @@
 <programlisting>
 ModemCapabilities  readable   u
 </programlisting>
-<para>        The generic family of access technologies the modem supports. Not all
-        capabilities are available at the same time however; some modems require a
-        firmware reload or other reinitialization to switch between eg CDMA/EVDO
-        and GSM/UMTS.
-</para><para>        Returns: <link linkend="NMDeviceModemCapabilities">NMDeviceModemCapabilities</link>
+<para>
+The generic family of access technologies the modem supports. Not all
+capabilities are available at the same time however; some modems require a
+firmware reload or other reinitialization to switch between eg CDMA/EVDO
+and GSM/UMTS.
+</para><para>
+Returns: <link linkend="NMDeviceModemCapabilities">NMDeviceModemCapabilities</link>
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-Modem.CurrentCapabilities">
@@ -40,9 +44,11 @@ ModemCapabilities  readable   u
 <programlisting>
 CurrentCapabilities  readable   u
 </programlisting>
-<para>        The generic family of access technologies the modem currently supports
-        without a firmware reload or reinitialization.
-</para><para>        Returns: <link linkend="NMDeviceModemCapabilities">NMDeviceModemCapabilities</link>
+<para>
+The generic family of access technologies the modem currently supports
+without a firmware reload or reinitialization.
+</para><para>
+Returns: <link linkend="NMDeviceModemCapabilities">NMDeviceModemCapabilities</link>
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-Modem.DeviceId">
@@ -51,9 +57,10 @@ CurrentCapabilities  readable   u
 <programlisting>
 DeviceId  readable   s
 </programlisting>
-<para>        An identifier used by the modem backend (ModemManager) that aims to
-        uniquely identify the a device. Can be used to match a connection to a
-        particular device.
+<para>
+An identifier used by the modem backend (ModemManager) that aims to
+uniquely identify the a device. Can be used to match a connection to a
+particular device.
 </para>
 <para role="since">Since 1.20</para>
 </refsect2>
@@ -63,8 +70,9 @@ DeviceId  readable   s
 <programlisting>
 OperatorCode  readable   s
 </programlisting>
-<para>        The MCC and MNC (concatenated) of the network the modem is connected to.
-        Blank if disconnected or not a 3GPP modem.
+<para>
+The MCC and MNC (concatenated) of the network the modem is connected to.
+Blank if disconnected or not a 3GPP modem.
 </para>
 <para role="since">Since 1.20</para>
 </refsect2>
@@ -74,7 +82,8 @@ OperatorCode  readable   s
 <programlisting>
 Apn  readable   s
 </programlisting>
-<para>        The access point name the modem is connected to. Blank if disconnected.
+<para>
+The access point name the modem is connected to. Blank if disconnected.
 </para>
 <para role="since">Since 1.20</para>
 </refsect2>

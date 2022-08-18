@@ -9,7 +9,7 @@
 <!--
   nmcli(1) manual page
 
-  Copyright 2010 - 2018 Red Hat, Inc.
+  Copyright 2010 - 2022 Red Hat, Inc.
 
   Permission is granted to copy, distribute and/or modify this document
   under the terms of the GNU Free Documentation License, Version 1.1
@@ -311,6 +311,23 @@
         <listitem>
           <para>Output is terse. This mode is designed and suitable for computer (script)
           processing.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><group choice='plain'>
+          <arg choice='plain'><option>--offline</option></arg>
+        </group></term>
+
+        <listitem>
+          <para>Work without a daemon. Makes <command>connection add</command> and
+          <command>connection modify</command> commands accept and produce connection
+          data via standard input/output. Ordinarily, nmcli would communicate with
+          the NetworkManager service.</para>
+
+          <para>The connection data format (keyfile) is described in
+          <citerefentry><refentrytitle>nm-settings-keyfile</refentrytitle><manvolnum>5</manvolnum></citerefentry>
+          manual.</para>
         </listitem>
       </varlistentry>
 
@@ -928,7 +945,7 @@
             <arg choice='plain'><option>uuid</option></arg>
             <arg choice='plain'><option>path</option></arg>
           </group>
-          <arg choice='plain'><replaceable>ID</replaceable></arg>
+          <arg><replaceable>ID</replaceable></arg>
           <arg rep='repeat' choice='plain'>
             <group choice='req'>
               <arg choice='plain'><replaceable>option</replaceable> <replaceable>value</replaceable></arg>
@@ -962,7 +979,14 @@
 
           <para>The connection is identified by its name, UUID or D-Bus path. If
           <replaceable>ID</replaceable> is ambiguous, a keyword <option>id</option>,
-          <option>uuid</option> or <option>path</option> can be used.</para>
+          <option>uuid</option> or <option>path</option> can be used.
+          The <replaceable>ID</replaceable> is not used with the global
+          <option>--offline</option> option.</para>
+
+          <para>When the global <option>--offline</option> is used, the
+          command reads the connection from the standard input and prints the
+          modified connection to standard output instead of making the
+          the NetworkManager daemon act upon specified connection.</para>
         </listitem>
       </varlistentry>
 
@@ -1096,6 +1120,10 @@
               </listitem>
             </varlistentry>
           </variablelist>
+
+          <para>When the global <option>--offline</option> is used, the
+          command prints the resulting connection to standard output instead of
+          actually adding the connection via the NetworkManager daemon.</para>
         </listitem>
       </varlistentry>
 
@@ -1368,6 +1396,7 @@
         <arg choice='plain'><command>monitor</command></arg>
         <arg choice='plain'><command>wifi</command></arg>
         <arg choice='plain'><command>lldp</command></arg>
+        <arg choice='plain'><command>checkpoint</command></arg>
       </group>
       <arg rep='repeat'><replaceable>ARGUMENTS</replaceable></arg>
     </cmdsynopsis>
@@ -1808,6 +1837,33 @@
           Layer Discovery Protocol (LLDP). The <option>ifname</option> option can be
           used to list neighbors only for a given interface. The protocol must be enabled
           in the connection settings.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          <command>checkpoint</command>
+          <arg><option>--timeout</option> <replaceable>seconds</replaceable></arg>
+          <arg rep='repeat'><replaceable>ifname</replaceable></arg>
+          <arg choice='plain'><option>--</option></arg>
+          <arg rep='repeat' choice='plain'><replaceable>COMMAND</replaceable></arg>
+        </term>
+
+        <listitem>
+          <para>Runs the command with a configuration checkpoint taken and asks for a
+          confirmation when finished. When the confirmation is not given, the
+          checkpoint is automatically restored after timeout.</para>
+
+          <para>This allows doing disruptive configuration changes over remote
+          connections with an option of restoring the network configuration to a
+          known good state in case of an error.</para>
+
+          <para>If the a list of interface names is specified, the checkpoint is
+          taken, the checkpoint is takes only on the specified devices. Otherwise
+          a checkpoint is taken for all devices.</para>
+
+          <para>Currently the timeout defaults to 15 seconds. This may change in
+          a future version.</para>
         </listitem>
       </varlistentry>
     </variablelist>

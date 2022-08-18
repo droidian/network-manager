@@ -345,19 +345,12 @@ no-auto-default=*
         <para><literal>systemd-resolved</literal>: NetworkManager will
         push the DNS configuration to systemd-resolved</para>
 
-        <para><literal>unbound</literal>: NetworkManager will talk
-        to unbound and dnssec-triggerd, using "Conditional Forwarding"
-        with DNSSEC support. <filename>/etc/resolv.conf</filename>
-        will be managed by dnssec-trigger daemon. This option is
-        deprecated. Note that dnssec-trigger ships a NetworkManager dispatcher
-        script so this DNS plugin is not necessary.</para>
-
         <para><literal>none</literal>: NetworkManager will not
         modify resolv.conf. This implies
         <literal>rc-manager</literal>&nbsp;<literal>unmanaged</literal></para>
 
-        <para>Note that the plugins <literal>dnsmasq</literal>, <literal>systemd-resolved</literal>
-        and <literal>unbound</literal> are caching local nameservers.
+        <para>Note that the plugins <literal>dnsmasq</literal> and <literal>systemd-resolved</literal>
+        are caching local nameservers.
         Hence, when NetworkManager writes <filename>&nmrundir;/resolv.conf</filename>
         and <filename>/etc/resolv.conf</filename> (according to <literal>rc-manager</literal>
         setting below), the name server there will be localhost only.
@@ -631,6 +624,18 @@ unmanaged-devices=mac:00:22:68:1c:59:b1;mac:00:1E:65:30:D1:C4;interface-name:eth
     </para>
 
     <para>
+    The recommended way for enabling logging is with a file <filename>/etc/NetworkManager/conf.d/95-logging.conf</filename>
+    that contains
+<programlisting>
+[logging]
+level=TRACE
+domains=ALL
+</programlisting>
+    and restart the daemon with <command>systemctl restart NetworkManager</command>. Then
+    reproduce the problem. You can find the logs in syslog (for example <command>journalctl</command>).
+    </para>
+
+    <para>
     Any settings here are overridden by the <option>--log-level</option>
     and <option>--log-domains</option> command-line options.
     Logging can also be reconfigured at runtime with
@@ -642,11 +647,18 @@ unmanaged-devices=mac:00:22:68:1c:59:b1;mac:00:1E:65:30:D1:C4;interface-name:eth
     </para>
 
     <para>
+    By setting <option>nm.debug</option> on the kernel command line (either from
+    <filename>&nmrundir;/proc-cmdline</filename> or <filename>/proc/cmdline</filename>),
+    debug logging is enabled. This overrides both the command-line options and the settings
+    from NetworkManager.conf.
+    </para>
+
+    <para>
     NetworkManager's logging aims not to contain private sensitive data
     and you should be fine sharing the debug logs. Still, there will
     be IP addresses and your network setup, if you consider that private
-    then review the log before sharing. Do not mangle the logfile in
-    a way that distorts the meaning too much.
+    then review the log before sharing. However, try not to mangle the logfile
+    in a way that distorts the meaning too much.
     </para>
 
     <para>
@@ -855,6 +867,10 @@ ipv6.ip6-privacy=0
           <listitem><para>If unspecified, the ultimate default values depends on the DNS plugin. With systemd-resolved the default currently is "no" (0) and for all other plugins also "no" (0).</para></listitem>
         </varlistentry>
         <varlistentry>
+          <term><varname>connection.mptcp-flags</varname></term>
+          <listitem><para>If unspecified, the fallback is either 0 (<literal>"disabled"</literal>) or 0x22 (<literal>"enabled-on-global-iface,subflow"</literal>), depending on <literal>/proc/sys/net/mptcp/enabled</literal>.</para></listitem>
+        </varlistentry>
+        <varlistentry>
           <term><varname>connection.dns-over-tls</varname></term>
           <listitem><para>If unspecified, the ultimate default values depends on the DNS plugin. With systemd-resolved the default currently is global setting and for all other plugins "no" (0).</para></listitem>
         </varlistentry>
@@ -930,6 +946,10 @@ ipv6.ip6-privacy=0
           <term><varname>ipv4.required-timeout</varname></term>
         </varlistentry>
         <varlistentry>
+          <term><varname>ipv4.link-local</varname></term>
+          <listitem><para>If left unspecified, fallback to "auto" which makes it dependent on "ipv4.method" setting.</para></listitem>
+        </varlistentry>
+        <varlistentry>
           <term><varname>ipv4.route-metric</varname></term>
         </varlistentry>
         <varlistentry>
@@ -938,6 +958,12 @@ ipv6.ip6-privacy=0
             is different from explicitly selecting the main table 254, because of how NetworkManager
             removes extraneous routes from the tables.
           </para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term><varname>ipv6.addr-gen-mode</varname></term>
+          <listitem><para>If the per-profile setting is either "default" or "default-or-eui64", the
+            global default is used. If the default is unspecified, the fallback value is either "stable-privacy"
+            or "eui64", depending on whether the per-profile setting is "default" or "default-or-eui64, respectively.</para></listitem>
         </varlistentry>
         <varlistentry>
           <term><varname>ipv6.ra-timeout</varname></term>

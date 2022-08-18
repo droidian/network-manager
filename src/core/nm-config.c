@@ -11,7 +11,9 @@
 #include <stdio.h>
 
 #include "nm-utils.h"
+#include "nm-dhcp-config.h"
 #include "devices/nm-device.h"
+#include "dhcp/nm-dhcp-options.h"
 #include "NetworkManagerUtils.h"
 #include "libnm-core-intern/nm-core-internal.h"
 #include "libnm-core-intern/nm-keyfile-internal.h"
@@ -573,93 +575,93 @@ nm_config_cmd_line_options_add_to_entries(NMConfigCmdLineOptions *cli, GOptionCo
 {
     GOptionGroup *group;
     GOptionEntry  config_options[] = {
-        {"config",
-         0,
-         0,
-         G_OPTION_ARG_FILENAME,
-         &cli->config_main_file,
-         N_("Config file location"),
-         DEFAULT_CONFIG_MAIN_FILE},
-        {"config-dir",
-         0,
-         0,
-         G_OPTION_ARG_FILENAME,
-         &cli->config_dir,
-         N_("Config directory location"),
-         DEFAULT_CONFIG_DIR},
-        {"system-config-dir",
-         0,
-         0,
-         G_OPTION_ARG_FILENAME,
-         &cli->system_config_dir,
-         N_("System config directory location"),
-         DEFAULT_SYSTEM_CONFIG_DIR},
-        {"intern-config",
-         0,
-         0,
-         G_OPTION_ARG_FILENAME,
-         &cli->intern_config_file,
-         N_("Internal config file location"),
-         DEFAULT_INTERN_CONFIG_FILE},
-        {"state-file",
-         0,
-         0,
-         G_OPTION_ARG_FILENAME,
-         &cli->state_file,
-         N_("State file location"),
-         DEFAULT_STATE_FILE},
-        {"no-auto-default",
-         0,
-         G_OPTION_FLAG_HIDDEN,
-         G_OPTION_ARG_FILENAME,
-         &cli->no_auto_default_file,
-         N_("State file for no-auto-default devices"),
-         DEFAULT_NO_AUTO_DEFAULT_FILE},
-        {"plugins",
-         0,
-         0,
-         G_OPTION_ARG_STRING,
-         &cli->plugins,
-         N_("List of plugins separated by ','"),
-         NM_CONFIG_DEFAULT_MAIN_PLUGINS},
-        {"configure-and-quit",
-         0,
-         G_OPTION_FLAG_OPTIONAL_ARG,
-         G_OPTION_ARG_CALLBACK,
-         parse_configure_and_quit,
-         N_("Quit after initial configuration"),
-         NULL},
-        {"debug",
-         'd',
-         0,
-         G_OPTION_ARG_NONE,
-         &cli->is_debug,
-         N_("Don't become a daemon, and log to stderr"),
-         NULL},
+         {"config",
+          0,
+          0,
+          G_OPTION_ARG_FILENAME,
+          &cli->config_main_file,
+          N_("Config file location"),
+          DEFAULT_CONFIG_MAIN_FILE},
+         {"config-dir",
+          0,
+          0,
+          G_OPTION_ARG_FILENAME,
+          &cli->config_dir,
+          N_("Config directory location"),
+          DEFAULT_CONFIG_DIR},
+         {"system-config-dir",
+          0,
+          0,
+          G_OPTION_ARG_FILENAME,
+          &cli->system_config_dir,
+          N_("System config directory location"),
+          DEFAULT_SYSTEM_CONFIG_DIR},
+         {"intern-config",
+          0,
+          0,
+          G_OPTION_ARG_FILENAME,
+          &cli->intern_config_file,
+          N_("Internal config file location"),
+          DEFAULT_INTERN_CONFIG_FILE},
+         {"state-file",
+          0,
+          0,
+          G_OPTION_ARG_FILENAME,
+          &cli->state_file,
+          N_("State file location"),
+          DEFAULT_STATE_FILE},
+         {"no-auto-default",
+          0,
+          G_OPTION_FLAG_HIDDEN,
+          G_OPTION_ARG_FILENAME,
+          &cli->no_auto_default_file,
+          N_("State file for no-auto-default devices"),
+          DEFAULT_NO_AUTO_DEFAULT_FILE},
+         {"plugins",
+          0,
+          0,
+          G_OPTION_ARG_STRING,
+          &cli->plugins,
+          N_("List of plugins separated by ','"),
+          NM_CONFIG_DEFAULT_MAIN_PLUGINS},
+         {"configure-and-quit",
+          0,
+          G_OPTION_FLAG_OPTIONAL_ARG,
+          G_OPTION_ARG_CALLBACK,
+          parse_configure_and_quit,
+          N_("Quit after initial configuration"),
+          NULL},
+         {"debug",
+          'd',
+          0,
+          G_OPTION_ARG_NONE,
+          &cli->is_debug,
+          N_("Don't become a daemon, and log to stderr"),
+          NULL},
 
-        /* These three are hidden for now, and should eventually just go away. */
-        {"connectivity-uri",
-         0,
-         G_OPTION_FLAG_HIDDEN,
-         G_OPTION_ARG_STRING,
-         &cli->connectivity_uri,
-         N_("An http(s) address for checking internet connectivity"),
-         "http://example.com"},
-        {"connectivity-interval",
-         0,
-         G_OPTION_FLAG_HIDDEN,
-         G_OPTION_ARG_INT,
-         &cli->connectivity_interval,
-         N_("The interval between connectivity checks (in seconds)"),
-         G_STRINGIFY(NM_CONFIG_DEFAULT_CONNECTIVITY_INTERVAL)},
-        {"connectivity-response",
-         0,
-         G_OPTION_FLAG_HIDDEN,
-         G_OPTION_ARG_STRING,
-         &cli->connectivity_response,
-         N_("The expected start of the response"),
-         NM_CONFIG_DEFAULT_CONNECTIVITY_RESPONSE},
-        {0},
+         /* These three are hidden for now, and should eventually just go away. */
+         {"connectivity-uri",
+          0,
+          G_OPTION_FLAG_HIDDEN,
+          G_OPTION_ARG_STRING,
+          &cli->connectivity_uri,
+          N_("An http(s) address for checking internet connectivity"),
+          "http://example.com"},
+         {"connectivity-interval",
+          0,
+          G_OPTION_FLAG_HIDDEN,
+          G_OPTION_ARG_INT,
+          &cli->connectivity_interval,
+          N_("The interval between connectivity checks (in seconds)"),
+          G_STRINGIFY(NM_CONFIG_DEFAULT_CONNECTIVITY_INTERVAL)},
+         {"connectivity-response",
+          0,
+          G_OPTION_FLAG_HIDDEN,
+          G_OPTION_ARG_STRING,
+          &cli->connectivity_response,
+          N_("The expected start of the response"),
+          NM_CONFIG_DEFAULT_CONNECTIVITY_RESPONSE},
+         {0},
     };
 
     g_return_if_fail(opt_ctx);
@@ -2573,13 +2575,16 @@ nm_config_device_state_write(int                            ifindex,
                              NMTernary                      nm_owned,
                              guint32                        route_metric_default_aspired,
                              guint32                        route_metric_default_effective,
-                             const char                    *next_server,
-                             const char                    *root_path,
-                             const char                    *dhcp_bootfile)
+                             NMDhcpConfig                  *dhcp4_config,
+                             NMDhcpConfig                  *dhcp6_config)
 {
     char    path[NM_STRLEN(NM_CONFIG_DEVICE_STATE_DIR "/") + DEVICE_STATE_FILENAME_LEN_MAX + 1];
-    GError *local                      = NULL;
-    nm_auto_unref_keyfile GKeyFile *kf = NULL;
+    GError *local                                 = NULL;
+    nm_auto_unref_keyfile GKeyFile *kf            = NULL;
+    const char                     *root_path     = NULL;
+    const char                     *next_server   = NULL;
+    const char                     *dhcp_bootfile = NULL;
+    int                             IS_IPv4;
 
     g_return_val_if_fail(ifindex > 0, FALSE);
     g_return_val_if_fail(!connection_uuid || *connection_uuid, FALSE);
@@ -2630,6 +2635,15 @@ nm_config_device_state_write(int                            ifindex,
                                  route_metric_default_aspired);
         }
     }
+
+    if (dhcp4_config) {
+        next_server   = nm_dhcp_config_get_option(dhcp4_config, "next_server");
+        root_path     = nm_dhcp_config_get_option(dhcp4_config, "root_path");
+        dhcp_bootfile = nm_dhcp_config_get_option(dhcp4_config, "filename");
+        if (!dhcp_bootfile)
+            dhcp_bootfile = nm_dhcp_config_get_option(dhcp4_config, "bootfile_name");
+    }
+
     if (next_server) {
         g_key_file_set_string(kf,
                               DEVICE_RUN_STATE_KEYFILE_GROUP_DEVICE,
@@ -2647,6 +2661,28 @@ nm_config_device_state_write(int                            ifindex,
                               DEVICE_RUN_STATE_KEYFILE_GROUP_DEVICE,
                               DEVICE_RUN_STATE_KEYFILE_KEY_DEVICE_DHCP_BOOTFILE,
                               dhcp_bootfile);
+    }
+
+    for (IS_IPv4 = 1; IS_IPv4 >= 0; IS_IPv4--) {
+        NMDhcpConfig              *dhcp_config = IS_IPv4 ? dhcp4_config : dhcp6_config;
+        gs_free NMUtilsNamedValue *values      = NULL;
+        guint                      i;
+        guint                      num;
+
+        if (!dhcp_config)
+            continue;
+
+        values = nm_dhcp_config_get_option_values(dhcp_config, &num);
+        for (i = 0; i < num; i++) {
+            gs_free char *name_full = NULL;
+            const char   *prefix    = IS_IPv4 ? "dhcp4" : "dhcp6";
+
+            if (NM_STR_HAS_PREFIX(values[i].name, NM_DHCP_OPTION_REQPREFIX))
+                continue;
+
+            name_full = g_strdup_printf("%s.%s", prefix, values[i].name);
+            g_key_file_set_string(kf, prefix, name_full, values[i].value_str);
+        }
     }
 
     if (!g_key_file_save_to_file(kf, path, &local)) {
@@ -2974,6 +3010,15 @@ set_property(GObject *object, guint prop_id, const GValue *value, GParamSpec *ps
         G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
         break;
     }
+}
+
+/*****************************************************************************/
+
+gboolean
+nm_config_kernel_command_line_nm_debug(void)
+{
+    return (nm_strv_find_first(nm_utils_proc_cmdline_split(), -1, NM_CONFIG_KERNEL_CMDLINE_NM_DEBUG)
+            >= 0);
 }
 
 /*****************************************************************************/

@@ -15,13 +15,8 @@ PPPD_PLUGIN_DIR := $(shell dh_ppp --plugin-dir)
 %:
 	dh $@ --with ppp $(BUILD_PACKAGES)
 
-autoreconf:
-	gtkdocize --copy
-	autopoint --force
-	AUTOPOINT='intltoolize --automake --copy' autoreconf --verbose --force --install
-
 override_dh_autoreconf:
-	dh_autoreconf debian/rules -- autoreconf
+	NOCONFIGURE=true dh_autoreconf ./autogen.sh
 
 override_dh_auto_configure:
 	dh_auto_configure -- \
@@ -34,7 +29,6 @@ override_dh_auto_configure:
 		--with-resolvconf=/sbin/resolvconf \
 		--with-dhclient=/sbin/dhclient \
 		--with-dnsmasq=/usr/sbin/dnsmasq \
-		--with-dnssec-trigger=/usr/lib/dnssec-trigger/dnssec-trigger-script \
 		--with-polkit-agent-helper-1=/usr/lib/policykit-1/polkit-agent-helper-1 \
 		--with-systemdsystemunitdir=/lib/systemd/system \
 		--with-udev-dir=/lib/udev \

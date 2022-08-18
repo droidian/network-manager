@@ -238,16 +238,15 @@ typedef struct {
 
     /* Auxiliary data object for Wi-Fi and WPAN */
     GObject *ext_data;
-
-    /* FIXME: not every NMPObjectLink should pay the price for tracking
-     * the wireguard family id. This should be tracked via ext_data, which
-     * would be exactly the right place. */
-    int wireguard_family_id;
 } NMPObjectLink;
 
 typedef struct {
     NMPlatformLnkBridge _public;
 } NMPObjectLnkBridge;
+
+typedef struct {
+    NMPlatformLnkBond _public;
+} NMPObjectLnkBond;
 
 typedef struct {
     NMPlatformLnkGre _public;
@@ -336,6 +335,10 @@ typedef struct {
     NMPlatformTfilter _public;
 } NMPObjectTfilter;
 
+typedef struct {
+    NMPlatformMptcpAddr _public;
+} NMPObjectMptcpAddr;
+
 struct _NMPObject {
     union {
         NMDedupMultiObj parent;
@@ -351,6 +354,9 @@ struct _NMPObject {
 
         NMPlatformLnkBridge lnk_bridge;
         NMPObjectLnkBridge  _lnk_bridge;
+
+        NMPlatformLnkBond lnk_bond;
+        NMPObjectLnkBond  _lnk_bond;
 
         NMPlatformLnkGre lnk_gre;
         NMPObjectLnkGre  _lnk_gre;
@@ -409,6 +415,9 @@ struct _NMPObject {
         NMPObjectQdisc    _qdisc;
         NMPlatformTfilter tfilter;
         NMPObjectTfilter  _tfilter;
+
+        NMPlatformMptcpAddr mptcp_addr;
+        NMPObjectMptcpAddr  _mptcp_addr;
     };
 };
 
@@ -493,6 +502,7 @@ _NMP_OBJECT_TYPE_IS_OBJ_WITH_IFINDEX(NMPObjectType obj_type)
     case NMP_OBJECT_TYPE_TFILTER:
 
     case NMP_OBJECT_TYPE_LNK_BRIDGE:
+    case NMP_OBJECT_TYPE_LNK_BOND:
     case NMP_OBJECT_TYPE_LNK_GRE:
     case NMP_OBJECT_TYPE_LNK_GRETAP:
     case NMP_OBJECT_TYPE_LNK_INFINIBAND:
@@ -509,6 +519,8 @@ _NMP_OBJECT_TYPE_IS_OBJ_WITH_IFINDEX(NMPObjectType obj_type)
     case NMP_OBJECT_TYPE_LNK_VRF:
     case NMP_OBJECT_TYPE_LNK_VXLAN:
     case NMP_OBJECT_TYPE_LNK_WIREGUARD:
+
+    case NMP_OBJECT_TYPE_MPTCP_ADDR:
         return TRUE;
 
     case NMP_OBJECT_TYPE_ROUTING_RULE:
@@ -570,6 +582,8 @@ _NMP_OBJECT_TYPE_IS_OBJ_WITH_IFINDEX(NMPObjectType obj_type)
     _NMP_OBJECT_CAST(obj, lnk_wireguard, NMP_OBJECT_TYPE_LNK_WIREGUARD)
 #define NMP_OBJECT_CAST_LNK_BRIDGE(obj) \
     _NMP_OBJECT_CAST(obj, lnk_bridge, NMP_OBJECT_TYPE_LNK_BRIDGE)
+#define NMP_OBJECT_CAST_MPTCP_ADDR(obj) \
+    _NMP_OBJECT_CAST(obj, mptcp_addr, NMP_OBJECT_TYPE_MPTCP_ADDR)
 
 static inline int
 NMP_OBJECT_TYPE_TO_ADDR_FAMILY(NMPObjectType obj_type)
@@ -792,7 +806,8 @@ nmp_cache_lookup(const NMPCache *cache, const NMPLookup *lookup)
 
 const NMPLookup *nmp_lookup_init_obj_type(NMPLookup *lookup, NMPObjectType obj_type);
 const NMPLookup *nmp_lookup_init_link_by_ifname(NMPLookup *lookup, const char *ifname);
-const NMPLookup *nmp_lookup_init_object(NMPLookup *lookup, NMPObjectType obj_type, int ifindex);
+const NMPLookup *
+nmp_lookup_init_object_by_ifindex(NMPLookup *lookup, NMPObjectType obj_type, int ifindex);
 const NMPLookup *nmp_lookup_init_route_default(NMPLookup *lookup, NMPObjectType obj_type);
 const NMPLookup *nmp_lookup_init_route_by_weak_id(NMPLookup *lookup, const NMPObject *obj);
 const NMPLookup *nmp_lookup_init_ip4_route_by_weak_id(NMPLookup *lookup,
@@ -1019,7 +1034,7 @@ nm_platform_lookup_object(NMPlatform *platform, NMPObjectType obj_type, int ifin
 {
     NMPLookup lookup;
 
-    nmp_lookup_init_object(&lookup, obj_type, ifindex);
+    nmp_lookup_init_object_by_ifindex(&lookup, obj_type, ifindex);
     return nm_platform_lookup(platform, &lookup);
 }
 
@@ -1032,7 +1047,7 @@ nm_platform_lookup_object_clone(NMPlatform            *platform,
 {
     NMPLookup lookup;
 
-    nmp_lookup_init_object(&lookup, obj_type, ifindex);
+    nmp_lookup_init_object_by_ifindex(&lookup, obj_type, ifindex);
     return nm_platform_lookup_clone(platform, &lookup, predicate, user_data);
 }
 

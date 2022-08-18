@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN" "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd">
-<refentry id="nm-settings-ifcfg-rh"><refentryinfo><title>nm-settings-ifcfg-rh</title><author>NetworkManager developers</author></refentryinfo><refmeta><refentrytitle>nm-settings-ifcfg-rh</refentrytitle><manvolnum>5</manvolnum><refmiscinfo class="source">NetworkManager</refmiscinfo><refmiscinfo class="manual">Configuration</refmiscinfo><refmiscinfo class="version">1.38.2</refmiscinfo></refmeta><refnamediv><refname>nm-settings-ifcfg-rh</refname><refpurpose>Description of <emphasis>ifcfg-rh</emphasis> settings plugin</refpurpose></refnamediv><refsect1 id="description"><title>Description</title><para>
+<refentry id="nm-settings-ifcfg-rh"><refentryinfo><title>nm-settings-ifcfg-rh</title><author>NetworkManager developers</author></refentryinfo><refmeta><refentrytitle>nm-settings-ifcfg-rh</refentrytitle><manvolnum>5</manvolnum><refmiscinfo class="source">NetworkManager</refmiscinfo><refmiscinfo class="manual">Configuration</refmiscinfo><refmiscinfo class="version">1.39.90</refmiscinfo></refmeta><refnamediv><refname>nm-settings-ifcfg-rh</refname><refpurpose>Description of <emphasis>ifcfg-rh</emphasis> settings plugin</refpurpose></refnamediv><refsect1 id="description"><title>Description</title><para>
           NetworkManager is based on the concept of connection profiles that contain
           network configuration (see <citerefentry><refentrytitle>nm-settings</refentrytitle><manvolnum>5</manvolnum></citerefentry> for details). The profiles can be
           stored in various formats. NetworkManager uses plugins for reading and writing
@@ -314,7 +314,9 @@ Example: </emphasis>LLMNR=yes<emphasis role="bold">
 
 Allowed values: </emphasis>yes,no,resolve</entry></row><row><entry align="left">dns-over-tls</entry><entry align="left">DNS_OVER_TLS<emphasis>(+)</emphasis></entry><entry align="left">missing variable means global default</entry><entry align="left">Whether or not DNSOverTls is enabled for the connection<emphasis role="bold">
 
-Allowed values: </emphasis>yes,no,opportunistic</entry></row><row><entry align="left">wait-device-timeout</entry><entry align="left">DEVTIMEOUT<emphasis>(+)</emphasis></entry><entry align="left"/><entry align="left">for initscripts compatibility, this variable must be a whole integer. If necessary, NetworkManager stores also a fractional component for the milliseconds.<emphasis role="bold">
+Allowed values: </emphasis>yes,no,opportunistic</entry></row><row><entry align="left">mptcp-flags</entry><entry align="left">MPTCP_FLAGS<emphasis>(+)</emphasis></entry><entry align="left">missing variable means global default</entry><entry align="left">The MPTCP flags that indicate whether MPTCP is enabled and which flags to use for the address endpoints.<emphasis role="bold">
+
+Example: </emphasis>MPTCP_FLAGS="signal,subflow"</entry></row><row><entry align="left">wait-device-timeout</entry><entry align="left">DEVTIMEOUT<emphasis>(+)</emphasis></entry><entry align="left"/><entry align="left">for initscripts compatibility, this variable must be a whole integer. If necessary, NetworkManager stores also a fractional component for the milliseconds.<emphasis role="bold">
 
 Example: </emphasis>DEVTIMEOUT=5<emphasis role="bold">
 
@@ -322,7 +324,11 @@ Allowed values: </emphasis>timeout in seconds.</entry></row><row><entry align="l
 
 Example: </emphasis>https://yourdevice.example.com/model.json<emphasis role="bold">
 
-Allowed values: </emphasis>a valid URL that points to recommended policy for this device</entry></row></tbody></tgroup></table><table><title>dcb setting</title><tgroup cols="4"><thead><row><entry>Property</entry><entry>Ifcfg-rh Variable</entry><entry>Default</entry><entry>Description</entry></row></thead><tbody><row><entry align="left">app-fcoe-flags</entry><entry align="left">DCB_APP_FCOE_ENABLE, DCB_APP_FCOE_ADVERTISE, DCB_APP_FCOE_WILLING</entry><entry align="left">no</entry><entry align="left">FCOE flags.<emphasis role="bold">
+Allowed values: </emphasis>a valid URL that points to recommended policy for this device</entry></row><row><entry align="left">wait-activation-delay</entry><entry align="left">WAIT_ACTIVATION_DELAY<emphasis>(+)</emphasis></entry><entry align="left"/><entry align="left">Time in milliseconds to wait for connection to be considered activated. The wait will start after the pre-up dispatcher event.<emphasis role="bold">
+
+Example: </emphasis>WAIT_ACTIVATION_DELAY=5000<emphasis role="bold">
+
+Allowed values: </emphasis>delay in milliseconds.</entry></row></tbody></tgroup></table><table><title>dcb setting</title><tgroup cols="4"><thead><row><entry>Property</entry><entry>Ifcfg-rh Variable</entry><entry>Default</entry><entry>Description</entry></row></thead><tbody><row><entry align="left">app-fcoe-flags</entry><entry align="left">DCB_APP_FCOE_ENABLE, DCB_APP_FCOE_ADVERTISE, DCB_APP_FCOE_WILLING</entry><entry align="left">no</entry><entry align="left">FCOE flags.<emphasis role="bold">
 
 Example: </emphasis>DCB_APP_FCOE_ENABLE=yes DCB_APP_FCOE_ADVERTISE=yes</entry></row><row><entry align="left">app-fcoe-priority</entry><entry align="left">DCB_APP_FCOE_PRIORITY</entry><entry align="left"/><entry align="left">Priority of FCoE frames.<emphasis role="bold">
 
@@ -383,7 +389,9 @@ Example: </emphasis>IPV4_DHCP_TIMEOUT=10</entry></row><row><entry align="left">d
 
 Example: </emphasis>DHCP_FQDN=foo.bar.com</entry></row><row><entry align="left">dhcp-vendor-class-identifier</entry><entry align="left">DHCP_VENDOR_CLASS_IDENTIFIER<emphasis>(+)</emphasis></entry><entry align="left"/><entry align="left">The Vendor Class Identifier DHCP option (60).<emphasis role="bold">
 
-Example: </emphasis>DHCP_VENDOR_CLASS_IDENTIFIER=foo</entry></row></tbody></tgroup></table><table><title>ipv6 setting</title><tgroup cols="4"><thead><row><entry>Property</entry><entry>Ifcfg-rh Variable</entry><entry>Default</entry><entry>Description</entry></row></thead><tbody><row><entry align="left">method</entry><entry align="left">IPV6INIT, IPV6FORWARDING, IPV6_AUTOCONF, DHCPV6C, IPV6_DISABLED</entry><entry align="left">IPV6INIT=yes; IPV6FORWARDING=no; IPV6_AUTOCONF=!IPV6FORWARDING, DHCPV6=no</entry><entry align="left">Method used for IPv6 protocol configuration. ignore ~ IPV6INIT=no; auto ~ IPV6_AUTOCONF=yes; dhcp ~ IPV6_AUTOCONF=no and DHCPV6C=yes; disabled ~ IPV6_DISABLED=yes</entry></row><row><entry align="left">dns</entry><entry align="left">DNS1, DNS2, ...</entry><entry align="left"/><entry align="left">List of DNS servers. NetworkManager uses the variables both for IPv4 and IPv6.</entry></row><row><entry align="left">dns-search</entry><entry align="left">IPV6_DOMAIN<emphasis>(+)</emphasis></entry><entry align="left"/><entry align="left">List of DNS search domains.</entry></row><row><entry align="left">addresses</entry><entry align="left">IPV6ADDR, IPV6ADDR_SECONDARIES</entry><entry align="left"/><entry align="left">List of static IP addresses.<emphasis role="bold">
+Example: </emphasis>DHCP_VENDOR_CLASS_IDENTIFIER=foo</entry></row><row><entry align="left">link-local</entry><entry align="left">IPV4_LINK_LOCAL<emphasis>(+)</emphasis></entry><entry align="left"/><entry align="left">Configure link-local IP address in interaction with method<emphasis role="bold">
+
+Example: </emphasis>IPV4_LINK_LOCAL=auto</entry></row></tbody></tgroup></table><table><title>ipv6 setting</title><tgroup cols="4"><thead><row><entry>Property</entry><entry>Ifcfg-rh Variable</entry><entry>Default</entry><entry>Description</entry></row></thead><tbody><row><entry align="left">method</entry><entry align="left">IPV6INIT, IPV6FORWARDING, IPV6_AUTOCONF, DHCPV6C, IPV6_DISABLED</entry><entry align="left">IPV6INIT=yes; IPV6FORWARDING=no; IPV6_AUTOCONF=!IPV6FORWARDING, DHCPV6=no</entry><entry align="left">Method used for IPv6 protocol configuration. ignore ~ IPV6INIT=no; auto ~ IPV6_AUTOCONF=yes; dhcp ~ IPV6_AUTOCONF=no and DHCPV6C=yes; disabled ~ IPV6_DISABLED=yes</entry></row><row><entry align="left">dns</entry><entry align="left">DNS1, DNS2, ...</entry><entry align="left"/><entry align="left">List of DNS servers. NetworkManager uses the variables both for IPv4 and IPv6.</entry></row><row><entry align="left">dns-search</entry><entry align="left">IPV6_DOMAIN<emphasis>(+)</emphasis></entry><entry align="left"/><entry align="left">List of DNS search domains.</entry></row><row><entry align="left">addresses</entry><entry align="left">IPV6ADDR, IPV6ADDR_SECONDARIES</entry><entry align="left"/><entry align="left">List of static IP addresses.<emphasis role="bold">
 
 Example: </emphasis>IPV6ADDR=ab12:9876::1 IPV6ADDR_SECONDARIES="ab12:9876::2 ab12:9876::3"</entry></row><row><entry align="left">gateway</entry><entry align="left">IPV6_DEFAULTGW</entry><entry align="left"/><entry align="left">Gateway IP address.<emphasis role="bold">
 
@@ -399,11 +407,11 @@ Example: </emphasis>IPV6_RES_OPTIONS=ndots:2 timeout:3</entry></row><row><entry 
 
 Example: </emphasis>IPV6_PRIVACY=rfc3041 IPV6_PRIVACY_PREFER_PUBLIC_IP=yes<emphasis role="bold">
 
-Allowed values: </emphasis>IPV6_PRIVACY: no, yes (rfc3041 or rfc4941); IPV6_PRIVACY_PREFER_PUBLIC_IP: yes, no</entry></row><row><entry align="left">addr-gen-mode</entry><entry align="left">IPV6_ADDR_GEN_MODE</entry><entry align="left">eui64</entry><entry align="left">Configure IPv6 Stable Privacy addressing for SLAAC (RFC7217).<emphasis role="bold">
+Allowed values: </emphasis>IPV6_PRIVACY: no, yes (rfc3041 or rfc4941); IPV6_PRIVACY_PREFER_PUBLIC_IP: yes, no</entry></row><row><entry align="left">addr-gen-mode</entry><entry align="left">IPV6_ADDR_GEN_MODE</entry><entry align="left">"default-or-eui64"</entry><entry align="left">Configure IPv6 Stable Privacy addressing for SLAAC (RFC7217).<emphasis role="bold">
 
 Example: </emphasis>IPV6_ADDR_GEN_MODE=stable-privacy<emphasis role="bold">
 
-Allowed values: </emphasis>IPV6_ADDR_GEN_MODE: eui64, stable-privacy</entry></row><row><entry align="left">token</entry><entry align="left">IPV6_TOKEN</entry><entry align="left"/><entry align="left">The IPv6 tokenized interface identifier token<emphasis role="bold">
+Allowed values: </emphasis>IPV6_ADDR_GEN_MODE: default, default-or-eui64, eui64, stable-privacy</entry></row><row><entry align="left">token</entry><entry align="left">IPV6_TOKEN</entry><entry align="left"/><entry align="left">The IPv6 tokenized interface identifier token<emphasis role="bold">
 
 Example: </emphasis>IPV6_TOKEN=::53</entry></row><row><entry align="left">dhcp-timeout</entry><entry align="left">IPV6_RA_TIMEOUT<emphasis>(+)</emphasis></entry><entry align="left"/><entry align="left">A timeout for waiting Router Advertisements in seconds.<emphasis role="bold">
 
@@ -498,7 +506,7 @@ Allowed values: </emphasis>default, never, always</entry></row><row><entry align
 Allowed values: </emphasis>"yes", "no"</entry></row></tbody></tgroup></table><table><title>wpan setting</title><tgroup cols="4"><thead><row><entry>Property</entry><entry>Ifcfg-rh Variable</entry><entry>Default</entry><entry>Description</entry></row></thead><tbody/></tgroup></table><para>The following settings are not supported by <emphasis>ifcfg-rh</emphasis> plugin:</para><para>802-11-olpc-mesh, adsl, bluetooth, cdma, dummy, generic, gsm, ip-tunnel, macsec, macvlan, ppp, pppoe, serial, tun, vpn, vxlan, wimax</para><refsect2 id="secrets-flags"><title>Secret flags</title><para>
             Each secret property in a NetworkManager setting has an associated
             <emphasis>flags</emphasis> property that describes how to handle that secret.
-            In the <emphasis>fcfg-rh</emphasis> plugin variables for secret flags have a
+            In the <emphasis>ifcfg-rh</emphasis> plugin variables for secret flags have a
             <emphasis>_FLAGS</emphasis> suffix. The variables contain one or more of the
             following values (space separated). Missing (or empty) *_FLAGS variable means
             that the password is owned by NetworkManager.

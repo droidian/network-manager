@@ -2,12 +2,12 @@
 .\"     Title: NetworkManager.conf
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 06/16/2022
+.\"      Date: 08/15/2022
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.38.2
+.\"    Source: NetworkManager 1.39.90
 .\"  Language: English
 .\"
-.TH "NETWORKMANAGER\&.CONF" "5" "" "NetworkManager 1\&.38\&.2" "Configuration"
+.TH "NETWORKMANAGER\&.CONF" "5" "" "NetworkManager 1\&.39\&.90" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -260,18 +260,13 @@ to point to the local nameserver\&. It is possible to pass custom options to the
 .sp
 systemd\-resolved: NetworkManager will push the DNS configuration to systemd\-resolved
 .sp
-unbound: NetworkManager will talk to unbound and dnssec\-triggerd, using "Conditional Forwarding" with DNSSEC support\&.
-/etc/resolv\&.conf
-will be managed by dnssec\-trigger daemon\&. This option is deprecated\&. Note that dnssec\-trigger ships a NetworkManager dispatcher script so this DNS plugin is not necessary\&.
-.sp
 none: NetworkManager will not modify resolv\&.conf\&. This implies
 rc\-manager\ \&unmanaged
 .sp
 Note that the plugins
-dnsmasq,
-systemd\-resolved
+dnsmasq
 and
-unbound
+systemd\-resolved
 are caching local nameservers\&. Hence, when NetworkManager writes
 /run/NetworkManager/resolv\&.conf
 and
@@ -491,6 +486,26 @@ and
 domains=ALL
 to collect everything\&.
 .PP
+The recommended way for enabling logging is with a file
+/etc/NetworkManager/conf\&.d/95\-logging\&.conf
+that contains
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+[logging]
+level=TRACE
+domains=ALL
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+and restart the daemon with
+\fBsystemctl restart NetworkManager\fR\&. Then reproduce the problem\&. You can find the logs in syslog (for example
+\fBjournalctl\fR)\&.
+.PP
 Any settings here are overridden by the
 \fB\-\-log\-level\fR
 and
@@ -498,7 +513,14 @@ and
 command\-line options\&. Logging can also be reconfigured at runtime with
 \fBnmcli general logging level "$LEVEL" domains "$DOMAINS"\fR\&. However, often it is interesting to get a complete log from the start\&. Especially, when debugging an issue, enable debug logging in NetworkManager\&.conf and restart the service to enable verbose logging early on\&.
 .PP
-NetworkManager\*(Aqs logging aims not to contain private sensitive data and you should be fine sharing the debug logs\&. Still, there will be IP addresses and your network setup, if you consider that private then review the log before sharing\&. Do not mangle the logfile in a way that distorts the meaning too much\&.
+By setting
+\fBnm\&.debug\fR
+on the kernel command line (either from
+/run/NetworkManager/proc\-cmdline
+or
+/proc/cmdline), debug logging is enabled\&. This overrides both the command\-line options and the settings from NetworkManager\&.conf\&.
+.PP
+NetworkManager\*(Aqs logging aims not to contain private sensitive data and you should be fine sharing the debug logs\&. Still, there will be IP addresses and your network setup, if you consider that private then review the log before sharing\&. However, try not to mangle the logfile in a way that distorts the meaning too much\&.
 .PP
 NetworkManager uses syslog or systemd\-journald, depending on configuration\&. In any case, debug logs are verbose and might be rate limited or filtered by the logging daemon\&. For systemd\-journald, see
 RateLimitIntervalSec
@@ -786,6 +808,12 @@ If unspecified, the ultimate default values depends on the DNS plugin\&. With sy
 If unspecified, the ultimate default values depends on the DNS plugin\&. With systemd\-resolved the default currently is "no" (0) and for all other plugins also "no" (0)\&.
 .RE
 .PP
+\fIconnection\&.mptcp\-flags\fR
+.RS 4
+If unspecified, the fallback is either 0 ("disabled") or 0x22 ("enabled\-on\-global\-iface,subflow"), depending on
+/proc/sys/net/mptcp/enabled\&.
+.RE
+.PP
 \fIconnection\&.dns\-over\-tls\fR
 .RS 4
 If unspecified, the ultimate default values depends on the DNS plugin\&. With systemd\-resolved the default currently is global setting and for all other plugins "no" (0)\&.
@@ -880,6 +908,11 @@ If unspecified or zero, use 50 for VPN profiles and 100 for other profiles\&.
 .RS 4
 .RE
 .PP
+\fIipv4\&.link\-local\fR
+.RS 4
+If left unspecified, fallback to "auto" which makes it dependent on "ipv4\&.method" setting\&.
+.RE
+.PP
 \fIipv4\&.route\-metric\fR
 .RS 4
 .RE
@@ -887,6 +920,11 @@ If unspecified or zero, use 50 for VPN profiles and 100 for other profiles\&.
 \fIipv4\&.route\-table\fR
 .RS 4
 If left unspecified, routes are only added to the main table\&. Note that this is different from explicitly selecting the main table 254, because of how NetworkManager removes extraneous routes from the tables\&.
+.RE
+.PP
+\fIipv6\&.addr\-gen\-mode\fR
+.RS 4
+If the per\-profile setting is either "default" or "default\-or\-eui64", the global default is used\&. If the default is unspecified, the fallback value is either "stable\-privacy" or "eui64", depending on whether the per\-profile setting is "default" or "default\-or\-eui64, respectively\&.
 .RE
 .PP
 \fIipv6\&.ra\-timeout\fR

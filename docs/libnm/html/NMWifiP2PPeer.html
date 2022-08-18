@@ -8,14 +8,16 @@
 <link rel="up" href="ch04.html" title="Device and Runtime Configuration API Reference">
 <link rel="prev" href="NMAccessPoint.html" title="NMAccessPoint">
 <link rel="next" href="NMWimaxNsp.html" title="NMWimaxNsp">
-<meta name="generator" content="GTK-Doc V1.33.0 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
 <table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
 <td width="100%" align="left" class="shortcuts">
 <a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
-                  <a href="#NMWifiP2PPeer.description" class="shortcut">Description</a></span>
+                  <a href="#NMWifiP2PPeer.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
+                  <a href="#NMWifiP2PPeer.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_properties">  <span class="dim">|</span> 
+                  <a href="#NMWifiP2PPeer.properties" class="shortcut">Properties</a></span>
 </td>
 <td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
 <td><a accesskey="u" href="ch04.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
@@ -133,6 +135,75 @@
 </table></div>
 </div>
 <div class="refsect1">
+<a name="NMWifiP2PPeer.properties"></a><h2>Properties</h2>
+<div class="informaltable"><table class="informaltable" border="0">
+<colgroup>
+<col width="150px" class="properties_type">
+<col width="300px" class="properties_name">
+<col width="200px" class="properties_flags">
+</colgroup>
+<tbody>
+<tr>
+<td class="property_type"><a class="link" href="libnm-nm-dbus-interface.html#NM80211ApFlags" title="enum NM80211ApFlags"><span class="type">NM80211ApFlags</span></a></td>
+<td class="property_name"><a class="link" href="NMWifiP2PPeer.html#NMWifiP2PPeer--flags" title="The “flags” property">flags</a></td>
+<td class="property_flags">Read</td>
+</tr>
+<tr>
+<td class="property_type">
+<span class="type">char</span> *</td>
+<td class="property_name"><a class="link" href="NMWifiP2PPeer.html#NMWifiP2PPeer--hw-address" title="The “hw-address” property">hw-address</a></td>
+<td class="property_flags">Read</td>
+</tr>
+<tr>
+<td class="property_type"><span class="type">int</span></td>
+<td class="property_name"><a class="link" href="NMWifiP2PPeer.html#NMWifiP2PPeer--last-seen" title="The “last-seen” property">last-seen</a></td>
+<td class="property_flags">Read</td>
+</tr>
+<tr>
+<td class="property_type">
+<span class="type">char</span> *</td>
+<td class="property_name"><a class="link" href="NMWifiP2PPeer.html#NMWifiP2PPeer--manufacturer" title="The “manufacturer” property">manufacturer</a></td>
+<td class="property_flags">Read</td>
+</tr>
+<tr>
+<td class="property_type">
+<span class="type">char</span> *</td>
+<td class="property_name"><a class="link" href="NMWifiP2PPeer.html#NMWifiP2PPeer--model" title="The “model” property">model</a></td>
+<td class="property_flags">Read</td>
+</tr>
+<tr>
+<td class="property_type">
+<span class="type">char</span> *</td>
+<td class="property_name"><a class="link" href="NMWifiP2PPeer.html#NMWifiP2PPeer--model-number" title="The “model-number” property">model-number</a></td>
+<td class="property_flags">Read</td>
+</tr>
+<tr>
+<td class="property_type">
+<span class="type">char</span> *</td>
+<td class="property_name"><a class="link" href="NMWifiP2PPeer.html#NMWifiP2PPeer--name" title="The “name” property">name</a></td>
+<td class="property_flags">Read</td>
+</tr>
+<tr>
+<td class="property_type">
+<span class="type">char</span> *</td>
+<td class="property_name"><a class="link" href="NMWifiP2PPeer.html#NMWifiP2PPeer--serial" title="The “serial” property">serial</a></td>
+<td class="property_flags">Read</td>
+</tr>
+<tr>
+<td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guchar"><span class="type">guchar</span></a></td>
+<td class="property_name"><a class="link" href="NMWifiP2PPeer.html#NMWifiP2PPeer--strength" title="The “strength” property">strength</a></td>
+<td class="property_flags">Read</td>
+</tr>
+<tr>
+<td class="property_type">
+<a href="https://developer.gnome.org/glib/unstable/glib-Byte-Arrays.html#GBytes"><span class="type">GBytes</span></a> *</td>
+<td class="property_name"><a class="link" href="NMWifiP2PPeer.html#NMWifiP2PPeer--wfd-ies" title="The “wfd-ies” property">wfd-ies</a></td>
+<td class="property_flags">Read</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
 <a name="NMWifiP2PPeer.other"></a><h2>Types and Values</h2>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
@@ -180,8 +251,19 @@
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMWifiP2PPeer.html#NM-WIFI-P2P-PEER-LAST-SEEN:CAPS" title="NM_WIFI_P2P_PEER_LAST_SEEN">NM_WIFI_P2P_PEER_LAST_SEEN</a></td>
 </tr>
+<tr>
+<td class="datatype_keyword"> </td>
+<td class="function_name"><a class="link" href="NMWifiP2PPeer.html#NMWifiP2PPeer-struct" title="NMWifiP2PPeer">NMWifiP2PPeer</a></td>
+</tr>
 </tbody>
 </table></div>
+</div>
+<div class="refsect1">
+<a name="NMWifiP2PPeer.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="screen">    <a href="https://developer.gnome.org/gobject/unstable/gobject-The-Base-Object-Type.html#GObject-struct">GObject</a>
+    <span class="lineart">╰──</span> <a class="link" href="NMObject.html" title="NMObject">NMObject</a>
+        <span class="lineart">╰──</span> NMWifiP2PPeer
+</pre>
 </div>
 <div class="refsect1">
 <a name="NMWifiP2PPeer.description"></a><h2>Description</h2>
@@ -373,7 +455,7 @@ nm_wifi_p2p_peer_get_wfd_ies (<em class="parameter"><code><a class="link" href="
 <div class="refsect3">
 <a name="nm-wifi-p2p-peer-get-wfd-ies.returns"></a><h4>Returns</h4>
 <p>the <a href="https://developer.gnome.org/glib/unstable/glib-Byte-Arrays.html#GBytes"><span class="type">GBytes</span></a> containing the WFD IEs, or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.16</p>
 </div>
@@ -503,7 +585,7 @@ filter. </p></td>
 <span class="type">NMConnections</span> that could be activated with the given <em class="parameter"><code>peer</code></em>
 . The array should
 be freed with <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#g-ptr-array-unref"><code class="function">g_ptr_array_unref()</code></a> when it is no longer required. </p>
-<p><span class="annotation">[<acronym title="Free data container after the code is done."><span class="acronym">transfer container</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMConnection]</span></p>
+<p><span class="annotation">[<acronym title="The caller owns the data container, but not the data inside it."><span class="acronym">transfer container</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMConnection]</span></p>
 </div>
 <p class="since">Since: 1.16</p>
 </div>
@@ -610,9 +692,116 @@ against</p></td>
 <pre class="programlisting">#define NM_WIFI_P2P_PEER_LAST_SEEN    "last-seen"
 </pre>
 </div>
+<hr>
+<div class="refsect2">
+<a name="NMWifiP2PPeer-struct"></a><h3>NMWifiP2PPeer</h3>
+<pre class="programlisting">typedef struct _NMWifiP2PPeer NMWifiP2PPeer;</pre>
+</div>
+</div>
+<div class="refsect1">
+<a name="NMWifiP2PPeer.property-details"></a><h2>Property Details</h2>
+<div class="refsect2">
+<a name="NMWifiP2PPeer--flags"></a><h3>The <code class="literal">“flags”</code> property</h3>
+<pre class="programlisting">  “flags”                    <a class="link" href="libnm-nm-dbus-interface.html#NM80211ApFlags" title="enum NM80211ApFlags"><span class="type">NM80211ApFlags</span></a></pre>
+<p>The flags of the P2P peer.</p>
+<p>Owner: NMWifiP2PPeer</p>
+<p>Flags: Read</p>
+<p class="since">Since: 1.16</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMWifiP2PPeer--hw-address"></a><h3>The <code class="literal">“hw-address”</code> property</h3>
+<pre class="programlisting">  “hw-address”               <span class="type">char</span> *</pre>
+<p>The hardware address of the P2P peer.</p>
+<p>Owner: NMWifiP2PPeer</p>
+<p>Flags: Read</p>
+<p>Default value: NULL</p>
+<p class="since">Since: 1.16</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMWifiP2PPeer--last-seen"></a><h3>The <code class="literal">“last-seen”</code> property</h3>
+<pre class="programlisting">  “last-seen”                <span class="type">int</span></pre>
+<p>The timestamp (in CLOCK_BOOTTIME seconds) for the last time the
+P2P peer was found.  A value of -1 means the peer has never been seen.</p>
+<p>Owner: NMWifiP2PPeer</p>
+<p>Flags: Read</p>
+<p>Allowed values: &gt;= -1</p>
+<p>Default value: -1</p>
+<p class="since">Since: 1.16</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMWifiP2PPeer--manufacturer"></a><h3>The <code class="literal">“manufacturer”</code> property</h3>
+<pre class="programlisting">  “manufacturer”             <span class="type">char</span> *</pre>
+<p>The manufacturer of the P2P peer.</p>
+<p>Owner: NMWifiP2PPeer</p>
+<p>Flags: Read</p>
+<p>Default value: NULL</p>
+<p class="since">Since: 1.16</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMWifiP2PPeer--model"></a><h3>The <code class="literal">“model”</code> property</h3>
+<pre class="programlisting">  “model”                    <span class="type">char</span> *</pre>
+<p>The model of the P2P peer.</p>
+<p>Owner: NMWifiP2PPeer</p>
+<p>Flags: Read</p>
+<p>Default value: NULL</p>
+<p class="since">Since: 1.16</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMWifiP2PPeer--model-number"></a><h3>The <code class="literal">“model-number”</code> property</h3>
+<pre class="programlisting">  “model-number”             <span class="type">char</span> *</pre>
+<p>The hardware address of the P2P peer.</p>
+<p>Owner: NMWifiP2PPeer</p>
+<p>Flags: Read</p>
+<p>Default value: NULL</p>
+<p class="since">Since: 1.16</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMWifiP2PPeer--name"></a><h3>The <code class="literal">“name”</code> property</h3>
+<pre class="programlisting">  “name”                     <span class="type">char</span> *</pre>
+<p>The name of the P2P peer.</p>
+<p>Owner: NMWifiP2PPeer</p>
+<p>Flags: Read</p>
+<p>Default value: NULL</p>
+<p class="since">Since: 1.16</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMWifiP2PPeer--serial"></a><h3>The <code class="literal">“serial”</code> property</h3>
+<pre class="programlisting">  “serial”                   <span class="type">char</span> *</pre>
+<p>The serial number of the P2P peer.</p>
+<p>Owner: NMWifiP2PPeer</p>
+<p>Flags: Read</p>
+<p>Default value: NULL</p>
+<p class="since">Since: 1.16</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMWifiP2PPeer--strength"></a><h3>The <code class="literal">“strength”</code> property</h3>
+<pre class="programlisting">  “strength”                 <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guchar"><span class="type">guchar</span></a></pre>
+<p>The current signal strength of the P2P peer.</p>
+<p>Owner: NMWifiP2PPeer</p>
+<p>Flags: Read</p>
+<p>Default value: 0</p>
+<p class="since">Since: 1.16</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMWifiP2PPeer--wfd-ies"></a><h3>The <code class="literal">“wfd-ies”</code> property</h3>
+<pre class="programlisting">  “wfd-ies”                  <a href="https://developer.gnome.org/glib/unstable/glib-Byte-Arrays.html#GBytes"><span class="type">GBytes</span></a> *</pre>
+<p>The WFD information elements of the P2P peer.</p>
+<p>Owner: NMWifiP2PPeer</p>
+<p>Flags: Read</p>
+<p class="since">Since: 1.16</p>
+</div>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.33.0</div>
+<hr>Generated by GTK-Doc V1.33.1</div>
 </body>
 </html>

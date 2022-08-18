@@ -178,7 +178,8 @@ ovsdb_device_removed(NMOvsdb         *ovsdb,
     device_state = nm_device_get_state(device);
 
     if (device_type == NM_DEVICE_TYPE_OVS_INTERFACE && nm_device_get_act_request(device)
-        && device_state < NM_DEVICE_STATE_DEACTIVATING) {
+        && (device_state > NM_DEVICE_STATE_DISCONNECTED
+            && device_state < NM_DEVICE_STATE_DEACTIVATING)) {
         nm_device_state_changed(device,
                                 NM_DEVICE_STATE_DEACTIVATING,
                                 NM_DEVICE_STATE_REASON_REMOVED);
@@ -244,7 +245,11 @@ ovsdb_interface_failed(NMOvsdb         *ovsdb,
             TRUE);
     }
 
-    nm_device_state_changed(device, NM_DEVICE_STATE_FAILED, NM_DEVICE_STATE_REASON_OVSDB_FAILED);
+    if (nm_device_is_activating(device)) {
+        nm_device_state_changed(device,
+                                NM_DEVICE_STATE_FAILED,
+                                NM_DEVICE_STATE_REASON_OVSDB_FAILED);
+    }
 }
 
 static void

@@ -14,14 +14,9 @@ install_systemdunitdir="${11}"
 
 [ -n "$DESTDIR" ] && DESTDIR="${DESTDIR%%/}/"
 
-if [ -f "${DESTDIR}${nm_datadir}/bash-completion/completions/nmcli-completion" ]; then
-    mv "${DESTDIR}${nm_datadir}/bash-completion/completions/nmcli-completion" \
-       "${DESTDIR}${nm_datadir}/bash-completion/completions/nmcli"
-fi
-
 if [ -x "${DESTDIR}${nm_bindir}/nmtui" ]; then
     for alias in nmtui-connect nmtui-edit nmtui-hostname; do
-        ln -sf nmtui "${DESTDIR}${nm_bindir}/$alias"
+        ln -sfn nmtui "${DESTDIR}${nm_bindir}/$alias"
     done
 fi
 
@@ -48,11 +43,11 @@ chmod 0700 "${DESTDIR}${nm_pkgstatedir}"
 if [ "$enable_docs" = 1 ]; then
 
     for alias in nmtui-connect nmtui-edit nmtui-hostname; do
-        ln -f "${DESTDIR}${nm_mandir}/man1/nmtui.1" "${DESTDIR}${nm_mandir}/man1/${alias}.1"
+        ln -fn "${DESTDIR}${nm_mandir}/man1/nmtui.1" "${DESTDIR}${nm_mandir}/man1/${alias}.1"
     done
 
-    ln -f "${DESTDIR}${nm_mandir}/man5/NetworkManager.conf.5" "${DESTDIR}${nm_mandir}/man5/nm-system-settings.conf.5"
-    ln -f "${DESTDIR}${nm_mandir}/man5/nm-settings-nmcli.5" "${DESTDIR}${nm_mandir}/man5/nm-settings.5"
+    ln -fn "${DESTDIR}${nm_mandir}/man5/NetworkManager.conf.5" "${DESTDIR}${nm_mandir}/man5/nm-system-settings.conf.5"
+    ln -fn "${DESTDIR}${nm_mandir}/man5/nm-settings-nmcli.5" "${DESTDIR}${nm_mandir}/man5/nm-settings.5"
 fi
 
 if [ "$enable_ifcfg_rh" = 1 ]; then
@@ -60,6 +55,6 @@ if [ "$enable_ifcfg_rh" = 1 ]; then
 fi
 
 if [ "$enable_nm_cloud_setup" = 1 -a "$install_systemdunitdir" = 1 ]; then
-    ln -s 'no-wait.d/90-nm-cloud-setup.sh' "${DESTDIR}${nm_pkglibdir}/dispatcher.d/90-nm-cloud-setup.sh"
+    ln -sfn 'no-wait.d/90-nm-cloud-setup.sh' "${DESTDIR}${nm_pkglibdir}/dispatcher.d/90-nm-cloud-setup.sh"
 fi
 

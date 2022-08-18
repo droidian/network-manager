@@ -1,7 +1,63 @@
-===============================================
-NetworkManager-1.38.2
-Overview of changes since NetworkManager-1.38.0
-===============================================
+=============================================
+NetworkManager-1.40
+Overview of changes since NetworkManager-1.38
+=============================================
+
+This is a snapshot of NetworkManager development. The API is
+subject to change and not guaranteed to be compatible with
+the later release.
+USE AT YOUR OWN RISK.  NOT RECOMMENDED FOR PRODUCTION USE!
+
+* Drop unused, internal systemd DHCPv4 client. This is long
+  replaced by nettools' n-dhcp4 implementation.
+* The nmcli command now supports --offline argument with "add" and
+  "modify" commands, allowing operation on keyfile-formatted connection
+  profiles without the service running (e.g. during system provisioning).
+* The device state file /run/NetworkManager/devices/$ifindex now has
+  new sections [dhcp4] and [dhcp6] containing the DHCP options for the
+  current lease.
+* Add multipath TCP (MPTCP) support. NetworkManager can now configure IP addresses
+  as MPTCP endpoints. This is configurable via the "connection.mptcp-flags"
+  property. The default setting is such that MPTCP handling is automatically
+  enabled if the kernel sysctl "/proc/sys/net/mptcp/enabled" indicates so.
+  NetworkManager does not enable the MPTCP sysctl or adjust the limits (ip mptcp limits).
+  The administrator or the distribution is supposed to configure the desired system
+  settings.
+  Note that strict reverse path filtering (rp_filter) breaks many MPTCP use cases.
+  With MPTCP handling enabled, NetworkManager will relax a strict (1) rp_filter
+  to loose (2). Otherwise rp_filter is untouched by NetworkManager.
+* NetworkManager expanded log messages for invalid DHCP options.
+* Fix the requirement of hardware address for DHCPv6, by dropping it.
+* Increase the PMK lifetime for Wi-Fi connections using WPA-EAP.
+* "nmcli networking off" now waits for deactivations to complete.
+* Improve the appearance of nm-settings-nmcli man page by preserving
+  paragraphs.
+* Support enabling ipv4ll alongside DHCPv4 and static addressing.
+* Support configuring "ipv6.mtu".
+* Honor "nm.debug" kernel command line to enable debug logging of
+  NetworkManager.
+* NetworkManager reads the kernel command line "/proc/cmdline" for several
+  purposes, including "nm.debug" for enabling debugging and the
+  "match.kernel-command-line" setting in the profile. NetworkManager now
+  first looks now for "/run/NetworkManager/proc-cmdline", which allows to
+  overwrite the command line.
+* Improve the reapply of non-bridge properties.
+* Honor adding a Bluetooth NAP connection with all available methods.
+* Improve carrier detection.
+* Several internal improvements.
+
+The following changes were backported to 1.38.x releases between 1.38.0
+and 1.38.4 are also present in NetworkManager-1.40:
+
+- 1.38.4
+
+* Wi-Fi: improvements for OWE networks.
+* Support EC private keys
+* Fix nmcli tab completion support for embedded quote characters.
+* Fix reapply for lldp/mdns/llmnr/dns-over-tls settings.
+* Various bugfixes.
+
+- 1.38.2
 
 * Fix race condition with pppd that caused failures when activating
   PPPoE connections.

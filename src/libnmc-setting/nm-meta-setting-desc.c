@@ -30,6 +30,8 @@ static char *secret_flags_to_string(guint32 flags, NMMetaAccessorGetType get_typ
     (NM_SETTING_SECRET_FLAG_NONE | NM_SETTING_SECRET_FLAG_AGENT_OWNED \
      | NM_SETTING_SECRET_FLAG_NOT_SAVED | NM_SETTING_SECRET_FLAG_NOT_REQUIRED)
 
+const NMUtilsEnumValueInfo GOBJECT_ENUM_VALUE_INFOS_GET_FROM_SETTER[1];
+
 /*****************************************************************************/
 
 static GType
@@ -259,11 +261,11 @@ _parse_ip_address(int family, const char *address, GError **error)
     plen = strchr(ip_str, '/');
     if (plen) {
         *plen++ = '\0';
-        if ((prefix = _nm_utils_ascii_str_to_int64(plen, 10, 1, MAX_PREFIX, -1)) == -1) {
+        if ((prefix = _nm_utils_ascii_str_to_int64(plen, 10, 0, MAX_PREFIX, -1)) == -1) {
             g_set_error(error,
                         NM_UTILS_ERROR,
                         NM_UTILS_ERROR_INVALID_ARGUMENT,
-                        _("invalid prefix '%s'; <1-%d> allowed"),
+                        _("invalid prefix '%s'; <0-%d> allowed"),
                         plen,
                         MAX_PREFIX);
             return NULL;
@@ -329,7 +331,7 @@ _parse_ip_route(int family, const char *str, GError **error)
             g_set_error(error,
                         NM_UTILS_ERROR,
                         NM_UTILS_ERROR_INVALID_ARGUMENT,
-                        _("invalid prefix '%s'; <1-%d> allowed"),
+                        _("invalid prefix '%s'; <0-%d> allowed"),
                         plen,
                         MAX_PREFIX);
             return NULL;
@@ -1082,7 +1084,7 @@ _get_fcn_gobject_enum(ARGS_GET_FCN)
     GType                                gtype            = 0;
     nm_auto_unref_gtypeclass GTypeClass *gtype_class      = NULL;
     nm_auto_unref_gtypeclass GTypeClass *gtype_prop_class = NULL;
-    const struct _NMUtilsEnumValueInfo  *value_infos      = NULL;
+    const NMUtilsEnumValueInfo          *value_infos      = NULL;
     gboolean                             has_gtype        = FALSE;
     nm_auto_unset_gvalue GValue          gval             = G_VALUE_INIT;
     gint64                               v;
@@ -1198,11 +1200,12 @@ _get_fcn_gobject_enum(ARGS_GET_FCN)
         RETURN_STR_TO_FREE(g_steal_pointer(&s));
     }
 
-    /* the gobject_enum.value_infos are currently ignored for the getter. They
-     * only declare additional aliases for the setter. */
-
-    if (property_info->property_typ_data)
+    if (property_info->property_typ_data) {
         value_infos = property_info->property_typ_data->subtype.gobject_enum.value_infos_get;
+        if (value_infos == GOBJECT_ENUM_VALUE_INFOS_GET_FROM_SETTER)
+            value_infos = property_info->property_typ_data->subtype.gobject_enum.value_infos;
+    }
+
     s = _nm_utils_enum_to_str_full(gtype, (int) v, ", ", value_infos);
 
     if (!format_numeric)
@@ -1676,12 +1679,13 @@ fail:
 static const char *const *
 _values_fcn_gobject_enum(ARGS_VALUES_FCN)
 {
-    GType    gtype      = 0;
-    gboolean has_gtype  = FALSE;
-    gboolean has_minmax = FALSE;
-    int      min        = G_MININT;
-    int      max        = G_MAXINT;
-    char   **v;
+    const NMUtilsEnumValueInfo *value_infos = NULL;
+    GType                       gtype       = 0;
+    gboolean                    has_gtype   = FALSE;
+    gboolean                    has_minmax  = FALSE;
+    int                         min         = G_MININT;
+    int                         max         = G_MAXINT;
+    char                      **v;
 
     if (property_info->property_typ_data) {
         if (property_info->property_typ_data->subtype.gobject_enum.min
@@ -1711,10 +1715,29 @@ _values_fcn_gobject_enum(ARGS_VALUES_FCN)
         }
     }
 
-    /* the gobject_enum.value_infos are currently ignored for the list of
-     * values. They only declare additional (hidden) aliases for the setter. */
+    /* There is a problem. For flags, we don't expand to all the values that we could
+     * complete for. We only expand to a single flag "FLAG1", but if the property
+     * is already set to "FLAG2", we should also expand to "FLAG1,FLAG2". */
 
     v = nm_strv_make_deep_copied(nm_utils_enum_get_values(gtype, min, max));
+
+    if (property_info->property_typ_data
+        && (value_infos = property_info->property_typ_data->subtype.gobject_enum.value_infos)) {
+        const guint V_N = NM_PTRARRAY_LEN(v);
+        guint       n;
+        guint       i;
+
+        nm_assert(value_infos[0].nick);
+
+        for (n = 0; value_infos[n].nick;)
+            n++;
+
+        v = g_realloc(v, (V_N + n + 1) * sizeof(char *));
+        for (i = 0; i < n; i++)
+            v[V_N + i] = g_strdup(value_infos[i].nick);
+        v[V_N + n] = NULL;
+    }
+
     return (const char *const *) (*out_to_free = v);
 }
 
@@ -4456,7 +4479,8 @@ static const NMMetaNestedPropertyInfo meta_nested_property_infos_bond[] = {
             .property_name =            NM_SETTING_BOND_OPTIONS,
             .property_alias =           "primary",
             .inf_flags =                NM_META_PROPERTY_INF_FLAG_DONT_ASK,
-            .prompt =                   N_("Bonding primary interface [none]"),
+            .prompt =                   N_("Bonding primary interface"),
+            .def_hint =                 "[none]",
         )
     },
     {
@@ -4472,7 +4496,8 @@ static const NMMetaNestedPropertyInfo meta_nested_property_infos_bond[] = {
             .property_name =            NM_SETTING_BOND_OPTIONS,
             .property_alias =           "miimon",
             .inf_flags =                NM_META_PROPERTY_INF_FLAG_DONT_ASK,
-            .prompt =                   N_("Bonding miimon [100]"),
+            .prompt =                   N_("Bonding miimon"),
+            .def_hint =                 "[100]",
         )
     },
     {
@@ -4480,7 +4505,8 @@ static const NMMetaNestedPropertyInfo meta_nested_property_infos_bond[] = {
             .property_name =            NM_SETTING_BOND_OPTIONS,
             .property_alias =           "downdelay",
             .inf_flags =                NM_META_PROPERTY_INF_FLAG_DONT_ASK,
-            .prompt =                   N_("Bonding downdelay [0]"),
+            .prompt =                   N_("Bonding downdelay"),
+            .def_hint =                 "[0]",
         )
     },
     {
@@ -4488,7 +4514,8 @@ static const NMMetaNestedPropertyInfo meta_nested_property_infos_bond[] = {
             .property_name =            NM_SETTING_BOND_OPTIONS,
             .property_alias =           "updelay",
             .inf_flags =                NM_META_PROPERTY_INF_FLAG_DONT_ASK,
-            .prompt =                   N_("Bonding updelay [0]"),
+            .prompt =                   N_("Bonding updelay"),
+            .def_hint =                 "[0]",
         )
     },
     {
@@ -4496,7 +4523,8 @@ static const NMMetaNestedPropertyInfo meta_nested_property_infos_bond[] = {
             .property_name =            NM_SETTING_BOND_OPTIONS,
             .property_alias =           "arp-interval",
             .inf_flags =                NM_META_PROPERTY_INF_FLAG_DONT_ASK,
-            .prompt =                   N_("Bonding arp-interval [0]"),
+            .prompt =                   N_("Bonding arp-interval"),
+            .def_hint =                 "[0]",
         )
     },
     {
@@ -4504,7 +4532,8 @@ static const NMMetaNestedPropertyInfo meta_nested_property_infos_bond[] = {
             .property_name =            NM_SETTING_BOND_OPTIONS,
             .property_alias =           "arp-ip-target",
             .inf_flags =                NM_META_PROPERTY_INF_FLAG_DONT_ASK,
-            .prompt =                   N_("Bonding arp-ip-target [none]"),
+            .prompt =                   N_("Bonding arp-ip-target"),
+            .def_hint =                 "[none]",
         )
     },
     {
@@ -4512,7 +4541,8 @@ static const NMMetaNestedPropertyInfo meta_nested_property_infos_bond[] = {
             .property_name =            NM_SETTING_BOND_OPTIONS,
             .property_alias =           "lacp-rate",
             .inf_flags =                NM_META_PROPERTY_INF_FLAG_DONT_ASK,
-            .prompt =                   N_("LACP rate ('slow' or 'fast') [slow]"),
+            .prompt =                   N_("LACP rate (slow/fast)"),
+            .def_hint =                 "[slow]",
         )
     },
 };
@@ -5121,7 +5151,7 @@ static const NMMetaPropertyInfo *const property_infos_BOND_PORT[] = {
     PROPERTY_INFO_WITH_DESC (NM_SETTING_BOND_PORT_QUEUE_ID,
         .is_cli_option =                TRUE,
         .property_alias =               "queue-id",
-        .prompt =                       N_("Queue ID [0]"),
+        .prompt =                       N_("Queue ID"),
         .property_type =                &_pt_gobject_int,
     ),
     NULL
@@ -5139,37 +5169,37 @@ static const NMMetaPropertyInfo *const property_infos_BRIDGE[] = {
     PROPERTY_INFO_WITH_DESC (NM_SETTING_BRIDGE_STP,
         .is_cli_option =                TRUE,
         .property_alias =               "stp",
-        .prompt =                       N_("Enable STP [no]"),
+        .prompt =                       N_("Enable STP"),
         .property_type =                &_pt_gobject_bool,
     ),
     PROPERTY_INFO_WITH_DESC (NM_SETTING_BRIDGE_PRIORITY,
         .is_cli_option =                TRUE,
         .property_alias =               "priority",
-        .prompt =                       N_("STP priority [32768]"),
+        .prompt =                       N_("STP priority"),
         .property_type =                &_pt_gobject_int,
     ),
     PROPERTY_INFO_WITH_DESC (NM_SETTING_BRIDGE_FORWARD_DELAY,
         .is_cli_option =                TRUE,
         .property_alias =               "forward-delay",
-        .prompt =                       N_("Forward delay [15]"),
+        .prompt =                       N_("Forward delay"),
         .property_type =                &_pt_gobject_int,
     ),
     PROPERTY_INFO_WITH_DESC (NM_SETTING_BRIDGE_HELLO_TIME,
         .is_cli_option =                TRUE,
         .property_alias =               "hello-time",
-        .prompt =                       N_("Hello time [2]"),
+        .prompt =                       N_("Hello time"),
         .property_type =                &_pt_gobject_int,
     ),
     PROPERTY_INFO_WITH_DESC (NM_SETTING_BRIDGE_MAX_AGE,
         .is_cli_option =                TRUE,
         .property_alias =               "max-age",
-        .prompt =                       N_("Max age [20]"),
+        .prompt =                       N_("Max age"),
         .property_type =                &_pt_gobject_int,
     ),
     PROPERTY_INFO_WITH_DESC (NM_SETTING_BRIDGE_AGEING_TIME,
         .is_cli_option =                TRUE,
         .property_alias =               "ageing-time",
-        .prompt =                       N_("MAC address ageing time [300]"),
+        .prompt =                       N_("MAC address ageing time"),
         .property_type =                &_pt_gobject_int,
     ),
     PROPERTY_INFO_WITH_DESC (NM_SETTING_BRIDGE_GROUP_ADDRESS,
@@ -5179,7 +5209,7 @@ static const NMMetaPropertyInfo *const property_infos_BRIDGE[] = {
     PROPERTY_INFO_WITH_DESC (NM_SETTING_BRIDGE_GROUP_FORWARD_MASK,
         .is_cli_option =                TRUE,
         .property_alias =               "group-forward-mask",
-        .prompt =                       N_("Group forward mask [0]"),
+        .prompt =                       N_("Group forward mask"),
         .property_type =                &_pt_gobject_int,
     ),
     PROPERTY_INFO_WITH_DESC (NM_SETTING_BRIDGE_MULTICAST_HASH_MAX,
@@ -5221,7 +5251,7 @@ static const NMMetaPropertyInfo *const property_infos_BRIDGE[] = {
     PROPERTY_INFO_WITH_DESC (NM_SETTING_BRIDGE_MULTICAST_SNOOPING,
         .is_cli_option =                TRUE,
         .property_alias =               "multicast-snooping",
-        .prompt =                       N_("Enable IGMP snooping [no]"),
+        .prompt =                       N_("Enable IGMP snooping"),
         .property_type =                &_pt_gobject_bool,
     ),
     PROPERTY_INFO_WITH_DESC (NM_SETTING_BRIDGE_MULTICAST_STARTUP_QUERY_COUNT,
@@ -5279,19 +5309,19 @@ static const NMMetaPropertyInfo *const property_infos_BRIDGE_PORT[] = {
     PROPERTY_INFO_WITH_DESC (NM_SETTING_BRIDGE_PORT_PRIORITY,
         .is_cli_option =                TRUE,
         .property_alias =               "priority",
-        .prompt =                       N_("Bridge port priority [32]"),
+        .prompt =                       N_("Bridge port priority"),
         .property_type =                &_pt_gobject_int,
     ),
     PROPERTY_INFO_WITH_DESC (NM_SETTING_BRIDGE_PORT_PATH_COST,
         .is_cli_option =                TRUE,
         .property_alias =               "path-cost",
-        .prompt =                       N_("Bridge port STP path cost [100]"),
+        .prompt =                       N_("Bridge port STP path cost"),
         .property_type =                &_pt_gobject_int,
     ),
     PROPERTY_INFO_WITH_DESC (NM_SETTING_BRIDGE_PORT_HAIRPIN_MODE,
         .is_cli_option =                TRUE,
         .property_alias =               "hairpin",
-        .prompt =                       N_("Hairpin [no]"),
+        .prompt =                       N_("Hairpin"),
         .property_type =                &_pt_gobject_bool,
     ),
     PROPERTY_INFO_WITH_DESC (NM_SETTING_BRIDGE_PORT_VLANS,
@@ -5548,11 +5578,29 @@ static const NMMetaPropertyInfo *const property_infos_CONNECTION[] = {
             ),
         ),
     ),
+    PROPERTY_INFO_WITH_DESC (NM_SETTING_CONNECTION_MPTCP_FLAGS,
+        .property_type =                &_pt_gobject_enum,
+        .property_typ_data = DEFINE_PROPERTY_TYP_DATA (
+            PROPERTY_TYP_DATA_SUBTYPE (gobject_enum,
+                .get_gtype =            nm_mptcp_flags_get_type,
+                .value_infos_get =      GOBJECT_ENUM_VALUE_INFOS_GET_FROM_SETTER,
+                .value_infos =          ENUM_VALUE_INFOS (
+                    {
+                        .value = NM_MPTCP_FLAGS_NONE,
+                        .nick = "default",
+                    },
+                ),
+            ),
+        ),
+    ),
     PROPERTY_INFO_WITH_DESC (NM_SETTING_CONNECTION_MUD_URL,
         .property_type =                &_pt_gobject_string,
         .hide_if_default =              TRUE,
     ),
     PROPERTY_INFO_WITH_DESC (NM_SETTING_CONNECTION_WAIT_DEVICE_TIMEOUT,
+        .property_type =                &_pt_gobject_int,
+    ),
+    PROPERTY_INFO_WITH_DESC (NM_SETTING_CONNECTION_WAIT_ACTIVATION_DELAY,
         .property_type =                &_pt_gobject_int,
     ),
     NULL
@@ -5875,7 +5923,7 @@ static const NMMetaPropertyInfo *const property_infos_INFINIBAND[] = {
     PROPERTY_INFO_WITH_DESC (NM_SETTING_INFINIBAND_MTU,
         .is_cli_option =                TRUE,
         .property_alias =               "mtu",
-        .prompt =                       N_("MTU [auto]"),
+        .prompt =                       N_("MTU"),
         .property_type =                &_pt_gobject_mtu,
         .property_typ_data = DEFINE_PROPERTY_TYP_DATA_SUBTYPE (mtu,
             .get_fcn =                  MTU_GET_FCN (NMSettingInfiniband, nm_setting_infiniband_get_mtu),
@@ -6133,6 +6181,14 @@ static const NMMetaPropertyInfo *const property_infos_IP4_CONFIG[] = {
     PROPERTY_INFO_WITH_DESC (NM_SETTING_IP4_CONFIG_DHCP_VENDOR_CLASS_IDENTIFIER,
         .property_type =                &_pt_gobject_string,
     ),
+    PROPERTY_INFO_WITH_DESC (NM_SETTING_IP4_CONFIG_LINK_LOCAL,
+        .property_type =                &_pt_gobject_enum,
+        .property_typ_data = DEFINE_PROPERTY_TYP_DATA (
+            PROPERTY_TYP_DATA_SUBTYPE (gobject_enum,
+                .get_gtype =            nm_setting_ip4_link_local_get_type,
+            ),
+        ),
+    ),
     PROPERTY_INFO (NM_SETTING_IP_CONFIG_DHCP_REJECT_SERVERS, DESCRIBE_DOC_NM_SETTING_IP4_CONFIG_DHCP_REJECT_SERVERS,
         .property_type =                &_pt_multilist,
         .property_typ_data = DEFINE_PROPERTY_TYP_DATA (
@@ -6362,6 +6418,12 @@ static const NMMetaPropertyInfo *const property_infos_IP6_CONFIG[] = {
         .property_type =                &_pt_gobject_int,
         .property_typ_data =            &_ptd_gobject_int_timeout,
     ),
+    PROPERTY_INFO (NM_SETTING_IP6_CONFIG_MTU, DESCRIBE_DOC_NM_SETTING_IP6_CONFIG_MTU,
+        .property_type =                &_pt_gobject_mtu,
+        .property_typ_data = DEFINE_PROPERTY_TYP_DATA_SUBTYPE (mtu,
+            .get_fcn =                  MTU_GET_FCN (NMSettingIP6Config, nm_setting_ip6_config_get_mtu),
+        ),
+    ),
     PROPERTY_INFO (NM_SETTING_IP6_CONFIG_DHCP_DUID, DESCRIBE_DOC_NM_SETTING_IP6_CONFIG_DHCP_DUID,
         .property_type =                &_pt_gobject_string,
     ),
@@ -6493,7 +6555,7 @@ static const NMMetaPropertyInfo *const property_infos_MACSEC[] = {
     PROPERTY_INFO_WITH_DESC (NM_SETTING_MACSEC_ENCRYPT,
         .is_cli_option =                TRUE,
         .property_alias =               "encrypt",
-        .prompt =                       N_("Enable encryption [yes]"),
+        .prompt =                       N_("Enable encryption"),
         .property_type =                &_pt_gobject_bool,
     ),
     PROPERTY_INFO_WITH_DESC (NM_SETTING_MACSEC_MKA_CAK,
@@ -6515,7 +6577,7 @@ static const NMMetaPropertyInfo *const property_infos_MACSEC[] = {
     PROPERTY_INFO_WITH_DESC (NM_SETTING_MACSEC_PORT,
         .is_cli_option =                TRUE,
         .property_alias =               "port",
-        .prompt =                       N_("SCI port [1]"),
+        .prompt =                       N_("SCI port"),
         .property_type =                &_pt_gobject_int,
     ),
     PROPERTY_INFO_WITH_DESC (NM_SETTING_MACSEC_VALIDATION,
@@ -6562,7 +6624,7 @@ static const NMMetaPropertyInfo *const property_infos_MACVLAN[] = {
     PROPERTY_INFO_WITH_DESC (NM_SETTING_MACVLAN_TAP,
         .is_cli_option =                TRUE,
         .property_alias =               "tap",
-        .prompt =                       N_("Tap [no]"),
+        .prompt =                       N_("Tap"),
         .property_type =                &_pt_gobject_bool,
     ),
     NULL
@@ -6638,7 +6700,7 @@ static const NMMetaPropertyInfo *const property_infos_OLPC_MESH[] = {
     PROPERTY_INFO_WITH_DESC (NM_SETTING_OLPC_MESH_CHANNEL,
         .is_cli_option =                TRUE,
         .property_alias =               "channel",
-        .prompt =                       N_("OLPC Mesh channel [1]"),
+        .prompt =                       N_("OLPC Mesh channel"),
         .property_type = DEFINE_PROPERTY_TYPE (
             .get_fcn =                  _get_fcn_gobject,
             .set_fcn =                  _set_fcn_olpc_mesh_channel,
@@ -6864,7 +6926,7 @@ static const NMMetaPropertyInfo *const property_infos_PROXY[] = {
     PROPERTY_INFO_WITH_DESC (NM_SETTING_PROXY_BROWSER_ONLY,
         .is_cli_option =                TRUE,
         .property_alias =               "browser-only",
-        .prompt =                       N_("Browser only [no]"),
+        .prompt =                       N_("Browser only"),
         .property_type =                &_pt_gobject_bool
     ),
     PROPERTY_INFO_WITH_DESC (NM_SETTING_PROXY_PAC_URL,
@@ -7303,19 +7365,19 @@ static const NMMetaPropertyInfo *const property_infos_TUN[] = {
     PROPERTY_INFO_WITH_DESC (NM_SETTING_TUN_PI,
         .is_cli_option =                TRUE,
         .property_alias =               "pi",
-        .prompt =                       N_("Enable PI [no]"),
+        .prompt =                       N_("Enable PI"),
         .property_type =                &_pt_gobject_bool,
     ),
     PROPERTY_INFO_WITH_DESC (NM_SETTING_TUN_VNET_HDR,
         .is_cli_option =                TRUE,
         .property_alias =               "vnet-hdr",
-        .prompt =                       N_("Enable VNET header [no]"),
+        .prompt =                       N_("Enable VNET header"),
         .property_type =                &_pt_gobject_bool,
     ),
     PROPERTY_INFO_WITH_DESC (NM_SETTING_TUN_MULTI_QUEUE,
         .is_cli_option =                TRUE,
         .property_alias =               "multi-queue",
-        .prompt =                       N_("Enable multi queue [no]"),
+        .prompt =                       N_("Enable multi queue"),
         .property_type =                &_pt_gobject_bool,
     ),
     NULL
@@ -7441,7 +7503,7 @@ static const NMMetaPropertyInfo *const property_infos_VRF[] = {
         .is_cli_option =                TRUE,
         .property_alias =               "table",
         .inf_flags =                    NM_META_PROPERTY_INF_FLAG_REQD,
-        .prompt =                       N_("Table [0]"),
+        .prompt =                       N_("Table"),
         .property_type =                &_pt_gobject_int,
     ),
     NULL
@@ -7479,19 +7541,19 @@ static const NMMetaPropertyInfo *const property_infos_VXLAN[] = {
     PROPERTY_INFO_WITH_DESC (NM_SETTING_VXLAN_SOURCE_PORT_MIN,
         .is_cli_option =                TRUE,
         .property_alias =               "source-port-min",
-        .prompt =                       N_("Minimum source port [0]"),
+        .prompt =                       N_("Minimum source port"),
         .property_type =                &_pt_gobject_int,
     ),
     PROPERTY_INFO_WITH_DESC (NM_SETTING_VXLAN_SOURCE_PORT_MAX,
         .is_cli_option =                TRUE,
         .property_alias =               "source-port-max",
-        .prompt =                       N_("Maximum source port [0]"),
+        .prompt =                       N_("Maximum source port"),
         .property_type =                &_pt_gobject_int,
     ),
     PROPERTY_INFO_WITH_DESC (NM_SETTING_VXLAN_DESTINATION_PORT,
         .is_cli_option =                TRUE,
         .property_alias =               "destination-port",
-        .prompt =                       N_("Destination port [8472]"),
+        .prompt =                       N_("Destination port"),
         .property_type =                &_pt_gobject_int,
     ),
     PROPERTY_INFO_WITH_DESC (NM_SETTING_VXLAN_TOS,
@@ -7623,7 +7685,7 @@ static const NMMetaPropertyInfo *const property_infos_WIRED[] = {
     PROPERTY_INFO_WITH_DESC (NM_SETTING_WIRED_MTU,
         .is_cli_option =                TRUE,
         .property_alias =               "mtu",
-        .prompt =                       N_("MTU [auto]"),
+        .prompt =                       N_("MTU"),
         .property_type =                &_pt_gobject_mtu,
         .property_typ_data = DEFINE_PROPERTY_TYP_DATA_SUBTYPE (mtu,
             .get_fcn =                  MTU_GET_FCN (NMSettingWired, nm_setting_wired_get_mtu),
@@ -7817,7 +7879,7 @@ static const NMMetaPropertyInfo *const property_infos_WIRELESS[] = {
     PROPERTY_INFO_WITH_DESC (NM_SETTING_WIRELESS_MTU,
         .is_cli_option =                TRUE,
         .property_alias =               "mtu",
-        .prompt =                       N_("MTU [auto]"),
+        .prompt =                       N_("MTU"),
         .property_type =                &_pt_gobject_mtu,
         .property_typ_data = DEFINE_PROPERTY_TYP_DATA_SUBTYPE (mtu,
             .get_fcn =                  MTU_GET_FCN (NMSettingWireless, nm_setting_wireless_get_mtu),

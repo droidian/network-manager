@@ -13,7 +13,8 @@
   </refsect1>
 <refsect1 role="desc" id="gdbus-interface-org-freedesktop-NetworkManager-DHCP4Config">
   <title role="desc.title">Description</title>
-  <para>      Options and configuration returned by the IPv4 DHCP server.
+  <para>
+Options and configuration returned by the IPv4 DHCP server.
 </para>
 </refsect1>
 <refsect1 role="details" id="gdbus-properties-org.freedesktop.NetworkManager.DHCP4Config">
@@ -24,7 +25,8 @@
 <programlisting>
 Options  readable   a{sv}
 </programlisting>
-<para>        Configuration options returned by a DHCP server, if any.
+<para>
+Configuration options returned by a DHCP server, if any.
 </para>
 </refsect2>
 </refsect1>

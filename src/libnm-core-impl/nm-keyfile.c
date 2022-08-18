@@ -21,7 +21,6 @@
 #include "libnm-glib-aux/nm-uuid.h"
 #include "libnm-glib-aux/nm-str-buf.h"
 #include "libnm-glib-aux/nm-secret-utils.h"
-#include "libnm-systemd-shared/nm-sd-utils-shared.h"
 #include "libnm-core-aux-intern/nm-common-macros.h"
 #include "libnm-core-aux-intern/nm-libnm-core-utils.h"
 #include "libnm-core-intern/nm-core-internal.h"
@@ -1160,17 +1159,30 @@ ip6_addr_gen_mode_parser(KeyfileReaderInfo *info, NMSetting *setting, const char
                                     s,
                                     (int *) &addr_gen_mode,
                                     NULL)) {
-            read_handle_warn(info,
-                             key,
-                             key,
-                             NM_KEYFILE_WARN_SEVERITY_WARN,
-                             _("invalid option '%s', use one of [%s]"),
-                             s,
-                             "eui64,stable-privacy");
-            return;
+            if (!read_handle_warn(info,
+                                  key,
+                                  key,
+                                  NM_KEYFILE_WARN_SEVERITY_WARN,
+                                  _("invalid option '%s', use one of [%s]"),
+                                  s,
+                                  "eui64,stable-privacy"))
+                return;
+            addr_gen_mode = NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_DEFAULT_OR_EUI64;
         }
-    } else
-        addr_gen_mode = NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_EUI64;
+    } else {
+        gs_free char *s2 = NULL;
+
+        s2 = nm_keyfile_plugin_kf_get_string(info->keyfile,
+                                             setting_name,
+                                             NM_SETTING_IP6_CONFIG_TOKEN,
+                                             NULL);
+        if (s2) {
+            /* If a token is set, but the addr-gen-mode is not, then the default
+             * is eui64. Otherwise, the result would not verify. */
+            addr_gen_mode = NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_EUI64;
+        } else
+            addr_gen_mode = NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_DEFAULT_OR_EUI64;
+    }
 
     g_object_set(G_OBJECT(setting), key, (int) addr_gen_mode, NULL);
 }
@@ -2190,8 +2202,10 @@ ip6_addr_gen_mode_writer(KeyfileWriterInfo *info,
     gs_free char                 *str = NULL;
 
     addr_gen_mode = (NMSettingIP6ConfigAddrGenMode) g_value_get_int(value);
-    str = nm_utils_enum_to_str(nm_setting_ip6_config_addr_gen_mode_get_type(), addr_gen_mode);
-    nm_keyfile_plugin_kf_set_string(info->keyfile, nm_setting_get_name(setting), key, str);
+    if (addr_gen_mode != NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_DEFAULT_OR_EUI64) {
+        str = nm_utils_enum_to_str(nm_setting_ip6_config_addr_gen_mode_get_type(), addr_gen_mode);
+        nm_keyfile_plugin_kf_set_string(info->keyfile, nm_setting_get_name(setting), key, str);
+    }
 }
 
 static void
@@ -4062,7 +4076,7 @@ _write_setting_wireguard(NMSetting *setting, KeyfileWriterInfo *info)
 
         public_key = nm_wireguard_peer_get_public_key(peer);
         if (!public_key || !public_key[0]
-            || !NM_STRCHAR_ALL(public_key, ch, nm_sd_utils_unbase64char(ch, TRUE) >= 0)) {
+            || !NM_STRCHAR_ALL(public_key, ch, nm_unbase64char(ch) != -EINVAL)) {
             /* invalid peer. Skip it */
             continue;
         }
@@ -4375,7 +4389,7 @@ nm_keyfile_utils_create_filename(const char *name, gboolean with_extension)
 
     g_return_val_if_fail(name && name[0], NULL);
 
-    nm_str_buf_init(&str, 0, FALSE);
+    str = NM_STR_BUF_INIT(0, FALSE);
 
     len = strlen(name);
 

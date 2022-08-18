@@ -376,6 +376,9 @@ ovsdb_call_method(NMOvsdb                  *self,
     NMOvsdbPrivate  *priv = NM_OVSDB_GET_PRIVATE(self);
     OvsdbMethodCall *call;
 
+    /* FIXME(shutdown): this function should accept a cancellable to
+     * interrupt the operation. */
+
     /* Ensure we're not unsynchronized before we queue the method call. */
     ovsdb_try_connect(self);
 
@@ -1550,7 +1553,7 @@ _external_ids_to_string(const GArray *arr)
     if (!arr)
         return g_strdup("empty");
 
-    nm_str_buf_init(&strbuf, NM_UTILS_GET_NEXT_REALLOC_SIZE_104, FALSE);
+    strbuf = NM_STR_BUF_INIT(NM_UTILS_GET_NEXT_REALLOC_SIZE_104, FALSE);
     nm_str_buf_append(&strbuf, "[");
     for (i = 0; i < arr->len; i++) {
         const NMUtilsNamedValue *n = &g_array_index(arr, NMUtilsNamedValue, i);
@@ -1584,7 +1587,7 @@ ovsdb_got_update(NMOvsdb *self, json_t *msg)
     json_t         *items;
     json_t         *external_ids;
     json_error_t    json_error = {
-        0,
+           0,
     };
     void       *iter;
     const char *name;
@@ -1985,7 +1988,7 @@ ovsdb_got_msg(NMOvsdb *self, json_t *msg)
 {
     NMOvsdbPrivate *priv       = NM_OVSDB_GET_PRIVATE(self);
     json_error_t    json_error = {
-        0,
+           0,
     };
     json_t     *json_id = NULL;
     json_int_t  id      = (json_int_t) -1;
@@ -2127,7 +2130,7 @@ ovsdb_read_cb(GObject *source_object, GAsyncResult *res, gpointer user_data)
     gssize          size;
     json_t         *msg;
     json_error_t    json_error = {
-        0,
+           0,
     };
 
     size = g_input_stream_read_finish(stream, res, &error);

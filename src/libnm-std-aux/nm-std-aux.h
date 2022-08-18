@@ -487,6 +487,23 @@ nm_streq0(const char *s1, const char *s2)
     return (s1 == s2) || (s1 && s2 && strcmp(s1, s2) == 0);
 }
 
+static inline int
+nm_memcmp(const void *s1, const void *s2, size_t n)
+{
+    /* Workaround undefined behavior in memcmp() with NULL pointers. */
+    if (n == 0)
+        return 0;
+    nm_assert(s1);
+    nm_assert(s2);
+    return memcmp(s1, s2, n);
+}
+
+static inline bool
+nm_memeq(const void *s1, const void *s2, size_t len)
+{
+    return nm_memcmp(s1, s2, len) == 0;
+}
+
 /*
  * Very similar to g_str_has_prefix() with the obvious meaning.
  * Differences:
@@ -642,169 +659,170 @@ nm_streq0(const char *s1, const char *s2)
 /*****************************************************************************/
 
 /* clang-format off */
-#define _NM_VA_ARGS_FOREACH_0(prefix, postfix, sep, op)
-#define _NM_VA_ARGS_FOREACH_1(prefix, postfix, sep, op, x)          prefix _NM_MACRO_CALL2(op, x, 0  ) postfix
-#define _NM_VA_ARGS_FOREACH_2(prefix, postfix, sep, op, x, ...)     prefix _NM_MACRO_CALL2(op, x, 1  ) postfix sep _NM_VA_ARGS_FOREACH_1(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_3(prefix, postfix, sep, op, x, ...)     prefix _NM_MACRO_CALL2(op, x, 2  ) postfix sep _NM_VA_ARGS_FOREACH_2(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_4(prefix, postfix, sep, op, x, ...)     prefix _NM_MACRO_CALL2(op, x, 3  ) postfix sep _NM_VA_ARGS_FOREACH_3(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_5(prefix, postfix, sep, op, x, ...)     prefix _NM_MACRO_CALL2(op, x, 4  ) postfix sep _NM_VA_ARGS_FOREACH_4(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_6(prefix, postfix, sep, op, x, ...)     prefix _NM_MACRO_CALL2(op, x, 5  ) postfix sep _NM_VA_ARGS_FOREACH_5(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_7(prefix, postfix, sep, op, x, ...)     prefix _NM_MACRO_CALL2(op, x, 6  ) postfix sep _NM_VA_ARGS_FOREACH_6(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_8(prefix, postfix, sep, op, x, ...)     prefix _NM_MACRO_CALL2(op, x, 7  ) postfix sep _NM_VA_ARGS_FOREACH_7(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_9(prefix, postfix, sep, op, x, ...)     prefix _NM_MACRO_CALL2(op, x, 8  ) postfix sep _NM_VA_ARGS_FOREACH_8(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_10(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 9  ) postfix sep _NM_VA_ARGS_FOREACH_9(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_11(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 10 ) postfix sep _NM_VA_ARGS_FOREACH_10(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_12(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 11 ) postfix sep _NM_VA_ARGS_FOREACH_11(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_13(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 12 ) postfix sep _NM_VA_ARGS_FOREACH_12(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_14(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 13 ) postfix sep _NM_VA_ARGS_FOREACH_13(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_15(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 14 ) postfix sep _NM_VA_ARGS_FOREACH_14(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_16(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 15 ) postfix sep _NM_VA_ARGS_FOREACH_15(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_17(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 16 ) postfix sep _NM_VA_ARGS_FOREACH_16(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_18(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 17 ) postfix sep _NM_VA_ARGS_FOREACH_17(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_19(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 18 ) postfix sep _NM_VA_ARGS_FOREACH_18(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_20(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 19 ) postfix sep _NM_VA_ARGS_FOREACH_19(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_21(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 20 ) postfix sep _NM_VA_ARGS_FOREACH_20(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_22(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 21 ) postfix sep _NM_VA_ARGS_FOREACH_21(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_23(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 22 ) postfix sep _NM_VA_ARGS_FOREACH_22(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_24(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 23 ) postfix sep _NM_VA_ARGS_FOREACH_23(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_25(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 24 ) postfix sep _NM_VA_ARGS_FOREACH_24(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_26(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 25 ) postfix sep _NM_VA_ARGS_FOREACH_25(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_27(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 26 ) postfix sep _NM_VA_ARGS_FOREACH_26(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_28(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 27 ) postfix sep _NM_VA_ARGS_FOREACH_27(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_29(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 28 ) postfix sep _NM_VA_ARGS_FOREACH_28(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_30(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 29 ) postfix sep _NM_VA_ARGS_FOREACH_29(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_31(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 30 ) postfix sep _NM_VA_ARGS_FOREACH_30(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_32(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 31 ) postfix sep _NM_VA_ARGS_FOREACH_31(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_33(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 32 ) postfix sep _NM_VA_ARGS_FOREACH_32(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_34(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 33 ) postfix sep _NM_VA_ARGS_FOREACH_33(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_35(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 34 ) postfix sep _NM_VA_ARGS_FOREACH_34(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_36(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 35 ) postfix sep _NM_VA_ARGS_FOREACH_35(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_37(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 36 ) postfix sep _NM_VA_ARGS_FOREACH_36(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_38(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 37 ) postfix sep _NM_VA_ARGS_FOREACH_37(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_39(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 38 ) postfix sep _NM_VA_ARGS_FOREACH_38(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_40(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 39 ) postfix sep _NM_VA_ARGS_FOREACH_39(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_41(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 40 ) postfix sep _NM_VA_ARGS_FOREACH_40(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_42(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 41 ) postfix sep _NM_VA_ARGS_FOREACH_41(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_43(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 42 ) postfix sep _NM_VA_ARGS_FOREACH_42(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_44(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 43 ) postfix sep _NM_VA_ARGS_FOREACH_43(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_45(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 44 ) postfix sep _NM_VA_ARGS_FOREACH_44(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_46(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 45 ) postfix sep _NM_VA_ARGS_FOREACH_45(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_47(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 46 ) postfix sep _NM_VA_ARGS_FOREACH_46(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_48(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 47 ) postfix sep _NM_VA_ARGS_FOREACH_47(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_49(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 48 ) postfix sep _NM_VA_ARGS_FOREACH_48(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_50(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 49 ) postfix sep _NM_VA_ARGS_FOREACH_49(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_51(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 50 ) postfix sep _NM_VA_ARGS_FOREACH_50(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_52(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 51 ) postfix sep _NM_VA_ARGS_FOREACH_51(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_53(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 52 ) postfix sep _NM_VA_ARGS_FOREACH_52(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_54(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 53 ) postfix sep _NM_VA_ARGS_FOREACH_53(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_55(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 54 ) postfix sep _NM_VA_ARGS_FOREACH_54(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_56(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 55 ) postfix sep _NM_VA_ARGS_FOREACH_55(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_57(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 56 ) postfix sep _NM_VA_ARGS_FOREACH_56(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_58(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 57 ) postfix sep _NM_VA_ARGS_FOREACH_57(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_59(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 58 ) postfix sep _NM_VA_ARGS_FOREACH_58(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_60(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 59 ) postfix sep _NM_VA_ARGS_FOREACH_59(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_61(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 10 ) postfix sep _NM_VA_ARGS_FOREACH_60(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_62(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 61 ) postfix sep _NM_VA_ARGS_FOREACH_61(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_63(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 62 ) postfix sep _NM_VA_ARGS_FOREACH_62(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_64(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 63 ) postfix sep _NM_VA_ARGS_FOREACH_63(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_65(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 64 ) postfix sep _NM_VA_ARGS_FOREACH_64(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_66(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 65 ) postfix sep _NM_VA_ARGS_FOREACH_65(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_67(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 66 ) postfix sep _NM_VA_ARGS_FOREACH_66(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_68(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 67 ) postfix sep _NM_VA_ARGS_FOREACH_67(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_69(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 68 ) postfix sep _NM_VA_ARGS_FOREACH_68(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_70(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 69 ) postfix sep _NM_VA_ARGS_FOREACH_69(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_71(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 70 ) postfix sep _NM_VA_ARGS_FOREACH_70(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_72(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 71 ) postfix sep _NM_VA_ARGS_FOREACH_71(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_73(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 72 ) postfix sep _NM_VA_ARGS_FOREACH_72(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_74(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 73 ) postfix sep _NM_VA_ARGS_FOREACH_73(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_75(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 74 ) postfix sep _NM_VA_ARGS_FOREACH_74(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_76(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 75 ) postfix sep _NM_VA_ARGS_FOREACH_75(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_77(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 76 ) postfix sep _NM_VA_ARGS_FOREACH_76(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_78(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 77 ) postfix sep _NM_VA_ARGS_FOREACH_77(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_79(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 78 ) postfix sep _NM_VA_ARGS_FOREACH_78(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_80(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 79 ) postfix sep _NM_VA_ARGS_FOREACH_79(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_81(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 80 ) postfix sep _NM_VA_ARGS_FOREACH_80(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_82(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 81 ) postfix sep _NM_VA_ARGS_FOREACH_81(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_83(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 82 ) postfix sep _NM_VA_ARGS_FOREACH_82(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_84(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 83 ) postfix sep _NM_VA_ARGS_FOREACH_83(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_85(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 84 ) postfix sep _NM_VA_ARGS_FOREACH_84(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_86(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 85 ) postfix sep _NM_VA_ARGS_FOREACH_85(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_87(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 86 ) postfix sep _NM_VA_ARGS_FOREACH_86(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_88(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 87 ) postfix sep _NM_VA_ARGS_FOREACH_87(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_89(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 88 ) postfix sep _NM_VA_ARGS_FOREACH_88(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_90(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 89 ) postfix sep _NM_VA_ARGS_FOREACH_89(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_91(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 90 ) postfix sep _NM_VA_ARGS_FOREACH_90(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_92(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 91 ) postfix sep _NM_VA_ARGS_FOREACH_91(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_93(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 92 ) postfix sep _NM_VA_ARGS_FOREACH_92(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_94(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 93 ) postfix sep _NM_VA_ARGS_FOREACH_93(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_95(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 94 ) postfix sep _NM_VA_ARGS_FOREACH_94(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_96(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 95 ) postfix sep _NM_VA_ARGS_FOREACH_95(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_97(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 96 ) postfix sep _NM_VA_ARGS_FOREACH_96(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_98(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 97 ) postfix sep _NM_VA_ARGS_FOREACH_97(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_99(prefix, postfix, sep, op, x, ...)    prefix _NM_MACRO_CALL2(op, x, 98 ) postfix sep _NM_VA_ARGS_FOREACH_98(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_100(prefix, postfix, sep, op, x, ...)   prefix _NM_MACRO_CALL2(op, x, 99 ) postfix sep _NM_VA_ARGS_FOREACH_99(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_101(prefix, postfix, sep, op, x, ...)   prefix _NM_MACRO_CALL2(op, x, 100) postfix sep _NM_VA_ARGS_FOREACH_100(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_102(prefix, postfix, sep, op, x, ...)   prefix _NM_MACRO_CALL2(op, x, 101) postfix sep _NM_VA_ARGS_FOREACH_101(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_103(prefix, postfix, sep, op, x, ...)   prefix _NM_MACRO_CALL2(op, x, 102) postfix sep _NM_VA_ARGS_FOREACH_102(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_104(prefix, postfix, sep, op, x, ...)   prefix _NM_MACRO_CALL2(op, x, 103) postfix sep _NM_VA_ARGS_FOREACH_103(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_105(prefix, postfix, sep, op, x, ...)   prefix _NM_MACRO_CALL2(op, x, 104) postfix sep _NM_VA_ARGS_FOREACH_104(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_106(prefix, postfix, sep, op, x, ...)   prefix _NM_MACRO_CALL2(op, x, 105) postfix sep _NM_VA_ARGS_FOREACH_105(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_107(prefix, postfix, sep, op, x, ...)   prefix _NM_MACRO_CALL2(op, x, 106) postfix sep _NM_VA_ARGS_FOREACH_106(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_108(prefix, postfix, sep, op, x, ...)   prefix _NM_MACRO_CALL2(op, x, 107) postfix sep _NM_VA_ARGS_FOREACH_107(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_109(prefix, postfix, sep, op, x, ...)   prefix _NM_MACRO_CALL2(op, x, 108) postfix sep _NM_VA_ARGS_FOREACH_108(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_110(prefix, postfix, sep, op, x, ...)   prefix _NM_MACRO_CALL2(op, x, 109) postfix sep _NM_VA_ARGS_FOREACH_109(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_111(prefix, postfix, sep, op, x, ...)   prefix _NM_MACRO_CALL2(op, x, 100) postfix sep _NM_VA_ARGS_FOREACH_110(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_112(prefix, postfix, sep, op, x, ...)   prefix _NM_MACRO_CALL2(op, x, 111) postfix sep _NM_VA_ARGS_FOREACH_111(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_113(prefix, postfix, sep, op, x, ...)   prefix _NM_MACRO_CALL2(op, x, 112) postfix sep _NM_VA_ARGS_FOREACH_112(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_114(prefix, postfix, sep, op, x, ...)   prefix _NM_MACRO_CALL2(op, x, 113) postfix sep _NM_VA_ARGS_FOREACH_113(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_115(prefix, postfix, sep, op, x, ...)   prefix _NM_MACRO_CALL2(op, x, 114) postfix sep _NM_VA_ARGS_FOREACH_114(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_116(prefix, postfix, sep, op, x, ...)   prefix _NM_MACRO_CALL2(op, x, 115) postfix sep _NM_VA_ARGS_FOREACH_115(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_117(prefix, postfix, sep, op, x, ...)   prefix _NM_MACRO_CALL2(op, x, 116) postfix sep _NM_VA_ARGS_FOREACH_116(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_118(prefix, postfix, sep, op, x, ...)   prefix _NM_MACRO_CALL2(op, x, 117) postfix sep _NM_VA_ARGS_FOREACH_117(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_119(prefix, postfix, sep, op, x, ...)   prefix _NM_MACRO_CALL2(op, x, 118) postfix sep _NM_VA_ARGS_FOREACH_118(prefix, postfix, sep, op, __VA_ARGS__)
-#define _NM_VA_ARGS_FOREACH_120(prefix, postfix, sep, op, x, ...)   prefix _NM_MACRO_CALL2(op, x, 119) postfix sep _NM_VA_ARGS_FOREACH_119(prefix, postfix, sep, op, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_0(  prefix, postfix, sep, op, op_arg)
+#define _NM_VA_ARGS_FOREACH_1(  prefix, postfix, sep, op, op_arg, x)         prefix _NM_MACRO_CALL2(op, x, 0,   op_arg) postfix
+#define _NM_VA_ARGS_FOREACH_2(  prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 1,   op_arg) postfix sep _NM_VA_ARGS_FOREACH_1(  prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_3(  prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 2,   op_arg) postfix sep _NM_VA_ARGS_FOREACH_2(  prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_4(  prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 3,   op_arg) postfix sep _NM_VA_ARGS_FOREACH_3(  prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_5(  prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 4,   op_arg) postfix sep _NM_VA_ARGS_FOREACH_4(  prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_6(  prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 5,   op_arg) postfix sep _NM_VA_ARGS_FOREACH_5(  prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_7(  prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 6,   op_arg) postfix sep _NM_VA_ARGS_FOREACH_6(  prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_8(  prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 7,   op_arg) postfix sep _NM_VA_ARGS_FOREACH_7(  prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_9(  prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 8,   op_arg) postfix sep _NM_VA_ARGS_FOREACH_8(  prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_10( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 9,   op_arg) postfix sep _NM_VA_ARGS_FOREACH_9(  prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_11( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 10,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_10( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_12( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 11,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_11( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_13( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 12,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_12( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_14( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 13,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_13( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_15( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 14,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_14( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_16( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 15,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_15( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_17( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 16,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_16( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_18( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 17,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_17( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_19( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 18,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_18( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_20( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 19,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_19( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_21( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 20,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_20( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_22( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 21,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_21( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_23( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 22,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_22( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_24( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 23,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_23( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_25( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 24,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_24( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_26( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 25,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_25( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_27( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 26,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_26( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_28( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 27,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_27( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_29( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 28,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_28( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_30( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 29,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_29( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_31( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 30,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_30( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_32( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 31,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_31( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_33( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 32,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_32( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_34( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 33,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_33( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_35( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 34,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_34( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_36( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 35,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_35( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_37( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 36,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_36( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_38( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 37,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_37( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_39( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 38,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_38( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_40( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 39,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_39( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_41( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 40,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_40( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_42( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 41,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_41( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_43( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 42,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_42( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_44( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 43,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_43( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_45( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 44,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_44( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_46( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 45,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_45( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_47( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 46,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_46( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_48( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 47,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_47( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_49( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 48,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_48( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_50( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 49,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_49( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_51( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 50,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_50( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_52( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 51,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_51( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_53( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 52,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_52( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_54( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 53,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_53( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_55( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 54,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_54( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_56( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 55,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_55( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_57( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 56,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_56( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_58( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 57,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_57( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_59( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 58,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_58( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_60( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 59,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_59( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_61( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 10,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_60( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_62( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 61,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_61( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_63( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 62,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_62( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_64( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 63,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_63( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_65( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 64,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_64( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_66( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 65,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_65( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_67( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 66,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_66( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_68( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 67,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_67( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_69( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 68,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_68( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_70( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 69,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_69( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_71( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 70,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_70( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_72( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 71,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_71( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_73( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 72,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_72( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_74( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 73,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_73( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_75( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 74,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_74( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_76( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 75,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_75( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_77( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 76,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_76( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_78( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 77,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_77( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_79( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 78,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_78( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_80( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 79,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_79( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_81( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 80,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_80( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_82( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 81,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_81( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_83( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 82,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_82( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_84( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 83,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_83( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_85( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 84,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_84( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_86( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 85,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_85( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_87( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 86,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_86( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_88( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 87,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_87( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_89( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 88,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_88( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_90( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 89,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_89( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_91( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 90,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_90( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_92( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 91,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_91( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_93( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 92,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_92( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_94( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 93,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_93( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_95( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 94,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_94( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_96( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 95,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_95( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_97( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 96,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_96( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_98( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 97,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_97( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_99( prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 98,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_98( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_100(prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 99,  op_arg) postfix sep _NM_VA_ARGS_FOREACH_99( prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_101(prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 100, op_arg) postfix sep _NM_VA_ARGS_FOREACH_100(prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_102(prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 101, op_arg) postfix sep _NM_VA_ARGS_FOREACH_101(prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_103(prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 102, op_arg) postfix sep _NM_VA_ARGS_FOREACH_102(prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_104(prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 103, op_arg) postfix sep _NM_VA_ARGS_FOREACH_103(prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_105(prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 104, op_arg) postfix sep _NM_VA_ARGS_FOREACH_104(prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_106(prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 105, op_arg) postfix sep _NM_VA_ARGS_FOREACH_105(prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_107(prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 106, op_arg) postfix sep _NM_VA_ARGS_FOREACH_106(prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_108(prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 107, op_arg) postfix sep _NM_VA_ARGS_FOREACH_107(prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_109(prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 108, op_arg) postfix sep _NM_VA_ARGS_FOREACH_108(prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_110(prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 109, op_arg) postfix sep _NM_VA_ARGS_FOREACH_109(prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_111(prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 100, op_arg) postfix sep _NM_VA_ARGS_FOREACH_110(prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_112(prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 111, op_arg) postfix sep _NM_VA_ARGS_FOREACH_111(prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_113(prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 112, op_arg) postfix sep _NM_VA_ARGS_FOREACH_112(prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_114(prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 113, op_arg) postfix sep _NM_VA_ARGS_FOREACH_113(prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_115(prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 114, op_arg) postfix sep _NM_VA_ARGS_FOREACH_114(prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_116(prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 115, op_arg) postfix sep _NM_VA_ARGS_FOREACH_115(prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_117(prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 116, op_arg) postfix sep _NM_VA_ARGS_FOREACH_116(prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_118(prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 117, op_arg) postfix sep _NM_VA_ARGS_FOREACH_117(prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_119(prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 118, op_arg) postfix sep _NM_VA_ARGS_FOREACH_118(prefix, postfix, sep, op, op_arg, __VA_ARGS__)
+#define _NM_VA_ARGS_FOREACH_120(prefix, postfix, sep, op, op_arg, x, ...)    prefix _NM_MACRO_CALL2(op, x, 119, op_arg) postfix sep _NM_VA_ARGS_FOREACH_119(prefix, postfix, sep, op, op_arg, __VA_ARGS__)
 /* clang-format on */
-#define NM_VA_ARGS_FOREACH(prefix, postfix, sep, op, ...)                \
+#define NM_VA_ARGS_FOREACH(prefix, postfix, sep, op, op_arg, ...)        \
     _NM_MACRO_CALL(NM_PASTE(_NM_VA_ARGS_FOREACH_, NM_NARG(__VA_ARGS__)), \
                    prefix,                                               \
                    postfix,                                              \
                    sep,                                                  \
                    op,                                                   \
+                   op_arg,                                               \
                    ##__VA_ARGS__)
 
 /*****************************************************************************/
 
-#define NM_VA_ARGS_JOIN(sep, ...) NM_VA_ARGS_FOREACH(, , sep, _NM_MACRO_SELECT_FIRST, __VA_ARGS__)
+#define NM_VA_ARGS_JOIN(sep, ...) NM_VA_ARGS_FOREACH(, , sep, _NM_MACRO_SELECT_FIRST, , __VA_ARGS__)
 
 /*****************************************************************************/
 
-#define _NM_IN_SET_OP(x, idx) ((int) (_x == (x)))
-#define _NM_IN_SET(op, type, x, ...)                                \
-    ({                                                              \
-        type _x = (x);                                              \
-                                                                    \
-        /* trigger a -Wenum-compare warning */                      \
-        nm_assert(true || _x == (x));                               \
-                                                                    \
-        !!(NM_VA_ARGS_FOREACH(, , op, _NM_IN_SET_OP, __VA_ARGS__)); \
+#define _NM_IN_SET_OP(x, idx, uniq) ((int) (NM_UNIQ_T(xx, uniq) == (x)))
+#define _NM_IN_SET(uniq, op, type, x, ...)                                \
+    ({                                                                    \
+        type NM_UNIQ_T(xx, uniq) = (x);                                   \
+                                                                          \
+        /* trigger a -Wenum-compare warning */                            \
+        nm_assert(true || NM_UNIQ_T(xx, uniq) == (x));                    \
+                                                                          \
+        !!(NM_VA_ARGS_FOREACH(, , op, _NM_IN_SET_OP, uniq, __VA_ARGS__)); \
     })
 
 /* Beware that this does short-circuit evaluation (use "||" instead of "|")
  * which has a possibly unexpected non-function-like behavior.
  * Use NM_IN_SET_SE if you need all arguments to be evaluated. */
-#define NM_IN_SET(x, ...) _NM_IN_SET(||, typeof(x), x, __VA_ARGS__)
+#define NM_IN_SET(x, ...) _NM_IN_SET(NM_UNIQ, ||, typeof(x), x, __VA_ARGS__)
 
 /* "SE" stands for "side-effect". Contrary to NM_IN_SET(), this does not do
  * short-circuit evaluation, which can make a difference if the arguments have
  * side-effects. */
-#define NM_IN_SET_SE(x, ...) _NM_IN_SET(|, typeof(x), x, __VA_ARGS__)
+#define NM_IN_SET_SE(x, ...) _NM_IN_SET(NM_UNIQ, |, typeof(x), x, __VA_ARGS__)
 
 /* the *_TYPED forms allow to explicitly select the type of "x". This is useful
  * if "x" doesn't support typeof (bitfields) or you want to gracefully convert
  * a type using automatic type conversion rules (but not forcing the conversion
  * with a cast). */
-#define NM_IN_SET_TYPED(type, x, ...)    _NM_IN_SET(||, type, x, __VA_ARGS__)
-#define NM_IN_SET_SE_TYPED(type, x, ...) _NM_IN_SET(|, type, x, __VA_ARGS__)
+#define NM_IN_SET_TYPED(type, x, ...)    _NM_IN_SET(NM_UNIQ, ||, type, x, __VA_ARGS__)
+#define NM_IN_SET_SE_TYPED(type, x, ...) _NM_IN_SET(NM_UNIQ, |, type, x, __VA_ARGS__)
 
 /*****************************************************************************/
 
@@ -814,14 +832,14 @@ _NM_IN_STRSET_EVAL_op_streq(const char *x1, const char *x)
     return x && nm_streq(x1, x);
 }
 
-#define _NM_IN_STRSET_EVAL_OP_NULL(x, idx)  ((int) (((const char *) NULL) == (x)))
-#define _NM_IN_STRSET_EVAL_OP_STREQ(x, idx) _NM_IN_STRSET_EVAL_op_streq(_x1, x)
-#define _NM_IN_STRSET_EVAL(op, eval_op, x1, ...)                                         \
-    ({                                                                                   \
-        const char *const _x1 = (x1);                                                    \
-                                                                                         \
-        !!(_x1 ? (NM_VA_ARGS_FOREACH(, , op, eval_op, __VA_ARGS__))                      \
-               : (NM_VA_ARGS_FOREACH(, , op, _NM_IN_STRSET_EVAL_OP_NULL, __VA_ARGS__))); \
+#define _NM_IN_STRSET_EVAL_OP_NULL(x, idx, op_arg)  ((int) (((const char *) NULL) == (x)))
+#define _NM_IN_STRSET_EVAL_OP_STREQ(x, idx, op_arg) _NM_IN_STRSET_EVAL_op_streq(_x1, x)
+#define _NM_IN_STRSET_EVAL(op, eval_op, x1, ...)                                           \
+    ({                                                                                     \
+        const char *const _x1 = (x1);                                                      \
+                                                                                           \
+        !!(_x1 ? (NM_VA_ARGS_FOREACH(, , op, eval_op, , __VA_ARGS__))                      \
+               : (NM_VA_ARGS_FOREACH(, , op, _NM_IN_STRSET_EVAL_OP_NULL, , __VA_ARGS__))); \
     })
 
 /* Beware that this does short-circuit evaluation (use "||" instead of "|")
@@ -1106,15 +1124,20 @@ nm_ptr_to_uintptr(const void *p)
 #define NM_CMP_RETURN(c)             \
     do {                             \
         const int _cc = (c);         \
+                                     \
         if (_cc)                     \
             return _cc < 0 ? -1 : 1; \
     } while (0)
 
-#define NM_CMP_RETURN_DIRECT(c) \
-    do {                        \
-        const int _cc = (c);    \
-        if (_cc)                \
-            return _cc;         \
+#define NM_CMP_RETURN_DIRECT(c)                               \
+    /* Usually we want that our CMP functions return strictly
+     * -1, 0, or 1. NM_CMP_RETURN_DIRECT() is like NM_CMP_RETURN(),
+     *  except, it does not clamp the integer value. */ \
+    do {                                                      \
+        const int _cc = (c);                                  \
+                                                              \
+        if (_cc)                                              \
+            return _cc;                                       \
     } while (0)
 
 #define NM_CMP_SELF(a, b)   \
@@ -1130,6 +1153,8 @@ nm_ptr_to_uintptr(const void *p)
             return 1;       \
     } while (0)
 
+/*****************************************************************************/
+
 #define NM_CMP_DIRECT(a, b)            \
     do {                               \
         typeof(a) _a = (a);            \
@@ -1139,10 +1164,13 @@ nm_ptr_to_uintptr(const void *p)
             return (_a < _b) ? -1 : 1; \
     } while (0)
 
-#define NM_CMP_DIRECT_UNSAFE(a, b)       \
-    do {                                 \
-        if ((a) != (b))                  \
-            return ((a) < (b)) ? -1 : 1; \
+#define NM_CMP_DIRECT_UNSAFE(a, b)                                                  \
+    /* This variant is "unsafe", because it evaluates the arguments more then once.
+     * This is only useful for bitfields, for which typeof() doesn't work.
+     * Don't use otherwise. */ \
+    do {                                                                            \
+        if ((a) != (b))                                                             \
+            return ((a) < (b)) ? -1 : 1;                                            \
     } while (0)
 
 /* In the general case, direct pointer comparison is undefined behavior in C.
@@ -1151,57 +1179,59 @@ nm_ptr_to_uintptr(const void *p)
  * between pointers (that can otherwise not be compared). */
 #define NM_CMP_DIRECT_PTR(a, b) NM_CMP_DIRECT(nm_ptr_to_uintptr(a), nm_ptr_to_uintptr(b))
 
-#define NM_CMP_DIRECT_MEMCMP(a, b, size) NM_CMP_RETURN(memcmp((a), (b), (size)))
+#define NM_CMP_DIRECT_BOOL(a, b) NM_CMP_DIRECT(!!(a), !!(b))
+
+#define NM_CMP_DIRECT_MEMCMP(a, b, size) NM_CMP_RETURN(nm_memcmp((a), (b), (size)))
 
 #define NM_CMP_DIRECT_STRCMP(a, b) NM_CMP_RETURN_DIRECT(strcmp((a), (b)))
 
 #define NM_CMP_DIRECT_STRCMP0(a, b) NM_CMP_RETURN_DIRECT(nm_strcmp0((a), (b)))
 
+#define NM_CMP_DIRECT_STR_INTERNED(a, b)                                                 \
+    /* This is interned strings, which are first checked for equality only using pointer
+     * comparison. Only in case of differences, the sort order is still determined by strcmp(). */ \
+    do {                                                                                 \
+        const char *const _a = (a);                                                      \
+        const char *const _b = (b);                                                      \
+                                                                                         \
+        if (_a != _b)                                                                    \
+            NM_CMP_RETURN_DIRECT(nm_strcmp0(_a, _b));                                    \
+    } while (0)
+
 #define NM_CMP_DIRECT_IN6ADDR(a, b)                             \
     do {                                                        \
         const struct in6_addr *const _a = (a);                  \
         const struct in6_addr *const _b = (b);                  \
+                                                                \
         NM_CMP_RETURN(memcmp(_a, _b, sizeof(struct in6_addr))); \
     } while (0)
+
+/*****************************************************************************/
 
 #define NM_CMP_FIELD(a, b, field) NM_CMP_DIRECT(((a)->field), ((b)->field))
 
-#define NM_CMP_FIELD_UNSAFE(a, b, field)                                   \
-    do {                                                                   \
-        /* it's unsafe, because it evaluates the arguments more then once.
-         * This is necessary for bitfields, for which typeof() doesn't work. */ \
-        if (((a)->field) != ((b)->field))                                  \
-            return ((a)->field < ((b)->field)) ? -1 : 1;                   \
-    } while (0)
+#define NM_CMP_FIELD_UNSAFE(a, b, field)                                            \
+    /* This variant is "unsafe", because it evaluates the arguments more then once.
+     * This is only useful for bitfields, for which typeof() doesn't work.
+     * Don't use otherwise. */ \
+    NM_CMP_DIRECT_UNSAFE(((a)->field), ((b)->field))
 
-#define NM_CMP_FIELD_BOOL(a, b, field) NM_CMP_DIRECT(!!((a)->field), !!((b)->field))
+#define NM_CMP_FIELD_BOOL(a, b, field) NM_CMP_DIRECT_BOOL(((a)->field), ((b)->field))
 
-#define NM_CMP_FIELD_STR(a, b, field) NM_CMP_RETURN(strcmp(((a)->field), ((b)->field)))
+#define NM_CMP_FIELD_STR(a, b, field) NM_CMP_DIRECT_STRCMP(((a)->field), ((b)->field))
 
-#define NM_CMP_FIELD_STR_INTERNED(a, b, field)        \
-    do {                                              \
-        const char *_a = ((a)->field);                \
-        const char *_b = ((b)->field);                \
-                                                      \
-        if (_a != _b) {                               \
-            NM_CMP_RETURN_DIRECT(nm_strcmp0(_a, _b)); \
-        }                                             \
-    } while (0)
+#define NM_CMP_FIELD_STR0(a, b, field) NM_CMP_DIRECT_STRCMP0(((a)->field), ((b)->field))
 
-#define NM_CMP_FIELD_STR0(a, b, field) NM_CMP_RETURN_DIRECT(nm_strcmp0(((a)->field), ((b)->field)))
+#define NM_CMP_FIELD_STR_INTERNED(a, b, field) \
+    NM_CMP_DIRECT_STR_INTERNED(((a)->field), ((b)->field))
 
 #define NM_CMP_FIELD_MEMCMP_LEN(a, b, field, len) \
-    NM_CMP_RETURN(memcmp(&((a)->field), &((b)->field), NM_MIN(len, sizeof((a)->field))))
+    NM_CMP_DIRECT_MEMCMP(&((a)->field), &((b)->field), NM_MIN(len, sizeof((a)->field)))
 
 #define NM_CMP_FIELD_MEMCMP(a, b, field) \
-    NM_CMP_RETURN(memcmp(&((a)->field), &((b)->field), sizeof((a)->field)))
+    NM_CMP_DIRECT_MEMCMP(&((a)->field), &((b)->field), sizeof((a)->field))
 
-#define NM_CMP_FIELD_IN6ADDR(a, b, field)                       \
-    do {                                                        \
-        const struct in6_addr *const _a = &((a)->field);        \
-        const struct in6_addr *const _b = &((b)->field);        \
-        NM_CMP_RETURN(memcmp(_a, _b, sizeof(struct in6_addr))); \
-    } while (0)
+#define NM_CMP_FIELD_IN6ADDR(a, b, field) NM_CMP_DIRECT_IN6ADDR(&((a)->field), &((b)->field))
 
 /*****************************************************************************/
 
@@ -1275,6 +1305,28 @@ nm_utils_addr_family_to_size(int addr_family)
         return NM_AF_INET6_SIZE;
     }
     return nm_assert_unreachable_val(0);
+}
+
+static inline size_t
+nm_utils_addr_family_to_size_untrusted(int addr_family)
+{
+    /* This is almost the same as nm_utils_addr_family_to_size().
+     * The difference is that nm_utils_addr_family_to_size() requires that
+     * addr_family is either AF_INET or AF_INET6 (it asserts against that).
+     *
+     * This variant accepts any addr_family, but returns zero for any unknown
+     * family.
+     *
+     * Use this, if the address family is untrusted or not guaranteed to be valid.
+     * Of course, then you also need to handle that this function potentially returns
+     * zero. */
+    switch (addr_family) {
+    case NM_AF_INET:
+        return NM_AF_INET_SIZE;
+    case NM_AF_INET6:
+        return NM_AF_INET6_SIZE;
+    }
+    return 0;
 }
 
 static inline int

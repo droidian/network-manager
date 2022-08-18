@@ -15,7 +15,9 @@
   </refsect1>
 <refsect1 role="desc" id="gdbus-interface-org-freedesktop-NetworkManager-Device-WireGuard">
   <title role="desc.title">Description</title>
-  <para></para>
+  <para>
+</para><para>
+</para>
 </refsect1>
 <refsect1 role="details" id="gdbus-properties-org.freedesktop.NetworkManager.Device.WireGuard">
   <title role="details.title">Property Details</title>
@@ -25,7 +27,8 @@
 <programlisting>
 PublicKey  readable   ay
 </programlisting>
-<para>        32-byte public WireGuard key.
+<para>
+32-byte public WireGuard key.
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-WireGuard.ListenPort">
@@ -34,7 +37,8 @@ PublicKey  readable   ay
 <programlisting>
 ListenPort  readable   q
 </programlisting>
-<para>        Local UDP listening port.
+<para>
+Local UDP listening port.
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-WireGuard.FwMark">
@@ -43,8 +47,9 @@ ListenPort  readable   q
 <programlisting>
 FwMark  readable   u
 </programlisting>
-<para>        Optional 32-bit mark used to set routing policy for outgoing encrypted packets.
-        See: ip-rule(8)
+<para>
+Optional 32-bit mark used to set routing policy for outgoing encrypted packets.
+See: ip-rule(8)
 </para>
 </refsect2>
 </refsect1>

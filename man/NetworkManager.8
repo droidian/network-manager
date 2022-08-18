@@ -2,12 +2,12 @@
 .\"     Title: NetworkManager
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 06/16/2022
+.\"      Date: 08/15/2022
 .\"    Manual: Network management daemons
-.\"    Source: NetworkManager 1.38.2
+.\"    Source: NetworkManager 1.39.90
 .\"  Language: English
 .\"
-.TH "NETWORKMANAGER" "8" "" "NetworkManager 1\&.38\&.2" "Network management daemons"
+.TH "NETWORKMANAGER" "8" "" "NetworkManager 1\&.39\&.90" "Network management daemons"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -190,6 +190,8 @@ RateLimitBurst
 options of journald (see
 \fBjournald.conf\fR(5)
 manual)\&.
+.PP
+NetworkManager does not log any secrets\&. However, you are advised to check whether anything private sensitive gets logged before posting\&. When reporting an issue, provide complete logs and avoid modifications (for privacy) that distort the meaning\&.
 .SH "/VAR/LIB/NETWORKMANAGER/SECRET_KEY AND /ETC/MACHINE\-ID"
 .PP
 The identity of a machine is important as various settings depend on it\&. For example,

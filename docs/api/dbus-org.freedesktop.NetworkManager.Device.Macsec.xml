@@ -25,7 +25,9 @@
   </refsect1>
 <refsect1 role="desc" id="gdbus-interface-org-freedesktop-NetworkManager-Device-Macsec">
   <title role="desc.title">Description</title>
-  <para></para>
+  <para>
+</para><para>
+</para>
 </refsect1>
 <refsect1 role="details" id="gdbus-properties-org.freedesktop.NetworkManager.Device.Macsec">
   <title role="details.title">Property Details</title>
@@ -35,7 +37,8 @@
 <programlisting>
 Parent  readable   o
 </programlisting>
-<para>        The object path of the parent device.
+<para>
+The object path of the parent device.
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-Macsec.Sci">
@@ -44,7 +47,8 @@ Parent  readable   o
 <programlisting>
 Sci  readable   t
 </programlisting>
-<para>        The Secure Channel Identifier in use.
+<para>
+The Secure Channel Identifier in use.
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-Macsec.IcvLength">
@@ -53,7 +57,8 @@ Sci  readable   t
 <programlisting>
 IcvLength  readable   y
 </programlisting>
-<para>        The length of ICV (Integrity Check Value).
+<para>
+The length of ICV (Integrity Check Value).
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-Macsec.CipherSuite">
@@ -62,8 +67,9 @@ IcvLength  readable   y
 <programlisting>
 CipherSuite  readable   t
 </programlisting>
-<para>        The set of cryptographic algorithms in use
-        (e.g. 0x0080020001000001 for GCM-AES-128).
+<para>
+The set of cryptographic algorithms in use
+(e.g. 0x0080020001000001 for GCM-AES-128).
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-Macsec.Window">
@@ -72,7 +78,8 @@ CipherSuite  readable   t
 <programlisting>
 Window  readable   u
 </programlisting>
-<para>        The size of the replay window.
+<para>
+The size of the replay window.
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-Macsec.EncodingSa">
@@ -81,8 +88,9 @@ Window  readable   u
 <programlisting>
 EncodingSa  readable   y
 </programlisting>
-<para>        The value of the Association Number (0..3) for the Security
-        Association in use.
+<para>
+The value of the Association Number (0..3) for the Security
+Association in use.
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-Macsec.Validation">
@@ -91,8 +99,9 @@ EncodingSa  readable   y
 <programlisting>
 Validation  readable   s
 </programlisting>
-<para>        The validation mode for incoming packets (strict, check,
-        disabled).
+<para>
+The validation mode for incoming packets (strict, check,
+disabled).
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-Macsec.Encrypt">
@@ -101,7 +110,8 @@ Validation  readable   s
 <programlisting>
 Encrypt  readable   b
 </programlisting>
-<para>        Whether encryption of transmitted frames is enabled.
+<para>
+Whether encryption of transmitted frames is enabled.
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-Macsec.Protect">
@@ -110,7 +120,8 @@ Encrypt  readable   b
 <programlisting>
 Protect  readable   b
 </programlisting>
-<para>        Whether protection of transmitted frames is enabled.
+<para>
+Whether protection of transmitted frames is enabled.
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-Macsec.IncludeSci">
@@ -119,8 +130,9 @@ Protect  readable   b
 <programlisting>
 IncludeSci  readable   b
 </programlisting>
-<para>        Whether the SCI is always included in SecTAG for transmitted
-        frames.
+<para>
+Whether the SCI is always included in SecTAG for transmitted
+frames.
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-Macsec.Es">
@@ -129,8 +141,9 @@ IncludeSci  readable   b
 <programlisting>
 Es  readable   b
 </programlisting>
-<para>        Whether the ES (End station) bit is enabled in SecTAG for
-        transmitted frames.
+<para>
+Whether the ES (End station) bit is enabled in SecTAG for
+transmitted frames.
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-Macsec.Scb">
@@ -139,8 +152,9 @@ Es  readable   b
 <programlisting>
 Scb  readable   b
 </programlisting>
-<para>        Whether the SCB (Single Copy Broadcast) bit is enabled in
-        SecTAG for transmitted frames.
+<para>
+Whether the SCB (Single Copy Broadcast) bit is enabled in
+SecTAG for transmitted frames.
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-Macsec.ReplayProtect">
@@ -149,7 +163,8 @@ Scb  readable   b
 <programlisting>
 ReplayProtect  readable   b
 </programlisting>
-<para>        Whether replay protection is enabled.
+<para>
+Whether replay protection is enabled.
 </para>
 </refsect2>
 </refsect1>

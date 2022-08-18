@@ -23,7 +23,6 @@
 #include "libnm-glib-aux/nm-enum-utils.h"
 #include "libnm-glib-aux/nm-time-utils.h"
 #include "libnm-glib-aux/nm-secret-utils.h"
-#include "libnm-systemd-shared/nm-sd-utils-shared.h"
 #include "libnm-core-aux-intern/nm-common-macros.h"
 #include "nm-utils-private.h"
 #include "nm-setting-private.h"
@@ -1559,29 +1558,33 @@ nm_utils_ip4_routes_from_variant(GVariant *value)
 
 /**
  * nm_utils_ip4_netmask_to_prefix:
- * @netmask: an IPv4 netmask in network byte order
+ * @netmask: an IPv4 netmask in network byte order.
+ *   Usually the netmask has all leading bits up to the prefix
+ *   set so that the netmask is identical to having the first
+ *   prefix bits of the address set.
+ *   If that is not the case and there are "holes" in the
+ *   mask, the prefix is determined based on the lowest bit
+ *   set.
  *
  * Returns: the CIDR prefix represented by the netmask
  **/
 guint32
 nm_utils_ip4_netmask_to_prefix(guint32 netmask)
 {
-    G_STATIC_ASSERT_EXPR(__SIZEOF_INT__ == 4);
-    G_STATIC_ASSERT_EXPR(sizeof(int) == 4);
-    G_STATIC_ASSERT_EXPR(sizeof(netmask) == 4);
-
-    return ((netmask != 0u) ? (guint32) (32 - __builtin_ctz(ntohl(netmask))) : 0u);
+    return _nm_utils_ip4_netmask_to_prefix(netmask);
 }
 
 /**
  * nm_utils_ip4_prefix_to_netmask:
- * @prefix: a CIDR prefix
+ * @prefix: a CIDR prefix, must be not larger than 32.
  *
  * Returns: the netmask represented by the prefix, in network byte order
  **/
 guint32
 nm_utils_ip4_prefix_to_netmask(guint32 prefix)
 {
+    g_return_val_if_fail(prefix <= 32, 0xffffffffu);
+
     return _nm_utils_ip4_prefix_to_netmask(prefix);
 }
 
@@ -5356,7 +5359,7 @@ nm_utils_base64secret_decode(const char *base64_key, gsize required_key_len, gui
 
     base64_key_len = strlen(base64_key);
 
-    r = nm_sd_utils_unbase64mem(base64_key, base64_key_len, TRUE, &bin_arr, &bin_len);
+    r = nm_unbase64mem_full(base64_key, base64_key_len, TRUE, &bin_arr, &bin_len);
     if (r < 0)
         return FALSE;
     if (bin_len != required_key_len) {

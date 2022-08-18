@@ -8,7 +8,7 @@
 <link rel="up" href="ch03.html" title="Connection and Setting API Reference">
 <link rel="prev" href="ch03.html" title="Connection and Setting API Reference">
 <link rel="next" href="NMSimpleConnection.html" title="NMSimpleConnection">
-<meta name="generator" content="GTK-Doc V1.33.0 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -664,7 +664,7 @@ the setting object's reference count.</p>
 <tr>
 <td class="parameter_name"><p>setting</p></td>
 <td class="parameter_description"><p>the <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> to add to the connection object. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></td>
 </tr>
 </tbody>
 </table></div>
@@ -735,7 +735,7 @@ to the <a class="link" href="NMConnection.html" title="NMConnection"><span class
 <a name="nm-connection-get-setting.returns"></a><h4>Returns</h4>
 <p>the <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a>, or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if no setting of that type was previously
 added to the <a class="link" href="NMConnection.html" title="NMConnection"><span class="type">NMConnection</span></a>. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -772,7 +772,7 @@ the <a class="link" href="NMConnection.html" title="NMConnection"><span class="t
 <a name="nm-connection-get-setting-by-name.returns"></a><h4>Returns</h4>
 <p>the <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a>, or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if no setting with that name was previously
 added to the <a class="link" href="NMConnection.html" title="NMConnection"><span class="type">NMConnection</span></a>. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -810,7 +810,7 @@ marshalling over D-Bus or otherwise serializing.</p>
 <a name="nm-connection-to-dbus.returns"></a><h4>Returns</h4>
 <p>a new floating <a href="https://developer.gnome.org/glib/unstable/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> describing the connection,
 its settings, and each setting's properties. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -1182,7 +1182,7 @@ return points to an allocated <a href="https://developer.gnome.org/glib/unstable
 secrets of the <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> which may be required; the caller owns the array
 and must free the array itself with <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#g-ptr-array-free"><code class="function">g_ptr_array_free()</code></a>, but not free its
 elements. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> utf8][<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>][<acronym title="Free data container after the code is done."><span class="acronym">transfer container</span></acronym>]</span></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> utf8][<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>][<acronym title="The caller owns the data container, but not the data inside it."><span class="acronym">transfer container</span></acronym>]</span></td>
 </tr>
 </tbody>
 </table></div>
@@ -1517,7 +1517,7 @@ nm_connection_get_settings (<em class="parameter"><code><a class="link" href="NM
 <em class="parameter"><code>connection</code></em>
 .
 If the connection has no settings, <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> is returned. </p>
-<p><span class="annotation">[<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> length=out_length][<acronym title="Free data container after the code is done."><span class="acronym">transfer container</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> length=out_length][<acronym title="The caller owns the data container, but not the data inside it."><span class="acronym">transfer container</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.10</p>
 </div>
@@ -1684,7 +1684,7 @@ Eg, "VLAN (eth1.1)".</p>
 's device,
 or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if <em class="parameter"><code>connection</code></em>
 is not a virtual connection type. </p>
-<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -1711,7 +1711,7 @@ nm_connection_get_setting_802_1x (<em class="parameter"><code><a class="link" hr
 <div class="refsect3">
 <a name="nm-connection-get-setting-802-1x.returns"></a><h4>Returns</h4>
 <p>an <a class="link" href="NMSetting8021x.html" title="NMSetting8021x"><span class="type">NMSetting8021x</span></a> if the connection contains one, otherwise <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -1738,7 +1738,7 @@ nm_connection_get_setting_bluetooth (<em class="parameter"><code><a class="link"
 <div class="refsect3">
 <a name="nm-connection-get-setting-bluetooth.returns"></a><h4>Returns</h4>
 <p>an <a class="link" href="NMSettingBluetooth.html" title="NMSettingBluetooth"><span class="type">NMSettingBluetooth</span></a> if the connection contains one, otherwise <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -1765,7 +1765,7 @@ nm_connection_get_setting_bond (<em class="parameter"><code><a class="link" href
 <div class="refsect3">
 <a name="nm-connection-get-setting-bond.returns"></a><h4>Returns</h4>
 <p>an <a class="link" href="NMSettingBond.html" title="NMSettingBond"><span class="type">NMSettingBond</span></a> if the connection contains one, otherwise <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -1792,7 +1792,7 @@ nm_connection_get_setting_team (<em class="parameter"><code><a class="link" href
 <div class="refsect3">
 <a name="nm-connection-get-setting-team.returns"></a><h4>Returns</h4>
 <p>an <a class="link" href="NMSettingTeam.html" title="NMSettingTeam"><span class="type">NMSettingTeam</span></a> if the connection contains one, otherwise <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -1819,7 +1819,7 @@ nm_connection_get_setting_team_port (<em class="parameter"><code><a class="link"
 <div class="refsect3">
 <a name="nm-connection-get-setting-team-port.returns"></a><h4>Returns</h4>
 <p>an <a class="link" href="NMSettingTeamPort.html" title="NMSettingTeamPort"><span class="type">NMSettingTeamPort</span></a> if the connection contains one, otherwise <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -1846,7 +1846,7 @@ nm_connection_get_setting_bridge (<em class="parameter"><code><a class="link" hr
 <div class="refsect3">
 <a name="nm-connection-get-setting-bridge.returns"></a><h4>Returns</h4>
 <p>an <a class="link" href="NMSettingBridge.html" title="NMSettingBridge"><span class="type">NMSettingBridge</span></a> if the connection contains one, otherwise <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -1873,7 +1873,7 @@ nm_connection_get_setting_bridge_port (<em class="parameter"><code><a class="lin
 <div class="refsect3">
 <a name="nm-connection-get-setting-bridge-port.returns"></a><h4>Returns</h4>
 <p>an <a class="link" href="NMSettingBridgePort.html" title="NMSettingBridgePort"><span class="type">NMSettingBridgePort</span></a> if the connection contains one, otherwise <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -1900,7 +1900,7 @@ nm_connection_get_setting_cdma (<em class="parameter"><code><a class="link" href
 <div class="refsect3">
 <a name="nm-connection-get-setting-cdma.returns"></a><h4>Returns</h4>
 <p>an <a class="link" href="NMSettingCdma.html" title="NMSettingCdma"><span class="type">NMSettingCdma</span></a> if the connection contains one, otherwise <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -1927,7 +1927,7 @@ nm_connection_get_setting_connection (<em class="parameter"><code><a class="link
 <div class="refsect3">
 <a name="nm-connection-get-setting-connection.returns"></a><h4>Returns</h4>
 <p>an <a class="link" href="NMSettingConnection.html" title="NMSettingConnection"><span class="type">NMSettingConnection</span></a> if the connection contains one, otherwise <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -1954,7 +1954,7 @@ nm_connection_get_setting_dcb (<em class="parameter"><code><a class="link" href=
 <div class="refsect3">
 <a name="nm-connection-get-setting-dcb.returns"></a><h4>Returns</h4>
 <p>an <a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a> if the connection contains one, otherwise NULL. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -1981,7 +1981,7 @@ nm_connection_get_setting_dummy (<em class="parameter"><code><a class="link" hre
 <div class="refsect3">
 <a name="nm-connection-get-setting-dummy.returns"></a><h4>Returns</h4>
 <p>an <a class="link" href="NMSettingDummy.html" title="NMSettingDummy"><span class="type">NMSettingDummy</span></a> if the connection contains one, otherwise <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.8</p>
 </div>
@@ -2009,7 +2009,7 @@ nm_connection_get_setting_generic (<em class="parameter"><code><a class="link" h
 <div class="refsect3">
 <a name="nm-connection-get-setting-generic.returns"></a><h4>Returns</h4>
 <p>an <a class="link" href="NMSettingGeneric.html" title="NMSettingGeneric"><span class="type">NMSettingGeneric</span></a> if the connection contains one, otherwise NULL. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -2036,7 +2036,7 @@ nm_connection_get_setting_gsm (<em class="parameter"><code><a class="link" href=
 <div class="refsect3">
 <a name="nm-connection-get-setting-gsm.returns"></a><h4>Returns</h4>
 <p>an <a class="link" href="NMSettingGsm.html" title="NMSettingGsm"><span class="type">NMSettingGsm</span></a> if the connection contains one, otherwise <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -2063,7 +2063,7 @@ nm_connection_get_setting_infiniband (<em class="parameter"><code><a class="link
 <div class="refsect3">
 <a name="nm-connection-get-setting-infiniband.returns"></a><h4>Returns</h4>
 <p>an <a class="link" href="NMSettingInfiniband.html" title="NMSettingInfiniband"><span class="type">NMSettingInfiniband</span></a> if the connection contains one, otherwise <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -2090,7 +2090,7 @@ nm_connection_get_setting_ip_tunnel (<em class="parameter"><code><a class="link"
 <div class="refsect3">
 <a name="nm-connection-get-setting-ip-tunnel.returns"></a><h4>Returns</h4>
 <p>an <a class="link" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel"><span class="type">NMSettingIPTunnel</span></a> if the connection contains one, otherwise <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.2</p>
 </div>
@@ -2122,7 +2122,7 @@ majority of IPv4-setting-related methods are on that type, not
 <a name="nm-connection-get-setting-ip4-config.returns"></a><h4>Returns</h4>
 <p>an <a class="link" href="NMSettingIP4Config.html" title="NMSettingIP4Config"><span class="type">NMSettingIP4Config</span></a> if the
 connection contains one, otherwise <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. </p>
-<p><span class="annotation">[<acronym title="Override the parsed C type with given type."><span class="acronym">type</span></acronym> NMSettingIP4Config][<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Override the parsed C type with given type."><span class="acronym">type</span></acronym> NMSettingIP4Config][<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -2153,7 +2153,7 @@ majority of IPv6-setting-related methods are on that type, not
 <a name="nm-connection-get-setting-ip6-config.returns"></a><h4>Returns</h4>
 <p>an <a class="link" href="NMSettingIP6Config.html" title="NMSettingIP6Config"><span class="type">NMSettingIP6Config</span></a> if the
 connection contains one, otherwise <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. </p>
-<p><span class="annotation">[<acronym title="Override the parsed C type with given type."><span class="acronym">type</span></acronym> NMSettingIP6Config][<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Override the parsed C type with given type."><span class="acronym">type</span></acronym> NMSettingIP6Config][<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -2180,7 +2180,7 @@ nm_connection_get_setting_macsec (<em class="parameter"><code><a class="link" hr
 <div class="refsect3">
 <a name="nm-connection-get-setting-macsec.returns"></a><h4>Returns</h4>
 <p>an <a class="link" href="NMSettingMacsec.html" title="NMSettingMacsec"><span class="type">NMSettingMacsec</span></a> if the connection contains one, otherwise <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.6</p>
 </div>
@@ -2208,7 +2208,7 @@ nm_connection_get_setting_macvlan (<em class="parameter"><code><a class="link" h
 <div class="refsect3">
 <a name="nm-connection-get-setting-macvlan.returns"></a><h4>Returns</h4>
 <p>an <a class="link" href="NMSettingMacvlan.html" title="NMSettingMacvlan"><span class="type">NMSettingMacvlan</span></a> if the connection contains one, otherwise <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.2</p>
 </div>
@@ -2236,7 +2236,7 @@ nm_connection_get_setting_olpc_mesh (<em class="parameter"><code><a class="link"
 <div class="refsect3">
 <a name="nm-connection-get-setting-olpc-mesh.returns"></a><h4>Returns</h4>
 <p>an <a class="link" href="NMSettingOlpcMesh.html" title="NMSettingOlpcMesh"><span class="type">NMSettingOlpcMesh</span></a> if the connection contains one, otherwise <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -2263,7 +2263,7 @@ nm_connection_get_setting_ovs_bridge (<em class="parameter"><code><a class="link
 <div class="refsect3">
 <a name="nm-connection-get-setting-ovs-bridge.returns"></a><h4>Returns</h4>
 <p>an <a class="link" href="NMSettingOvsBridge.html" title="NMSettingOvsBridge"><span class="type">NMSettingOvsBridge</span></a> if the connection contains one, otherwise <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.10</p>
 </div>
@@ -2292,7 +2292,7 @@ nm_connection_get_setting_ovs_interface
 <div class="refsect3">
 <a name="nm-connection-get-setting-ovs-interface.returns"></a><h4>Returns</h4>
 <p>an <a class="link" href="NMSettingOvsInterface.html" title="NMSettingOvsInterface"><span class="type">NMSettingOvsInterface</span></a> if the connection contains one, otherwise <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.10</p>
 </div>
@@ -2320,7 +2320,7 @@ nm_connection_get_setting_ovs_patch (<em class="parameter"><code><a class="link"
 <div class="refsect3">
 <a name="nm-connection-get-setting-ovs-patch.returns"></a><h4>Returns</h4>
 <p>an <a class="link" href="NMSettingOvsPatch.html" title="NMSettingOvsPatch"><span class="type">NMSettingOvsPatch</span></a> if the connection contains one, otherwise <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.10</p>
 </div>
@@ -2348,7 +2348,7 @@ nm_connection_get_setting_ovs_port (<em class="parameter"><code><a class="link" 
 <div class="refsect3">
 <a name="nm-connection-get-setting-ovs-port.returns"></a><h4>Returns</h4>
 <p>an <a class="link" href="NMSettingOvsPort.html" title="NMSettingOvsPort"><span class="type">NMSettingOvsPort</span></a> if the connection contains one, otherwise <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.10</p>
 </div>
@@ -2376,7 +2376,7 @@ nm_connection_get_setting_ppp (<em class="parameter"><code><a class="link" href=
 <div class="refsect3">
 <a name="nm-connection-get-setting-ppp.returns"></a><h4>Returns</h4>
 <p>an <a class="link" href="NMSettingPpp.html" title="NMSettingPpp"><span class="type">NMSettingPpp</span></a> if the connection contains one, otherwise <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -2403,7 +2403,7 @@ nm_connection_get_setting_pppoe (<em class="parameter"><code><a class="link" hre
 <div class="refsect3">
 <a name="nm-connection-get-setting-pppoe.returns"></a><h4>Returns</h4>
 <p>an <a class="link" href="NMSettingPppoe.html" title="NMSettingPppoe"><span class="type">NMSettingPppoe</span></a> if the connection contains one, otherwise <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -2430,7 +2430,7 @@ nm_connection_get_setting_proxy (<em class="parameter"><code><a class="link" hre
 <div class="refsect3">
 <a name="nm-connection-get-setting-proxy.returns"></a><h4>Returns</h4>
 <p>an <a class="link" href="NMSettingProxy.html" title="NMSettingProxy"><span class="type">NMSettingProxy</span></a> if the connection contains one, otherwise <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.6</p>
 </div>
@@ -2458,7 +2458,7 @@ nm_connection_get_setting_serial (<em class="parameter"><code><a class="link" hr
 <div class="refsect3">
 <a name="nm-connection-get-setting-serial.returns"></a><h4>Returns</h4>
 <p>an <a class="link" href="NMSettingSerial.html" title="NMSettingSerial"><span class="type">NMSettingSerial</span></a> if the connection contains one, otherwise <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -2485,7 +2485,7 @@ nm_connection_get_setting_tc_config (<em class="parameter"><code><a class="link"
 <div class="refsect3">
 <a name="nm-connection-get-setting-tc-config.returns"></a><h4>Returns</h4>
 <p>an <a class="link" href="NMSettingTCConfig.html" title="NMSettingTCConfig"><span class="type">NMSettingTCConfig</span></a> if the connection contains one, otherwise <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.12</p>
 </div>
@@ -2513,7 +2513,7 @@ nm_connection_get_setting_tun (<em class="parameter"><code><a class="link" href=
 <div class="refsect3">
 <a name="nm-connection-get-setting-tun.returns"></a><h4>Returns</h4>
 <p>an <a class="link" href="NMSettingTun.html" title="NMSettingTun"><span class="type">NMSettingTun</span></a> if the connection contains one, otherwise <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.2</p>
 </div>
@@ -2541,7 +2541,7 @@ nm_connection_get_setting_vpn (<em class="parameter"><code><a class="link" href=
 <div class="refsect3">
 <a name="nm-connection-get-setting-vpn.returns"></a><h4>Returns</h4>
 <p>an <a class="link" href="NMSettingVpn.html" title="NMSettingVpn"><span class="type">NMSettingVpn</span></a> if the connection contains one, otherwise <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -2568,7 +2568,7 @@ nm_connection_get_setting_wimax (<em class="parameter"><code><a class="link" hre
 <div class="refsect3">
 <a name="nm-connection-get-setting-wimax.returns"></a><h4>Returns</h4>
 <p>an <a class="link" href="NMSettingWimax.html" title="NMSettingWimax"><span class="type">NMSettingWimax</span></a> if the connection contains one, otherwise <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -2595,7 +2595,7 @@ nm_connection_get_setting_adsl (<em class="parameter"><code><a class="link" href
 <div class="refsect3">
 <a name="nm-connection-get-setting-adsl.returns"></a><h4>Returns</h4>
 <p>an <a class="link" href="NMSettingAdsl.html" title="NMSettingAdsl"><span class="type">NMSettingAdsl</span></a> if the connection contains one, otherwise <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -2622,7 +2622,7 @@ nm_connection_get_setting_wired (<em class="parameter"><code><a class="link" hre
 <div class="refsect3">
 <a name="nm-connection-get-setting-wired.returns"></a><h4>Returns</h4>
 <p>an <a class="link" href="NMSettingWired.html" title="NMSettingWired"><span class="type">NMSettingWired</span></a> if the connection contains one, otherwise <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -2649,7 +2649,7 @@ nm_connection_get_setting_wireless (<em class="parameter"><code><a class="link" 
 <div class="refsect3">
 <a name="nm-connection-get-setting-wireless.returns"></a><h4>Returns</h4>
 <p>an <a class="link" href="NMSettingWireless.html" title="NMSettingWireless"><span class="type">NMSettingWireless</span></a> if the connection contains one, otherwise <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -2677,7 +2677,7 @@ nm_connection_get_setting_wireless_security
 <div class="refsect3">
 <a name="nm-connection-get-setting-wireless-security.returns"></a><h4>Returns</h4>
 <p>an <a class="link" href="NMSettingWirelessSecurity.html" title="NMSettingWirelessSecurity"><span class="type">NMSettingWirelessSecurity</span></a> if the connection contains one, otherwise <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -2704,7 +2704,7 @@ nm_connection_get_setting_vlan (<em class="parameter"><code><a class="link" href
 <div class="refsect3">
 <a name="nm-connection-get-setting-vlan.returns"></a><h4>Returns</h4>
 <p>an <a class="link" href="NMSettingVlan.html" title="NMSettingVlan"><span class="type">NMSettingVlan</span></a> if the connection contains one, otherwise <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -2731,7 +2731,7 @@ nm_connection_get_setting_vxlan (<em class="parameter"><code><a class="link" hre
 <div class="refsect3">
 <a name="nm-connection-get-setting-vxlan.returns"></a><h4>Returns</h4>
 <p>an <a class="link" href="NMSettingVxlan.html" title="NMSettingVxlan"><span class="type">NMSettingVxlan</span></a> if the connection contains one, otherwise <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.2</p>
 </div>
@@ -2912,6 +2912,6 @@ are marked as never saved. Since: 1.32.</p>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.33.0</div>
+<hr>Generated by GTK-Doc V1.33.1</div>
 </body>
 </html>

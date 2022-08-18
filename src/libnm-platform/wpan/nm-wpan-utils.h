@@ -6,8 +6,6 @@
 #ifndef __WPAN_UTILS_H__
 #define __WPAN_UTILS_H__
 
-#include <net/ethernet.h>
-
 #include "libnm-platform/nm-netlink.h"
 
 typedef struct NMWpanUtils NMWpanUtils;
@@ -23,7 +21,8 @@ typedef struct NMWpanUtils NMWpanUtils;
 
 GType nm_wpan_utils_get_type(void);
 
-NMWpanUtils *nm_wpan_utils_new(int ifindex, struct nl_sock *genl, gboolean check_scan);
+NMWpanUtils *
+nm_wpan_utils_new(struct nl_sock *genl, guint16 genl_family_id, int ifindex, gboolean check_scan);
 
 guint16  nm_wpan_utils_get_pan_id(NMWpanUtils *self);
 gboolean nm_wpan_utils_set_pan_id(NMWpanUtils *self, guint16 pan_id);

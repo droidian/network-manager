@@ -8,7 +8,7 @@
 <link rel="up" href="manpages.html" title="Part I. Manual Pages">
 <link rel="prev" href="NetworkManager-wait-online.service.html" title="NetworkManager-wait-online.service">
 <link rel="next" href="nmcli-examples.html" title="nmcli-examples">
-<meta name="generator" content="GTK-Doc V1.33.0 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -182,6 +182,18 @@
 <td><p><span class="term">  <code class="option">-t</code>  |   <code class="option">--terse</code>  </span></p></td>
 <td><p>Output is terse. This mode is designed and suitable for computer (script)
           processing.</p></td>
+</tr>
+<tr>
+<td><p><span class="term">  <code class="option">--offline</code>  </span></p></td>
+<td>
+<p>Work without a daemon. Makes <span class="command"><strong>connection add</strong></span> and
+          <span class="command"><strong>connection modify</strong></span> commands accept and produce connection
+          data via standard input/output. Ordinarily, nmcli would communicate with
+          the NetworkManager service.</p>
+<p>The connection data format (keyfile) is described in
+          <span class="citerefentry"><span class="refentrytitle">nm-settings-keyfile</span>(5)</span>
+          manual.</p>
+</td>
 </tr>
 <tr>
 <td><p><span class="term">  <code class="option">-v</code>  |   <code class="option">--version</code>  </span></p></td>
@@ -657,7 +669,7 @@
           <span class="command"><strong>modify</strong></span>
            [<code class="option">--temporary</code>]
            [ <code class="option">id</code>  |   <code class="option">uuid</code>  |   <code class="option">path</code> ]
-            <em class="replaceable"><code>ID</code></em> 
+           [<em class="replaceable"><code>ID</code></em>]
             
             { <em class="replaceable"><code>option</code></em> <em class="replaceable"><code>value</code></em>  |   [+|-]<em class="replaceable"><code>setting</code></em>.<em class="replaceable"><code>property</code></em> <em class="replaceable"><code>value</code></em> }
           ... 
@@ -682,7 +694,13 @@
           <code class="literal">802-1x.phase1-auth-flags</code> etc.</p>
 <p>The connection is identified by its name, UUID or D-Bus path. If
           <em class="replaceable"><code>ID</code></em> is ambiguous, a keyword <code class="option">id</code>,
-          <code class="option">uuid</code> or <code class="option">path</code> can be used.</p>
+          <code class="option">uuid</code> or <code class="option">path</code> can be used.
+          The <em class="replaceable"><code>ID</code></em> is not used with the global
+          <code class="option">--offline</code> option.</p>
+<p>When the global <code class="option">--offline</code> is used, the
+          command reads the connection from the standard input and prints the
+          modified connection to standard output instead of making the
+          the NetworkManager daemon act upon specified connection.</p>
 </td>
 </tr>
 <tr>
@@ -770,6 +788,9 @@
 </tr>
 </tbody>
 </table></div>
+<p>When the global <code class="option">--offline</code> is used, the
+          command prints the resulting connection to standard output instead of
+          actually adding the connection via the NetworkManager daemon.</p>
 </td>
 </tr>
 <tr>
@@ -964,7 +985,7 @@
 </div>
 <div class="refsect1">
 <a name="device"></a><h2>Device Management Commands</h2>
-<div class="cmdsynopsis"><p><code class="command">nmcli device</code>  { <span class="command"><strong>status</strong></span>  |   <span class="command"><strong>show</strong></span>  |   <span class="command"><strong>set</strong></span>  |   <span class="command"><strong>up</strong></span>  |   <span class="command"><strong>connect</strong></span>  |   <span class="command"><strong>reapply</strong></span>  |   <span class="command"><strong>modify</strong></span>  |   <span class="command"><strong>down</strong></span>  |   <span class="command"><strong>disconnect</strong></span>  |   <span class="command"><strong>delete</strong></span>  |   <span class="command"><strong>monitor</strong></span>  |   <span class="command"><strong>wifi</strong></span>  |   <span class="command"><strong>lldp</strong></span> } [<em class="replaceable"><code>ARGUMENTS</code></em>...]</p></div>
+<div class="cmdsynopsis"><p><code class="command">nmcli device</code>  { <span class="command"><strong>status</strong></span>  |   <span class="command"><strong>show</strong></span>  |   <span class="command"><strong>set</strong></span>  |   <span class="command"><strong>up</strong></span>  |   <span class="command"><strong>connect</strong></span>  |   <span class="command"><strong>reapply</strong></span>  |   <span class="command"><strong>modify</strong></span>  |   <span class="command"><strong>down</strong></span>  |   <span class="command"><strong>disconnect</strong></span>  |   <span class="command"><strong>delete</strong></span>  |   <span class="command"><strong>monitor</strong></span>  |   <span class="command"><strong>wifi</strong></span>  |   <span class="command"><strong>lldp</strong></span>  |   <span class="command"><strong>checkpoint</strong></span> } [<em class="replaceable"><code>ARGUMENTS</code></em>...]</p></div>
 <p>Show and manage network interfaces.</p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -1304,6 +1325,28 @@
           Layer Discovery Protocol (LLDP). The <code class="option">ifname</code> option can be
           used to list neighbors only for a given interface. The protocol must be enabled
           in the connection settings.</p></td>
+</tr>
+<tr>
+<td><p><span class="term">
+          <span class="command"><strong>checkpoint</strong></span>
+           [<code class="option">--timeout</code> <em class="replaceable"><code>seconds</code></em>]
+           [<em class="replaceable"><code>ifname</code></em>...]
+            <code class="option">--</code> 
+            <em class="replaceable"><code>COMMAND</code></em>... 
+        </span></p></td>
+<td>
+<p>Runs the command with a configuration checkpoint taken and asks for a
+          confirmation when finished. When the confirmation is not given, the
+          checkpoint is automatically restored after timeout.</p>
+<p>This allows doing disruptive configuration changes over remote
+          connections with an option of restoring the network configuration to a
+          known good state in case of an error.</p>
+<p>If the a list of interface names is specified, the checkpoint is
+          taken, the checkpoint is takes only on the specified devices. Otherwise
+          a checkpoint is taken for all devices.</p>
+<p>Currently the timeout defaults to 15 seconds. This may change in
+          a future version.</p>
+</td>
 </tr>
 </tbody>
 </table></div>
@@ -1832,6 +1875,6 @@
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.33.0</div>
+<hr>Generated by GTK-Doc V1.33.1</div>
 </body>
 </html>

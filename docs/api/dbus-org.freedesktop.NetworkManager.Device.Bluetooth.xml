@@ -15,7 +15,9 @@
   </refsect1>
 <refsect1 role="desc" id="gdbus-interface-org-freedesktop-NetworkManager-Device-Bluetooth">
   <title role="desc.title">Description</title>
-  <para></para>
+  <para>
+</para><para>
+</para>
 </refsect1>
 <refsect1 role="details" id="gdbus-properties-org.freedesktop.NetworkManager.Device.Bluetooth">
   <title role="details.title">Property Details</title>
@@ -25,8 +27,10 @@
 <programlisting>
 HwAddress  readable   s
 </programlisting>
-<para>        Bluetooth hardware address of the device.
-</para><para>        DEPRECATED. Use the "HwAddress" property in "org.freedesktop.NetworkManager.Device" instead which exists since version NetworkManager 1.24.0.
+<para>
+Bluetooth hardware address of the device.
+</para><para>
+DEPRECATED. Use the "HwAddress" property in "org.freedesktop.NetworkManager.Device" instead which exists since version NetworkManager 1.24.0.
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-Bluetooth.Name">
@@ -35,7 +39,8 @@ HwAddress  readable   s
 <programlisting>
 Name  readable   s
 </programlisting>
-<para>        Bluetooth name of the device.
+<para>
+Bluetooth name of the device.
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-Bluetooth.BtCapabilities">
@@ -44,8 +49,10 @@ Name  readable   s
 <programlisting>
 BtCapabilities  readable   u
 </programlisting>
-<para>        Bluetooth capabilities of the device (either DUN or NAP).
-</para><para>        Returns: <link linkend="NMBluetoothCapabilities">NMBluetoothCapabilities</link>
+<para>
+Bluetooth capabilities of the device (either DUN or NAP).
+</para><para>
+Returns: <link linkend="NMBluetoothCapabilities">NMBluetoothCapabilities</link>
 </para>
 </refsect2>
 </refsect1>

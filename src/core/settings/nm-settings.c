@@ -376,6 +376,8 @@ typedef struct {
 
     GHashTable *sce_idx;
 
+    GCancellable *shutdown_cancellable;
+
     CList sce_dirty_lst_head;
 
     CList connections_lst_head;
@@ -389,14 +391,14 @@ typedef struct {
     gint64      startup_complete_start_timestamp_msec;
     GHashTable *startup_complete_idx;
     CList       startup_complete_scd_lst_head;
-    guint       startup_complete_timeout_id;
+    GSource    *startup_complete_timeout_source;
+
+    GSource *kf_db_flush_idle_source_timestamps;
+    GSource *kf_db_flush_idle_source_seen_bssids;
 
     guint connections_len;
 
     guint connections_generation;
-
-    guint kf_db_flush_idle_id_timestamps;
-    guint kf_db_flush_idle_id_seen_bssids;
 
     bool kf_db_pruned_timestamps;
     bool kf_db_pruned_seen_bssid;
@@ -541,9 +543,9 @@ _startup_complete_timeout_cb(gpointer user_data)
     NMSettings        *self = user_data;
     NMSettingsPrivate *priv = NM_SETTINGS_GET_PRIVATE(self);
 
-    priv->startup_complete_timeout_id = 0;
+    nm_clear_g_source_inst(&priv->startup_complete_timeout_source);
     _startup_complete_check(self, 0);
-    return G_SOURCE_REMOVE;
+    return G_SOURCE_CONTINUE;
 }
 
 static void
@@ -567,7 +569,7 @@ _startup_complete_check(NMSettings *self, gint64 now_msec)
         return;
     }
 
-    nm_clear_g_source(&priv->startup_complete_timeout_id);
+    nm_clear_g_source_inst(&priv->startup_complete_timeout_source);
 
     if (c_list_is_empty(&priv->startup_complete_scd_lst_head))
         goto ready;
@@ -609,8 +611,10 @@ next_with_ready:
 
         timeout_msec = priv->startup_complete_start_timestamp_msec + scd_not_ready->timeout_msec
                        - nm_utils_get_monotonic_timestamp_msec();
-        priv->startup_complete_timeout_id =
-            g_timeout_add(NM_CLAMP(0, timeout_msec, 60000), _startup_complete_timeout_cb, self);
+        priv->startup_complete_timeout_source =
+            nm_g_timeout_add_source(NM_CLAMP(0, timeout_msec, 60000),
+                                    _startup_complete_timeout_cb,
+                                    self);
         _LOGT("startup-complete: wait for suitable device for connection \"%s\" (%s) which has "
               "\"connection.wait-device-timeout\" set",
               nm_settings_connection_get_id(scd_not_ready->sett_conn),
@@ -637,7 +641,7 @@ ready:
     _LOGT("startup-complete: ready, no more profiles to wait for");
     priv->startup_complete_start_timestamp_msec = 0;
     nm_assert(!priv->startup_complete_idx);
-    nm_assert(priv->startup_complete_timeout_id == 0);
+    nm_assert(!priv->startup_complete_timeout_source);
     _notify(self, PROP_STARTUP_COMPLETE);
 }
 
@@ -3464,44 +3468,93 @@ load_plugins(NMSettings *self, const char *const *plugins, GError **error)
 /*****************************************************************************/
 
 static void
-pk_hostname_cb(NMAuthChain *chain, GDBusMethodInvocation *context, gpointer user_data)
+_save_hostname_write_cb(GObject *source, GAsyncResult *result, gpointer user_data)
+{
+    NMSettings                    *self;
+    GDBusMethodInvocation         *context;
+    gs_free char                  *hostname     = NULL;
+    gs_unref_object NMAuthSubject *auth_subject = NULL;
+    gs_unref_object GCancellable  *cancellable  = NULL;
+    gs_free_error GError          *error        = NULL;
+
+    nm_utils_user_data_unpack(user_data, &self, &context, &auth_subject, &hostname, &cancellable);
+
+    nm_hostname_manager_write_hostname_finish(NM_HOSTNAME_MANAGER(source), result, &error);
+
+    nm_audit_log_control_op(NM_AUDIT_OP_HOSTNAME_SAVE,
+                            hostname ?: "",
+                            !error,
+                            auth_subject,
+                            error ? error->message : NULL);
+
+    if (nm_utils_error_is_cancelled(error)) {
+        g_dbus_method_invocation_return_error_literal(context,
+                                                      NM_SETTINGS_ERROR,
+                                                      NM_SETTINGS_ERROR_FAILED,
+                                                      "NetworkManager is shutting down");
+        return;
+    }
+
+    if (error) {
+        g_dbus_method_invocation_take_error(context,
+                                            g_error_new(NM_SETTINGS_ERROR,
+                                                        NM_SETTINGS_ERROR_FAILED,
+                                                        "Saving the hostname failed: %s",
+                                                        error->message));
+        return;
+    }
+
+    g_dbus_method_invocation_return_value(context, NULL);
+}
+
+static void
+_save_hostname_pk_cb(NMAuthChain *chain, GDBusMethodInvocation *context, gpointer user_data)
 {
     NMSettings        *self = NM_SETTINGS(user_data);
     NMSettingsPrivate *priv = NM_SETTINGS_GET_PRIVATE(self);
     NMAuthCallResult   result;
-    GError            *error = NULL;
-    const char        *hostname;
+    gs_free char      *hostname = NULL;
 
     nm_assert(G_IS_DBUS_METHOD_INVOCATION(context));
 
     c_list_unlink(nm_auth_chain_parent_lst_list(chain));
 
     result   = nm_auth_chain_get_result(chain, NM_AUTH_PERMISSION_SETTINGS_MODIFY_HOSTNAME);
-    hostname = nm_auth_chain_get_data(chain, "hostname");
+    hostname = nm_auth_chain_steal_data(chain, "hostname");
 
-    /* If our NMSettingsConnection is already gone, do nothing */
     if (result != NM_AUTH_CALL_RESULT_YES) {
-        error = g_error_new_literal(NM_SETTINGS_ERROR,
-                                    NM_SETTINGS_ERROR_PERMISSION_DENIED,
-                                    NM_UTILS_ERROR_MSG_INSUFF_PRIV);
-    } else {
-        if (!nm_hostname_manager_write_hostname(priv->hostname_manager, hostname)) {
-            error = g_error_new_literal(NM_SETTINGS_ERROR,
-                                        NM_SETTINGS_ERROR_FAILED,
-                                        "Saving the hostname failed.");
-        }
+        nm_audit_log_control_op(NM_AUDIT_OP_HOSTNAME_SAVE,
+                                hostname ?: "",
+                                FALSE,
+                                nm_auth_chain_get_subject(chain),
+                                NM_UTILS_ERROR_MSG_INSUFF_PRIV);
+        g_dbus_method_invocation_return_error_literal(context,
+                                                      NM_SETTINGS_ERROR,
+                                                      NM_SETTINGS_ERROR_PERMISSION_DENIED,
+                                                      NM_UTILS_ERROR_MSG_INSUFF_PRIV);
+        return;
     }
 
-    nm_audit_log_control_op(NM_AUDIT_OP_HOSTNAME_SAVE,
-                            hostname,
-                            !error,
-                            nm_auth_chain_get_subject(chain),
-                            error ? error->message : NULL);
+    if (!priv->shutdown_cancellable) {
+        /* we only keep a weak pointer on the cancellable, so we can
+         * wrap it up after use. We almost never require this, because
+         * SaveHostname is almost never called. */
+        priv->shutdown_cancellable = g_cancellable_new();
+        g_object_add_weak_pointer(G_OBJECT(priv->shutdown_cancellable),
+                                  (gpointer *) &priv->shutdown_cancellable);
+    }
 
-    if (error)
-        g_dbus_method_invocation_take_error(context, error);
-    else
-        g_dbus_method_invocation_return_value(context, NULL);
+    nm_hostname_manager_write_hostname(
+        priv->hostname_manager,
+        hostname,
+        priv->shutdown_cancellable,
+        _save_hostname_write_cb,
+        nm_utils_user_data_pack(self,
+                                context,
+                                g_object_ref(nm_auth_chain_get_subject(chain)),
+                                hostname,
+                                g_object_ref(priv->shutdown_cancellable)));
+    g_steal_pointer(&hostname);
 }
 
 static void
@@ -3523,13 +3576,13 @@ impl_settings_save_hostname(NMDBusObject                      *obj,
     g_variant_get(parameters, "(&s)", &hostname);
 
     /* Minimal validation of the hostname */
-    if (!nm_utils_validate_hostname(hostname)) {
+    if (nm_str_not_empty(hostname) && !nm_utils_validate_hostname(hostname)) {
         error_code   = NM_SETTINGS_ERROR_INVALID_HOSTNAME;
         error_reason = "The hostname was too long or contained invalid characters";
         goto err;
     }
 
-    chain = nm_auth_chain_new_context(invocation, pk_hostname_cb, self);
+    chain = nm_auth_chain_new_context(invocation, _save_hostname_pk_cb, self);
     if (!chain) {
         error_code   = NM_SETTINGS_ERROR_PERMISSION_DENIED;
         error_reason = NM_UTILS_ERROR_MSG_REQ_AUTH_FAILED;
@@ -3538,7 +3591,7 @@ impl_settings_save_hostname(NMDBusObject                      *obj,
 
     c_list_link_tail(&priv->auth_lst_head, nm_auth_chain_parent_lst_list(chain));
     nm_auth_chain_add_call(chain, NM_AUTH_PERMISSION_SETTINGS_MODIFY_HOSTNAME, TRUE);
-    nm_auth_chain_set_data(chain, "hostname", g_strdup(hostname), g_free);
+    nm_auth_chain_set_data(chain, "hostname", nm_strdup_not_empty(hostname), g_free);
     return;
 err:
     nm_audit_log_control_op(NM_AUDIT_OP_HOSTNAME_SAVE, hostname, FALSE, invocation, error_reason);
@@ -3842,13 +3895,13 @@ _kf_db_got_dirty_flush(NMSettings *self, gboolean is_timestamps)
     NMKeyFileDB       *kf_db;
 
     if (is_timestamps) {
-        prefix                               = "timestamps";
-        kf_db                                = priv->kf_db_timestamps;
-        priv->kf_db_flush_idle_id_timestamps = 0;
+        prefix = "timestamps";
+        kf_db  = priv->kf_db_timestamps;
+        nm_clear_g_source_inst(&priv->kf_db_flush_idle_source_timestamps);
     } else {
-        prefix                                = "seen-bssids";
-        kf_db                                 = priv->kf_db_seen_bssids;
-        priv->kf_db_flush_idle_id_seen_bssids = 0;
+        prefix = "seen-bssids";
+        kf_db  = priv->kf_db_seen_bssids;
+        nm_clear_g_source_inst(&priv->kf_db_flush_idle_source_seen_bssids);
     }
 
     if (nm_key_file_db_is_dirty(kf_db))
@@ -3859,7 +3912,7 @@ _kf_db_got_dirty_flush(NMSettings *self, gboolean is_timestamps)
               nm_key_file_db_get_filename(kf_db));
     }
 
-    return G_SOURCE_REMOVE;
+    return G_SOURCE_CONTINUE;
 }
 
 static gboolean
@@ -3880,26 +3933,27 @@ _kf_db_got_dirty_fcn(NMKeyFileDB *kf_db, gpointer user_data)
     NMSettings        *self = user_data;
     NMSettingsPrivate *priv = NM_SETTINGS_GET_PRIVATE(self);
     GSourceFunc        idle_func;
-    guint             *p_id;
+    GSource          **p_source;
     const char        *prefix;
 
     if (priv->kf_db_timestamps == kf_db) {
         prefix    = "timestamps";
-        p_id      = &priv->kf_db_flush_idle_id_timestamps;
+        p_source  = &priv->kf_db_flush_idle_source_timestamps;
         idle_func = _kf_db_got_dirty_flush_timestamps_cb;
     } else if (priv->kf_db_seen_bssids == kf_db) {
         prefix    = "seen-bssids";
-        p_id      = &priv->kf_db_flush_idle_id_seen_bssids;
+        p_source  = &priv->kf_db_flush_idle_source_seen_bssids;
         idle_func = _kf_db_got_dirty_flush_seen_bssids_cb;
     } else {
         nm_assert_not_reached();
         return;
     }
 
-    if (*p_id != 0)
+    if (*p_source)
         return;
     _LOGT("[%s-keyfile]: schedule flushing changes to disk", prefix);
-    *p_id = g_idle_add_full(G_PRIORITY_LOW, idle_func, self, NULL);
+    *p_source =
+        nm_g_source_attach(nm_g_idle_source_new(G_PRIORITY_LOW, idle_func, self, NULL), NULL);
 }
 
 void
@@ -4100,7 +4154,7 @@ dispose(GObject *object)
     nm_assert(c_list_is_empty(&priv->sce_dirty_lst_head));
     nm_assert(g_hash_table_size(priv->sce_idx) == 0);
 
-    nm_clear_g_source(&priv->startup_complete_timeout_id);
+    nm_clear_g_source_inst(&priv->startup_complete_timeout_source);
     nm_clear_pointer(&priv->startup_complete_idx, g_hash_table_destroy);
     nm_assert(c_list_is_empty(&priv->startup_complete_scd_lst_head));
 
@@ -4119,6 +4173,12 @@ dispose(GObject *object)
                                              G_CALLBACK(session_monitor_changed_cb),
                                              self);
         g_clear_object(&priv->session_monitor);
+    }
+
+    if (priv->shutdown_cancellable) {
+        g_object_remove_weak_pointer(G_OBJECT(priv->shutdown_cancellable),
+                                     (gpointer *) &priv->shutdown_cancellable);
+        g_cancellable_cancel(g_steal_pointer(&priv->shutdown_cancellable));
     }
 
     G_OBJECT_CLASS(nm_settings_parent_class)->dispose(object);
@@ -4154,8 +4214,8 @@ finalize(GObject *object)
 
     g_clear_object(&priv->agent_mgr);
 
-    nm_clear_g_source(&priv->kf_db_flush_idle_id_timestamps);
-    nm_clear_g_source(&priv->kf_db_flush_idle_id_seen_bssids);
+    nm_clear_g_source_inst(&priv->kf_db_flush_idle_source_timestamps);
+    nm_clear_g_source_inst(&priv->kf_db_flush_idle_source_seen_bssids);
     _kf_db_to_file(self, TRUE, FALSE);
     _kf_db_to_file(self, FALSE, FALSE);
     nm_key_file_db_destroy(priv->kf_db_timestamps);

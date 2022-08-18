@@ -6,7 +6,7 @@ project(
 #  - add corresponding NM_VERSION_x_y_z macros in
 #    "src/libnm-core-public/nm-version-macros.h.in"
 #  - update number in configure.ac
-  version: '1.38.2',
+  version: '1.39.90',
   license: 'GPL2+',
   default_options: [
     'buildtype=debugoptimized',
@@ -77,11 +77,6 @@ source_root = meson.current_source_dir()
 build_root = meson.current_build_dir()
 
 po_dir = join_paths(meson.source_root(), 'po')
-
-intltool_merge = find_program('intltool-merge')
-intltool_cache = join_paths(po_dir, '.intltool-merge-cache')
-intltool_desktop_cmd = [intltool_merge, '-d', '-u', '-c', intltool_cache, po_dir, '@INPUT@', '@OUTPUT@']
-intltool_xml_cmd = [intltool_merge, '-x', '-u', '-c', intltool_cache, po_dir, '@INPUT@', '@OUTPUT@']
 
 top_inc = include_directories('.')
 
@@ -292,20 +287,19 @@ glib_dep = declare_dependency(
   ]
 )
 
-if run_command('test', '-e', '/etc/sysconfig/network-scripts').returncode() == 0
-  distro = 'redhat'
-elif run_command('test', '-e', '/etc/SuSE-release').returncode() == 0
-  distro = 'suse'
-elif run_command('test', '-e', '/etc/debian_version').returncode() == 0
-  distro = 'debian'
-elif run_command('test', '-e', '/etc/gentoo-release').returncode() == 0
-  distro = 'gentoo'
+enable_ifcfg_rh = get_option('ifcfg_rh')
+if enable_ifcfg_rh == 'auto'
+  enable_ifcfg_rh = (run_command('test', '-e', '/etc/sysconfig/network-scripts').returncode() == 0)
 else
-  distro = 'unknown'
+  enable_ifcfg_rh = (enable_ifcfg_rh != 'false')
 endif
 
-enable_ifcfg_rh = get_option('ifcfg_rh') or (distro == 'redhat')
-enable_ifupdown = get_option('ifupdown') or (distro == 'debian')
+enable_ifupdown = get_option('ifupdown')
+if enable_ifupdown == 'auto'
+  enable_ifupdown = (run_command('test', '-e', '/etc/debian_version').returncode() == 0)
+else
+  enable_ifupdown = (enable_ifupdown != 'false')
+endif
 
 config_plugins_default = get_option('config_plugins_default')
 config_h.set_quoted('NM_CONFIG_DEFAULT_MAIN_PLUGINS', config_plugins_default)
@@ -353,10 +347,14 @@ if enable_introspection
 endif
 
 udev_udevdir = get_option('udev_dir')
-install_udevdir = (udev_udevdir != 'no')
-
-if install_udevdir and udev_udevdir == ''
-  udev_udevdir = dependency('udev').get_pkgconfig_variable('udevdir')
+if udev_udevdir == 'no'
+  install_udevdir = false
+else
+  install_udevdir = true
+  if (udev_udevdir == '' or udev_udevdir == 'yes')
+    udev_udevdir = join_paths(nm_prefix, 'lib/udev')
+  endif
+  assert(udev_udevdir.startswith('/'), 'udev_dir must be an absolute path, but is ' + udev_udevdir)
 endif
 
 systemd_systemdsystemunitdir = get_option('systemdsystemunitdir')
@@ -364,7 +362,7 @@ install_systemdunitdir = (systemd_systemdsystemunitdir != 'no')
 
 if install_systemdunitdir and systemd_systemdsystemunitdir == ''
   assert(systemd_dep.found(), 'systemd required but not found, please provide a valid systemd user unit dir or disable it')
-  systemd_systemdsystemunitdir = systemd_dep.get_pkgconfig_variable('systemdsystemunitdir')
+  systemd_systemdsystemunitdir = systemd_dep.get_pkgconfig_variable('systemdsystemunitdir', define_variable: ['rootprefix', nm_prefix])
 endif
 
 enable_systemd_journal = get_option('systemd_journal')
@@ -551,7 +549,7 @@ endif
 dbus_conf_dir = get_option('dbus_conf_dir')
 if dbus_conf_dir == ''
   assert(dbus_dep.found(), 'D-Bus required but not found, please provide a valid system bus config dir')
-  dbus_conf_dir = join_paths(dbus_dep.get_pkgconfig_variable('datadir'), 'dbus-1', 'system.d')
+  dbus_conf_dir = join_paths(dbus_dep.get_pkgconfig_variable('datarootdir', define_variable: ['prefix', nm_prefix]), 'dbus-1', 'system.d')
 endif
 
 dbus_interfaces_dir = dbus_dep.get_pkgconfig_variable('interfaces_dir',  define_variable: ['datadir', nm_datadir])
@@ -683,18 +681,11 @@ endforeach
 
 # external misc tools paths
 default_paths = ['/sbin', '/usr/sbin']
-dnssec_ts_paths = ['/usr/local/libexec',
-                   '/usr/local/lib',
-                   '/usr/local/lib/dnssec-trigger',
-                   '/usr/libexec',
-                   '/usr/lib',
-                   '/usr/lib/dnssec-trigger']
 
 # 0: cmdline option, 1: paths, 2: fallback
-progs = [['iptables',       default_paths,   '/usr/sbin/iptables'],
-         ['nft',            default_paths,   '/usr/sbin/nft'],
-         ['dnsmasq',        default_paths,   ''],
-         ['dnssec_trigger', dnssec_ts_paths, join_paths(nm_libexecdir, 'dnssec-trigger-script') ],
+progs = [['iptables', default_paths, '/usr/sbin/iptables'],
+         ['nft',      default_paths, '/usr/sbin/nft'],
+         ['dnsmasq',  default_paths, ''],
         ]
 
 foreach prog : progs
@@ -1020,6 +1011,7 @@ output = '\nSystem paths:\n'
 output += '  prefix: ' + nm_prefix + '\n'
 output += '  exec_prefix: ' + nm_prefix + '\n'
 output += '  systemdunitdir: ' + systemd_systemdsystemunitdir + '\n'
+output += '  udev_dir: ' + udev_udevdir + '\n'
 output += '  nmbinary: ' + nm_pkgsbindir + '\n'
 output += '  nmconfdir: ' + nm_pkgconfdir + '\n'
 output += '  nmlibdir: ' + nm_pkglibdir + '\n'
@@ -1028,7 +1020,8 @@ output += '  nmstatedir: ' + nm_pkgstatedir + '\n'
 output += '  nmrundir: ' + nm_pkgrundir + '\n'
 output += '  nmvpndir: ' + nm_vpndir + '\n'
 output += '  nmplugindir: ' + nm_plugindir + '\n'
-output += '  system-ca-path: ' + system_ca_path + '\n'
+output += '  system_ca_path: ' + system_ca_path + '\n'
+output += '  dbus_conf_dir: ' + dbus_conf_dir + '\n'
 output += '\nPlatform:\n'
 output += '  session tracking: ' + ','.join(session_trackers) + '\n'
 output += '  suspend/resume: ' + suspend_resume + '\n'

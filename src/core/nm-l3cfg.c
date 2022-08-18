@@ -4,6 +4,8 @@
 
 #include "nm-l3cfg.h"
 
+#include "libnm-std-aux/nm-linux-compat.h"
+
 #include <net/if.h>
 #include <linux/if_addr.h>
 #include <linux/if_ether.h>
@@ -12,7 +14,7 @@
 #include "libnm-glib-aux/nm-time-utils.h"
 #include "libnm-platform/nm-platform.h"
 #include "libnm-platform/nmp-object.h"
-#include "libnm-platform/nmp-route-manager.h"
+#include "libnm-platform/nmp-global-tracker.h"
 #include "nm-netns.h"
 #include "n-acd/src/n-acd.h"
 #include "nm-l3-ipv4ll.h"
@@ -37,7 +39,6 @@ G_STATIC_ASSERT(NM_ACD_TIMEOUT_RFC5227_MSEC == N_ACD_TIMEOUT_RFC5227);
 #define ACD_ENSURE_RATELIMIT_MSEC               ((guint32) 4000u)
 #define ACD_WAIT_PROBING_EXTRA_TIME_MSEC        ((guint32) (1000u + ACD_ENSURE_RATELIMIT_MSEC))
 #define ACD_WAIT_PROBING_EXTRA_TIME2_MSEC       ((guint32) 1000u)
-#define ACD_MAX_TIMEOUT_MSEC                    ((guint32) 30000u)
 #define ACD_WAIT_TIME_PROBING_FULL_RESTART_MSEC ((guint32) 30000u)
 #define ACD_WAIT_TIME_CONFLICT_RESTART_MSEC     ((guint32) 120000u)
 #define ACD_WAIT_TIME_ANNOUNCE_RESTART_MSEC     ((guint32) 30000u)
@@ -271,6 +272,15 @@ typedef struct _NML3CfgPrivate {
         NMIPConfig *ipconfig_x[2];
     };
 
+    /* Whether we earlier configured MPTCP endpoints for the interface. */
+    union {
+        struct {
+            bool mptcp_set_6;
+            bool mptcp_set_4;
+        };
+        bool mptcp_set_x[2];
+    };
+
     /* This is for rate-limiting the creation of nacd instance. */
     GSource *nacd_instance_ensure_retry;
 
@@ -312,6 +322,9 @@ typedef struct _NML3CfgPrivate {
 
     bool changed_configs_configs : 1;
     bool changed_configs_acd_state : 1;
+
+    bool rp_filter_handled : 1;
+    bool rp_filter_set : 1;
 } NML3CfgPrivate;
 
 struct _NML3CfgClass {
@@ -319,6 +332,13 @@ struct _NML3CfgClass {
 };
 
 G_DEFINE_TYPE(NML3Cfg, nm_l3cfg, G_TYPE_OBJECT)
+
+/*****************************************************************************/
+
+#define _NODEV_ROUTES_TAG(self, IS_IPv4) \
+    ((gconstpointer) (&(((const char *) (self))[0 + (!(IS_IPv4))])))
+
+#define _MPTCP_TAG(self, IS_IPv4) ((gconstpointer) (&(((const char *) (self))[2 + (!(IS_IPv4))])))
 
 /*****************************************************************************/
 
@@ -1880,10 +1900,10 @@ _l3_acd_data_add(NML3Cfg              *self,
 
     acd_data = _l3_acd_data_find(self, addr);
 
-    if (acd_timeout_msec > ACD_MAX_TIMEOUT_MSEC) {
+    if (acd_timeout_msec > NM_ACD_TIMEOUT_MAX_MSEC) {
         /* we limit the maximum timeout. Otherwise we have to handle integer overflow
          * when adding timeouts. */
-        acd_timeout_msec = ACD_MAX_TIMEOUT_MSEC;
+        acd_timeout_msec = NM_ACD_TIMEOUT_MAX_MSEC;
     }
 
     if (!acd_data) {
@@ -3243,8 +3263,8 @@ nm_l3cfg_add_config(NML3Cfg              *self,
     nm_assert(l3cd);
     nm_assert(nm_l3_config_data_get_ifindex(l3cd) == self->priv.ifindex);
 
-    if (acd_timeout_msec > ACD_MAX_TIMEOUT_MSEC)
-        acd_timeout_msec = ACD_MAX_TIMEOUT_MSEC;
+    if (acd_timeout_msec > NM_ACD_TIMEOUT_MAX_MSEC)
+        acd_timeout_msec = NM_ACD_TIMEOUT_MAX_MSEC;
 
     nm_assert(NM_IN_SET(acd_defend_type,
                         NM_L3_ACD_DEFEND_TYPE_NEVER,
@@ -3451,15 +3471,13 @@ nm_l3cfg_remove_config_all_dirty(NML3Cfg *self, gconstpointer tag)
 
 /*****************************************************************************/
 
-#define _NODEV_ROUTES_TAG(self, IS_IPv4) ((gconstpointer) (&(&(self)->priv.route_manager)[IS_IPv4]))
-
 static gboolean
 _nodev_routes_untrack(NML3Cfg *self, int addr_family)
 {
-    return nmp_route_manager_untrack_all(self->priv.route_manager,
-                                         _NODEV_ROUTES_TAG(self, NM_IS_IPv4(addr_family)),
-                                         FALSE,
-                                         TRUE);
+    return nmp_global_tracker_untrack_all(self->priv.global_tracker,
+                                          _NODEV_ROUTES_TAG(self, NM_IS_IPv4(addr_family)),
+                                          FALSE,
+                                          TRUE);
 }
 
 static void
@@ -3479,12 +3497,12 @@ _nodev_routes_sync(NML3Cfg          *self,
     for (i = 0; i < routes_nodev->len; i++) {
         const NMPObject *obj = routes_nodev->pdata[i];
 
-        if (nmp_route_manager_track(self->priv.route_manager,
-                                    obj_type,
-                                    NMP_OBJECT_CAST_IP_ROUTE(obj),
-                                    1,
-                                    _NODEV_ROUTES_TAG(self, IS_IPv4),
-                                    NULL))
+        if (nmp_global_tracker_track(self->priv.global_tracker,
+                                     obj_type,
+                                     NMP_OBJECT_CAST_IP_ROUTE(obj),
+                                     1,
+                                     _NODEV_ROUTES_TAG(self, IS_IPv4),
+                                     NULL))
             changed = TRUE;
     }
 
@@ -3492,8 +3510,11 @@ out_clear:
     if (_nodev_routes_untrack(self, addr_family))
         changed = TRUE;
 
-    if (changed || commit_type >= NM_L3_CFG_COMMIT_TYPE_REAPPLY)
-        nmp_route_manager_sync(self->priv.route_manager, NMP_OBJECT_TYPE_IP_ROUTE(IS_IPv4), FALSE);
+    if (changed || commit_type >= NM_L3_CFG_COMMIT_TYPE_REAPPLY) {
+        nmp_global_tracker_sync(self->priv.global_tracker,
+                                NMP_OBJECT_TYPE_IP_ROUTE(IS_IPv4),
+                                FALSE);
+    }
 }
 
 /*****************************************************************************/
@@ -4182,6 +4203,259 @@ _l3_commit_ip6_token(NML3Cfg *self, NML3CfgCommitType commit_type)
     }
 }
 
+/*****************************************************************************/
+
+static void
+_rp_filter_update(NML3Cfg *self, gboolean reapply)
+{
+    gboolean    rp_filter_relax = FALSE;
+    const char *ifname;
+    int         rf_val;
+
+    /* The rp_filter sysctl is only an IPv4 thing. We only enable the rp-filter
+     * handling, if we did anything to MPTCP about IPv4 addresses.
+     *
+     * While we only have one "connection.mptcp-flags=enabled" property, whether
+     * we handle MPTCP is still tracked per AF. In particular, with "enabled-on-global-iface"
+     * flag, which honors the AF-specific default route. */
+    if (self->priv.p->mptcp_set_4)
+        rp_filter_relax = TRUE;
+
+    if (!rp_filter_relax) {
+        if (self->priv.p->rp_filter_handled) {
+            self->priv.p->rp_filter_handled = FALSE;
+            if (self->priv.p->rp_filter_set) {
+                self->priv.p->rp_filter_set = FALSE;
+
+                ifname = nm_l3cfg_get_ifname(self, TRUE);
+                rf_val = nm_platform_sysctl_ip_conf_get_rp_filter_ipv4(self->priv.platform,
+                                                                       ifname,
+                                                                       FALSE,
+                                                                       NULL);
+                if (rf_val == 2) {
+                    /* We only relaxed from 1 to 2. Only if that is still the case, reset. */
+                    nm_platform_sysctl_ip_conf_set(self->priv.platform,
+                                                   AF_INET,
+                                                   ifname,
+                                                   "rp_filter",
+                                                   "1");
+                }
+            }
+        }
+        return;
+    }
+
+    if (self->priv.p->rp_filter_handled && !reapply) {
+        /* We only set rp_filter once (except reapply). */
+        return;
+    }
+
+    /* No matter whether we actually reset the value below, we set the "handled" flag
+     * so that we only do this once (except during reapply). */
+    self->priv.p->rp_filter_handled = TRUE;
+
+    ifname = nm_l3cfg_get_ifname(self, TRUE);
+
+    rf_val =
+        nm_platform_sysctl_ip_conf_get_rp_filter_ipv4(self->priv.platform, ifname, FALSE, NULL);
+
+    if (rf_val != 1) {
+        /* We only relax from strict (1) to loose (2). No other transition. Nothing to do. */
+        return;
+    }
+
+    /* We actually loosen the flag. We need to remember to reset it. */
+    self->priv.p->rp_filter_set = TRUE;
+    nm_platform_sysctl_ip_conf_set(self->priv.platform, AF_INET, ifname, "rp_filter", "2");
+}
+
+/*****************************************************************************/
+
+static gboolean
+_global_tracker_mptcp_untrack(NML3Cfg *self, int addr_family)
+{
+    return nmp_global_tracker_untrack_all(self->priv.global_tracker,
+                                          _MPTCP_TAG(self, NM_IS_IPv4(addr_family)),
+                                          FALSE,
+                                          TRUE);
+}
+
+static gboolean
+_l3_commit_mptcp_af(NML3Cfg          *self,
+                    NML3CfgCommitType commit_type,
+                    int               addr_family,
+                    gboolean         *out_reapply)
+{
+    const int    IS_IPv4 = NM_IS_IPv4(addr_family);
+    NMMptcpFlags mptcp_flags;
+    gboolean     reapply = FALSE;
+    gboolean     changed = FALSE;
+
+    nm_assert(NM_IS_L3CFG(self));
+    nm_assert(NM_IN_SET(commit_type,
+                        NM_L3_CFG_COMMIT_TYPE_NONE,
+                        NM_L3_CFG_COMMIT_TYPE_REAPPLY,
+                        NM_L3_CFG_COMMIT_TYPE_UPDATE));
+
+    if (commit_type >= NM_L3_CFG_COMMIT_TYPE_REAPPLY)
+        reapply = TRUE;
+
+    if (commit_type != NM_L3_CFG_COMMIT_TYPE_NONE && self->priv.p->combined_l3cd_commited)
+        mptcp_flags = nm_l3_config_data_get_mptcp_flags(self->priv.p->combined_l3cd_commited);
+    else
+        mptcp_flags = NM_MPTCP_FLAGS_DISABLED;
+
+    if (mptcp_flags == NM_MPTCP_FLAGS_NONE || NM_FLAGS_HAS(mptcp_flags, NM_MPTCP_FLAGS_DISABLED))
+        mptcp_flags = NM_MPTCP_FLAGS_DISABLED;
+    else if (NM_FLAGS_HAS(mptcp_flags, NM_MPTCP_FLAGS_ENABLED_ON_GLOBAL_IFACE)) {
+        /* Whether MPTCP is enabled/disabled, depends on whether we have a unicast default
+         * route (in the main routing table). */
+        if (self->priv.p->combined_l3cd_commited
+            && nm_l3_config_data_get_best_default_route(self->priv.p->combined_l3cd_commited,
+                                                        addr_family))
+            mptcp_flags = NM_FLAGS_UNSET(mptcp_flags, NM_MPTCP_FLAGS_ENABLED_ON_GLOBAL_IFACE)
+                          | NM_MPTCP_FLAGS_ENABLED;
+        else
+            mptcp_flags = NM_MPTCP_FLAGS_DISABLED;
+    } else
+        mptcp_flags |= NM_MPTCP_FLAGS_ENABLED;
+
+    if (NM_FLAGS_HAS(mptcp_flags, NM_MPTCP_FLAGS_DISABLED)) {
+        if (!self->priv.p->mptcp_set_x[IS_IPv4] && !reapply) {
+            /* Nothing to configure, and we did not earlier configure MPTCP. Nothing to do. */
+            NM_SET_OUT(out_reapply, FALSE);
+            return FALSE;
+        }
+
+        self->priv.p->mptcp_set_x[IS_IPv4] = FALSE;
+        reapply                            = TRUE;
+    } else {
+        const NMPlatformIPXAddress *addr;
+        NMDedupMultiIter            iter;
+        const guint32               FLAGS =
+            (NM_FLAGS_HAS(mptcp_flags, NM_MPTCP_FLAGS_SIGNAL) ? MPTCP_PM_ADDR_FLAG_SIGNAL : 0)
+            | (NM_FLAGS_HAS(mptcp_flags, NM_MPTCP_FLAGS_SUBFLOW) ? MPTCP_PM_ADDR_FLAG_SUBFLOW : 0)
+            | (NM_FLAGS_HAS(mptcp_flags, NM_MPTCP_FLAGS_BACKUP) ? MPTCP_PM_ADDR_FLAG_BACKUP : 0)
+            | (NM_FLAGS_HAS(mptcp_flags, NM_MPTCP_FLAGS_FULLMESH) ? MPTCP_PM_ADDR_FLAG_FULLMESH
+                                                                  : 0);
+        NMPlatformMptcpAddr a = {
+            .ifindex     = self->priv.ifindex,
+            .id          = 0,
+            .flags       = FLAGS,
+            .addr_family = addr_family,
+            .port        = 0,
+        };
+        gboolean any_tracked = FALSE;
+
+        self->priv.p->mptcp_set_x[IS_IPv4] = TRUE;
+
+        if (self->priv.p->combined_l3cd_commited) {
+            gint32 addr_prio;
+
+            addr_prio = 100;
+
+            nm_l3_config_data_iter_ip_address_for_each (&iter,
+                                                        self->priv.p->combined_l3cd_commited,
+                                                        addr_family,
+                                                        (const NMPlatformIPAddress **) &addr) {
+                /* We want to evaluate the  with-{loopback,link_local}-{4,6} flags based on the actual
+                 * ifa_scope that the address will have once we configure it.
+                 * "addr" is an address we want to configure, we expect that it will
+                 * later have the scope nm_platform_ip_address_get_scope() based on
+                 * the address. */
+                switch (nm_platform_ip_address_get_scope(addr_family, addr->ax.address_ptr)) {
+                case RT_SCOPE_HOST:
+                    goto skip_addr;
+                case RT_SCOPE_LINK:
+                    goto skip_addr;
+                default:
+                    if (IS_IPv4) {
+                        /* We take all addresses, including rfc1918 private addresses
+                         * (nm_utils_ip_is_site_local()). */
+                    } else {
+                        if (nm_utils_ip6_is_ula(&addr->a6.address)) {
+                            /* Exclude unique local IPv6 addresses fc00::/7. */
+                            goto skip_addr;
+                        } else {
+                            /* We take all other addresses, including deprecated IN6_IS_ADDR_SITELOCAL()
+                             * (fec0::/10). */
+                        }
+                    }
+                    break;
+                }
+
+                a.addr = nm_ip_addr_init(addr_family, addr->ax.address_ptr);
+
+                /* We track the address with different priorities, that depends
+                 * on the order in which they are listed here. NMPGlobalTracker
+                 * will sort all tracked addresses by priority. That means, if we
+                 * have multiple interfaces then we will prefer the first address
+                 * of those interfaces, then the second, etc.
+                 *
+                 * That is relevant, because the overall number of addresses we
+                 * can configure in kernel is strongly limited (MPTCP_PM_ADDR_MAX). */
+                if (addr_prio > 10)
+                    addr_prio--;
+
+                if (nmp_global_tracker_track(self->priv.global_tracker,
+                                             NMP_OBJECT_TYPE_MPTCP_ADDR,
+                                             &a,
+                                             addr_prio,
+                                             _MPTCP_TAG(self, IS_IPv4),
+                                             NULL))
+                    changed = TRUE;
+
+                any_tracked = TRUE;
+
+skip_addr:
+                (void) 0;
+            }
+        }
+
+        if (!any_tracked) {
+            /* We need to make it known that this ifindex is used. Track a dummy object. */
+            if (nmp_global_tracker_track(
+                    self->priv.global_tracker,
+                    NMP_OBJECT_TYPE_MPTCP_ADDR,
+                    nmp_global_tracker_mptcp_addr_init_for_ifindex(&a, self->priv.ifindex),
+                    1,
+                    _MPTCP_TAG(self, IS_IPv4),
+                    NULL))
+                changed = TRUE;
+        }
+    }
+
+    if (_global_tracker_mptcp_untrack(self, addr_family))
+        changed = TRUE;
+
+    NM_SET_OUT(out_reapply, reapply);
+    return changed || reapply;
+}
+
+static void
+_l3_commit_mptcp(NML3Cfg *self, NML3CfgCommitType commit_type)
+{
+    gboolean changed   = FALSE;
+    gboolean reapply   = FALSE;
+    gboolean i_reapply = FALSE;
+
+    if (_l3_commit_mptcp_af(self, commit_type, AF_INET, &i_reapply))
+        changed = TRUE;
+    reapply |= i_reapply;
+    if (_l3_commit_mptcp_af(self, commit_type, AF_INET6, &i_reapply))
+        changed = TRUE;
+    reapply |= i_reapply;
+
+    nm_assert(commit_type < NM_L3_CFG_COMMIT_TYPE_REAPPLY || reapply);
+
+    if (changed)
+        nmp_global_tracker_sync_mptcp_addrs(self->priv.global_tracker, reapply);
+    else
+        nm_assert(!reapply);
+
+    _rp_filter_update(self, reapply);
+}
+
 static gboolean
 _l3_commit_one(NML3Cfg              *self,
                int                   addr_family,
@@ -4379,6 +4653,8 @@ _l3_commit(NML3Cfg *self, NML3CfgCommitType commit_type, gboolean is_idle)
 
     _l3_commit_one(self, AF_INET, commit_type, changed_combined_l3cd, l3cd_old);
     _l3_commit_one(self, AF_INET6, commit_type, changed_combined_l3cd, l3cd_old);
+
+    _l3_commit_mptcp(self, commit_type);
 
     _l3_acd_data_process_changes(self);
 
@@ -4626,7 +4902,9 @@ nm_l3cfg_has_commited_ip6_addresses_pending_dad(NML3Cfg *self)
      * Of course, all lookups are O(1) anyway, so in any case the operation is
      * O(n) (once "n" being the addresses in platform, and once in l3cd). */
 
-    nmp_lookup_init_object(&plat_lookup, NMP_OBJECT_TYPE_IP6_ADDRESS, self->priv.ifindex);
+    nmp_lookup_init_object_by_ifindex(&plat_lookup,
+                                      NMP_OBJECT_TYPE_IP6_ADDRESS,
+                                      self->priv.ifindex);
 
     nm_platform_iter_obj_for_each (&iter, self->priv.platform, &plat_lookup, &plat_obj) {
         const NMPlatformIP6Address *plat_addr = NMP_OBJECT_CAST_IP6_ADDRESS(plat_obj);
@@ -4763,7 +5041,8 @@ constructed(GObject *object)
     self->priv.platform = g_object_ref(nm_netns_get_platform(self->priv.netns));
     nm_assert(NM_IS_PLATFORM(self->priv.platform));
 
-    self->priv.route_manager = nmp_route_manager_ref(nm_netns_get_route_manager(self->priv.netns));
+    self->priv.global_tracker =
+        nmp_global_tracker_ref(nm_netns_get_global_tracker(self->priv.netns));
 
     _LOGT("created (netns=" NM_HASH_OBFUSCATE_PTR_FMT ")", NM_HASH_OBFUSCATE_PTR(self->priv.netns));
 
@@ -4785,6 +5064,7 @@ static void
 finalize(GObject *object)
 {
     NML3Cfg *self = NM_L3CFG(object);
+    gboolean changed;
 
     nm_assert(!self->priv.p->ipconfig_4);
     nm_assert(!self->priv.p->ipconfig_6);
@@ -4818,13 +5098,21 @@ finalize(GObject *object)
     nm_assert(c_list_is_empty(&self->priv.p->obj_state_zombie_lst_head));
 
     if (_nodev_routes_untrack(self, AF_INET))
-        nmp_route_manager_sync(self->priv.route_manager, NMP_OBJECT_TYPE_IP4_ROUTE, FALSE);
+        nmp_global_tracker_sync(self->priv.global_tracker, NMP_OBJECT_TYPE_IP4_ROUTE, FALSE);
     if (_nodev_routes_untrack(self, AF_INET6))
-        nmp_route_manager_sync(self->priv.route_manager, NMP_OBJECT_TYPE_IP6_ROUTE, FALSE);
+        nmp_global_tracker_sync(self->priv.global_tracker, NMP_OBJECT_TYPE_IP6_ROUTE, FALSE);
+
+    changed = FALSE;
+    if (_global_tracker_mptcp_untrack(self, AF_INET))
+        changed = TRUE;
+    if (_global_tracker_mptcp_untrack(self, AF_INET6))
+        changed = TRUE;
+    if (changed)
+        nmp_global_tracker_sync_mptcp_addrs(self->priv.global_tracker, FALSE);
 
     g_clear_object(&self->priv.netns);
     g_clear_object(&self->priv.platform);
-    nm_clear_pointer(&self->priv.route_manager, nmp_route_manager_unref);
+    nm_clear_pointer(&self->priv.global_tracker, nmp_global_tracker_unref);
 
     nm_clear_l3cd(&self->priv.p->combined_l3cd_merged);
     nm_clear_l3cd(&self->priv.p->combined_l3cd_commited);

@@ -8,14 +8,16 @@
 <link rel="up" href="ch04.html" title="Device and Runtime Configuration API Reference">
 <link rel="prev" href="NMDeviceVeth.html" title="NMDeviceVeth">
 <link rel="next" href="NMDeviceVrf.html" title="NMDeviceVrf">
-<meta name="generator" content="GTK-Doc V1.33.0 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
 <table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
 <td width="100%" align="left" class="shortcuts">
 <a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
-                  <a href="#NMDeviceVlan.description" class="shortcut">Description</a></span>
+                  <a href="#NMDeviceVlan.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
+                  <a href="#NMDeviceVlan.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_properties">  <span class="dim">|</span> 
+                  <a href="#NMDeviceVlan.properties" class="shortcut">Properties</a></span>
 </td>
 <td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
 <td><a accesskey="u" href="ch04.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
@@ -74,6 +76,34 @@
 </table></div>
 </div>
 <div class="refsect1">
+<a name="NMDeviceVlan.properties"></a><h2>Properties</h2>
+<div class="informaltable"><table class="informaltable" border="0">
+<colgroup>
+<col width="150px" class="properties_type">
+<col width="300px" class="properties_name">
+<col width="200px" class="properties_flags">
+</colgroup>
+<tbody>
+<tr>
+<td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></td>
+<td class="property_name"><a class="link" href="NMDeviceVlan.html#NMDeviceVlan--carrier" title="The “carrier” property">carrier</a></td>
+<td class="property_flags">Read</td>
+</tr>
+<tr>
+<td class="property_type">
+<a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a> *</td>
+<td class="property_name"><a class="link" href="NMDeviceVlan.html#NMDeviceVlan--parent" title="The “parent” property">parent</a></td>
+<td class="property_flags">Read</td>
+</tr>
+<tr>
+<td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></td>
+<td class="property_name"><a class="link" href="NMDeviceVlan.html#NMDeviceVlan--vlan-id" title="The “vlan-id” property">vlan-id</a></td>
+<td class="property_flags">Read</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
 <a name="NMDeviceVlan.other"></a><h2>Types and Values</h2>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
@@ -97,8 +127,20 @@
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMDeviceVlan.html#NM-DEVICE-VLAN-VLAN-ID:CAPS" title="NM_DEVICE_VLAN_VLAN_ID">NM_DEVICE_VLAN_VLAN_ID</a></td>
 </tr>
+<tr>
+<td class="datatype_keyword"> </td>
+<td class="function_name"><a class="link" href="NMDeviceVlan.html#NMDeviceVlan-struct" title="NMDeviceVlan">NMDeviceVlan</a></td>
+</tr>
 </tbody>
 </table></div>
+</div>
+<div class="refsect1">
+<a name="NMDeviceVlan.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="screen">    <a href="https://developer.gnome.org/gobject/unstable/gobject-The-Base-Object-Type.html#GObject-struct">GObject</a>
+    <span class="lineart">╰──</span> <a class="link" href="NMObject.html" title="NMObject">NMObject</a>
+        <span class="lineart">╰──</span> <a class="link" href="NMDevice.html" title="NMDevice">NMDevice</a>
+            <span class="lineart">╰──</span> NMDeviceVlan
+</pre>
 </div>
 <div class="refsect1">
 <a name="NMDeviceVlan.description"></a><h2>Description</h2>
@@ -185,7 +227,7 @@ nm_device_vlan_get_parent (<em class="parameter"><code><a class="link" href="NMD
 <div class="refsect3">
 <a name="nm-device-vlan-get-parent.returns"></a><h4>Returns</h4>
 <p>the device's parent device. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -239,9 +281,43 @@ nm_device_vlan_get_vlan_id (<em class="parameter"><code><a class="link" href="NM
 <pre class="programlisting">#define NM_DEVICE_VLAN_VLAN_ID    "vlan-id"
 </pre>
 </div>
+<hr>
+<div class="refsect2">
+<a name="NMDeviceVlan-struct"></a><h3>NMDeviceVlan</h3>
+<pre class="programlisting">typedef struct _NMDeviceVlan NMDeviceVlan;</pre>
+</div>
+</div>
+<div class="refsect1">
+<a name="NMDeviceVlan.property-details"></a><h2>Property Details</h2>
+<div class="refsect2">
+<a name="NMDeviceVlan--carrier"></a><h3>The <code class="literal">“carrier”</code> property</h3>
+<pre class="programlisting">  “carrier”                  <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></pre>
+<p>Whether the device has carrier.</p>
+<p>Owner: NMDeviceVlan</p>
+<p>Flags: Read</p>
+<p>Default value: FALSE</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMDeviceVlan--parent"></a><h3>The <code class="literal">“parent”</code> property</h3>
+<pre class="programlisting">  “parent”                   <a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a> *</pre>
+<p>The devices's parent device.</p>
+<p>Owner: NMDeviceVlan</p>
+<p>Flags: Read</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMDeviceVlan--vlan-id"></a><h3>The <code class="literal">“vlan-id”</code> property</h3>
+<pre class="programlisting">  “vlan-id”                  <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></pre>
+<p>The device's VLAN ID.</p>
+<p>Owner: NMDeviceVlan</p>
+<p>Flags: Read</p>
+<p>Allowed values: &lt;= 4095</p>
+<p>Default value: 0</p>
+</div>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.33.0</div>
+<hr>Generated by GTK-Doc V1.33.1</div>
 </body>
 </html>

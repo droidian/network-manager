@@ -163,6 +163,7 @@ typedef enum {
 } NMDeviceCheckDevAvailableFlags;
 
 typedef void (*NMDeviceDeactivateCallback)(NMDevice *self, GError *error, gpointer user_data);
+typedef void (*NMDeviceAttachPortCallback)(NMDevice *self, GError *error, gpointer user_data);
 
 typedef struct _NMDeviceClass {
     NMDBusObjectClass parent;
@@ -346,7 +347,7 @@ typedef struct _NMDeviceClass {
     NMActStageReturn (*act_stage1_prepare)(NMDevice *self, NMDeviceStateReason *out_failure_reason);
     NMActStageReturn (*act_stage2_config)(NMDevice *self, NMDeviceStateReason *out_failure_reason);
     void (*act_stage3_ip_config)(NMDevice *self, int addr_family);
-    gboolean (*ready_for_ip_config)(NMDevice *self);
+    gboolean (*ready_for_ip_config)(NMDevice *self, gboolean is_manual);
 
     const char *(*get_ip_method_auto)(NMDevice *self, int addr_family);
 
@@ -373,12 +374,18 @@ typedef struct _NMDeviceClass {
                                                NMConnection *connection,
                                                GError      **error);
 
-    gboolean (*enslave_slave)(NMDevice     *self,
-                              NMDevice     *slave,
-                              NMConnection *connection,
-                              gboolean      configure);
-
-    void (*release_slave)(NMDevice *self, NMDevice *slave, gboolean configure);
+    /* Attachs a port asynchronously. Returns TRUE/FALSE on immediate
+     * success/error; in such cases, the callback is not invoked. If the
+     * action couldn't be completed immediately, DEFAULT is returned and
+     * the callback will always be invoked asynchronously. */
+    NMTernary (*attach_port)(NMDevice                  *self,
+                             NMDevice                  *port,
+                             NMConnection              *connection,
+                             gboolean                   configure,
+                             GCancellable              *cancellable,
+                             NMDeviceAttachPortCallback callback,
+                             gpointer                   user_data);
+    void (*detach_port)(NMDevice *self, NMDevice *port, gboolean configure);
 
     void (*parent_changed_notify)(NMDevice *self,
                                   int       old_ifindex,

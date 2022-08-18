@@ -15,7 +15,9 @@
   </refsect1>
 <refsect1 role="desc" id="gdbus-interface-org-freedesktop-NetworkManager-Device-Statistics">
   <title role="desc.title">Description</title>
-  <para></para>
+  <para>
+</para><para>
+</para>
 </refsect1>
 <refsect1 role="details" id="gdbus-properties-org.freedesktop.NetworkManager.Device.Statistics">
   <title role="details.title">Property Details</title>
@@ -25,10 +27,11 @@
 <programlisting>
 RefreshRateMs  readwrite  u
 </programlisting>
-<para>        Refresh rate of the rest of properties of this interface. The properties
-        are guaranteed to be refreshed each RefreshRateMs milliseconds in case
-        the underlying counter has changed too.
-        If zero, there is no guaranteed refresh rate of the properties.
+<para>
+Refresh rate of the rest of properties of this interface. The properties
+are guaranteed to be refreshed each RefreshRateMs milliseconds in case
+the underlying counter has changed too.
+If zero, there is no guaranteed refresh rate of the properties.
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-Statistics.TxBytes">
@@ -37,7 +40,8 @@ RefreshRateMs  readwrite  u
 <programlisting>
 TxBytes  readable   t
 </programlisting>
-<para>        Number of transmitted bytes
+<para>
+Number of transmitted bytes
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-Statistics.RxBytes">
@@ -46,7 +50,8 @@ TxBytes  readable   t
 <programlisting>
 RxBytes  readable   t
 </programlisting>
-<para>        Number of received bytes
+<para>
+Number of received bytes
 </para>
 </refsect2>
 </refsect1>

@@ -2,12 +2,12 @@
 .\"     Title: nm-settings-ifcfg-rh
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 06/16/2022
+.\"      Date: 08/15/2022
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.38.2
+.\"    Source: NetworkManager 1.39.90
 .\"  Language: English
 .\"
-.TH "NM\-SETTINGS\-IFCFG\-RH" "5" "" "NetworkManager 1\&.38\&.2" "Configuration"
+.TH "NM\-SETTINGS\-IFCFG\-RH" "5" "" "NetworkManager 1\&.39\&.90" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -1315,6 +1315,8 @@ l l l l
 l l l l
 l l l l
 l l l l
+l l l l
+l l l l
 l l l l.
 T{
 id
@@ -1553,6 +1555,17 @@ Whether or not DNSOverTls is enabled for the connection\fB
 Allowed values: \fRyes,no,opportunistic
 T}
 T{
+mptcp\-flags
+T}:T{
+MPTCP_FLAGS\fI(+)\fR
+T}:T{
+missing variable means global default
+T}:T{
+The MPTCP flags that indicate whether MPTCP is enabled and which flags to use for the address endpoints\&.\fB
+
+Example: \fRMPTCP_FLAGS="signal,subflow"
+T}
+T{
 wait\-device\-timeout
 T}:T{
 DEVTIMEOUT\fI(+)\fR
@@ -1577,6 +1590,19 @@ MUD_URL to be sent by device (See RFC 8520)\&.\fB
 Example: \fRhttps://yourdevice\&.example\&.com/model\&.json\fB
 
 Allowed values: \fRa valid URL that points to recommended policy for this device
+T}
+T{
+wait\-activation\-delay
+T}:T{
+WAIT_ACTIVATION_DELAY\fI(+)\fR
+T}:T{
+\ \&
+T}:T{
+Time in milliseconds to wait for connection to be considered activated\&. The wait will start after the pre\-up dispatcher event\&.\fB
+
+Example: \fRWAIT_ACTIVATION_DELAY=5000\fB
+
+Allowed values: \fRdelay in milliseconds\&.
 T}
 .TE
 .sp 1
@@ -1982,6 +2008,7 @@ l l l l
 l l l l
 l l l l
 l l l l
+l l l l
 l l l l.
 T{
 method
@@ -2193,6 +2220,17 @@ T}:T{
 The Vendor Class Identifier DHCP option (60)\&.\fB
 
 Example: \fRDHCP_VENDOR_CLASS_IDENTIFIER=foo
+T}
+T{
+link\-local
+T}:T{
+IPV4_LINK_LOCAL\fI(+)\fR
+T}:T{
+\ \&
+T}:T{
+Configure link\-local IP address in interaction with method\fB
+
+Example: \fRIPV4_LINK_LOCAL=auto
 T}
 .TE
 .sp 1
@@ -2420,13 +2458,13 @@ addr\-gen\-mode
 T}:T{
 IPV6_ADDR_GEN_MODE
 T}:T{
-eui64
+"default\-or\-eui64"
 T}:T{
 Configure IPv6 Stable Privacy addressing for SLAAC (RFC7217)\&.\fB
 
 Example: \fRIPV6_ADDR_GEN_MODE=stable\-privacy\fB
 
-Allowed values: \fRIPV6_ADDR_GEN_MODE: eui64, stable\-privacy
+Allowed values: \fRIPV6_ADDR_GEN_MODE: default, default\-or\-eui64, eui64, stable\-privacy
 T}
 T{
 token
@@ -3753,7 +3791,7 @@ plugin:
 Each secret property in a NetworkManager setting has an associated
 \fIflags\fR
 property that describes how to handle that secret\&. In the
-\fIfcfg\-rh\fR
+\fIifcfg\-rh\fR
 plugin variables for secret flags have a
 \fI_FLAGS\fR
 suffix\&. The variables contain one or more of the following values (space separated)\&. Missing (or empty) *_FLAGS variable means that the password is owned by NetworkManager\&.

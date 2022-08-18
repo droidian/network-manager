@@ -2095,6 +2095,7 @@ write_connection_setting(NMSettingConnection *s_con, shvarFile *ifcfg)
     NMSettingConnectionMdns       mdns;
     NMSettingConnectionLlmnr      llmnr;
     NMSettingConnectionDnsOverTls dns_over_tls;
+    NMMptcpFlags                  mptcp_flags;
     guint32                       vuint32;
     const char                   *tmp, *mud_url;
 
@@ -2258,6 +2259,9 @@ write_connection_setting(NMSettingConnection *s_con, shvarFile *ifcfg)
     vint = nm_setting_connection_get_auth_retries(s_con);
     svSetValueInt64_cond(ifcfg, "AUTH_RETRIES", vint >= 0, vint);
 
+    vint32 = nm_setting_connection_get_wait_activation_delay(s_con);
+    svSetValueInt64_cond(ifcfg, "WAIT_ACTIVATION_DELAY", vint32 >= 0, vint32);
+
     vint32 = nm_setting_connection_get_wait_device_timeout(s_con);
     if (vint32 == -1) {
         /* pass */
@@ -2286,13 +2290,18 @@ write_connection_setting(NMSettingConnection *s_con, shvarFile *ifcfg)
                        nm_setting_connection_dns_over_tls_get_type(),
                        dns_over_tls);
     }
+
+    mptcp_flags = nm_setting_connection_get_mptcp_flags(s_con);
+    if (mptcp_flags != NM_MPTCP_FLAGS_NONE)
+        svSetValueEnum(ifcfg, "MPTCP_FLAGS", nm_mptcp_flags_get_type(), mptcp_flags);
 }
 
 static char *
 get_route_attributes_string(NMIPRoute *route, int family)
 {
     gs_free const char **names = NULL;
-    GVariant            *attr, *lock;
+    GVariant            *attr;
+    GVariant            *lock;
     GString             *str;
     guint                i, len;
 
@@ -2317,6 +2326,7 @@ get_route_attributes_string(NMIPRoute *route, int family)
             continue;
 
         if (NM_IN_STRSET(names[i],
+                         NM_IP_ROUTE_ATTRIBUTE_ADVMSS,
                          NM_IP_ROUTE_ATTRIBUTE_WINDOW,
                          NM_IP_ROUTE_ATTRIBUTE_CWND,
                          NM_IP_ROUTE_ATTRIBUTE_INITCWND,
@@ -2332,12 +2342,12 @@ get_route_attributes_string(NMIPRoute *route, int family)
                                    names[i],
                                    (lock && g_variant_get_boolean(lock)) ? "lock " : "",
                                    g_variant_get_uint32(attr));
-        } else if (strstr(names[i], "lock-")) {
+        } else if (NM_STR_HAS_PREFIX(names[i], "lock-")) {
             const char *n = &(names[i])[NM_STRLEN("lock-")];
 
-            attr = nm_ip_route_get_attribute(route, n);
-            if (!attr) {
-                g_string_append_printf(str, "%s lock 0", n);
+            if (!nm_ip_route_get_attribute(route, n)) {
+                if (g_variant_get_boolean(attr))
+                    g_string_append_printf(str, "%s lock 0", n);
             } else {
                 /* we also have a corresponding attribute with the numeric value. The
                  * lock setting is handled above. */
@@ -2346,8 +2356,12 @@ get_route_attributes_string(NMIPRoute *route, int family)
             g_string_append_printf(str, "%s %u", names[i], (unsigned) g_variant_get_byte(attr));
         } else if (nm_streq(names[i], NM_IP_ROUTE_ATTRIBUTE_TOS)) {
             g_string_append_printf(str, "%s 0x%02x", names[i], (unsigned) g_variant_get_byte(attr));
-        } else if (nm_streq(names[i], NM_IP_ROUTE_ATTRIBUTE_TABLE)) {
+        } else if (NM_IN_STRSET(names[i],
+                                NM_IP_ROUTE_ATTRIBUTE_TABLE,
+                                NM_IP_ROUTE_ATTRIBUTE_RTO_MIN)) {
             g_string_append_printf(str, "%s %u", names[i], (unsigned) g_variant_get_uint32(attr));
+        } else if (nm_streq(names[i], NM_IP_ROUTE_ATTRIBUTE_QUICKACK)) {
+            g_string_append_printf(str, "%s %u", names[i], (unsigned) g_variant_get_boolean(attr));
         } else if (nm_streq(names[i], NM_IP_ROUTE_ATTRIBUTE_ONLINK)) {
             if (g_variant_get_boolean(attr))
                 g_string_append(str, "onlink");
@@ -2733,6 +2747,7 @@ write_ip4_setting(NMConnection *connection,
     gboolean                      has_netmask;
     NMDhcpHostnameFlags           flags;
     const char *const            *strv;
+    NMSettingIP4LinkLocal         ipv4_link_local;
 
     NM_SET_OUT(out_route_content_svformat, NULL);
     NM_SET_OUT(out_route_content, NULL);
@@ -2838,6 +2853,14 @@ write_ip4_setting(NMConnection *connection,
 
     value = nm_setting_ip_config_get_dhcp_hostname(s_ip4);
     svSetValueStr(ifcfg, "DHCP_HOSTNAME", value);
+
+    ipv4_link_local = nm_setting_ip4_config_get_link_local(NM_SETTING_IP4_CONFIG(s_ip4));
+    if (ipv4_link_local != NM_SETTING_IP4_LL_DEFAULT) {
+        svSetValueEnum(ifcfg,
+                       "IPV4_LINK_LOCAL",
+                       nm_setting_ip4_link_local_get_type(),
+                       ipv4_link_local);
+    }
 
     value = nm_setting_ip4_config_get_dhcp_fqdn(NM_SETTING_IP4_CONFIG(s_ip4));
     svSetValueStr(ifcfg, "DHCP_FQDN", value);
@@ -3149,7 +3172,7 @@ write_ip6_setting(NMConnection *connection, shvarFile *ifcfg, GString **out_rout
 
     /* IPv6 Address generation mode */
     addr_gen_mode = nm_setting_ip6_config_get_addr_gen_mode(NM_SETTING_IP6_CONFIG(s_ip6));
-    if (addr_gen_mode != NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_EUI64) {
+    if (addr_gen_mode != NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_DEFAULT_OR_EUI64) {
         svSetValueEnum(ifcfg,
                        "IPV6_ADDR_GEN_MODE",
                        nm_setting_ip6_config_addr_gen_mode_get_type(),

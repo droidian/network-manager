@@ -1805,8 +1805,8 @@ test_read_infiniband_connection(void)
     NMSettingInfiniband          *s_ib;
     const char                   *mac;
     guint8      expected_mac[INFINIBAND_ALEN] = {0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66,
-                                            0x77, 0x88, 0x99, 0x01, 0x12, 0x23, 0x34,
-                                            0x45, 0x56, 0x67, 0x78, 0x89, 0x90};
+                                                 0x77, 0x88, 0x99, 0x01, 0x12, 0x23, 0x34,
+                                                 0x45, 0x56, 0x67, 0x78, 0x89, 0x90};
     const char *expected_id                   = "Test InfiniBand Connection";
     const char *expected_uuid                 = "4e80a56d-c99f-4aad-a6dd-b449bc398c57";
 
@@ -1924,6 +1924,7 @@ test_write_bridge_main(void)
     gs_unref_object NMConnection *connection = NULL;
     NMSettingConnection          *s_con;
     NMSettingBridge              *s_bridge;
+    NMSettingWired               *s_wired;
     NMSettingIPConfig            *s_ip4;
     NMSettingIPConfig            *s_ip6;
 
@@ -1952,6 +1953,11 @@ test_write_bridge_main(void)
     s_bridge = (NMSettingBridge *) nm_setting_bridge_new();
     g_assert(s_bridge);
     nm_connection_add_setting(connection, NM_SETTING(s_bridge));
+
+    /* Ethernet setting */
+    s_wired = (NMSettingWired *) nm_setting_wired_new();
+    g_assert(s_wired);
+    nm_connection_add_setting(connection, NM_SETTING(s_wired));
 
     /* IP4 setting */
     s_ip4 = (NMSettingIPConfig *) nm_setting_ip4_config_new();

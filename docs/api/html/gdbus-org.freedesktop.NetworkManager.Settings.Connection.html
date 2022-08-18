@@ -8,7 +8,7 @@
 <link rel="up" href="ref-dbus-settings.html" title="The /org/freedesktop/NetworkManager/Settings/* objects">
 <link rel="prev" href="ref-dbus-settings.html" title="The /org/freedesktop/NetworkManager/Settings/* objects">
 <link rel="next" href="ref-dbus-devices.html" title="The /org/freedesktop/NetworkManager/Devices/* objects">
-<meta name="generator" content="GTK-Doc V1.33.0 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -67,7 +67,8 @@
 </div>
 <div class="refsect1">
 <a name="gdbus-interface-org-freedesktop-NetworkManager-Settings-Connection"></a><h2>Description</h2>
-<p>      Represents a single network connection configuration.
+<p>
+Represents a single network connection configuration.
 </p>
 </div>
 <div class="refsect1">
@@ -77,11 +78,12 @@
 <pre class="programlisting">
 Update (IN  a{sa{sv}} properties);
 </pre>
-<p>        Update the connection with new settings and properties (replacing all
-        previous settings and properties) and save the connection to disk. Secrets
-        may be part of the update request, and will be either stored in persistent
-        storage or sent to a Secret Agent for storage, depending on the flags
-        associated with each secret.
+<p>
+Update the connection with new settings and properties (replacing all
+previous settings and properties) and save the connection to disk. Secrets
+may be part of the update request, and will be either stored in persistent
+storage or sent to a Secret Agent for storage, depending on the flags
+associated with each secret.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -90,7 +92,9 @@ Update (IN  a{sa{sv}} properties);
 </colgroup>
 <tbody><tr>
 <td><p><span class="term"><code class="literal">IN a{sa{sv}} <em class="parameter"><code>properties</code></em></code>:</span></p></td>
-<td><p>New connection settings, properties, and (optionally) secrets.</p></td>
+<td><p>
+New connection settings, properties, and (optionally) secrets.
+</p></td>
 </tr></tbody>
 </table></div>
 </div>
@@ -100,14 +104,15 @@ Update (IN  a{sa{sv}} properties);
 <pre class="programlisting">
 UpdateUnsaved (IN  a{sa{sv}} properties);
 </pre>
-<p>        Update the connection with new settings and properties (replacing all
-        previous settings and properties) but do not immediately save the
-        connection to disk. Secrets may be part of the update request and may sent
-        to a Secret Agent for storage, depending on the flags associated with each
-        secret. Use the 'Save' method to save these changes to disk. Note that
-        unsaved changes will be lost if the connection is reloaded from disk
-        (either automatically on file change or due to an explicit
-        ReloadConnections call).
+<p>
+Update the connection with new settings and properties (replacing all
+previous settings and properties) but do not immediately save the
+connection to disk. Secrets may be part of the update request and may sent
+to a Secret Agent for storage, depending on the flags associated with each
+secret. Use the 'Save' method to save these changes to disk. Note that
+unsaved changes will be lost if the connection is reloaded from disk
+(either automatically on file change or due to an explicit
+ReloadConnections call).
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -116,7 +121,9 @@ UpdateUnsaved (IN  a{sa{sv}} properties);
 </colgroup>
 <tbody><tr>
 <td><p><span class="term"><code class="literal">IN a{sa{sv}} <em class="parameter"><code>properties</code></em></code>:</span></p></td>
-<td><p>New connection settings, properties, and (optionally) secrets.</p></td>
+<td><p>
+New connection settings, properties, and (optionally) secrets.
+</p></td>
 </tr></tbody>
 </table></div>
 </div>
@@ -126,7 +133,8 @@ UpdateUnsaved (IN  a{sa{sv}} properties);
 <pre class="programlisting">
 Delete ();
 </pre>
-<p>        Delete the connection.
+<p>
+Delete the connection.
 </p>
 </div>
 <hr>
@@ -135,10 +143,11 @@ Delete ();
 <pre class="programlisting">
 GetSettings (OUT a{sa{sv}} settings);
 </pre>
-<p>        Get the settings maps describing this network configuration. This will
-        never include any secrets required for connection to the network, as those
-        are often protected. Secrets must be requested separately using the
-        GetSecrets() call.
+<p>
+Get the settings maps describing this network configuration. This will
+never include any secrets required for connection to the network, as those
+are often protected. Secrets must be requested separately using the
+GetSecrets() call.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -147,7 +156,9 @@ GetSettings (OUT a{sa{sv}} settings);
 </colgroup>
 <tbody><tr>
 <td><p><span class="term"><code class="literal">OUT a{sa{sv}} <em class="parameter"><code>settings</code></em></code>:</span></p></td>
-<td><p>The nested settings maps describing this object.</p></td>
+<td><p>
+The nested settings maps describing this object.
+</p></td>
 </tr></tbody>
 </table></div>
 </div>
@@ -158,10 +169,11 @@ GetSettings (OUT a{sa{sv}} settings);
 GetSecrets (IN  s         setting_name,
             OUT a{sa{sv}} secrets);
 </pre>
-<p>        Get the secrets belonging to this network configuration. Only secrets from
-        persistent storage or a Secret Agent running in the requestor's session
-        will be returned. The user will never be prompted for secrets as a result
-        of this request.
+<p>
+Get the secrets belonging to this network configuration. Only secrets from
+persistent storage or a Secret Agent running in the requestor's session
+will be returned. The user will never be prompted for secrets as a result
+of this request.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -171,11 +183,15 @@ GetSecrets (IN  s         setting_name,
 <tbody>
 <tr>
 <td><p><span class="term"><code class="literal">IN s <em class="parameter"><code>setting_name</code></em></code>:</span></p></td>
-<td><p>Name of the setting to return secrets for. If empty, all secrets will be returned.</p></td>
+<td><p>
+Name of the setting to return secrets for. If empty, all secrets will be returned.
+</p></td>
 </tr>
 <tr>
 <td><p><span class="term"><code class="literal">OUT a{sa{sv}} <em class="parameter"><code>secrets</code></em></code>:</span></p></td>
-<td><p>Nested settings maps containing secrets.</p></td>
+<td><p>
+Nested settings maps containing secrets.
+</p></td>
 </tr>
 </tbody>
 </table></div>
@@ -186,7 +202,8 @@ GetSecrets (IN  s         setting_name,
 <pre class="programlisting">
 ClearSecrets ();
 </pre>
-<p>        Clear the secrets belonging to this network connection profile.
+<p>
+Clear the secrets belonging to this network connection profile.
 </p>
 </div>
 <hr>
@@ -195,8 +212,9 @@ ClearSecrets ();
 <pre class="programlisting">
 Save ();
 </pre>
-<p>        Saves a "dirty" connection (that had previously been updated with
-        UpdateUnsaved) to persistent storage.
+<p>
+Saves a "dirty" connection (that had previously been updated with
+UpdateUnsaved) to persistent storage.
 </p>
 </div>
 <hr>
@@ -208,19 +226,23 @@ Update2 (IN  a{sa{sv}} settings,
          IN  a{sv}     args,
          OUT a{sv}     result);
 </pre>
-<p>        Update the connection with new settings and properties (replacing all
-        previous settings and properties).
+<p>
+Update the connection with new settings and properties (replacing all
+previous settings and properties).
 </p>
-<p>        Update2 is an alternative to
-        <a class="link" href="gdbus-org.freedesktop.NetworkManager.Settings.Connection.html#gdbus-method-org-freedesktop-NetworkManager-Settings-Connection.Update" title="The Update() method">Update</a>,
-        <a class="link" href="gdbus-org.freedesktop.NetworkManager.Settings.Connection.html#gdbus-method-org-freedesktop-NetworkManager-Settings-Connection.UpdateUnsaved" title="The UpdateUnsaved() method">UpdateUnsaved</a>
-        and <a class="link" href="gdbus-org.freedesktop.NetworkManager.Settings.Connection.html#gdbus-method-org-freedesktop-NetworkManager-Settings-Connection.Save" title="The Save() method">Save</a>
-        extensible with extra <code class="constant">flags</code> and <code class="constant">args</code> arguments.
+<p>
+Update2 is an alternative to
+<a class="link" href="gdbus-org.freedesktop.NetworkManager.Settings.Connection.html#gdbus-method-org-freedesktop-NetworkManager-Settings-Connection.Update" title="The Update() method">Update</a>,
+<a class="link" href="gdbus-org.freedesktop.NetworkManager.Settings.Connection.html#gdbus-method-org-freedesktop-NetworkManager-Settings-Connection.UpdateUnsaved" title="The UpdateUnsaved() method">UpdateUnsaved</a>
+and <a class="link" href="gdbus-org.freedesktop.NetworkManager.Settings.Connection.html#gdbus-method-org-freedesktop-NetworkManager-Settings-Connection.Save" title="The Save() method">Save</a>
+extensible with extra <code class="constant">flags</code> and <code class="constant">args</code> arguments.
 </p>
-<p>        The <code class="constant">flags</code> argument accepts the combination of following values,
-        logically or-ed together:
+<p>
+The <code class="constant">flags</code> argument accepts the combination of following values,
+logically or-ed together:
 </p>
-<p>        </p>
+<p>
+</p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
 <col align="left" valign="top">
@@ -234,18 +256,18 @@ Update2 (IN  a{sa{sv}} settings,
 <tr>
 <td><p><span class="term"><code class="literal">0x2 (in-memory)</code>:</span></p></td>
 <td><p>The change is only made in memory (without touching an eventual
-          profile on disk). If neither 0x1 nor 0x2 is set, the change is made in memory
-          only, if the connection is already in memory only.</p></td>
+profile on disk). If neither 0x1 nor 0x2 is set, the change is made in memory
+only, if the connection is already in memory only.</p></td>
 </tr>
 <tr>
 <td><p><span class="term"><code class="literal">0x4 (in-memory-detached)</code>:</span></p></td>
 <td><p>Like "in-memory", but behaves slightly different when migrating
-          the profile from disk to in-memory.</p></td>
+the profile from disk to in-memory.</p></td>
 </tr>
 <tr>
 <td><p><span class="term"><code class="literal">0x8 (in-memory-only)</code>:</span></p></td>
 <td><p>Like "in-memory", but behaves slightly different when migrating
-          the profile from disk to in-memory.</p></td>
+the profile from disk to in-memory.</p></td>
 </tr>
 <tr>
 <td><p><span class="term"><code class="literal">0x10 (volatile)</code>:</span></p></td>
@@ -258,15 +280,17 @@ Update2 (IN  a{sa{sv}} settings,
 <tr>
 <td><p><span class="term"><code class="literal">0x40 (no-reapply)</code>:</span></p></td>
 <td><p>Prevents "connection.zone" and "connection.metered" properties
-          to take effect on currently active devices.</p></td>
+to take effect on currently active devices.</p></td>
 </tr>
 </tbody>
 </table></div>
 <p>
 </p>
-<p>        The <code class="constant">args</code> argument accepts the following keys:
+<p>
+The <code class="constant">args</code> argument accepts the following keys:
 </p>
-<p>        </p>
+<p>
+</p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
 <col align="left" valign="top">
@@ -276,16 +300,17 @@ Update2 (IN  a{sa{sv}} settings,
 <td><p><span class="term"><code class="literal">plugin</code>:</span></p></td>
 <td>
 <p>The settings plugin the connection will be migrated to
-          such as "keyfile" or "ifcfg-rh".</p>
+such as "keyfile" or "ifcfg-rh".</p>
 <p class="since">Since 1.38</p>
 </td>
 </tr></tbody>
 </table></div>
 <p>
 </p>
-<p>        Secrets may be part of the update request, and will be either stored in persistent
-        storage or sent to a Secret Agent for storage, depending on the flags
-        associated with each secret.
+<p>
+Secrets may be part of the update request, and will be either stored in persistent
+storage or sent to a Secret Agent for storage, depending on the flags
+associated with each secret.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -295,19 +320,27 @@ Update2 (IN  a{sa{sv}} settings,
 <tbody>
 <tr>
 <td><p><span class="term"><code class="literal">IN a{sa{sv}} <em class="parameter"><code>settings</code></em></code>:</span></p></td>
-<td><p>New connection settings, properties, and (optionally) secrets. Provide an empty array to use the current settings.</p></td>
+<td><p>
+New connection settings, properties, and (optionally) secrets. Provide an empty array to use the current settings.
+</p></td>
 </tr>
 <tr>
 <td><p><span class="term"><code class="literal">IN u <em class="parameter"><code>flags</code></em></code>:</span></p></td>
-<td><p>Optional flags. Unknown flags cause the call to fail.</p></td>
+<td><p>
+Optional flags. Unknown flags cause the call to fail.
+</p></td>
 </tr>
 <tr>
 <td><p><span class="term"><code class="literal">IN a{sv} <em class="parameter"><code>args</code></em></code>:</span></p></td>
-<td><p>Optional arguments dictionary, for extentibility. Specifying unknown keys causes the call to fail.</p></td>
+<td><p>
+Optional arguments dictionary, for extentibility. Specifying unknown keys causes the call to fail.
+</p></td>
 </tr>
 <tr>
 <td><p><span class="term"><code class="literal">OUT a{sv} <em class="parameter"><code>result</code></em></code>:</span></p></td>
-<td><p>Currently no results are returned.</p></td>
+<td><p>
+Currently no results are returned.
+</p></td>
 </tr>
 </tbody>
 </table></div>
@@ -321,10 +354,11 @@ Update2 (IN  a{sa{sv}} settings,
 <pre class="programlisting">
 Updated ();
 </pre>
-<p>        Emitted when any settings or permissions change. When handling this
-        signal, clients should re-read the connection using the GetSettings method
-        to get the changes and to ensure the client still has permission to access
-        the connection.
+<p>
+Emitted when any settings or permissions change. When handling this
+signal, clients should re-read the connection using the GetSettings method
+to get the changes and to ensure the client still has permission to access
+the connection.
 </p>
 </div>
 <hr>
@@ -333,10 +367,11 @@ Updated ();
 <pre class="programlisting">
 Removed ();
 </pre>
-<p>        Emitted when this connection is no longer available. This happens when the
-        connection is deleted or if it is no longer accessible by any of the
-        system's logged-in users. After receipt of this signal, the object no
-        longer exists. Also see the Settings.ConnectionRemoved signal.
+<p>
+Emitted when this connection is no longer available. This happens when the
+connection is deleted or if it is no longer accessible by any of the
+system's logged-in users. After receipt of this signal, the object no
+longer exists. Also see the Settings.ConnectionRemoved signal.
 </p>
 </div>
 </div>
@@ -347,10 +382,11 @@ Removed ();
 <pre class="programlisting">
 Unsaved  readable   b
 </pre>
-<p>        If set, indicates that the in-memory state of the connection does not
-        match the on-disk state. This flag will be set when UpdateUnsaved() is
-        called or when any connection details change, and cleared when the
-        connection is saved to disk via Save() or from internal operations.
+<p>
+If set, indicates that the in-memory state of the connection does not
+match the on-disk state. This flag will be set when UpdateUnsaved() is
+called or when any connection details change, and cleared when the
+connection is saved to disk via Save() or from internal operations.
 </p>
 </div>
 <hr>
@@ -359,9 +395,11 @@ Unsaved  readable   b
 <pre class="programlisting">
 Flags  readable   u
 </pre>
-<p>        Additional flags of the connection profile.
+<p>
+Additional flags of the connection profile.
 </p>
-<p>        Returns: <a class="link" href="nm-dbus-types.html#NMSettingsConnectionFlags" title="enum NMSettingsConnectionFlags">NMSettingsConnectionFlags</a>
+<p>
+Returns: <a class="link" href="nm-dbus-types.html#NMSettingsConnectionFlags" title="enum NMSettingsConnectionFlags">NMSettingsConnectionFlags</a>
 </p>
 <p class="since">Since 1.12</p>
 </div>
@@ -371,13 +409,14 @@ Flags  readable   u
 <pre class="programlisting">
 Filename  readable   s
 </pre>
-<p>        File that stores the connection in case the connection is file-backed.
+<p>
+File that stores the connection in case the connection is file-backed.
 </p>
 <p class="since">Since 1.12</p>
 </div>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.33.0</div>
+<hr>Generated by GTK-Doc V1.33.1</div>
 </body>
 </html>

@@ -327,9 +327,23 @@
 #define NM_AVAILABLE_IN_1_38
 #endif
 
+#if NM_VERSION_MIN_REQUIRED >= NM_VERSION_1_40
+#define NM_DEPRECATED_IN_1_40        G_DEPRECATED
+#define NM_DEPRECATED_IN_1_40_FOR(f) G_DEPRECATED_FOR(f)
+#else
+#define NM_DEPRECATED_IN_1_40
+#define NM_DEPRECATED_IN_1_40_FOR(f)
+#endif
+
+#if NM_VERSION_MAX_ALLOWED < NM_VERSION_1_40
+#define NM_AVAILABLE_IN_1_40 G_UNAVAILABLE(1, 40)
+#else
+#define NM_AVAILABLE_IN_1_40
+#endif
+
 /*
  * Synchronous API for calling D-Bus in libnm is deprecated. See
- * https://developer.gnome.org/libnm/stable/usage.html#sync-api
+ * https://networkmanager.dev/docs/libnm/latest/usage.html#sync-api
  *
  * Note that "deprecated" here does not really mean that the API is going
  * to be removed. We don't break API. Just comment that it is awkward and

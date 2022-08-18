@@ -13,7 +13,9 @@
   </refsect1>
 <refsect1 role="desc" id="gdbus-interface-org-freedesktop-NetworkManager-Device-Dummy">
   <title role="desc.title">Description</title>
-  <para></para>
+  <para>
+</para><para>
+</para>
 </refsect1>
 <refsect1 role="details" id="gdbus-properties-org.freedesktop.NetworkManager.Device.Dummy">
   <title role="details.title">Property Details</title>
@@ -23,9 +25,10 @@
 <programlisting>
 HwAddress  readable   s
 </programlisting>
-<para>        Hardware address of the device.
+<para>
+Hardware address of the device.
 n
-        DEPRECATED. Use the "HwAddress" property in "org.freedesktop.NetworkManager.Device" instead which exists since version NetworkManager 1.24.0.
+DEPRECATED. Use the "HwAddress" property in "org.freedesktop.NetworkManager.Device" instead which exists since version NetworkManager 1.24.0.
 </para>
 </refsect2>
 </refsect1>

@@ -8,7 +8,7 @@
 <link rel="up" href="ref-dbus-settings-manager.html" title="The /org/freedesktop/NetworkManager/Settings object">
 <link rel="prev" href="ref-dbus-settings-manager.html" title="The /org/freedesktop/NetworkManager/Settings object">
 <link rel="next" href="ref-dbus-settings.html" title="The /org/freedesktop/NetworkManager/Settings/* objects">
-<meta name="generator" content="GTK-Doc V1.33.0 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -72,8 +72,9 @@
 </div>
 <div class="refsect1">
 <a name="gdbus-interface-org-freedesktop-NetworkManager-Settings"></a><h2>Description</h2>
-<p>      The Settings interface allows clients to view and administrate the
-      connections stored and used by NetworkManager.
+<p>
+The Settings interface allows clients to view and administrate the
+connections stored and used by NetworkManager.
 </p>
 </div>
 <div class="refsect1">
@@ -83,7 +84,8 @@
 <pre class="programlisting">
 ListConnections (OUT ao connections);
 </pre>
-<p>        List the saved network connections known to NetworkManager.
+<p>
+List the saved network connections known to NetworkManager.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -92,7 +94,9 @@ ListConnections (OUT ao connections);
 </colgroup>
 <tbody><tr>
 <td><p><span class="term"><code class="literal">OUT ao <em class="parameter"><code>connections</code></em></code>:</span></p></td>
-<td><p>List of connections.</p></td>
+<td><p>
+List of connections.
+</p></td>
 </tr></tbody>
 </table></div>
 </div>
@@ -103,7 +107,8 @@ ListConnections (OUT ao connections);
 GetConnectionByUuid (IN  s uuid,
                      OUT o connection);
 </pre>
-<p>        Retrieve the object path of a connection, given that connection's UUID.
+<p>
+Retrieve the object path of a connection, given that connection's UUID.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -113,11 +118,15 @@ GetConnectionByUuid (IN  s uuid,
 <tbody>
 <tr>
 <td><p><span class="term"><code class="literal">IN s <em class="parameter"><code>uuid</code></em></code>:</span></p></td>
-<td><p>The UUID to find the connection object path for.</p></td>
+<td><p>
+The UUID to find the connection object path for.
+</p></td>
 </tr>
 <tr>
 <td><p><span class="term"><code class="literal">OUT o <em class="parameter"><code>connection</code></em></code>:</span></p></td>
-<td><p>The connection's object path.</p></td>
+<td><p>
+The connection's object path.
+</p></td>
 </tr>
 </tbody>
 </table></div>
@@ -129,10 +138,11 @@ GetConnectionByUuid (IN  s uuid,
 AddConnection (IN  a{sa{sv}} connection,
                OUT o         path);
 </pre>
-<p>        Add new connection and save it to disk. This operation does not start the
-        network connection unless (1) device is idle and able to connect to the
-        network described by the new connection, and (2) the connection is allowed
-        to be started automatically.
+<p>
+Add new connection and save it to disk. This operation does not start the
+network connection unless (1) device is idle and able to connect to the
+network described by the new connection, and (2) the connection is allowed
+to be started automatically.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -142,11 +152,15 @@ AddConnection (IN  a{sa{sv}} connection,
 <tbody>
 <tr>
 <td><p><span class="term"><code class="literal">IN a{sa{sv}} <em class="parameter"><code>connection</code></em></code>:</span></p></td>
-<td><p>Connection settings and properties.</p></td>
+<td><p>
+Connection settings and properties.
+</p></td>
 </tr>
 <tr>
 <td><p><span class="term"><code class="literal">OUT o <em class="parameter"><code>path</code></em></code>:</span></p></td>
-<td><p>Object path of the new connection that was just added.</p></td>
+<td><p>
+Object path of the new connection that was just added.
+</p></td>
 </tr>
 </tbody>
 </table></div>
@@ -158,11 +172,12 @@ AddConnection (IN  a{sa{sv}} connection,
 AddConnectionUnsaved (IN  a{sa{sv}} connection,
                       OUT o         path);
 </pre>
-<p>        Add new connection but do not save it to disk immediately. This operation
-        does not start the network connection unless (1) device is idle and able
-        to connect to the network described by the new connection, and (2) the
-        connection is allowed to be started automatically. Use the 'Save' method
-        on the connection to save these changes to disk.
+<p>
+Add new connection but do not save it to disk immediately. This operation
+does not start the network connection unless (1) device is idle and able
+to connect to the network described by the new connection, and (2) the
+connection is allowed to be started automatically. Use the 'Save' method
+on the connection to save these changes to disk.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -172,11 +187,15 @@ AddConnectionUnsaved (IN  a{sa{sv}} connection,
 <tbody>
 <tr>
 <td><p><span class="term"><code class="literal">IN a{sa{sv}} <em class="parameter"><code>connection</code></em></code>:</span></p></td>
-<td><p>Connection settings and properties.</p></td>
+<td><p>
+Connection settings and properties.
+</p></td>
 </tr>
 <tr>
 <td><p><span class="term"><code class="literal">OUT o <em class="parameter"><code>path</code></em></code>:</span></p></td>
-<td><p>Object path of the new connection that was just added.</p></td>
+<td><p>
+Object path of the new connection that was just added.
+</p></td>
 </tr>
 </tbody>
 </table></div>
@@ -191,18 +210,22 @@ AddConnection2 (IN  a{sa{sv}} settings,
                 OUT o         path,
                 OUT a{sv}     result);
 </pre>
-<p>        Add a new connection profile.
+<p>
+Add a new connection profile.
 </p>
-<p>        AddConnection2 is an alternative to
-        <a class="link" href="gdbus-org.freedesktop.NetworkManager.Settings.html#gdbus-method-org-freedesktop-NetworkManager-Settings.AddConnection" title="The AddConnection() method">AddConnection</a> and
-        <a class="link" href="gdbus-org.freedesktop.NetworkManager.Settings.html#gdbus-method-org-freedesktop-NetworkManager-Settings.AddConnectionUnsaved" title="The AddConnectionUnsaved() method">AddConnectionUnsaved</a>.
-        The new variant can do everything that the older variants could, and more.
-        Its behavior is extensible via extra <code class="constant">flags</code> and <code class="constant">args</code> arguments.
+<p>
+AddConnection2 is an alternative to
+<a class="link" href="gdbus-org.freedesktop.NetworkManager.Settings.html#gdbus-method-org-freedesktop-NetworkManager-Settings.AddConnection" title="The AddConnection() method">AddConnection</a> and
+<a class="link" href="gdbus-org.freedesktop.NetworkManager.Settings.html#gdbus-method-org-freedesktop-NetworkManager-Settings.AddConnectionUnsaved" title="The AddConnectionUnsaved() method">AddConnectionUnsaved</a>.
+The new variant can do everything that the older variants could, and more.
+Its behavior is extensible via extra <code class="constant">flags</code> and <code class="constant">args</code> arguments.
 </p>
-<p>        The <code class="constant">flags</code> argument accepts the combination of following values,
-        logically or-ed together:
+<p>
+The <code class="constant">flags</code> argument accepts the combination of following values,
+logically or-ed together:
 </p>
-<p>        </p>
+<p>
+</p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
 <col align="left" valign="top">
@@ -216,8 +239,8 @@ AddConnection2 (IN  a{sa{sv}} settings,
 <tr>
 <td><p><span class="term"><code class="literal">0x2 (in-memory)</code>:</span></p></td>
 <td><p>The change is only made in memory (without touching an eventual
-          profile on disk). If neither 0x1 nor 0x2 is set, the change is made in memory
-          only, if the connection is already in memory only.</p></td>
+profile on disk). If neither 0x1 nor 0x2 is set, the change is made in memory
+only, if the connection is already in memory only.</p></td>
 </tr>
 <tr>
 <td><p><span class="term"><code class="literal">0x20 (block-autoconnect)</code>:</span></p></td>
@@ -227,9 +250,11 @@ AddConnection2 (IN  a{sa{sv}} settings,
 </table></div>
 <p>
 </p>
-<p>        The <code class="constant">args</code> argument accepts the following keys:
+<p>
+The <code class="constant">args</code> argument accepts the following keys:
 </p>
-<p>        </p>
+<p>
+</p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
 <col align="left" valign="top">
@@ -239,17 +264,18 @@ AddConnection2 (IN  a{sa{sv}} settings,
 <td><p><span class="term"><code class="literal">plugin</code>:</span></p></td>
 <td>
 <p>The settings plugin the newly added connection will
-          use, such as "keyfile" or "ifcfg-rh".</p>
+use, such as "keyfile" or "ifcfg-rh".</p>
 <p class="since">Since 1.38</p>
 </td>
 </tr></tbody>
 </table></div>
 <p>
 </p>
-<p>        Either the flags 0x1 (to-disk) or 0x2 (in-memory) must be specified.
-        The effect is whether to behave like
-        <a class="link" href="gdbus-org.freedesktop.NetworkManager.Settings.html#gdbus-method-org-freedesktop-NetworkManager-Settings.AddConnection" title="The AddConnection() method">AddConnection</a> or
-        <a class="link" href="gdbus-org.freedesktop.NetworkManager.Settings.html#gdbus-method-org-freedesktop-NetworkManager-Settings.AddConnectionUnsaved" title="The AddConnectionUnsaved() method">AddConnectionUnsaved</a>.
+<p>
+Either the flags 0x1 (to-disk) or 0x2 (in-memory) must be specified.
+The effect is whether to behave like
+<a class="link" href="gdbus-org.freedesktop.NetworkManager.Settings.html#gdbus-method-org-freedesktop-NetworkManager-Settings.AddConnection" title="The AddConnection() method">AddConnection</a> or
+<a class="link" href="gdbus-org.freedesktop.NetworkManager.Settings.html#gdbus-method-org-freedesktop-NetworkManager-Settings.AddConnectionUnsaved" title="The AddConnectionUnsaved() method">AddConnectionUnsaved</a>.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -259,23 +285,33 @@ AddConnection2 (IN  a{sa{sv}} settings,
 <tbody>
 <tr>
 <td><p><span class="term"><code class="literal">IN a{sa{sv}} <em class="parameter"><code>settings</code></em></code>:</span></p></td>
-<td><p>New connection settings, properties, and (optionally) secrets.</p></td>
+<td><p>
+New connection settings, properties, and (optionally) secrets.
+</p></td>
 </tr>
 <tr>
 <td><p><span class="term"><code class="literal">IN u <em class="parameter"><code>flags</code></em></code>:</span></p></td>
-<td><p>Flags. Unknown flags cause the call to fail.</p></td>
+<td><p>
+Flags. Unknown flags cause the call to fail.
+</p></td>
 </tr>
 <tr>
 <td><p><span class="term"><code class="literal">IN a{sv} <em class="parameter"><code>args</code></em></code>:</span></p></td>
-<td><p>Optional arguments dictionary, for extentibility. Specifying unknown keys causes the call to fail.</p></td>
+<td><p>
+Optional arguments dictionary, for extentibility. Specifying unknown keys causes the call to fail.
+</p></td>
 </tr>
 <tr>
 <td><p><span class="term"><code class="literal">OUT o <em class="parameter"><code>path</code></em></code>:</span></p></td>
-<td><p>Object path of the new connection that was just added.</p></td>
+<td><p>
+Object path of the new connection that was just added.
+</p></td>
 </tr>
 <tr>
 <td><p><span class="term"><code class="literal">OUT a{sv} <em class="parameter"><code>result</code></em></code>:</span></p></td>
-<td><p>Output argument, currently no additional results are returned.</p></td>
+<td><p>
+Output argument, currently no additional results are returned.
+</p></td>
 </tr>
 </tbody>
 </table></div>
@@ -289,15 +325,17 @@ LoadConnections (IN  as filenames,
                  OUT b  status,
                  OUT as failures);
 </pre>
-<p>        Loads or reloads the indicated connections from disk. You should call this
-        after making changes directly to an on-disk connection file to make sure
-        that NetworkManager sees the changes.
-        As with AddConnection(), this operation does not necessarily
-        start the network connection.
+<p>
+Loads or reloads the indicated connections from disk. You should call this
+after making changes directly to an on-disk connection file to make sure
+that NetworkManager sees the changes.
+As with AddConnection(), this operation does not necessarily
+start the network connection.
 </p>
-<p>        Note that before 1.20, NetworkManager had a bug and this <em class="parameter"><code>status</code></em> value was wrong.
-        It is better to assume success if the method does not return with a D-Bus error.
-        On top of that, you can look at <em class="parameter"><code>failures</code></em> to know whether any of the requested files failed.
+<p>
+Note that before 1.20, NetworkManager had a bug and this <em class="parameter"><code>status</code></em> value was wrong.
+It is better to assume success if the method does not return with a D-Bus error.
+On top of that, you can look at <em class="parameter"><code>failures</code></em> to know whether any of the requested files failed.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -307,15 +345,21 @@ LoadConnections (IN  as filenames,
 <tbody>
 <tr>
 <td><p><span class="term"><code class="literal">IN as <em class="parameter"><code>filenames</code></em></code>:</span></p></td>
-<td><p>Array of paths to on-disk connection profiles in directories monitored by NetworkManager.</p></td>
+<td><p>
+Array of paths to on-disk connection profiles in directories monitored by NetworkManager.
+</p></td>
 </tr>
 <tr>
 <td><p><span class="term"><code class="literal">OUT b <em class="parameter"><code>status</code></em></code>:</span></p></td>
-<td><p>Success or failure of the operation as a whole. True if NetworkManager at least tried to load the indicated connections, even if it did not succeed. False if an error occurred before trying to load the connections (eg, permission denied).</p></td>
+<td><p>
+Success or failure of the operation as a whole. True if NetworkManager at least tried to load the indicated connections, even if it did not succeed. False if an error occurred before trying to load the connections (eg, permission denied).
+</p></td>
 </tr>
 <tr>
 <td><p><span class="term"><code class="literal">OUT as <em class="parameter"><code>failures</code></em></code>:</span></p></td>
-<td><p>Paths of connection files that could not be loaded.</p></td>
+<td><p>
+Paths of connection files that could not be loaded.
+</p></td>
 </tr>
 </tbody>
 </table></div>
@@ -326,8 +370,9 @@ LoadConnections (IN  as filenames,
 <pre class="programlisting">
 ReloadConnections (OUT b status);
 </pre>
-<p>        Tells NetworkManager to reload all connection files from disk, including
-        noticing any added or deleted connection files.
+<p>
+Tells NetworkManager to reload all connection files from disk, including
+noticing any added or deleted connection files.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -336,7 +381,9 @@ ReloadConnections (OUT b status);
 </colgroup>
 <tbody><tr>
 <td><p><span class="term"><code class="literal">OUT b <em class="parameter"><code>status</code></em></code>:</span></p></td>
-<td><p>This always returns <code class="constant">TRUE</code>.</p></td>
+<td><p>
+This always returns <code class="constant">TRUE</code>.
+</p></td>
 </tr></tbody>
 </table></div>
 </div>
@@ -346,7 +393,8 @@ ReloadConnections (OUT b status);
 <pre class="programlisting">
 SaveHostname (IN  s hostname);
 </pre>
-<p>        Save the hostname to persistent configuration.
+<p>
+Save the hostname to persistent configuration.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -355,7 +403,9 @@ SaveHostname (IN  s hostname);
 </colgroup>
 <tbody><tr>
 <td><p><span class="term"><code class="literal">IN s <em class="parameter"><code>hostname</code></em></code>:</span></p></td>
-<td><p>The hostname to save to persistent configuration. If blank, the persistent hostname is cleared.</p></td>
+<td><p>
+The hostname to save to persistent configuration. If blank, the persistent hostname is cleared.
+</p></td>
 </tr></tbody>
 </table></div>
 </div>
@@ -367,14 +417,15 @@ SaveHostname (IN  s hostname);
 <pre class="programlisting">
 NewConnection (o connection);
 </pre>
-<p>        Emitted when a new connection has been added after NetworkManager has
-        started up and initialized. This signal is not emitted for connections
-        read while starting up, because NetworkManager's D-Bus service is only
-        available after all connections have been read, and to prevent spamming
-        listeners with too many signals at one time. To retrieve the initial
-        connection list, call the ListConnections() method once, and then listen
-        for individual Settings.NewConnection and Settings.Connection.Deleted
-        signals for further updates.
+<p>
+Emitted when a new connection has been added after NetworkManager has
+started up and initialized. This signal is not emitted for connections
+read while starting up, because NetworkManager's D-Bus service is only
+available after all connections have been read, and to prevent spamming
+listeners with too many signals at one time. To retrieve the initial
+connection list, call the ListConnections() method once, and then listen
+for individual Settings.NewConnection and Settings.Connection.Deleted
+signals for further updates.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -383,7 +434,9 @@ NewConnection (o connection);
 </colgroup>
 <tbody><tr>
 <td><p><span class="term"><code class="literal">o <em class="parameter"><code>connection</code></em></code>:</span></p></td>
-<td><p>Object path of the new connection.</p></td>
+<td><p>
+Object path of the new connection.
+</p></td>
 </tr></tbody>
 </table></div>
 </div>
@@ -393,11 +446,12 @@ NewConnection (o connection);
 <pre class="programlisting">
 ConnectionRemoved (o connection);
 </pre>
-<p>        Emitted when a connection is no longer available. This happens when the
-        connection is deleted or if it is no longer accessible by any of the
-        system's logged-in users. After receipt of this signal, the connection no
-        longer exists and cannot be used. Also see the Settings.Connection.Removed
-        signal.
+<p>
+Emitted when a connection is no longer available. This happens when the
+connection is deleted or if it is no longer accessible by any of the
+system's logged-in users. After receipt of this signal, the connection no
+longer exists and cannot be used. Also see the Settings.Connection.Removed
+signal.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -406,7 +460,9 @@ ConnectionRemoved (o connection);
 </colgroup>
 <tbody><tr>
 <td><p><span class="term"><code class="literal">o <em class="parameter"><code>connection</code></em></code>:</span></p></td>
-<td><p>Object path of the removed connection.</p></td>
+<td><p>
+Object path of the removed connection.
+</p></td>
 </tr></tbody>
 </table></div>
 </div>
@@ -418,7 +474,8 @@ ConnectionRemoved (o connection);
 <pre class="programlisting">
 Connections  readable   ao
 </pre>
-<p>        List of object paths of available network connection profiles.
+<p>
+List of object paths of available network connection profiles.
 </p>
 </div>
 <hr>
@@ -427,7 +484,8 @@ Connections  readable   ao
 <pre class="programlisting">
 Hostname  readable   s
 </pre>
-<p>        The machine hostname stored in persistent configuration.
+<p>
+The machine hostname stored in persistent configuration.
 </p>
 </div>
 <hr>
@@ -436,12 +494,13 @@ Hostname  readable   s
 <pre class="programlisting">
 CanModify  readable   b
 </pre>
-<p>        If true, adding and modifying connections is supported.
+<p>
+If true, adding and modifying connections is supported.
 </p>
 </div>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.33.0</div>
+<hr>Generated by GTK-Doc V1.33.1</div>
 </body>
 </html>
