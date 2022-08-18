@@ -1,4 +1,4 @@
-network-manager (1.39.90-1ubuntu1) UNRELEASED; urgency=medium
+network-manager (1.39.90-1ubuntu1) kinetic; urgency=medium
 
   * Resynchronize on Debian, remaining changes:
     - debian/control:
@@ -43,7 +43,7 @@ network-manager (1.39.90-1ubuntu1) UNRELEASED; urgency=medium
       + dns-manager-don-t-merge-split-DNS-search-domains.patch (but disabled)
       + Read-system-connections-from-run.patch
 
- -- Jeremy Bicha <jbicha@ubuntu.com>  Thu, 18 Aug 2022 08:31:11 -0400
+ -- Jeremy Bicha <jbicha@ubuntu.com>  Thu, 18 Aug 2022 08:59:25 -0400
 
 network-manager (1.39.90-1) experimental; urgency=medium
 
