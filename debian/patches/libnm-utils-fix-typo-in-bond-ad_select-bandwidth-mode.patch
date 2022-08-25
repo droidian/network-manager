@@ -1,0 +1,28 @@
+From: Fernando Fernandez Mancera <ffmancera@riseup.net>
+Date: Thu, 25 Aug 2022 15:21:44 +0200
+Subject: libnm-utils: fix typo in bond ad_select bandwidth mode
+
+The correct spelling is `bandwidth` instead of `bandwith`.
+
+https://bugs.launchpad.net/network-manager/+bug/1987001
+
+Fixes: 32870d823379 ('libnm-utils: convert string bond opts to int')
+(cherry picked from commit 5f3237acab03de4a3e9d57f50a180c5e4f6af6ca)
+(cherry picked from commit f693bc6b71247dd645522ed452035cb0d4d2a795)
+---
+ src/libnm-core-aux-intern/nm-libnm-core-utils.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/libnm-core-aux-intern/nm-libnm-core-utils.c b/src/libnm-core-aux-intern/nm-libnm-core-utils.c
+index ba05b6c..4fdf9d6 100644
+--- a/src/libnm-core-aux-intern/nm-libnm-core-utils.c
++++ b/src/libnm-core-aux-intern/nm-libnm-core-utils.c
+@@ -51,7 +51,7 @@ NM_UTILS_STRING_TABLE_LOOKUP_DEFINE(
+         }
+     },
+     { return NM_BOND_AD_SELECT_STABLE; },
+-    {"bandwith", NM_BOND_AD_SELECT_BANDWIDTH},
++    {"bandwidth", NM_BOND_AD_SELECT_BANDWIDTH},
+     {"count", NM_BOND_AD_SELECT_COUNT},
+     {"stable", NM_BOND_AD_SELECT_STABLE}, );
+ 
