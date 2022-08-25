@@ -1,3 +1,11 @@
+network-manager (1.39.90-1ubuntu3) kinetic; urgency=medium
+
+  * Cherry-pick 2 patches to fix bonding regressions discovered
+    with failing netplan autopkgtests. Thanks Lukas Märdian.
+    (LP: #1987001)
+
+ -- Jeremy Bicha <jbicha@ubuntu.com>  Thu, 25 Aug 2022 13:26:02 -0400
+
 network-manager (1.39.90-1ubuntu2) kinetic; urgency=medium
 
   * debian/control:
