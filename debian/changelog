@@ -8,7 +8,7 @@ network-manager (1.40.0-1ubuntu1) UNRELEASED; urgency=medium
       + Suggest avahi-autoipd for IPv4LL support
     - debian/rules:
       + Run build tests
-      + Set --enable-lto.
+      + Set --enable-lto. See #1070 for why optimize=-lto is also set
       + Don't build the network-manager* packages on i386
         (unneeded and depends on wpasupplicant)
     - debian/rules, debian/network-manager.postinst:
