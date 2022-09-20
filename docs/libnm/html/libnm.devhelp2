@@ -589,7 +589,7 @@
     <keyword type="function" name="nm_remote_connection_delete ()" link="NMRemoteConnection.html#nm-remote-connection-delete" deprecated="1.22: Use nm_remote_connection_delete_async() or GDBusConnection."/>
     <keyword type="function" name="nm_remote_connection_delete_async ()" link="NMRemoteConnection.html#nm-remote-connection-delete-async"/>
     <keyword type="function" name="nm_remote_connection_delete_finish ()" link="NMRemoteConnection.html#nm-remote-connection-delete-finish"/>
-    <keyword type="function" name="nm_remote_connection_get_secrets ()" link="NMRemoteConnection.html#nm-remote-connection-get-secrets" deprecated="1.22: Use nm_remote_connection_get_secrets_async() or GDBusConnection."/>
+    <keyword type="function" name="nm_remote_connection_get_secrets ()" link="NMRemoteConnection.html#nm-remote-connection-get-secrets"/>
     <keyword type="function" name="nm_remote_connection_get_secrets_async ()" link="NMRemoteConnection.html#nm-remote-connection-get-secrets-async"/>
     <keyword type="function" name="nm_remote_connection_get_secrets_finish ()" link="NMRemoteConnection.html#nm-remote-connection-get-secrets-finish"/>
     <keyword type="function" name="nm_remote_connection_get_unsaved ()" link="NMRemoteConnection.html#nm-remote-connection-get-unsaved"/>
@@ -3529,8 +3529,9 @@
     <keyword type="constant" name="NM_RADIO_FLAG_WWAN_AVAILABLE" link="libnm-nm-dbus-interface.html#NM-RADIO-FLAG-WWAN-AVAILABLE:CAPS"/>
     <keyword type="constant" name="NM_MPTCP_FLAGS_NONE" link="libnm-nm-dbus-interface.html#NM-MPTCP-FLAGS-NONE:CAPS"/>
     <keyword type="constant" name="NM_MPTCP_FLAGS_DISABLED" link="libnm-nm-dbus-interface.html#NM-MPTCP-FLAGS-DISABLED:CAPS"/>
-    <keyword type="constant" name="NM_MPTCP_FLAGS_ENABLED_ON_GLOBAL_IFACE" link="libnm-nm-dbus-interface.html#NM-MPTCP-FLAGS-ENABLED-ON-GLOBAL-IFACE:CAPS"/>
     <keyword type="constant" name="NM_MPTCP_FLAGS_ENABLED" link="libnm-nm-dbus-interface.html#NM-MPTCP-FLAGS-ENABLED:CAPS"/>
+    <keyword type="constant" name="NM_MPTCP_FLAGS_ALSO_WITHOUT_SYSCTL" link="libnm-nm-dbus-interface.html#NM-MPTCP-FLAGS-ALSO-WITHOUT-SYSCTL:CAPS"/>
+    <keyword type="constant" name="NM_MPTCP_FLAGS_ALSO_WITHOUT_DEFAULT_ROUTE" link="libnm-nm-dbus-interface.html#NM-MPTCP-FLAGS-ALSO-WITHOUT-DEFAULT-ROUTE:CAPS"/>
     <keyword type="constant" name="NM_MPTCP_FLAGS_SIGNAL" link="libnm-nm-dbus-interface.html#NM-MPTCP-FLAGS-SIGNAL:CAPS"/>
     <keyword type="constant" name="NM_MPTCP_FLAGS_SUBFLOW" link="libnm-nm-dbus-interface.html#NM-MPTCP-FLAGS-SUBFLOW:CAPS"/>
     <keyword type="constant" name="NM_MPTCP_FLAGS_BACKUP" link="libnm-nm-dbus-interface.html#NM-MPTCP-FLAGS-BACKUP:CAPS"/>

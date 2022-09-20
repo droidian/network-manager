@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: NetworkManager\n"
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/NetworkManager/"
 "NetworkManager/issues\n"
-"POT-Creation-Date: 2022-08-15 18:14-0300\n"
+"POT-Creation-Date: 2022-08-26 16:42+0200\n"
 "PO-Revision-Date: 2017-04-21 06:12-0400\n"
 "Last-Translator: Copied by Zanata <copied-by-zanata@zanata.org>\n"
 "Language-Team: Bosnian <lokal@linux.org.ba>\n"
@@ -1170,7 +1170,7 @@ msgstr ""
 #: src/libnm-core-impl/nm-setting-cdma.c:144
 #: src/libnm-core-impl/nm-setting-connection.c:1149
 #: src/libnm-core-impl/nm-setting-connection.c:1187
-#: src/libnm-core-impl/nm-setting-connection.c:1530
+#: src/libnm-core-impl/nm-setting-connection.c:1516
 #: src/libnm-core-impl/nm-setting-ip-config.c:5423
 #: src/libnm-core-impl/nm-setting-ip-tunnel.c:387
 #: src/libnm-core-impl/nm-setting-olpc-mesh.c:99
@@ -1511,7 +1511,7 @@ msgstr ""
 #: src/libnm-core-impl/nm-setting-cdma.c:159
 #: src/libnm-core-impl/nm-setting-connection.c:1159
 #: src/libnm-core-impl/nm-setting-connection.c:1202
-#: src/libnm-core-impl/nm-setting-connection.c:1468
+#: src/libnm-core-impl/nm-setting-connection.c:1454
 #: src/libnm-core-impl/nm-setting-gsm.c:298
 #: src/libnm-core-impl/nm-setting-gsm.c:353
 #: src/libnm-core-impl/nm-setting-gsm.c:396
@@ -1792,7 +1792,7 @@ msgstr ""
 #: src/libnm-core-impl/nm-setting-connection.c:1351
 #: src/libnm-core-impl/nm-setting-connection.c:1365
 #: src/libnm-core-impl/nm-setting-connection.c:1379
-#: src/libnm-core-impl/nm-setting-connection.c:1454
+#: src/libnm-core-impl/nm-setting-connection.c:1440
 #, c-format
 msgid "value %d is not valid"
 msgstr ""
@@ -1801,54 +1801,50 @@ msgstr ""
 msgid "\"disabled\" flag cannot be combined with other MPTCP flags"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-connection.c:1411
-msgid "\"enabled\" and \"enabled-on-global-iface\" flag cannot be set together"
-msgstr ""
-
-#: src/libnm-core-impl/nm-setting-connection.c:1422
+#: src/libnm-core-impl/nm-setting-connection.c:1409
 msgid "cannot set both \"signal\" and \"fullmesh\" MPTCP flags"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-connection.c:1435
+#: src/libnm-core-impl/nm-setting-connection.c:1421
 #, c-format
 msgid "value %u is not a valid combination of MPTCP flags"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-connection.c:1482
+#: src/libnm-core-impl/nm-setting-connection.c:1468
 msgid "DHCP option cannot be longer than 255 characters"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-connection.c:1493
+#: src/libnm-core-impl/nm-setting-connection.c:1479
 msgid "MUD URL is not a valid URL"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-connection.c:1513
+#: src/libnm-core-impl/nm-setting-connection.c:1499
 msgid "invalid permissions not in format \"user:$UNAME[:]\""
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-connection.c:1542
+#: src/libnm-core-impl/nm-setting-connection.c:1528
 #, c-format
 msgid "property type should be set to '%s'"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-connection.c:1560
+#: src/libnm-core-impl/nm-setting-connection.c:1546
 #, c-format
 msgid "slave-type '%s' requires a '%s' setting in the connection"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-connection.c:1571
+#: src/libnm-core-impl/nm-setting-connection.c:1557
 #, c-format
 msgid ""
 "Detect a slave connection with '%s' set and a port type '%s'. '%s' should be "
 "set to '%s'"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-connection.c:1597
+#: src/libnm-core-impl/nm-setting-connection.c:1583
 #, c-format
 msgid "A slave connection with '%s' set to '%s' cannot have a '%s' setting"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-connection.c:1614
+#: src/libnm-core-impl/nm-setting-connection.c:1600
 msgid "UUID needs normalization"
 msgstr ""
 
@@ -5734,25 +5730,29 @@ msgid ""
 "fc00::/7) and IPv6 privacy extension addresses (rfc3041, ipv6.ip6-privacy) "
 "will be excluded from being configured as endpoints. If \"disabled\" (0x1), "
 "MPTCP handling for the interface is disabled and no endpoints are "
-"registered. The flag \"enabled-on-global-iface\" (0x2) means that MPTCP "
-"handling is enabled if the interface configures a default route in the main "
-"routing table. This choice is per-address family, for example if there is an "
-"IPv4 default route 0.0.0.0/0, IPv4 endpoints are configured. The "
-"\"enabled\" (0x4) flag means that MPTCP handling is explicitly enabled. This "
-"flag can also be implied from the presence of other flags. If MPTCP handling "
-"is enabled, then endpoints will be configured with the specified address "
-"flags \"signal\" (0x10), \"subflow\" (0x20), \"backup\" (0x40), "
-"\"fullmesh\" (0x80). See ip-mptcp(8) manual for additional information about "
-"the flags. If the flags are zero, the global connection default from "
-"NetworkManager.conf is honored. If still unspecified, the fallback is either "
-"\"disabled\" or \"enabled-on-global-iface,subflow\" depending on \"/proc/sys/"
-"net/mptcp/enabled\". NetworkManager does not change the MPTCP limits nor "
-"enable MPTCP via \"/proc/sys/net/mptcp/enabled\". That is a host "
-"configuration which the admin can change via sysctl and ip-mptcp. Strict "
-"reverse path filtering (rp_filter) breaks many MPTCP use cases, so when "
-"MPTCP handling for IPv4 addresses on the interface is enabled, "
-"NetworkManager would loosen the strict reverse path filtering (1) to the "
-"loose setting (2)."
+"registered. The \"enabled\" (0x2) flag means that MPTCP handling is enabled. "
+"This flag can also be implied from the presence of other flags. Even when "
+"enabled, MPTCP handling will by default still be disabled unless \"/proc/sys/"
+"net/mptcp/enabled\" sysctl is on. NetworkManager does not change the sysctl "
+"and this is up to the administrator or distribution. To configure endpoints "
+"even if the sysctl is disabled, \"also-without-sysctl\" (0x4) flag can be "
+"used. In that case, NetworkManager doesn't look at the sysctl and configures "
+"endpoints regardless. Even when enabled, NetworkManager will only configure "
+"MPTCP endpoints for a certain address family, if there is a unicast default "
+"route (0.0.0.0/0 or ::/0) in the main routing table. The flag \"also-without-"
+"default-route\" (0x8) can override that. When MPTCP handling is enabled then "
+"endpoints are configured with the specified address flags \"signal\" (0x10), "
+"\"subflow\" (0x20), \"backup\" (0x40), \"fullmesh\" (0x80). See ip-mptcp(8) "
+"manual for additional information about the flags. If the flags are zero "
+"(0x0), the global connection default from NetworkManager.conf is honored. If "
+"still unspecified, the fallback is \"enabled,subflow\". Note that this means "
+"that MPTCP is by default done depending on the \"/proc/sys/net/mptcp/"
+"enabled\" sysctl. NetworkManager does not change the MPTCP limits nor enable "
+"MPTCP via \"/proc/sys/net/mptcp/enabled\". That is a host configuration "
+"which the admin can change via sysctl and ip-mptcp. Strict reverse path "
+"filtering (rp_filter) breaks many MPTCP use cases, so when MPTCP handling "
+"for IPv4 addresses on the interface is enabled, NetworkManager would loosen "
+"the strict reverse path filtering (1) to the loose setting (2)."
 msgstr ""
 
 #: src/libnmc-setting/settings-docs.h.in:18
@@ -6986,11 +6986,13 @@ msgstr ""
 #: src/libnmc-setting/settings-docs.h.in:200
 msgid ""
 "The gateway associated with this configuration. This is only meaningful if "
-"\"addresses\" is also set. The gateway's main purpose is to control the next "
-"hop of the standard default route on the device. Hence, the gateway property "
-"conflicts with \"never-default\" and will be automatically dropped if the IP "
-"configuration is set to never-default. As an alternative to set the gateway, "
-"configure a static default route with /0 as prefix length."
+"\"addresses\" is also set. Setting the gateway causes NetworkManager to "
+"configure a standard default route with the gateway as next hop. This is "
+"ignored if \"never-default\" is set. An alternative is to configure the "
+"default route explicitly with a manual route and /0 as prefix length. Note "
+"that the gateway usually conflicts with routing that NetworkManager "
+"configures for WireGuard interfaces, so usually it should not be set in that "
+"case. See \"ip4-auto-default-route\"."
 msgstr ""
 
 #: src/libnmc-setting/settings-docs.h.in:175

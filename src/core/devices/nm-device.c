@@ -1410,8 +1410,6 @@ _prop_get_connection_mptcp_flags(NMDevice *self)
     if (connection) {
         mptcp_flags =
             nm_setting_connection_get_mptcp_flags(nm_connection_get_setting_connection(connection));
-        if (mptcp_flags != NM_MPTCP_FLAGS_NONE)
-            mptcp_flags = nm_mptcp_flags_normalize(mptcp_flags);
     }
 
     if (mptcp_flags == NM_MPTCP_FLAGS_NONE) {
@@ -1423,27 +1421,38 @@ _prop_get_connection_mptcp_flags(NMDevice *self)
                                                         0,
                                                         G_MAXINT64,
                                                         NM_MPTCP_FLAGS_NONE);
-        /* We filter out all invalid settings and accept it. Somewhat intentionally, we don't do a
-         * strict parsing of the value to support forward compatibility. */
-        if (v != NM_MPTCP_FLAGS_NONE)
-            mptcp_flags = nm_mptcp_flags_normalize(v);
+        if (v != NM_MPTCP_FLAGS_NONE) {
+            /* We silently ignore all invalid flags (and will normalize them away below). */
+            mptcp_flags = (NMMptcpFlags) v;
+            if (mptcp_flags == NM_MPTCP_FLAGS_NONE)
+                mptcp_flags = NM_MPTCP_FLAGS_ENABLED;
+        }
     }
 
-    if (mptcp_flags == NM_MPTCP_FLAGS_NONE) {
-        gint32 v;
+    if (mptcp_flags == NM_MPTCP_FLAGS_NONE)
+        mptcp_flags = _NM_MPTCP_FLAGS_DEFAULT;
 
-        v = nm_platform_sysctl_get_int32(nm_device_get_platform(self),
-                                         NMP_SYSCTL_PATHID_ABSOLUTE("/proc/sys/net/mptcp/enabled"),
-                                         -1);
-        if (v > 0) {
-            /* if MPTCP is enabled via the sysctl, we use the default. */
-            mptcp_flags = _NM_MPTCP_FLAGS_DEFAULT;
+    mptcp_flags = nm_mptcp_flags_normalize(mptcp_flags);
+
+    if (!NM_FLAGS_HAS(mptcp_flags, NM_MPTCP_FLAGS_DISABLED)) {
+        if (!NM_FLAGS_HAS(mptcp_flags, NM_MPTCP_FLAGS_ALSO_WITHOUT_SYSCTL)) {
+            guint32 v;
+
+            /* If enabled, but without "also-without-sysctl", then MPTCP is still
+             * disabled, if the sysctl says so...
+             *
+             * We evaluate this here. The point is that the decision is then cached
+             * until deactivation/reapply. The user can toggle the sysctl any time,
+             * but we only pick it up at certain moments (now). */
+            v = nm_platform_sysctl_get_int32(
+                nm_device_get_platform(self),
+                NMP_SYSCTL_PATHID_ABSOLUTE("/proc/sys/net/mptcp/enabled"),
+                -1);
+            if (v <= 0)
+                mptcp_flags = NM_MPTCP_FLAGS_DISABLED;
         } else
-            mptcp_flags = NM_MPTCP_FLAGS_DISABLED;
+            mptcp_flags = NM_FLAGS_UNSET(mptcp_flags, NM_MPTCP_FLAGS_ALSO_WITHOUT_SYSCTL);
     }
-
-    nm_assert(mptcp_flags != NM_MPTCP_FLAGS_NONE
-              && mptcp_flags == nm_mptcp_flags_normalize(mptcp_flags));
 
     return mptcp_flags;
 }
@@ -6323,7 +6332,7 @@ _dev_unmanaged_check_external_down(NMDevice *self, gboolean only_if_unmanaged, g
 }
 
 void
-nm_device_update_dynamic_ip_setup(NMDevice *self)
+nm_device_update_dynamic_ip_setup(NMDevice *self, const char *reason)
 {
     NMDevicePrivate *priv;
 
@@ -6333,6 +6342,8 @@ nm_device_update_dynamic_ip_setup(NMDevice *self)
 
     if (priv->state < NM_DEVICE_STATE_IP_CONFIG || priv->state > NM_DEVICE_STATE_ACTIVATED)
         return;
+
+    _LOGD(LOGD_DEVICE, "restarting dynamic IP configuration (%s)", reason);
 
     g_hash_table_remove_all(priv->ip6_saved_properties);
 
@@ -6635,6 +6646,7 @@ device_link_changed(gpointer user_data)
     NMDeviceClass                  *klass             = NM_DEVICE_GET_CLASS(self);
     NMDevicePrivate                *priv              = NM_DEVICE_GET_PRIVATE(self);
     gboolean                        ip_ifname_changed = FALSE;
+    gboolean                        hw_addr_changed;
     nm_auto_nmpobj const NMPObject *pllink_keep_alive = NULL;
     const NMPlatformLink           *pllink;
     const char                     *str;
@@ -6681,9 +6693,9 @@ device_link_changed(gpointer user_data)
     if (ifindex == nm_device_get_ip_ifindex(self))
         _stats_update_counters_from_pllink(self, pllink);
 
-    had_hw_addr = (priv->hw_addr != NULL);
-    nm_device_update_hw_address(self);
-    got_hw_addr = (!had_hw_addr && priv->hw_addr);
+    had_hw_addr     = (priv->hw_addr != NULL);
+    hw_addr_changed = nm_device_update_hw_address(self);
+    got_hw_addr     = (!had_hw_addr && priv->hw_addr);
     nm_device_update_permanent_hw_address(self, FALSE);
 
     if (pllink->name[0] && !nm_streq(priv->iface, pllink->name)) {
@@ -6733,7 +6745,9 @@ device_link_changed(gpointer user_data)
 
     /* Update DHCP, etc, if needed */
     if (ip_ifname_changed)
-        nm_device_update_dynamic_ip_setup(self);
+        nm_device_update_dynamic_ip_setup(self, "IP interface changed");
+    else if (hw_addr_changed)
+        nm_device_update_dynamic_ip_setup(self, "hw-address changed");
 
     was_up   = priv->up;
     priv->up = NM_FLAGS_HAS(pllink->n_ifi_flags, IFF_UP);
@@ -6793,7 +6807,7 @@ device_link_changed(gpointer user_data)
          * renew DHCP leases and such.
          */
         if (priv->state == NM_DEVICE_STATE_ACTIVATED) {
-            nm_device_update_dynamic_ip_setup(self);
+            nm_device_update_dynamic_ip_setup(self, "interface got carrier");
         }
     }
 
@@ -6855,7 +6869,7 @@ device_ip_link_changed(gpointer user_data)
         priv->ip_iface_ = g_strdup(ip_iface);
         update_prop_ip_iface(self);
 
-        nm_device_update_dynamic_ip_setup(self);
+        nm_device_update_dynamic_ip_setup(self, "interface renamed");
     }
 
     return G_SOURCE_REMOVE;
@@ -15778,6 +15792,13 @@ _set_state_full(NMDevice *self, NMDeviceState state, NMDeviceStateReason reason,
             if (priv->sys_iface_state == NM_DEVICE_SYS_IFACE_STATE_MANAGED)
                 ip6_managed_setup(self);
             device_init_static_sriov_num_vfs(self);
+
+            /* We didn't bring the device up and we have little idea
+             * when was it brought up. Play it safe and assume it could
+             * have been brought up very recently and it might one of
+             * those who take time to detect carrier.
+             */
+            carrier_detect_wait(self);
         }
 
         if (priv->sys_iface_state == NM_DEVICE_SYS_IFACE_STATE_MANAGED) {
@@ -15785,13 +15806,6 @@ _set_state_full(NMDevice *self, NMDeviceState state, NMDeviceStateReason reason,
                 if (!nm_device_bring_up(self, TRUE, &no_firmware) && no_firmware)
                     _LOGW(LOGD_PLATFORM, "firmware may be missing.");
                 nm_device_set_firmware_missing(self, no_firmware ? TRUE : FALSE);
-            } else {
-                /* We didn't bring the device up and we have little idea
-                 * when was it brought up. Play it safe and assume it could
-                 * have been brought up very recently and it might one of
-                 * those who take time to detect carrier.
-                 */
-                carrier_detect_wait(self);
             }
 
             /* Ensure the device gets deactivated in response to stuff like

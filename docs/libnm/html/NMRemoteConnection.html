@@ -803,10 +803,6 @@ nm_remote_connection_get_secrets (<em class="parameter"><code><a class="link" hr
                                   <em class="parameter"><code>const <span class="type">char</span> *setting_name</code></em>,
                                   <em class="parameter"><code><a href="https://developer.gnome.org/gio/unstable/GCancellable.html#GCancellable-struct"><span class="type">GCancellable</span></a> *cancellable</code></em>,
                                   <em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
-<div class="warning">
-<p><code class="literal">nm_remote_connection_get_secrets</code> has been deprecated since version 1.22 and should not be used in newly-written code.</p>
-<p>Use <a class="link" href="NMRemoteConnection.html#nm-remote-connection-get-secrets-async" title="nm_remote_connection_get_secrets_async ()"><code class="function">nm_remote_connection_get_secrets_async()</code></a> or GDBusConnection.</p>
-</div>
 <p>Request the connection's secrets. Note that this is a blocking D-Bus call,
 not a simple property accessor.</p>
 <div class="refsect3">
@@ -845,7 +841,12 @@ not a simple property accessor.</p>
 <a name="nm-remote-connection-get-secrets.returns"></a><h4>Returns</h4>
 <p>a <a href="https://developer.gnome.org/glib/unstable/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> of type <code class="literal">NM_VARIANT_TYPE_CONNECTION</code> containing
 <em class="parameter"><code>connection</code></em>
-'s secrets, or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> on error. </p>
+'s secrets, or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> on error.</p>
+<p>Warning: NMClient contains a cache of objects on D-Bus. This cache gets updated
+with D-Bus signals when iterating the GMainContext. This function performs a
+(pseudo) blocking D-Bus call. Aside blocking, the result will not be in sync
+and not be ordered with the content of the NMClient cache.
+This function used to be deprecated between 1.22 and 1.38 releases. </p>
 <p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 </div>

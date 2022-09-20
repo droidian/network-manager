@@ -4116,20 +4116,39 @@ is detected in the system.</p>
 <td class="enum_member_annotations"> </td>
 </tr>
 <tr>
-<td class="enum_member_name"><p><a name="NM-MPTCP-FLAGS-ENABLED-ON-GLOBAL-IFACE:CAPS"></a>NM_MPTCP_FLAGS_ENABLED_ON_GLOBAL_IFACE</p></td>
-<td class="enum_member_description">
-<p>MPTCP handling is enabled
-or disabled depending on whether a /0 default route (either IPv4 or IPv6) is
-configured in the main routing table.</p>
-</td>
-<td class="enum_member_annotations"> </td>
-</tr>
-<tr>
 <td class="enum_member_name"><p><a name="NM-MPTCP-FLAGS-ENABLED:CAPS"></a>NM_MPTCP_FLAGS_ENABLED</p></td>
 <td class="enum_member_description">
 <p>MPTCP is enabled and endpoints will be configured.
 This flag is implied if any of the other flags indicate that
-MPTCP is enabled and therefore in most cases unnecessary.</p>
+MPTCP is enabled and therefore in most cases unnecessary.
+Note that if "/proc/sys/net/mptcp/enabled" sysctl is disabled, MPTCP
+handling is disabled despite this flag. This can be overruled with the
+"also-without-sysctl" flag.
+Note that by default interfaces that don't have a default route are
+excluded from having MPTCP endpoints configured. This can be overruled
+with the "also-without-default-route" and this affects endpoints
+per address family.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-MPTCP-FLAGS-ALSO-WITHOUT-SYSCTL:CAPS"></a>NM_MPTCP_FLAGS_ALSO_WITHOUT_SYSCTL</p></td>
+<td class="enum_member_description">
+<p>even if MPTCP handling is enabled
+via the "enabled" flag, it is ignored unless "/proc/sys/net/mptcp/enabled"
+is on. With this flag, MPTCP endpoints will be configured regardless
+of the sysctl setting.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-MPTCP-FLAGS-ALSO-WITHOUT-DEFAULT-ROUTE:CAPS"></a>NM_MPTCP_FLAGS_ALSO_WITHOUT_DEFAULT_ROUTE</p></td>
+<td class="enum_member_description">
+<p>even if MPTCP handling is enabled
+via the "enabled" flag, it is ignored per-address family unless NetworkManager
+configures a default route. With this flag, NetworkManager will also configure
+MPTCP endpoints if there is no default route. This takes effect per-address
+family.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
