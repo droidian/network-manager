@@ -1,3 +1,19 @@
+network-manager (1.40.4-1) unstable; urgency=medium
+
+  * New upstream version 1.40.4
+  * Update symbols file for libnm0
+  * Replace dependency on dbus with default-dbus-system-bus | dbus-system-bus.
+    This makes it easier to swap in alternative implementations like
+    dbus-broker.
+
+ -- Michael Biebl <biebl@debian.org>  Fri, 18 Nov 2022 18:41:10 +0100
+
+network-manager (1.40.2-1) unstable; urgency=medium
+
+  * New upstream version 1.40.2
+
+ -- Michael Biebl <biebl@debian.org>  Tue, 18 Oct 2022 12:29:15 +0200
+
 network-manager (1.40.0-1ubuntu2) kinetic; urgency=medium
 
   * Don't recommend iwd. It's less risky to keep using wpasupplicant

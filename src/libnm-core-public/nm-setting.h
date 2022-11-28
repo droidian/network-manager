@@ -24,15 +24,15 @@ G_BEGIN_DECLS
     (G_TYPE_INSTANCE_GET_CLASS((obj), NM_TYPE_SETTING, NMSettingClass))
 
 /* The property of the #NMSetting is required for the setting to be valid */
-#define NM_SETTING_PARAM_REQUIRED (1 << (1 + G_PARAM_USER_SHIFT))
+#define NM_SETTING_PARAM_REQUIRED 0x200
 
 /* The property of the #NMSetting is a secret */
-#define NM_SETTING_PARAM_SECRET (1 << (2 + G_PARAM_USER_SHIFT))
+#define NM_SETTING_PARAM_SECRET 0x400
 
 /* The property of the #NMSetting should be ignored during comparisons that
  * use the %NM_SETTING_COMPARE_FLAG_FUZZY flag.
  */
-#define NM_SETTING_PARAM_FUZZY_IGNORE (1 << (3 + G_PARAM_USER_SHIFT))
+#define NM_SETTING_PARAM_FUZZY_IGNORE 0x800
 
 /* Note: all non-glib GParamFlags bits are reserved by NetworkManager */
 
@@ -122,6 +122,8 @@ typedef enum {
  * @NM_SETTING_MAC_RANDOMIZATION_ALWAYS: a random MAC address is used.
  *
  * Controls if and how the MAC address of a device is randomzied.
+ *
+ * Since: 1.2
  **/
 typedef enum {
     NM_SETTING_MAC_RANDOMIZATION_DEFAULT = 0,

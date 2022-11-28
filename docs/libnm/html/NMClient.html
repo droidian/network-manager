@@ -1287,6 +1287,10 @@
 <td class="function_name"><a class="link" href="NMClient.html#NM-CLIENT-ERROR:CAPS" title="NM_CLIENT_ERROR">NM_CLIENT_ERROR</a></td>
 </tr>
 <tr>
+<td class="typedef_keyword">typedef</td>
+<td class="function_name"><a class="link" href="NMClient.html#NMDnsEntry">NMDnsEntry</a></td>
+</tr>
+<tr>
 <td class="datatype_keyword"> </td>
 <td class="function_name"><a class="link" href="NMClient.html#NMClient-struct" title="NMClient">NMClient</a></td>
 </tr>
@@ -3400,8 +3404,8 @@ before being added. </p></td>
 </tr>
 <tr>
 <td class="parameter_name"><p>device</p></td>
-<td class="parameter_description"><p>the <a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a></p></td>
-<td class="parameter_annotations"> </td>
+<td class="parameter_description"><p>the <a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a>. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
 </tr>
 <tr>
 <td class="parameter_name"><p>specific_object</p></td>
@@ -3542,8 +3546,8 @@ before being added. </p></td>
 </tr>
 <tr>
 <td class="parameter_name"><p>device</p></td>
-<td class="parameter_description"><p>the <a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a></p></td>
-<td class="parameter_annotations"> </td>
+<td class="parameter_description"><p>the <a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a>. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
 </tr>
 <tr>
 <td class="parameter_name"><p>specific_object</p></td>
@@ -3636,6 +3640,7 @@ failure, in which case <em class="parameter"><code>error</code></em>
 will be set. </p>
 <p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
+<p class="since">Since: 1.16</p>
 </div>
 <hr>
 <div class="refsect2">
@@ -5826,6 +5831,13 @@ operation succeeded, but the object that was allegedly created (eg,
 <a name="NM-CLIENT-ERROR:CAPS"></a><h3>NM_CLIENT_ERROR</h3>
 <pre class="programlisting">#define NM_CLIENT_ERROR nm_client_error_quark()
 </pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMDnsEntry"></a><h3>NMDnsEntry</h3>
+<pre class="programlisting">typedef struct NMDnsEntry NMDnsEntry;
+</pre>
+<p class="since">Since: 1.6</p>
 </div>
 <hr>
 <div class="refsect2">

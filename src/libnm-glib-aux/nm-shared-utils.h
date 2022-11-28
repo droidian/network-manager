@@ -809,6 +809,8 @@ gssize _nm_strv_find_first(const char *const *list, gssize len, const char *need
 #define nm_strv_find_first(list, len, needle) \
     _nm_strv_find_first(NM_CAST_STRV_CC(list), (len), (needle))
 
+#define nm_strv_contains(list, len, needle) (nm_strv_find_first((list), (len), (needle)) >= 0)
+
 gboolean nm_strv_has_duplicate(const char *const *list, gssize len, gboolean is_sorted);
 
 const char **nm_strv_cleanup_const(const char **strv, gboolean skip_empty, gboolean skip_repeated);
@@ -1317,6 +1319,8 @@ typedef enum {
     NM_UTILS_ERROR_CANCELLED_DISPOSING, /*< nick=CancelledDisposing >*/
     NM_UTILS_ERROR_INVALID_ARGUMENT,    /*< nick=InvalidArgument >*/
     NM_UTILS_ERROR_NOT_READY,           /*< nick=NotReady >*/
+
+    NM_UTILS_ERROR_COMMAND_FAILED, /*< nick=CommandFailed >*/
 
     NM_UTILS_ERROR_AMBIGUOUS, /*< nick=Ambiguous >*/
 
@@ -3402,6 +3406,10 @@ void nm_crypto_md5_hash(const guint8 *salt,
                         gsize         buflen);
 
 /*****************************************************************************/
+
+#define NM_UTILS_GET_PROCESS_EXIT_STATUS_BUF_LEN 41
+
+const char *nm_utils_get_process_exit_status_desc_buf(int status, char *buf, gsize buf_len);
 
 char *nm_utils_get_process_exit_status_desc(int status);
 

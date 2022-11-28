@@ -165,6 +165,7 @@ NM_CLIENT_ACTIVE_CONNECTION_REMOVED
 NMClientError
 NM_CLIENT_ERROR
 nm_client_error_quark
+NMDnsEntry
 nm_dns_entry_unref
 nm_dns_entry_get_interface
 nm_dns_entry_get_nameservers
@@ -268,7 +269,6 @@ nm_utils_file_is_pkcs12
 NMClient
 <SUBSECTION Standard>
 NMClientClass
-NMDnsEntry
 NM_CLIENT
 NM_CLIENT_CLASS
 NM_CLIENT_GET_CLASS
@@ -854,7 +854,6 @@ nm_lldp_neighbor_get_type
 NM_DEVICE_6LOWPAN_PARENT
 NM_DEVICE_6LOWPAN_HW_ADDRESS
 nm_device_6lowpan_get_parent
-NM_DEPRECATED_IN_1_24_FOR
 NMDevice6Lowpan
 <SUBSECTION Standard>
 NMDevice6LowpanClass
@@ -1522,7 +1521,6 @@ nm_device_wireguard_get_type
 <FILE>nm-device-wpan</FILE>
 <TITLE>NMDeviceWpan</TITLE>
 NM_DEVICE_WPAN_HW_ADDRESS
-NM_DEPRECATED_IN_1_24_FOR
 NMDeviceWpan
 <SUBSECTION Standard>
 NMDeviceWpanClass
@@ -4475,6 +4473,7 @@ NM_AVAILABLE_IN_1_38
 NM_DEPRECATED_IN_1_40
 NM_DEPRECATED_IN_1_40_FOR
 NM_AVAILABLE_IN_1_40
+NM_AVAILABLE_IN_1_40_4
 </SECTION>
 
 <SECTION>
@@ -4507,6 +4506,7 @@ NM_VERSION_1_34
 NM_VERSION_1_36
 NM_VERSION_1_38
 NM_VERSION_1_40
+NM_VERSION_1_40_4
 NM_API_VERSION
 NM_VERSION_CUR_STABLE
 NM_VERSION_NEXT_STABLE
@@ -4705,9 +4705,7 @@ nm_vpn_plugin_old_set_state
 nm_vpn_plugin_old_secrets_required
 nm_vpn_plugin_old_set_login_banner
 nm_vpn_plugin_old_failure
-nm_vpn_plugin_old_set_config
 nm_vpn_plugin_old_set_ip4_config
-nm_vpn_plugin_old_set_ip6_config
 nm_vpn_plugin_old_disconnect
 nm_vpn_plugin_old_read_vpn_details
 nm_vpn_plugin_old_get_secret_flags

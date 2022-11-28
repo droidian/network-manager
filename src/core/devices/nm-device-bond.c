@@ -395,60 +395,56 @@ _platform_lnk_bond_init_from_setting(NMSettingBond *s_bond, NMPlatformLnkBond *p
 {
     const char *opt_value;
 
+#define _v_fcn(fcn, s_bond, opt) (fcn(nm_setting_bond_get_option_normalized((s_bond), (opt))))
+#define _v_u8(s_bond, opt)       _nm_setting_bond_opt_value_as_u8((s_bond), (opt))
+#define _v_u16(s_bond, opt)      _nm_setting_bond_opt_value_as_u16((s_bond), (opt))
+#define _v_u32(s_bond, opt)      _nm_setting_bond_opt_value_as_u32((s_bond), (opt))
+#define _v_intbool(s_bond, opt)  _nm_setting_bond_opt_value_as_intbool((s_bond), (opt))
+
     *props = (NMPlatformLnkBond){
-        .mode = _nm_setting_bond_mode_from_string(
-            nm_setting_bond_get_option_normalized(s_bond, NM_SETTING_BOND_OPTION_MODE)),
+        .mode      = _v_fcn(_nm_setting_bond_mode_from_string, s_bond, NM_SETTING_BOND_OPTION_MODE),
         .primary   = _setting_bond_primary_opt_as_ifindex(s_bond),
-        .miimon    = _nm_setting_bond_opt_value_as_u32(s_bond, NM_SETTING_BOND_OPTION_MIIMON),
-        .updelay   = _nm_setting_bond_opt_value_as_u32(s_bond, NM_SETTING_BOND_OPTION_UPDELAY),
-        .downdelay = _nm_setting_bond_opt_value_as_u32(s_bond, NM_SETTING_BOND_OPTION_DOWNDELAY),
-        .arp_interval =
-            _nm_setting_bond_opt_value_as_u32(s_bond, NM_SETTING_BOND_OPTION_ARP_INTERVAL),
-        .resend_igmp =
-            _nm_setting_bond_opt_value_as_u32(s_bond, NM_SETTING_BOND_OPTION_RESEND_IGMP),
-        .min_links = _nm_setting_bond_opt_value_as_u32(s_bond, NM_SETTING_BOND_OPTION_MIN_LINKS),
-        .lp_interval =
-            _nm_setting_bond_opt_value_as_u32(s_bond, NM_SETTING_BOND_OPTION_LP_INTERVAL),
-        .packets_per_port =
-            _nm_setting_bond_opt_value_as_u32(s_bond, NM_SETTING_BOND_OPTION_PACKETS_PER_SLAVE),
-        .peer_notif_delay =
-            _nm_setting_bond_opt_value_as_u32(s_bond, NM_SETTING_BOND_OPTION_PEER_NOTIF_DELAY),
-        .arp_all_targets = _nm_setting_bond_arp_all_targets_from_string(
-            nm_setting_bond_get_option_normalized(s_bond, NM_SETTING_BOND_OPTION_ARP_ALL_TARGETS)),
-        .arp_validate = _nm_setting_bond_arp_validate_from_string(
-            nm_setting_bond_get_option_normalized(s_bond, NM_SETTING_BOND_OPTION_ARP_VALIDATE)),
-        .ad_actor_sys_prio =
-            _nm_setting_bond_opt_value_as_u16(s_bond, NM_SETTING_BOND_OPTION_AD_ACTOR_SYS_PRIO),
-        .ad_user_port_key =
-            _nm_setting_bond_opt_value_as_u16(s_bond, NM_SETTING_BOND_OPTION_AD_USER_PORT_KEY),
-        .primary_reselect = _nm_setting_bond_primary_reselect_from_string(
-            nm_setting_bond_get_option_normalized(s_bond, NM_SETTING_BOND_OPTION_PRIMARY_RESELECT)),
-        .fail_over_mac = _nm_setting_bond_fail_over_mac_from_string(
-            nm_setting_bond_get_option_normalized(s_bond, NM_SETTING_BOND_OPTION_FAIL_OVER_MAC)),
-        .xmit_hash_policy = _nm_setting_bond_xmit_hash_policy_from_string(
-            nm_setting_bond_get_option_normalized(s_bond, NM_SETTING_BOND_OPTION_XMIT_HASH_POLICY)),
-        .num_grat_arp =
-            _nm_setting_bond_opt_value_as_u8(s_bond, NM_SETTING_BOND_OPTION_NUM_GRAT_ARP),
-        .all_ports_active =
-            _nm_setting_bond_opt_value_as_u8(s_bond, NM_SETTING_BOND_OPTION_ALL_SLAVES_ACTIVE),
-        .lacp_rate = _nm_setting_bond_lacp_rate_from_string(
-            nm_setting_bond_get_option_normalized(s_bond, NM_SETTING_BOND_OPTION_LACP_RATE)),
-        .ad_select = _nm_setting_bond_ad_select_from_string(
-            nm_setting_bond_get_option_normalized(s_bond, NM_SETTING_BOND_OPTION_AD_SELECT)),
+        .miimon    = _v_u32(s_bond, NM_SETTING_BOND_OPTION_MIIMON),
+        .updelay   = _v_u32(s_bond, NM_SETTING_BOND_OPTION_UPDELAY),
+        .downdelay = _v_u32(s_bond, NM_SETTING_BOND_OPTION_DOWNDELAY),
+        .arp_interval      = _v_u32(s_bond, NM_SETTING_BOND_OPTION_ARP_INTERVAL),
+        .resend_igmp       = _v_u32(s_bond, NM_SETTING_BOND_OPTION_RESEND_IGMP),
+        .min_links         = _v_u32(s_bond, NM_SETTING_BOND_OPTION_MIN_LINKS),
+        .lp_interval       = _v_u32(s_bond, NM_SETTING_BOND_OPTION_LP_INTERVAL),
+        .packets_per_port  = _v_u32(s_bond, NM_SETTING_BOND_OPTION_PACKETS_PER_SLAVE),
+        .peer_notif_delay  = _v_u32(s_bond, NM_SETTING_BOND_OPTION_PEER_NOTIF_DELAY),
+        .arp_all_targets   = _v_fcn(_nm_setting_bond_arp_all_targets_from_string,
+                                  s_bond,
+                                  NM_SETTING_BOND_OPTION_ARP_ALL_TARGETS),
+        .arp_validate      = _v_fcn(_nm_setting_bond_arp_validate_from_string,
+                               s_bond,
+                               NM_SETTING_BOND_OPTION_ARP_VALIDATE),
+        .ad_actor_sys_prio = _v_u16(s_bond, NM_SETTING_BOND_OPTION_AD_ACTOR_SYS_PRIO),
+        .ad_user_port_key  = _v_u16(s_bond, NM_SETTING_BOND_OPTION_AD_USER_PORT_KEY),
+        .primary_reselect  = _v_fcn(_nm_setting_bond_primary_reselect_from_string,
+                                   s_bond,
+                                   NM_SETTING_BOND_OPTION_PRIMARY_RESELECT),
+        .fail_over_mac     = _v_fcn(_nm_setting_bond_fail_over_mac_from_string,
+                                s_bond,
+                                NM_SETTING_BOND_OPTION_FAIL_OVER_MAC),
+        .xmit_hash_policy  = _v_fcn(_nm_setting_bond_xmit_hash_policy_from_string,
+                                   s_bond,
+                                   NM_SETTING_BOND_OPTION_XMIT_HASH_POLICY),
+        .num_grat_arp      = _v_u8(s_bond, NM_SETTING_BOND_OPTION_NUM_GRAT_ARP),
+        .all_ports_active  = _v_u8(s_bond, NM_SETTING_BOND_OPTION_ALL_SLAVES_ACTIVE),
+        .lacp_rate         = _v_fcn(_nm_setting_bond_lacp_rate_from_string,
+                            s_bond,
+                            NM_SETTING_BOND_OPTION_LACP_RATE),
+        .ad_select         = _v_fcn(_nm_setting_bond_ad_select_from_string,
+                            s_bond,
+                            NM_SETTING_BOND_OPTION_AD_SELECT),
+        .use_carrier       = _v_intbool(s_bond, NM_SETTING_BOND_OPTION_USE_CARRIER),
+        .tlb_dynamic_lb    = _v_intbool(s_bond, NM_SETTING_BOND_OPTION_TLB_DYNAMIC_LB),
     };
 
     nm_ether_addr_from_string(
         &props->ad_actor_system,
         nm_setting_bond_get_option_normalized(s_bond, NM_SETTING_BOND_OPTION_AD_ACTOR_SYSTEM));
-
-    opt_value = nm_setting_bond_get_option_normalized(s_bond, NM_SETTING_BOND_OPTION_USE_CARRIER);
-    if (opt_value != NULL)
-        props->use_carrier = _nm_utils_ascii_str_to_bool(opt_value, FALSE);
-
-    opt_value =
-        nm_setting_bond_get_option_normalized(s_bond, NM_SETTING_BOND_OPTION_TLB_DYNAMIC_LB);
-    if (opt_value != NULL)
-        props->tlb_dynamic_lb = _nm_utils_ascii_str_to_bool(opt_value, FALSE);
 
     opt_value = nm_setting_bond_get_option_normalized(s_bond, NM_SETTING_BOND_OPTION_ARP_IP_TARGET);
     if (opt_value != NULL)
@@ -459,7 +455,6 @@ _platform_lnk_bond_init_from_setting(NMSettingBond *s_bond, NMPlatformLnkBond *p
     props->updelay_has          = props->miimon_has && props->miimon;
     props->downdelay_has        = props->miimon_has && props->miimon;
     props->peer_notif_delay_has = (props->miimon || props->arp_interval) && props->peer_notif_delay;
-    props->arp_all_targets_has  = props->arp_interval && props->arp_all_targets;
     props->resend_igmp_has      = props->resend_igmp != 1;
     props->lp_interval_has      = props->lp_interval != 1;
     props->tlb_dynamic_lb_has   = NM_IN_SET(props->mode, NM_BOND_MODE_TLB, NM_BOND_MODE_ALB);
@@ -493,6 +488,10 @@ act_stage1_prepare(NMDevice *device, NMDeviceStateReason *out_failure_reason)
         if (!nm_device_hw_addr_set_cloned(device, nm_device_get_applied_connection(device), FALSE))
             ret = NM_ACT_STAGE_RETURN_FAILURE;
     }
+
+    /* This is a workaround because netlink do not support ifname as primary */
+    set_bond_attr_or_default(device, s_bond, NM_SETTING_BOND_OPTION_PRIMARY);
+
     nm_device_bring_up(device, TRUE, NULL);
 
     return ret;

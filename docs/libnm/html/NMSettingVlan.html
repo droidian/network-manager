@@ -233,7 +233,7 @@ nm_setting_vlan_get_parent (<em class="parameter"><code><a class="link" href="NM
 </div>
 <div class="refsect3">
 <a name="nm-setting-vlan-get-parent.returns"></a><h4>Returns</h4>
-<p> the <span class="type">“parent”</span> property of the setting</p>
+<p> the <a href="/usr/share/gtk-doc/html/libnm-util/NMSettingVlan.html#NMSettingVlan--parent"><span class="type">“parent”</span></a> property of the setting</p>
 </div>
 </div>
 <hr>
@@ -258,7 +258,7 @@ nm_setting_vlan_get_id (<em class="parameter"><code><a class="link" href="NMSett
 </div>
 <div class="refsect3">
 <a name="nm-setting-vlan-get-id.returns"></a><h4>Returns</h4>
-<p> the <span class="type">“id”</span> property of the setting</p>
+<p> the <a href="/usr/share/gtk-doc/html/libnm-util/NMSettingVlan.html#NMSettingVlan--id"><span class="type">“id”</span></a> property of the setting</p>
 </div>
 </div>
 <hr>
@@ -283,7 +283,7 @@ nm_setting_vlan_get_flags (<em class="parameter"><code><a class="link" href="NMS
 </div>
 <div class="refsect3">
 <a name="nm-setting-vlan-get-flags.returns"></a><h4>Returns</h4>
-<p> the <span class="type">“flags”</span> property of the setting</p>
+<p> the <a href="/usr/share/gtk-doc/html/libnm-util/NMSettingVlan.html#NMSettingVlan--flags"><span class="type">“flags”</span></a> property of the setting</p>
 </div>
 </div>
 <hr>
@@ -293,7 +293,7 @@ nm_setting_vlan_get_flags (<em class="parameter"><code><a class="link" href="NMS
 nm_setting_vlan_get_num_priorities (<em class="parameter"><code><a class="link" href="NMSettingVlan.html" title="NMSettingVlan"><span class="type">NMSettingVlan</span></a> *setting</code></em>,
                                     <em class="parameter"><code><a class="link" href="NMSettingVlan.html#NMVlanPriorityMap" title="enum NMVlanPriorityMap"><span class="type">NMVlanPriorityMap</span></a> map</code></em>);</pre>
 <p>Returns the number of entries in the
-<span class="type">“ingress_priority_map”</span> or <span class="type">“egress_priority_map”</span>
+<a href="/usr/share/gtk-doc/html/libnm-util/NMSettingVlan.html#NMSettingVlan--ingress-priority-map"><span class="type">“ingress_priority_map”</span></a> or <a href="/usr/share/gtk-doc/html/libnm-util/NMSettingVlan.html#NMSettingVlan--egress-priority-map"><span class="type">“egress_priority_map”</span></a>
 properties of this setting.</p>
 <div class="refsect3">
 <a name="nm-setting-vlan-get-num-priorities.parameters"></a><h4>Parameters</h4>
@@ -331,8 +331,8 @@ nm_setting_vlan_get_priority (<em class="parameter"><code><a class="link" href="
                               <em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint32"><span class="type">guint32</span></a> idx</code></em>,
                               <em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint32"><span class="type">guint32</span></a> *out_from</code></em>,
                               <em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint32"><span class="type">guint32</span></a> *out_to</code></em>);</pre>
-<p>Retrieve one of the entries of the <span class="type">“ingress_priority_map”</span>
-or <span class="type">“egress_priority_map”</span> properties of this setting.</p>
+<p>Retrieve one of the entries of the <a href="/usr/share/gtk-doc/html/libnm-util/NMSettingVlan.html#NMSettingVlan--ingress-priority-map"><span class="type">“ingress_priority_map”</span></a>
+or <a href="/usr/share/gtk-doc/html/libnm-util/NMSettingVlan.html#NMSettingVlan--egress-priority-map"><span class="type">“egress_priority_map”</span></a> properties of this setting.</p>
 <div class="refsect3">
 <a name="nm-setting-vlan-get-priority.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
@@ -384,8 +384,8 @@ nm_setting_vlan_add_priority (<em class="parameter"><code><a class="link" href="
                               <em class="parameter"><code><a class="link" href="NMSettingVlan.html#NMVlanPriorityMap" title="enum NMVlanPriorityMap"><span class="type">NMVlanPriorityMap</span></a> map</code></em>,
                               <em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint32"><span class="type">guint32</span></a> from</code></em>,
                               <em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint32"><span class="type">guint32</span></a> to</code></em>);</pre>
-<p>Adds a priority mapping to the <span class="type">“ingress_priority_map”</span> or
-<span class="type">“egress_priority_map”</span> properties of the setting. If <em class="parameter"><code>from</code></em>
+<p>Adds a priority mapping to the <a href="/usr/share/gtk-doc/html/libnm-util/NMSettingVlan.html#NMSettingVlan--ingress-priority-map"><span class="type">“ingress_priority_map”</span></a> or
+<a href="/usr/share/gtk-doc/html/libnm-util/NMSettingVlan.html#NMSettingVlan--egress-priority-map"><span class="type">“egress_priority_map”</span></a> properties of the setting. If <em class="parameter"><code>from</code></em>
  is
 already in the given priority map, this function will overwrite the
 existing entry with the new <em class="parameter"><code>to</code></em>
@@ -448,7 +448,7 @@ nm_setting_vlan_remove_priority (<em class="parameter"><code><a class="link" hre
                                  <em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint32"><span class="type">guint32</span></a> idx</code></em>);</pre>
 <p>Removes the priority map at index <em class="parameter"><code>idx</code></em>
  from the
-<span class="type">“ingress_priority_map”</span> or <span class="type">“egress_priority_map”</span>
+<a href="/usr/share/gtk-doc/html/libnm-util/NMSettingVlan.html#NMSettingVlan--ingress-priority-map"><span class="type">“ingress_priority_map”</span></a> or <a href="/usr/share/gtk-doc/html/libnm-util/NMSettingVlan.html#NMSettingVlan--egress-priority-map"><span class="type">“egress_priority_map”</span></a>
 properties.</p>
 <div class="refsect3">
 <a name="nm-setting-vlan-remove-priority.parameters"></a><h4>Parameters</h4>
@@ -489,8 +489,8 @@ nm_setting_vlan_remove_priority_by_value
                                 <em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint32"><span class="type">guint32</span></a> to</code></em>);</pre>
 <p>Removes the priority map <em class="parameter"><code>form</code></em>
 :<em class="parameter"><code>to</code></em>
- from the <span class="type">“ingress_priority_map”</span>
-or <span class="type">“egress_priority_map”</span> (according to <em class="parameter"><code>map</code></em>
+ from the <a href="/usr/share/gtk-doc/html/libnm-util/NMSettingVlan.html#NMSettingVlan--ingress-priority-map"><span class="type">“ingress_priority_map”</span></a>
+or <a href="/usr/share/gtk-doc/html/libnm-util/NMSettingVlan.html#NMSettingVlan--egress-priority-map"><span class="type">“egress_priority_map”</span></a> (according to <em class="parameter"><code>map</code></em>
  argument)
 properties.</p>
 <div class="refsect3">
@@ -541,8 +541,8 @@ nm_setting_vlan_remove_priority_str_by_value
                                 <em class="parameter"><code><a class="link" href="NMSettingVlan.html#NMVlanPriorityMap" title="enum NMVlanPriorityMap"><span class="type">NMVlanPriorityMap</span></a> map</code></em>,
                                 <em class="parameter"><code>const <span class="type">char</span> *str</code></em>);</pre>
 <p>Removes the priority map <em class="parameter"><code>str</code></em>
- from the <span class="type">“ingress_priority_map”</span>
-or <span class="type">“egress_priority_map”</span> (according to <em class="parameter"><code>map</code></em>
+ from the <a href="/usr/share/gtk-doc/html/libnm-util/NMSettingVlan.html#NMSettingVlan--ingress-priority-map"><span class="type">“ingress_priority_map”</span></a>
+or <a href="/usr/share/gtk-doc/html/libnm-util/NMSettingVlan.html#NMSettingVlan--egress-priority-map"><span class="type">“egress_priority_map”</span></a> (according to <em class="parameter"><code>map</code></em>
  argument)
 properties.</p>
 <div class="refsect3">
@@ -583,8 +583,8 @@ properties.</p>
 <pre class="programlisting"><span class="returnvalue">void</span>
 nm_setting_vlan_clear_priorities (<em class="parameter"><code><a class="link" href="NMSettingVlan.html" title="NMSettingVlan"><span class="type">NMSettingVlan</span></a> *setting</code></em>,
                                   <em class="parameter"><code><a class="link" href="NMSettingVlan.html#NMVlanPriorityMap" title="enum NMVlanPriorityMap"><span class="type">NMVlanPriorityMap</span></a> map</code></em>);</pre>
-<p>Clear all the entries from <span class="type">“ingress_priority_map”</span> or
-<span class="type">“egress_priority_map”</span> properties.</p>
+<p>Clear all the entries from <a href="/usr/share/gtk-doc/html/libnm-util/NMSettingVlan.html#NMSettingVlan--ingress-priority-map"><span class="type">“ingress_priority_map”</span></a> or
+<a href="/usr/share/gtk-doc/html/libnm-util/NMSettingVlan.html#NMSettingVlan--egress-priority-map"><span class="type">“egress_priority_map”</span></a> properties.</p>
 <div class="refsect3">
 <a name="nm-setting-vlan-clear-priorities.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
@@ -615,8 +615,8 @@ nm_setting_vlan_clear_priorities (<em class="parameter"><code><a class="link" hr
 nm_setting_vlan_add_priority_str (<em class="parameter"><code><a class="link" href="NMSettingVlan.html" title="NMSettingVlan"><span class="type">NMSettingVlan</span></a> *setting</code></em>,
                                   <em class="parameter"><code><a class="link" href="NMSettingVlan.html#NMVlanPriorityMap" title="enum NMVlanPriorityMap"><span class="type">NMVlanPriorityMap</span></a> map</code></em>,
                                   <em class="parameter"><code>const <span class="type">char</span> *str</code></em>);</pre>
-<p>Adds a priority map entry into either the <span class="type">“ingress_priority_map”</span>
-or the <span class="type">“egress_priority_map”</span> properties.  The priority map maps
+<p>Adds a priority map entry into either the <a href="/usr/share/gtk-doc/html/libnm-util/NMSettingVlan.html#NMSettingVlan--ingress-priority-map"><span class="type">“ingress_priority_map”</span></a>
+or the <a href="/usr/share/gtk-doc/html/libnm-util/NMSettingVlan.html#NMSettingVlan--egress-priority-map"><span class="type">“egress_priority_map”</span></a> properties.  The priority map maps
 the Linux SKB priorities to 802.1p priorities.</p>
 <div class="refsect3">
 <a name="nm-setting-vlan-add-priority-str.parameters"></a><h4>Parameters</h4>

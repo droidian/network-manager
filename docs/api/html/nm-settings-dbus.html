@@ -1742,9 +1742,7 @@
 <a name="nm-settings-dbus.property.ipv4.dhcp-vendor-class-identifier"></a>dhcp-vendor-class-identifier</td>
 <td align="left">string</td>
 <td align="left"> </td>
-<td> The Vendor Class Identifier DHCP option (60). Special characters in the data string may be escaped using C-style escapes, nevertheless this property cannot contain nul bytes. If the per-profile value is unspecified (the default), a global connection default gets consulted. If still unspecified, the DHCP option is not sent to the server.
-
- Since 1.28</td>
+<td> The Vendor Class Identifier DHCP option (60). Special characters in the data string may be escaped using C-style escapes, nevertheless this property cannot contain nul bytes. If the per-profile value is unspecified (the default), a global connection default gets consulted. If still unspecified, the DHCP option is not sent to the server.</td>
 </tr>
 <tr>
 <td align="left">
@@ -1832,9 +1830,7 @@
 <td align="left">0</td>
 <td> Enable and disable the IPv4 link-local configuration independently of the ipv4.method configuration. This allows a link-local address (169.254.x.y/16) to be obtained in addition to other addresses, such as those manually configured or obtained from a DHCP server.
 
- When set to "auto", the value is dependent on "ipv4.method". When set to "default", it honors the global connection default, before falling back to "auto". Note that if "ipv4.method" is "disabled", then link local addressing is always disabled too. The default is "default".
-
- Since 1.40</td>
+ When set to "auto", the value is dependent on "ipv4.method". When set to "default", it honors the global connection default, before falling back to "auto". Note that if "ipv4.method" is "disabled", then link local addressing is always disabled too. The default is "default".</td>
 </tr>
 <tr>
 <td align="left">

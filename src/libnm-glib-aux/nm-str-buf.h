@@ -78,14 +78,14 @@ NM_STR_BUF_INIT(gsize allocated, gboolean do_bzero_mem)
             ? (size)                                                                        \
             : 0,                                                                            \
         FALSE,                                                                              \
-        (do_bzero_mem));
+        (do_bzero_mem))
 
 #define NM_STR_BUF_INIT_ARR(arr, do_bzero_mem)                                                    \
     NM_STR_BUF_INIT_FULL((arr),                                                                   \
                          0,                                                                       \
                          NM_STATIC_ASSERT_EXPR_1(sizeof(arr) > sizeof(char *)) ? sizeof(arr) : 0, \
                          FALSE,                                                                   \
-                         (do_bzero_mem));
+                         (do_bzero_mem))
 
 void _nm_str_buf_ensure_size(NMStrBuf *strbuf, gsize new_size, gboolean reserve_exact);
 
@@ -530,7 +530,10 @@ nm_str_buf_finalize(NMStrBuf *strbuf, gsize *out_len)
         char *str = g_steal_pointer(&strbuf->_priv_str);
         char *result;
 
-        result = g_strndup(str, strbuf->_priv_len);
+        result = g_new(char, strbuf->_priv_len + 1u);
+        memcpy(result, str, strbuf->_priv_len);
+        result[strbuf->_priv_len] = '\0';
+
         if (strbuf->_priv_do_bzero_mem)
             nm_explicit_bzero(str, strbuf->_priv_len);
         return result;

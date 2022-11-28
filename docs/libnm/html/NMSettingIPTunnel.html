@@ -514,7 +514,7 @@ nm_setting_ip_tunnel_get_encapsulation_limit
 <a name="nm-setting-ip-tunnel-get-encapsulation-limit.returns"></a><h4>Returns</h4>
 <p> the encapsulation limit value</p>
 </div>
-<p class="since">Since: 1.2</p>
+<p class="since">Since: 1.42, 1.40.4</p>
 </div>
 <hr>
 <div class="refsect2">
@@ -541,7 +541,7 @@ nm_setting_ip_tunnel_get_flow_label (<em class="parameter"><code><a class="link"
 <a name="nm-setting-ip-tunnel-get-flow-label.returns"></a><h4>Returns</h4>
 <p> the flow label value</p>
 </div>
-<p class="since">Since: 1.2</p>
+<p class="since">Since: 1.42, 1.40.4</p>
 </div>
 <hr>
 <div class="refsect2">
@@ -575,6 +575,27 @@ nm_setting_ip_tunnel_get_mtu (<em class="parameter"><code><a class="link" href="
 <a name="nm-setting-ip-tunnel-get-flags"></a><h3>nm_setting_ip_tunnel_get_flags ()</h3>
 <pre class="programlisting"><a class="link" href="NMSettingIPTunnel.html#NMIPTunnelFlags" title="enum NMIPTunnelFlags"><span class="returnvalue">NMIPTunnelFlags</span></a>
 nm_setting_ip_tunnel_get_flags (<em class="parameter"><code><a class="link" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel"><span class="type">NMSettingIPTunnel</span></a> *setting</code></em>);</pre>
+<p>Returns the <span class="type">“flags”</span> property of the setting.</p>
+<div class="refsect3">
+<a name="nm-setting-ip-tunnel-get-flags.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>setting</p></td>
+<td class="parameter_description"><p>the <a class="link" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel"><span class="type">NMSettingIPTunnel</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="nm-setting-ip-tunnel-get-flags.returns"></a><h4>Returns</h4>
+<p> the tunnel flags</p>
+</div>
+<p class="since">Since: 1.12</p>
 </div>
 </div>
 <div class="refsect1">
@@ -665,6 +686,7 @@ nm_setting_ip_tunnel_get_flags (<em class="parameter"><code><a class="link" href
 <hr>
 <div class="refsect2">
 <a name="NMIPTunnelFlags"></a><h3>enum NMIPTunnelFlags</h3>
+<p>IP tunnel flags.</p>
 <div class="refsect3">
 <a name="NMIPTunnelFlags.members"></a><h4>Members</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
@@ -676,42 +698,60 @@ nm_setting_ip_tunnel_get_flags (<em class="parameter"><code><a class="link" href
 <tbody>
 <tr>
 <td class="enum_member_name"><p><a name="NM-IP-TUNNEL-FLAG-NONE:CAPS"></a>NM_IP_TUNNEL_FLAG_NONE</p></td>
-<td> </td>
-<td> </td>
+<td class="enum_member_description">
+<p>no flag</p>
+</td>
+<td class="enum_member_annotations"> </td>
 </tr>
 <tr>
 <td class="enum_member_name"><p><a name="NM-IP-TUNNEL-FLAG-IP6-IGN-ENCAP-LIMIT:CAPS"></a>NM_IP_TUNNEL_FLAG_IP6_IGN_ENCAP_LIMIT</p></td>
-<td> </td>
-<td> </td>
+<td class="enum_member_description">
+<p>don't add encapsulation limit
+if one isn't present in inner packet</p>
+</td>
+<td class="enum_member_annotations"> </td>
 </tr>
 <tr>
 <td class="enum_member_name"><p><a name="NM-IP-TUNNEL-FLAG-IP6-USE-ORIG-TCLASS:CAPS"></a>NM_IP_TUNNEL_FLAG_IP6_USE_ORIG_TCLASS</p></td>
-<td> </td>
-<td> </td>
+<td class="enum_member_description">
+<p>copy the traffic class field
+from the inner packet</p>
+</td>
+<td class="enum_member_annotations"> </td>
 </tr>
 <tr>
 <td class="enum_member_name"><p><a name="NM-IP-TUNNEL-FLAG-IP6-USE-ORIG-FLOWLABEL:CAPS"></a>NM_IP_TUNNEL_FLAG_IP6_USE_ORIG_FLOWLABEL</p></td>
-<td> </td>
-<td> </td>
+<td class="enum_member_description">
+<p>copy the flowlabel from the
+inner packet</p>
+</td>
+<td class="enum_member_annotations"> </td>
 </tr>
 <tr>
 <td class="enum_member_name"><p><a name="NM-IP-TUNNEL-FLAG-IP6-MIP6-DEV:CAPS"></a>NM_IP_TUNNEL_FLAG_IP6_MIP6_DEV</p></td>
-<td> </td>
-<td> </td>
+<td class="enum_member_description">
+<p>used for Mobile IPv6</p>
+</td>
+<td class="enum_member_annotations"> </td>
 </tr>
 <tr>
 <td class="enum_member_name"><p><a name="NM-IP-TUNNEL-FLAG-IP6-RCV-DSCP-COPY:CAPS"></a>NM_IP_TUNNEL_FLAG_IP6_RCV_DSCP_COPY</p></td>
-<td> </td>
-<td> </td>
+<td class="enum_member_description">
+<p>copy DSCP from the outer packet</p>
+</td>
+<td class="enum_member_annotations"> </td>
 </tr>
 <tr>
 <td class="enum_member_name"><p><a name="NM-IP-TUNNEL-FLAG-IP6-USE-ORIG-FWMARK:CAPS"></a>NM_IP_TUNNEL_FLAG_IP6_USE_ORIG_FWMARK</p></td>
-<td> </td>
-<td> </td>
+<td class="enum_member_description">
+<p>copy fwmark from inner packet</p>
+</td>
+<td class="enum_member_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
+<p class="since">Since: 1.12</p>
 </div>
 </div>
 </div>

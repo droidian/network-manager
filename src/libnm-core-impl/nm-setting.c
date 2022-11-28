@@ -30,6 +30,20 @@
 
 /*****************************************************************************/
 
+/*
+ * We use literal numbers in the header (as opposed to e.g.
+ * (1 << (1 + G_PARAM_USER_SHIFT))), because g-ir-scanner sometimes gets
+ * confused by unknown tokens and silently treats them as zero:
+ * https://gitlab.gnome.org/GNOME/gobject-introspection/-/merge_requests/366
+ */
+
+G_STATIC_ASSERT(G_PARAM_USER_SHIFT == 8);
+G_STATIC_ASSERT(NM_SETTING_PARAM_REQUIRED == (1 << (1 + G_PARAM_USER_SHIFT)));
+G_STATIC_ASSERT(NM_SETTING_PARAM_SECRET == (1 << (2 + G_PARAM_USER_SHIFT)));
+G_STATIC_ASSERT(NM_SETTING_PARAM_FUZZY_IGNORE == (1 << (3 + G_PARAM_USER_SHIFT)));
+
+/*****************************************************************************/
+
 typedef struct {
     GHashTable  *hash;
     const char **names;
@@ -3847,7 +3861,7 @@ nm_setting_option_clear_by_name(NMSetting *setting, NMUtilsPredicateStr predicat
  * Returns: (transfer none): the #GVariant or %NULL if the option
  *   is not set.
  *
- * Since: 1.26.
+ * Since: 1.26
  */
 GVariant *
 nm_setting_option_get(NMSetting *setting, const char *opt_name)

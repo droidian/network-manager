@@ -457,8 +457,6 @@ AUTOMAKE_OPTIONS = 1.7
 XMLS = $(wildcard $(top_srcdir)/introspection/nm-*.xml)
 GENERATED_FILES = $(am__append_1)
 
-####################################
-
 # The name of the module.
 DOC_MODULE = NetworkManager
 
@@ -550,8 +548,6 @@ SETUP_FILES = \
 	$(DOC_MODULE)-sections.txt	\
 	$(DOC_MODULE)-overrides.txt
 
-
-####################################
 EXTRA_DIST = $(HTML_IMAGES) $(SETUP_FILES) version.xml.in \
 	settings-spec.xsl meson.build $(GENERATED_FILES) $(NULL)
 DOC_STAMPS = setup-build.stamp scan-build.stamp sgml-build.stamp \
@@ -815,14 +811,6 @@ uninstall-am: uninstall-local
 .PRECIOUS: Makefile
 
 
-@BUILD_DOCS_TRUE@settings-spec.xml: settings-spec.xsl $(top_builddir)/man/nm-settings-docs-dbus.xml
-@BUILD_DOCS_TRUE@	$(AM_V_GEN) (! test -f $@ || chmod u+w $@) && xsltproc --output $@ $^
-
-# Top-level SGML file includes (depends on) settings-spec.xml
-@BUILD_DOCS_TRUE@$(DOC_MAIN_SGML_FILE): settings-spec.xml
-
-@BUILD_DOCS_TRUE@all: $(GENERATED_FILES)
-
 gtkdoc-check.test: Makefile
 	$(AM_V_GEN)echo "#!/bin/sh -e" > $@; \
 		echo "$(GTKDOC_CHECK_PATH) || exit 1" >> $@; \
@@ -1037,6 +1025,9 @@ setup-build.stamp:
 	  fi; \
 	fi
 	$(AM_V_at)touch setup-build.stamp
+
+settings-spec.xml: settings-spec.xsl $(top_builddir)/man/nm-settings-docs-dbus.xml
+	$(AM_V_GEN) (! test -f $@ || chmod u+w $@) && xsltproc --output $@ $^
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

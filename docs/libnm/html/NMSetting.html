@@ -868,7 +868,7 @@ nm_setting_option_get (<em class="parameter"><code><a class="link" href="NMSetti
 is not set. </p>
 <p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
-<p class="since">Since: 1.26.</p>
+<p class="since">Since: 1.26</p>
 </div>
 <hr>
 <div class="refsect2">
@@ -1178,19 +1178,19 @@ on <em class="parameter"><code>setting</code></em>
 <a name="NMSetting.other_details"></a><h2>Types and Values</h2>
 <div class="refsect2">
 <a name="NM-SETTING-PARAM-REQUIRED:CAPS"></a><h3>NM_SETTING_PARAM_REQUIRED</h3>
-<pre class="programlisting">#define NM_SETTING_PARAM_REQUIRED (1 &lt;&lt; (1 + G_PARAM_USER_SHIFT))
+<pre class="programlisting">#define NM_SETTING_PARAM_REQUIRED 0x200
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-PARAM-SECRET:CAPS"></a><h3>NM_SETTING_PARAM_SECRET</h3>
-<pre class="programlisting">#define NM_SETTING_PARAM_SECRET (1 &lt;&lt; (2 + G_PARAM_USER_SHIFT))
+<pre class="programlisting">#define NM_SETTING_PARAM_SECRET 0x400
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-PARAM-FUZZY-IGNORE:CAPS"></a><h3>NM_SETTING_PARAM_FUZZY_IGNORE</h3>
-<pre class="programlisting">#define NM_SETTING_PARAM_FUZZY_IGNORE (1 &lt;&lt; (3 + G_PARAM_USER_SHIFT))
+<pre class="programlisting">#define NM_SETTING_PARAM_FUZZY_IGNORE 0x800
 </pre>
 </div>
 <hr>
@@ -1398,6 +1398,7 @@ overridden by user-controlled defaults configuration, is "never".</p>
 </tbody>
 </table></div>
 </div>
+<p class="since">Since: 1.2</p>
 </div>
 <hr>
 <div class="refsect2">

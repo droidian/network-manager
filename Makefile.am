@@ -168,6 +168,23 @@ if !BUILD_DOCS
 dist_configure_check += dist-configure-check
 endif
 
+# Gettext's Makefile has a race with parallel builds during dist.
+# Hack around that.
+# See also:
+#   https://gitlab.freedesktop.org/NetworkManager/NetworkManager/-/merge_requests/1094#note_1435313
+#   https://lists.gnu.org/archive/html/bug-gettext/2022-06/msg00022.html
+#   https://gitlab.freedesktop.org/NetworkManager/NetworkManager/-/merge_requests/1405
+po/.Makefile.patched:
+	sed -i \
+	    -e 's#^dist2: \$$(srcdir)/stamp-po \$$(DISTFILES)#dist2: \$$(srcdir)/stamp-po\n\t\$$(MAKE) \$$(DISTFILES)#' \
+	    -e 's#^dist2: stamp-po \$$(DISTFILES)#dist2: stamp-po\n\t\$$(MAKE) \$$(DISTFILES)#' \
+	    "$(builddir)/po/Makefile" && \
+	touch "$(builddir)/po/.Makefile.patched"
+
+DISTCLEANFILES += po/.Makefile.patched
+
+dist: po/.Makefile.patched
+
 dist: $(dist_configure_check) $(dist_dependencies)
 
 ###############################################################################
@@ -1999,8 +2016,16 @@ src_libnm_client_impl_tests_programs_req_introspection = \
 	src/libnm-client-impl/tests/test-remote-settings-client \
 	src/libnm-client-impl/tests/test-secret-agent
 
+check-local-libnm-gir: $(builddir)/src/libnm-client-impl/NM-1.0.gir
+check-local-libnm-gir: $(srcdir)/src/libnm-client-impl/libnm.ver
+check-local-libnm-gir:
+	"$(PYTHON)" $(srcdir)/src/libnm-client-impl/tests/test-gir.py \
+		--gir $(builddir)/src/libnm-client-impl/NM-1.0.gir \
+		--ver $(srcdir)/src/libnm-client-impl/libnm.ver
+
 if HAVE_INTROSPECTION
 check_programs += $(src_libnm_client_impl_tests_programs_req_introspection)
+check_local += check-local-libnm-gir
 else
 check_programs_norun += $(src_libnm_client_impl_tests_programs_req_introspection)
 endif
@@ -2054,7 +2079,8 @@ $(src_libnm_client_impl_tests_test_remote_settings_client_OBJECTS): $(src_libnm_
 $(src_libnm_client_impl_tests_test_secret_agent_OBJECTS):           $(src_libnm_client_impl_NM_1_0_typelib)
 
 EXTRA_DIST += \
-	src/libnm-client-impl/tests/meson.build
+	src/libnm-client-impl/tests/meson.build \
+	src/libnm-client-impl/tests/test-gir.py
 
 ###############################################################################
 
@@ -3433,6 +3459,7 @@ EXTRA_DIST += \
 	src/core/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test-ibft \
 	src/core/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test-infiniband \
 	src/core/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test-ip6-disabled.cexpected \
+	src/core/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test-ipoib \
 	src/core/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test-link_local \
 	src/core/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test-minimal \
 	src/core/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test-misc-variables \
@@ -3559,6 +3586,10 @@ EXTRA_DIST += \
 	src/core/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test_roundtrip_ethtool-3.cexpected \
 	src/core/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test_roundtrip_ethtool-4.cexpected \
 	src/core/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test_roundtrip_ethtool-5.cexpected \
+	src/core/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test_roundtrip_ethtool-6.cexpected \
+	src/core/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test_roundtrip_ethtool-7.cexpected \
+	src/core/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test_roundtrip_ethtool-8.cexpected \
+	src/core/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test_roundtrip_ethtool-9.cexpected \
 	src/core/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test_write_wired_auto_negotiate_on.cexpected \
 	src/core/settings/plugins/ifcfg-rh/tests/network-scripts/keys-test-wifi-dynamic-wep-leap \
 	src/core/settings/plugins/ifcfg-rh/tests/network-scripts/keys-test-wifi-leap \

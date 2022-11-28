@@ -6,6 +6,8 @@ ifeq ($(shell dpkg-vendor --is Ubuntu && echo yes) $(DEB_HOST_ARCH), yes i386)
    BUILD_PACKAGES += -Nnetwork-manager
 endif
 
+# Disable lto here regardless of whether we enable the configure flag
+# https://gitlab.freedesktop.org/NetworkManager/NetworkManager/-/issues/1070
 export DEB_BUILD_MAINT_OPTIONS = hardening=+all optimize=-lto
 
 export PYTHON=/usr/bin/python3

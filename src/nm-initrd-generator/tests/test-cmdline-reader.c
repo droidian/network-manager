@@ -13,6 +13,7 @@
 #include <sys/socket.h>
 
 #include "libnm-core-intern/nm-core-internal.h"
+#include "libnm-glib-aux/nm-uuid.h"
 
 #include "nm-initrd-generator/nm-initrd-generator.h"
 
@@ -114,6 +115,9 @@ test_auto(void)
     g_assert_cmpint(nm_setting_connection_get_wait_device_timeout(s_con), ==, -1);
 
     g_assert(nm_setting_connection_get_autoconnect(s_con));
+    g_assert_cmpint(nm_setting_connection_get_autoconnect_priority(s_con),
+                    ==,
+                    NMI_AUTOCONNECT_PRIORITY_CMDLINE);
 
     s_wired = nm_connection_get_setting_wired(connection);
     g_assert(s_wired);
@@ -174,6 +178,9 @@ test_dhcp_with_hostname(void)
     g_assert_cmpint(nm_setting_connection_get_wait_device_timeout(s_con), ==, -1);
 
     g_assert(nm_setting_connection_get_autoconnect(s_con));
+    g_assert_cmpint(nm_setting_connection_get_autoconnect_priority(s_con),
+                    ==,
+                    NMI_AUTOCONNECT_PRIORITY_CMDLINE);
 
     s_wired = nm_connection_get_setting_wired(connection);
     g_assert(s_wired);
@@ -219,6 +226,9 @@ test_dhcp_with_mtu(void)
         g_assert_cmpint(nm_setting_connection_get_wait_device_timeout(s_con), ==, -1);
 
         g_assert(nm_setting_connection_get_autoconnect(s_con));
+        g_assert_cmpint(nm_setting_connection_get_autoconnect_priority(s_con),
+                        ==,
+                        NMI_AUTOCONNECT_PRIORITY_CMDLINE);
 
         s_wired = nm_connection_get_setting_wired(connection);
         g_assert(s_wired);
@@ -279,6 +289,9 @@ test_dhcp_timeout(void)
         g_assert_cmpint(nm_setting_connection_get_wait_device_timeout(s_con), ==, -1);
         g_assert_cmpint(nm_setting_connection_get_autoconnect_retries(s_con), ==, 1);
         g_assert(nm_setting_connection_get_autoconnect(s_con));
+        g_assert_cmpint(nm_setting_connection_get_autoconnect_priority(s_con),
+                        ==,
+                        NMI_AUTOCONNECT_PRIORITY_CMDLINE);
 
         s_ip4 = nm_connection_get_setting_ip4_config(connection);
         g_assert(s_ip4);
@@ -1652,7 +1665,11 @@ test_ibft_ip_dev(void)
 {
     const char *const            *ARGV = NM_MAKE_STRV("ip=eth0:ibft");
     NMSettingConnection          *s_con;
-    gs_unref_object NMConnection *connection = NULL;
+    gs_unref_object NMConnection *connection    = NULL;
+    const char                   *s_hwaddr      = "00:53:00:ab:00:01";
+    const char                   *s_vlanid      = "666";
+    const char                   *s_ipaddr      = "2001:0db8:0000:0000:0000:0000:0000:0002";
+    gs_free char                 *expected_uuid = NULL;
 
     connection = _parse_con(ARGV, "eth0");
 
@@ -1662,6 +1679,17 @@ test_ibft_ip_dev(void)
                     ==,
                     NM_SETTING_VLAN_SETTING_NAME);
     g_assert_cmpstr(nm_setting_connection_get_interface_name(s_con), ==, NULL);
+
+    expected_uuid = nm_uuid_generate_from_strings("ibft",
+                                                  s_hwaddr,
+                                                  s_vlanid ? "V" : "v",
+                                                  s_vlanid ? s_vlanid : "",
+                                                  s_ipaddr ? "A" : "DHCP",
+                                                  s_ipaddr ? s_ipaddr : "",
+                                                  NULL);
+
+    g_assert_cmpstr(expected_uuid, ==, "16d9bd1c-e2ab-31ef-9196-860078e81a23");
+    g_assert_cmpstr(nm_connection_get_uuid(connection), ==, expected_uuid);
 }
 
 static void

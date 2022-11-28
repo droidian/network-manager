@@ -96,6 +96,8 @@
 #define NM_DEVICE_AUTH_RETRIES_INFINITY -2
 #define NM_DEVICE_AUTH_RETRIES_DEFAULT  3
 
+#define AUTOCONNECT_RESET_RETRIES_TIMER 300
+
 /*****************************************************************************/
 
 typedef void (*ActivationHandleFunc)(NMDevice *self);
@@ -761,6 +763,9 @@ typedef struct _NMDevicePrivate {
 
     GVariant *ports_variant; /* Array of port devices D-Bus path */
     char     *prop_ip_iface; /* IP interface D-Bus property */
+
+    int    autoconnect_retries;
+    gint32 autoconnect_retries_blocked_until;
 } NMDevicePrivate;
 
 G_DEFINE_ABSTRACT_TYPE(NMDevice, nm_device, NM_TYPE_DBUS_OBJECT)
@@ -778,7 +783,9 @@ static void _dev_l3_cfg_commit_type_reset(NMDevice *self);
 
 static gboolean nm_device_master_add_slave(NMDevice *self, NMDevice *slave, gboolean configure);
 static void     nm_device_slave_notify_enslave(NMDevice *self, gboolean success);
-static void     nm_device_slave_notify_release(NMDevice *self, NMDeviceStateReason reason);
+static void     nm_device_slave_notify_release(NMDevice           *self,
+                                               NMDeviceStateReason reason,
+                                               ReleaseSlaveType    release_type);
 
 static void _dev_ipll6_start(NMDevice *self);
 
@@ -6236,7 +6243,7 @@ nm_device_master_release_slave(NMDevice           *self,
                                                release_type >= RELEASE_SLAVE_TYPE_CONFIG);
 
     /* raise notifications about the release, including clearing is_enslaved. */
-    nm_device_slave_notify_release(slave, reason);
+    nm_device_slave_notify_release(slave, reason, release_type);
 
     /* keep both alive until the end of the function.
      * Transfers ownership from slave_priv->master.  */
@@ -6536,12 +6543,16 @@ device_recheck_slave_status(NMDevice *self, const NMPlatformLink *plink)
 
     g_return_if_fail(plink);
 
-    if (plink->master <= 0)
-        goto out;
-
-    master                  = nm_manager_get_device_by_ifindex(NM_MANAGER_GET, plink->master);
-    plink_master            = nm_platform_link_get(nm_device_get_platform(self), plink->master);
-    plink_master_keep_alive = nmp_object_ref(NMP_OBJECT_UP_CAST(plink_master));
+    if (plink->master > 0) {
+        master                  = nm_manager_get_device_by_ifindex(NM_MANAGER_GET, plink->master);
+        plink_master            = nm_platform_link_get(nm_device_get_platform(self), plink->master);
+        plink_master_keep_alive = nmp_object_ref(NMP_OBJECT_UP_CAST(plink_master));
+    } else {
+        if (priv->master_ifindex == 0)
+            goto out;
+        master       = NULL;
+        plink_master = NULL;
+    }
 
     if (master == NULL && plink_master
         && NM_IN_STRSET(plink_master->name, "ovs-system", "ovs-netdev")
@@ -6646,7 +6657,6 @@ device_link_changed(gpointer user_data)
     NMDeviceClass                  *klass             = NM_DEVICE_GET_CLASS(self);
     NMDevicePrivate                *priv              = NM_DEVICE_GET_PRIVATE(self);
     gboolean                        ip_ifname_changed = FALSE;
-    gboolean                        hw_addr_changed;
     nm_auto_nmpobj const NMPObject *pllink_keep_alive = NULL;
     const NMPlatformLink           *pllink;
     const char                     *str;
@@ -6693,9 +6703,9 @@ device_link_changed(gpointer user_data)
     if (ifindex == nm_device_get_ip_ifindex(self))
         _stats_update_counters_from_pllink(self, pllink);
 
-    had_hw_addr     = (priv->hw_addr != NULL);
-    hw_addr_changed = nm_device_update_hw_address(self);
-    got_hw_addr     = (!had_hw_addr && priv->hw_addr);
+    had_hw_addr = (priv->hw_addr != NULL);
+    nm_device_update_hw_address(self);
+    got_hw_addr = (!had_hw_addr && priv->hw_addr);
     nm_device_update_permanent_hw_address(self, FALSE);
 
     if (pllink->name[0] && !nm_streq(priv->iface, pllink->name)) {
@@ -6746,8 +6756,6 @@ device_link_changed(gpointer user_data)
     /* Update DHCP, etc, if needed */
     if (ip_ifname_changed)
         nm_device_update_dynamic_ip_setup(self, "IP interface changed");
-    else if (hw_addr_changed)
-        nm_device_update_dynamic_ip_setup(self, "hw-address changed");
 
     was_up   = priv->up;
     priv->up = NM_FLAGS_HAS(pllink->n_ifi_flags, IFF_UP);
@@ -8024,7 +8032,9 @@ nm_device_slave_notify_enslave(NMDevice *self, gboolean success)
  * Notifies a slave that it has been released, and why.
  */
 static void
-nm_device_slave_notify_release(NMDevice *self, NMDeviceStateReason reason)
+nm_device_slave_notify_release(NMDevice           *self,
+                               NMDeviceStateReason reason,
+                               ReleaseSlaveType    release_type)
 {
     NMDevicePrivate *priv       = NM_DEVICE_GET_PRIVATE(self);
     NMConnection    *connection = nm_device_get_applied_connection(self);
@@ -8032,7 +8042,7 @@ nm_device_slave_notify_release(NMDevice *self, NMDeviceStateReason reason)
 
     g_return_if_fail(priv->master);
 
-    if (!priv->is_enslaved)
+    if (!priv->is_enslaved && release_type == RELEASE_SLAVE_TYPE_NO_CONFIG)
         return;
 
     if (priv->state > NM_DEVICE_STATE_DISCONNECTED && priv->state <= NM_DEVICE_STATE_ACTIVATED) {
@@ -8956,7 +8966,7 @@ nm_device_emit_recheck_assume(gpointer user_data)
     priv = NM_DEVICE_GET_PRIVATE(self);
 
     priv->recheck_assume_id = 0;
-    if (!nm_device_get_act_request(self))
+    if (!priv->queued_act_request && !nm_device_get_act_request(self))
         g_signal_emit(self, signals[RECHECK_ASSUME], 0);
 
     return G_SOURCE_REMOVE;
@@ -9954,6 +9964,7 @@ nm_device_devip_set_state_full(NMDevice             *self,
 
     nm_assert_addr_family_or_unspec(addr_family);
     nm_assert(NM_IN_SET(ip_state,
+                        NM_DEVICE_IP_STATE_NONE,
                         NM_DEVICE_IP_STATE_PENDING,
                         NM_DEVICE_IP_STATE_READY,
                         NM_DEVICE_IP_STATE_FAILED));
@@ -9961,7 +9972,7 @@ nm_device_devip_set_state_full(NMDevice             *self,
 
     nm_assert((ip_state != NM_DEVICE_IP_STATE_FAILED)
               == (failed_reason == NM_DEVICE_STATE_REASON_NONE));
-    nm_assert((ip_state != NM_DEVICE_IP_STATE_FAILED) || !l3cd);
+    nm_assert(NM_IN_SET(ip_state, NM_DEVICE_IP_STATE_PENDING, NM_DEVICE_IP_STATE_READY) || !l3cd);
 
     p = _dev_ipdev_data(self, addr_family);
 
@@ -12206,7 +12217,7 @@ _dev_ipsharedx_cleanup(NMDevice *self, int addr_family)
         }
 
         if (priv->ipshared_data_4.v4.firewall_config) {
-            nm_firewall_config_apply(priv->ipshared_data_4.v4.firewall_config, FALSE);
+            nm_firewall_config_apply_sync(priv->ipshared_data_4.v4.firewall_config, FALSE);
             nm_clear_pointer(&priv->ipshared_data_4.v4.firewall_config, nm_firewall_config_free);
         }
 
@@ -12353,8 +12364,8 @@ _dev_ipshared4_start(NMDevice *self)
         goto out_fail;
 
     priv->ipshared_data_4.v4.firewall_config =
-        nm_firewall_config_new(ip_iface, ip4_addr.address, ip4_addr.plen);
-    nm_firewall_config_apply(priv->ipshared_data_4.v4.firewall_config, TRUE);
+        nm_firewall_config_new_shared(ip_iface, ip4_addr.address, ip4_addr.plen);
+    nm_firewall_config_apply_sync(priv->ipshared_data_4.v4.firewall_config, TRUE);
 
     priv->ipshared_data_4.v4.l3cd = nm_l3_config_data_ref(l3cd);
     _dev_l3_register_l3cds_set_one(self, L3_CONFIG_DATA_TYPE_SHARED_4, l3cd, FALSE);
@@ -16857,6 +16868,49 @@ nm_device_get_initial_hw_address(NMDevice *self)
     return NM_DEVICE_GET_PRIVATE(self)->hw_addr_initial;
 }
 
+void
+nm_device_set_autoconnect_retries(NMDevice *self, int tries)
+{
+    NMDevicePrivate *priv = NM_DEVICE_GET_PRIVATE(self);
+
+    if (priv->autoconnect_retries != tries) {
+        _LOGT(LOGD_DEVICE, "autoconnect: retries set %d", tries);
+        priv->autoconnect_retries = tries;
+    }
+
+    if (tries)
+        priv->autoconnect_retries_blocked_until = 0; /* we are not blocked anymore */
+    else
+        priv->autoconnect_retries_blocked_until =
+            nm_utils_get_monotonic_timestamp_sec() + AUTOCONNECT_RESET_RETRIES_TIMER;
+}
+
+int
+nm_device_get_autoconnect_retries(NMDevice *self)
+{
+    NMDevicePrivate *priv = NM_DEVICE_GET_PRIVATE(self);
+
+    return priv->autoconnect_retries;
+}
+
+gint32
+nm_device_autoconnect_retries_blocked_until(NMDevice *self)
+{
+    NMDevicePrivate *priv = NM_DEVICE_GET_PRIVATE(self);
+
+    return priv->autoconnect_retries_blocked_until;
+}
+
+void
+nm_device_autoconnect_retries_reset(NMDevice *self)
+{
+    NMDevicePrivate *priv = NM_DEVICE_GET_PRIVATE(self);
+
+    /* default value, we will sync. with connection value when needed */
+    priv->autoconnect_retries               = -2;
+    priv->autoconnect_retries_blocked_until = 0;
+}
+
 /**
  * nm_device_spec_match_list:
  * @self: an #NMDevice
@@ -17161,6 +17215,13 @@ nm_device_get_hostname_from_dns_lookup(NMDevice *self, int addr_family, gboolean
     /* If the device is not supposed to have addresses,
      * return an immediate empty result.*/
     if (!nm_device_get_applied_connection(self)) {
+        nm_clear_pointer(&priv->hostname_resolver_x[IS_IPv4], _hostname_resolver_free);
+        NM_SET_OUT(out_wait, FALSE);
+        return NULL;
+    }
+
+    if (!priv->carrier) {
+        nm_clear_pointer(&priv->hostname_resolver_x[IS_IPv4], _hostname_resolver_free);
         NM_SET_OUT(out_wait, FALSE);
         return NULL;
     }
@@ -17601,6 +17662,8 @@ nm_device_init(NMDevice *self)
     priv->sys_iface_state_      = NM_DEVICE_SYS_IFACE_STATE_EXTERNAL;
 
     priv->promisc_reset = NM_OPTION_BOOL_DEFAULT;
+
+    priv->autoconnect_retries = -2;
 }
 
 static GObject *

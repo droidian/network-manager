@@ -266,6 +266,8 @@ nm_ip_address_unref(NMIPAddress *address)
  *
  * Returns: 0 if the two objects have the same values (according to their flags)
  *   or a integer indicating the compare order.
+ *
+ * Since: 1.22
  **/
 int
 nm_ip_address_cmp_full(const NMIPAddress *a, const NMIPAddress *b, NMIPAddressCmpFlags cmp_flags)
@@ -4343,6 +4345,8 @@ nm_setting_ip_config_get_num_dns_options(NMSettingIPConfig *setting)
  * a default configuration, while the former explicitly means "no-options".
  *
  * Returns: whether DNS options are initialized or left unset (the default).
+ *
+ * Since: 1.2
  **/
 gboolean
 nm_setting_ip_config_has_dns_options(NMSettingIPConfig *setting)
@@ -5291,7 +5295,7 @@ nm_setting_ip_config_get_required_timeout(NMSettingIPConfig *setting)
  *
  * Returns: the configured DHCP IAID (Identity Association Identifier)
  *
- * Since: 1.22
+ * Since: 1.42, 1.40.4
  **/
 const char *
 nm_setting_ip_config_get_dhcp_iaid(NMSettingIPConfig *setting)

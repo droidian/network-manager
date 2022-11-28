@@ -32,6 +32,7 @@
 <a name="NMCapability"></a><h3>enum NMCapability</h3>
 <p><a class="link" href="nm-dbus-types.html#NMCapability" title="enum NMCapability">NMCapability</a> names the numbers in the Capabilities property. Capabilities are positive numbers. They are part of stable API and a certain capability number is guaranteed not to change.</p>
 <p>The range 0x7000 - 0x7FFF of capabilities is guaranteed not to be used by upstream NetworkManager. It could thus be used for downstream extensions.</p>
+<p>Since: 1.6</p>
 <p></p>
 <div class="refsect3">
 <a name="id-1.4.17.2.3.4"></a><h4>Values</h4>
@@ -3070,7 +3071,7 @@
 <hr>
 <div class="refsect2">
 <a name="NMMetered"></a><h3>enum NMMetered</h3>
-<p>The NMMetered enum has two different purposes: one is to configure "connection.metered" setting of a connection profile in NMSettingConnection, and the other is to express the actual metered state of the NMDevice at a given moment.</p>
+<p>The NMMetered enum has two different purposes: one is to configure "connection.metered" setting of a connection profile in NMSettingConnection, and the other is to express the actual metered state of the <a href="/usr/share/gtk-doc/html/libnm/NMDevice.html#NMDevice-struct">NMDevice</a> at a given moment.</p>
 <p>For the connection profile only NM_METERED_UNKNOWN, NM_METERED_NO and NM_METERED_YES are allowed.</p>
 <p>The device's metered state at runtime is determined by the profile which is currently active. If the profile explicitly specifies NM_METERED_NO or NM_METERED_YES, then the device's metered state is as such. If the connection profile leaves it undecided at NM_METERED_UNKNOWN (the default), then NetworkManager tries to guess the metered state, for example based on the device type or on DHCP options (like Android devices exposing a "ANDROID_METERED" DHCP vendor option). This then leads to either NM_METERED_GUESS_NO or NM_METERED_GUESS_YES.</p>
 <p>Most applications probably should treat the runtime state NM_METERED_GUESS_YES like NM_METERED_YES, and all other states as not metered.</p>
@@ -3961,7 +3962,7 @@
 <div class="refsect2">
 <a name="NMCheckpointCreateFlags"></a><h3>enum NMCheckpointCreateFlags</h3>
 <p>The flags for CheckpointCreate call</p>
-<p>Since: 1.4 (gi flags generated since 1.12)</p>
+<p>Since: 1.12 (public since 1.4, g-ir since 1.12)</p>
 <p></p>
 <div class="refsect3">
 <a name="id-1.4.17.2.24.4"></a><h4>Values</h4>

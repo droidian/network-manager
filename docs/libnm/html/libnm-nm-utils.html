@@ -1594,6 +1594,7 @@ include additional attributes.</p>
 . </p>
 <p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
+<p class="since">Since: 1.42, 1.40.4</p>
 </div>
 <hr>
 <div class="refsect2">
@@ -1633,6 +1634,7 @@ objects.</p>
 <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> of <a class="link" href="NMSettingIPConfig.html#NMIPAddress"><span class="type">NMIPAddress</span></a> objects. </p>
 <p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMIPAddress]</span></p>
 </div>
+<p class="since">Since: 1.42, 1.40.4</p>
 </div>
 <hr>
 <div class="refsect2">
@@ -1664,6 +1666,7 @@ prefix, next hop, metric, and additional attributes).</p>
 . </p>
 <p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
+<p class="since">Since: 1.42, 1.40.4</p>
 </div>
 <hr>
 <div class="refsect2">
@@ -1703,6 +1706,7 @@ prefix, next hop, metric, and additional attributes) into a <a href="https://dev
 <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> of <a class="link" href="NMSettingIPConfig.html#NMIPRoute"><span class="type">NMIPRoute</span></a> objects. </p>
 <p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMIPRoute]</span></p>
 </div>
+<p class="since">Since: 1.42, 1.40.4</p>
 </div>
 <hr>
 <div class="refsect2">
@@ -1712,7 +1716,7 @@ nm_utils_uuid_generate (<em class="parameter"><code><span class="type">void</spa
 <div class="refsect3">
 <a name="nm-utils-uuid-generate.returns"></a><h4>Returns</h4>
 <p> a newly allocated UUID suitable for use as the <a class="link" href="NMSettingConnection.html" title="NMSettingConnection"><span class="type">NMSettingConnection</span></a>
-object's <span class="type">“id”</span>: property.  Should be freed with <a href="https://developer.gnome.org/glib/unstable/glib-Memory-Allocation.html#g-free"><code class="function">g_free()</code></a></p>
+object's <a href="/usr/share/gtk-doc/html/libnm-util/NMSettingConnection.html#NMSettingConnection--id"><span class="type">“id”</span></a>: property.  Should be freed with <a href="https://developer.gnome.org/glib/unstable/glib-Memory-Allocation.html#g-free"><code class="function">g_free()</code></a></p>
 </div>
 </div>
 <hr>
@@ -2476,6 +2480,7 @@ function in net/core/dev.c.</p>
 argument. If you
 want to run against older versions of libnm, don't pass <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>.</p>
 </div>
+<p class="since">Since: 1.6</p>
 </div>
 <hr>
 <div class="refsect2">
@@ -2904,7 +2909,7 @@ nm_utils_version (<em class="parameter"><code><span class="type">void</span></co
 <p> the version ID of the libnm version. That is, the <code class="literal">NM_VERSION</code>
 at runtime.</p>
 </div>
-<p class="since">Since: 1.6.0</p>
+<p class="since">Since: 1.6</p>
 </div>
 <hr>
 <div class="refsect2">
@@ -2976,6 +2981,41 @@ the one of the hash table first. </p>
 nm_utils_format_variant_attributes (<em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Hash-Tables.html#GHashTable"><span class="type">GHashTable</span></a> *attributes</code></em>,
                                     <em class="parameter"><code><span class="type">char</span> attr_separator</code></em>,
                                     <em class="parameter"><code><span class="type">char</span> key_value_separator</code></em>);</pre>
+<p>Format attributes to a string.</p>
+<div class="refsect3">
+<a name="nm-utils-format-variant-attributes.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>attributes</p></td>
+<td class="parameter_description"><p>a <a href="https://developer.gnome.org/glib/unstable/glib-Hash-Tables.html#GHashTable"><span class="type">GHashTable</span></a> mapping attribute names to <a href="https://developer.gnome.org/glib/unstable/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> values. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> utf8 GVariant]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>attr_separator</p></td>
+<td class="parameter_description"><p>the attribute separator character</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>key_value_separator</p></td>
+<td class="parameter_description"><p>character separating key and values</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="nm-utils-format-variant-attributes.returns"></a><h4>Returns</h4>
+<p>the string representing attributes, or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>
+in case there are no attributes. </p>
+<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
+</div>
+<p class="since">Since: 1.8</p>
 </div>
 <hr>
 <div class="refsect2">
@@ -3275,6 +3315,12 @@ nm_utils_sriov_vf_from_str (<em class="parameter"><code>const <span class="type"
 <a name="nm-utils-get-timestamp-msec"></a><h3>nm_utils_get_timestamp_msec ()</h3>
 <pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint64"><span class="returnvalue">gint64</span></a>
 nm_utils_get_timestamp_msec (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>Gets current time in milliseconds of CLOCK_BOOTTIME.</p>
+<div class="refsect3">
+<a name="nm-utils-get-timestamp-msec.returns"></a><h4>Returns</h4>
+<p> time in milliseconds</p>
+</div>
+<p class="since">Since: 1.12</p>
 </div>
 <hr>
 <div class="refsect2">

@@ -6,10 +6,10 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: NetworkManager 1.40.0\n"
+"Project-Id-Version: NetworkManager 1.40.4\n"
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/NetworkManager/"
 "NetworkManager/issues\n"
-"POT-Creation-Date: 2022-08-26 16:42+0200\n"
+"POT-Creation-Date: 2022-11-18 10:02+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -248,16 +248,16 @@ msgstr ""
 msgid "Wired connection %d"
 msgstr ""
 
-#: src/core/devices/nm-device-ethernet.c:1628
+#: src/core/devices/nm-device-ethernet.c:1638
 #: src/libnmc-setting/nm-meta-setting-desc.c:8303
 msgid "Veth connection"
 msgstr ""
 
-#: src/core/devices/nm-device-ethernet.c:1686
+#: src/core/devices/nm-device-ethernet.c:1696
 msgid "PPPoE connection"
 msgstr ""
 
-#: src/core/devices/nm-device-ethernet.c:1686
+#: src/core/devices/nm-device-ethernet.c:1696
 msgid "Wired connection"
 msgstr ""
 
@@ -608,25 +608,25 @@ msgstr ""
 msgid "VPN connection"
 msgstr ""
 
-#: src/core/settings/plugins/ifcfg-rh/nms-ifcfg-rh-reader.c:5612
+#: src/core/settings/plugins/ifcfg-rh/nms-ifcfg-rh-reader.c:5594
 #: src/libnm-client-impl/nm-device.c:1779
-#: src/libnm-core-impl/nm-connection.c:3172 src/nmtui/nm-editor-utils.c:196
+#: src/libnm-core-impl/nm-connection.c:3174 src/nmtui/nm-editor-utils.c:196
 msgid "Bond"
 msgstr ""
 
-#: src/core/settings/plugins/ifcfg-rh/nms-ifcfg-rh-reader.c:5683
+#: src/core/settings/plugins/ifcfg-rh/nms-ifcfg-rh-reader.c:5665
 #: src/libnm-client-impl/nm-device.c:1781
-#: src/libnm-core-impl/nm-connection.c:3174 src/nmtui/nm-editor-utils.c:214
+#: src/libnm-core-impl/nm-connection.c:3176 src/nmtui/nm-editor-utils.c:214
 msgid "Team"
 msgstr ""
 
-#: src/core/settings/plugins/ifcfg-rh/nms-ifcfg-rh-reader.c:6020
+#: src/core/settings/plugins/ifcfg-rh/nms-ifcfg-rh-reader.c:6002
 #: src/libnm-client-impl/nm-device.c:1783
-#: src/libnm-core-impl/nm-connection.c:3176 src/nmtui/nm-editor-utils.c:205
+#: src/libnm-core-impl/nm-connection.c:3178 src/nmtui/nm-editor-utils.c:205
 msgid "Bridge"
 msgstr ""
 
-#: src/core/settings/plugins/ifcfg-rh/tests/test-ifcfg-rh.c:8755
+#: src/core/settings/plugins/ifcfg-rh/tests/test-ifcfg-rh.c:8955
 #: src/libnm-core-impl/nm-team-utils.c:2391
 msgid "invalid json"
 msgstr ""
@@ -854,7 +854,7 @@ msgstr ""
 msgid "The device is lacking WPA2/RSN capabilities required by the connection."
 msgstr ""
 
-#: src/libnm-client-impl/nm-device-wpan.c:57
+#: src/libnm-client-impl/nm-device-wpan.c:38
 msgid "The connection was not a wpan connection."
 msgstr ""
 
@@ -895,12 +895,12 @@ msgid "Mobile Broadband"
 msgstr ""
 
 #: src/libnm-client-impl/nm-device.c:1777
-#: src/libnm-core-impl/nm-connection.c:3180 src/nmtui/nm-editor-utils.c:169
+#: src/libnm-core-impl/nm-connection.c:3182 src/nmtui/nm-editor-utils.c:169
 msgid "InfiniBand"
 msgstr ""
 
 #: src/libnm-client-impl/nm-device.c:1785
-#: src/libnm-core-impl/nm-connection.c:3178 src/nmtui/nm-editor-utils.c:223
+#: src/libnm-core-impl/nm-connection.c:3180 src/nmtui/nm-editor-utils.c:223
 #: src/nmtui/nmt-page-vlan.c:57
 msgid "VLAN"
 msgstr ""
@@ -950,7 +950,7 @@ msgid "6LoWPAN"
 msgstr ""
 
 #: src/libnm-client-impl/nm-device.c:1809
-#: src/libnm-core-impl/nm-connection.c:3186 src/nmtui/nm-editor-utils.c:263
+#: src/libnm-core-impl/nm-connection.c:3188 src/nmtui/nm-editor-utils.c:263
 #: src/nmtui/nmt-page-wireguard.c:57
 msgid "WireGuard"
 msgstr ""
@@ -1008,8 +1008,8 @@ msgstr ""
 msgid "registration failed"
 msgstr ""
 
-#: src/libnm-client-impl/nm-vpn-plugin-old.c:817
-#: src/libnm-client-impl/nm-vpn-service-plugin.c:1025
+#: src/libnm-client-impl/nm-vpn-plugin-old.c:807
+#: src/libnm-client-impl/nm-vpn-service-plugin.c:1055
 msgid "No service name specified"
 msgstr ""
 
@@ -1069,60 +1069,60 @@ msgstr ""
 msgid "property cannot contain any nul bytes"
 msgstr ""
 
-#: src/libnm-core-impl/nm-connection.c:455
+#: src/libnm-core-impl/nm-connection.c:457
 msgid "wrong type; should be a list of strings."
 msgstr ""
 
-#: src/libnm-core-impl/nm-connection.c:544
+#: src/libnm-core-impl/nm-connection.c:546
 msgid "unknown setting name"
 msgstr ""
 
-#: src/libnm-core-impl/nm-connection.c:556
+#: src/libnm-core-impl/nm-connection.c:558
 msgid "duplicate setting name"
 msgstr ""
 
-#: src/libnm-core-impl/nm-connection.c:957
+#: src/libnm-core-impl/nm-connection.c:959
 msgid "has an invalid UUID"
 msgstr ""
 
-#: src/libnm-core-impl/nm-connection.c:962
+#: src/libnm-core-impl/nm-connection.c:964
 msgid "has a UUID that requires normalization"
 msgstr ""
 
-#: src/libnm-core-impl/nm-connection.c:967
+#: src/libnm-core-impl/nm-connection.c:969
 msgid "has duplicate UUIDs"
 msgstr ""
 
-#: src/libnm-core-impl/nm-connection.c:1805
+#: src/libnm-core-impl/nm-connection.c:1807
 msgid "setting not found"
 msgstr ""
 
-#: src/libnm-core-impl/nm-connection.c:1859
-#: src/libnm-core-impl/nm-connection.c:1884
-#: src/libnm-core-impl/nm-connection.c:1909
+#: src/libnm-core-impl/nm-connection.c:1861
+#: src/libnm-core-impl/nm-connection.c:1886
+#: src/libnm-core-impl/nm-connection.c:1911
 msgid "setting is required for non-slave connections"
 msgstr ""
 
-#: src/libnm-core-impl/nm-connection.c:1872
-#: src/libnm-core-impl/nm-connection.c:1897
-#: src/libnm-core-impl/nm-connection.c:1922
+#: src/libnm-core-impl/nm-connection.c:1874
+#: src/libnm-core-impl/nm-connection.c:1899
+#: src/libnm-core-impl/nm-connection.c:1924
 msgid "setting not allowed in slave connection"
 msgstr ""
 
-#: src/libnm-core-impl/nm-connection.c:2032
+#: src/libnm-core-impl/nm-connection.c:2034
 msgid "Unexpected failure to normalize the connection"
 msgstr ""
 
-#: src/libnm-core-impl/nm-connection.c:2093
+#: src/libnm-core-impl/nm-connection.c:2095
 msgid "Unexpected failure to verify the connection"
 msgstr ""
 
-#: src/libnm-core-impl/nm-connection.c:2130
+#: src/libnm-core-impl/nm-connection.c:2132
 #, c-format
 msgid "unexpected uuid %s instead of %s"
 msgstr ""
 
-#: src/libnm-core-impl/nm-connection.c:3031
+#: src/libnm-core-impl/nm-connection.c:3033
 #: src/libnm-core-impl/nm-setting-8021x.c:2607
 #: src/libnm-core-impl/nm-setting-8021x.c:2644
 #: src/libnm-core-impl/nm-setting-8021x.c:2662
@@ -1135,12 +1135,12 @@ msgstr ""
 #: src/libnm-core-impl/nm-setting-connection.c:1149
 #: src/libnm-core-impl/nm-setting-connection.c:1187
 #: src/libnm-core-impl/nm-setting-connection.c:1516
-#: src/libnm-core-impl/nm-setting-ip-config.c:5423
+#: src/libnm-core-impl/nm-setting-ip-config.c:5427
 #: src/libnm-core-impl/nm-setting-ip-tunnel.c:387
 #: src/libnm-core-impl/nm-setting-olpc-mesh.c:99
 #: src/libnm-core-impl/nm-setting-ovs-patch.c:75
 #: src/libnm-core-impl/nm-setting-pppoe.c:146
-#: src/libnm-core-impl/nm-setting-vpn.c:546
+#: src/libnm-core-impl/nm-setting-vpn.c:548
 #: src/libnm-core-impl/nm-setting-wifi-p2p.c:119
 #: src/libnm-core-impl/nm-setting-wimax.c:108
 #: src/libnm-core-impl/nm-setting-wireless-security.c:916
@@ -1148,11 +1148,11 @@ msgstr ""
 msgid "property is missing"
 msgstr ""
 
-#: src/libnm-core-impl/nm-connection.c:3184
+#: src/libnm-core-impl/nm-connection.c:3186
 msgid "IP Tunnel"
 msgstr ""
 
-#: src/libnm-core-impl/nm-connection.c:3188
+#: src/libnm-core-impl/nm-connection.c:3190
 msgid "TUN/TAP"
 msgstr ""
 
@@ -1230,8 +1230,8 @@ msgid "missing prefix length for %s '%s', defaulting to %d"
 msgstr ""
 
 #: src/libnm-core-impl/nm-keyfile.c:1051
-#: src/libnm-core-impl/nm-setting-ovs-external-ids.c:320
-#: src/libnm-core-impl/nm-setting-user.c:364
+#: src/libnm-core-impl/nm-setting-ovs-external-ids.c:322
+#: src/libnm-core-impl/nm-setting-user.c:368
 #, c-format
 msgid "invalid value for \"%s\": %s"
 msgstr ""
@@ -1397,19 +1397,19 @@ msgstr ""
 msgid "unsupported option \"%s.%s\" of variant type %s"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-6lowpan.c:78
+#: src/libnm-core-impl/nm-setting-6lowpan.c:80
 #: src/libnm-core-impl/nm-setting-veth.c:81
 msgid "property is not specified"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-6lowpan.c:101
+#: src/libnm-core-impl/nm-setting-6lowpan.c:103
 #: src/libnm-core-impl/nm-setting-macsec.c:306
 #: src/libnm-core-impl/nm-setting-vlan.c:609
 #, c-format
 msgid "'%s' value doesn't match '%s=%s'"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-6lowpan.c:117
+#: src/libnm-core-impl/nm-setting-6lowpan.c:119
 #: src/libnm-core-impl/nm-setting-ip-tunnel.c:360
 #: src/libnm-core-impl/nm-setting-macsec.c:322
 #: src/libnm-core-impl/nm-setting-macvlan.c:140
@@ -1480,17 +1480,17 @@ msgstr ""
 #: src/libnm-core-impl/nm-setting-gsm.c:353
 #: src/libnm-core-impl/nm-setting-gsm.c:396
 #: src/libnm-core-impl/nm-setting-gsm.c:405
-#: src/libnm-core-impl/nm-setting-ip-config.c:5432
+#: src/libnm-core-impl/nm-setting-ip-config.c:5436
 #: src/libnm-core-impl/nm-setting-ip4-config.c:286
 #: src/libnm-core-impl/nm-setting-ip4-config.c:298
 #: src/libnm-core-impl/nm-setting-pppoe.c:151
 #: src/libnm-core-impl/nm-setting-pppoe.c:161
-#: src/libnm-core-impl/nm-setting-vpn.c:554
-#: src/libnm-core-impl/nm-setting-vpn.c:564
+#: src/libnm-core-impl/nm-setting-vpn.c:556
+#: src/libnm-core-impl/nm-setting-vpn.c:566
 #: src/libnm-core-impl/nm-setting-wimax.c:109
 #: src/libnm-core-impl/nm-setting-wireless-security.c:972
 #: src/libnm-core-impl/nm-setting-wireless-security.c:1000
-#: src/libnm-core-impl/nm-setting.c:2396
+#: src/libnm-core-impl/nm-setting.c:2410
 msgid "property is empty"
 msgstr ""
 
@@ -1531,8 +1531,8 @@ msgstr ""
 #: src/libnm-core-impl/nm-setting-wireless.c:937
 #: src/libnm-core-impl/nm-setting-wireless.c:949
 #: src/libnm-core-impl/nm-setting-wireless.c:962
-#: src/libnm-core-impl/nm-setting-wpan.c:161
-#: src/libnm-core-impl/nm-utils.c:4155
+#: src/libnm-core-impl/nm-setting-wpan.c:163
+#: src/libnm-core-impl/nm-utils.c:4163
 msgid "property is invalid"
 msgstr ""
 
@@ -1573,8 +1573,14 @@ msgid "missing setting"
 msgstr ""
 
 #: src/libnm-core-impl/nm-setting-bond-port.c:92
+#: src/libnm-core-impl/nm-setting-bridge-port.c:338
+#: src/libnm-core-impl/nm-setting-ovs-interface.c:312
+#: src/libnm-core-impl/nm-setting-ovs-port.c:193
+#: src/libnm-core-impl/nm-setting-team-port.c:333
 #, c-format
-msgid "A connection with a '%s' setting must have the slave-type set to '%s'"
+msgid ""
+"A connection with a '%s' setting must have the slave-type set to '%s'. "
+"Instead it is '%s'"
 msgstr ""
 
 #: src/libnm-core-impl/nm-setting-bond.c:504
@@ -1601,82 +1607,72 @@ msgstr ""
 msgid "invalid value '%s' for option '%s'"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-bond.c:861
+#: src/libnm-core-impl/nm-setting-bond.c:888
 #, c-format
 msgid "mandatory option '%s' is missing"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-bond.c:871
+#: src/libnm-core-impl/nm-setting-bond.c:898
 #, c-format
 msgid "'%s' is not a valid value for '%s'"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-bond.c:884
+#: src/libnm-core-impl/nm-setting-bond.c:911
 #, c-format
 msgid "'%s=%s' is incompatible with '%s > 0'"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-bond.c:901
+#: src/libnm-core-impl/nm-setting-bond.c:928
 #, c-format
 msgid "'%s' is not valid for the '%s' option: %s"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-bond.c:913
+#: src/libnm-core-impl/nm-setting-bond.c:940
 #, c-format
 msgid "'%s' option is only valid for '%s=%s'"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-bond.c:926
+#: src/libnm-core-impl/nm-setting-bond.c:953
 #, c-format
 msgid "'%s=%s' is not a valid configuration for '%s'"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-bond.c:941
-#: src/libnm-core-impl/nm-setting-bond.c:952
-#: src/libnm-core-impl/nm-setting-bond.c:965
+#: src/libnm-core-impl/nm-setting-bond.c:968
+#: src/libnm-core-impl/nm-setting-bond.c:979
+#: src/libnm-core-impl/nm-setting-bond.c:992
 #, c-format
 msgid "'%s' option requires '%s' option to be enabled"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-bond.c:982
+#: src/libnm-core-impl/nm-setting-bond.c:1009
 #, c-format
 msgid "'%s' option needs to be a value multiple of '%s' value"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-bond.c:999
-#: src/libnm-core-impl/nm-setting-bond.c:1010
+#: src/libnm-core-impl/nm-setting-bond.c:1026
+#: src/libnm-core-impl/nm-setting-bond.c:1037
 #, c-format
 msgid "'%s' option requires '%s' option to be set"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-bond.c:1023
+#: src/libnm-core-impl/nm-setting-bond.c:1050
 #, c-format
 msgid "'%s' option is only valid with mode '%s'"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-bond.c:1036
+#: src/libnm-core-impl/nm-setting-bond.c:1063
 #, c-format
 msgid "'%s' and '%s' cannot have different values"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-bond.c:1059
+#: src/libnm-core-impl/nm-setting-bond.c:1086
 #, c-format
 msgid "'%s' option should be string"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-bond.c:1072
+#: src/libnm-core-impl/nm-setting-bond.c:1099
 #, c-format
 msgid "'%s' option is not valid with mode '%s'"
-msgstr ""
-
-#: src/libnm-core-impl/nm-setting-bridge-port.c:338
-#: src/libnm-core-impl/nm-setting-ovs-interface.c:312
-#: src/libnm-core-impl/nm-setting-ovs-port.c:193
-#: src/libnm-core-impl/nm-setting-team-port.c:333
-#, c-format
-msgid ""
-"A connection with a '%s' setting must have the slave-type set to '%s'. "
-"Instead it is '%s'"
 msgstr ""
 
 #: src/libnm-core-impl/nm-setting-bridge.c:1175
@@ -1838,23 +1834,23 @@ msgstr ""
 msgid "property invalid"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ethtool.c:311
+#: src/libnm-core-impl/nm-setting-ethtool.c:297
 msgid "unsupported ethtool setting"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ethtool.c:320
+#: src/libnm-core-impl/nm-setting-ethtool.c:306
 msgid "setting has invalid variant type"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ethtool.c:332
+#: src/libnm-core-impl/nm-setting-ethtool.c:318
 msgid "coalesce option must be either 0 or 1"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ethtool.c:349
+#: src/libnm-core-impl/nm-setting-ethtool.c:335
 msgid "pause-autoneg cannot be enabled when setting rx/tx options"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ethtool.c:374
+#: src/libnm-core-impl/nm-setting-ethtool.c:360
 #, c-format
 msgid "unknown ethtool option '%s'"
 msgstr ""
@@ -1955,278 +1951,278 @@ msgstr ""
 msgid "Invalid routing metric '%s'"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:1328
+#: src/libnm-core-impl/nm-setting-ip-config.c:1330
 #: src/libnm-core-impl/nm-setting-sriov.c:400
 msgid "unknown attribute"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:1338
+#: src/libnm-core-impl/nm-setting-ip-config.c:1340
 #: src/libnm-core-impl/nm-setting-sriov.c:410
 #, c-format
 msgid "invalid attribute type '%s'"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:1347
+#: src/libnm-core-impl/nm-setting-ip-config.c:1349
 msgid "attribute is not valid for a IPv4 route"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:1348
+#: src/libnm-core-impl/nm-setting-ip-config.c:1350
 msgid "attribute is not valid for a IPv6 route"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:1359
-#: src/libnm-core-impl/nm-setting-ip-config.c:1391
+#: src/libnm-core-impl/nm-setting-ip-config.c:1361
+#: src/libnm-core-impl/nm-setting-ip-config.c:1393
 #, c-format
 msgid "'%s' is not a valid IPv4 address"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:1360
-#: src/libnm-core-impl/nm-setting-ip-config.c:1392
+#: src/libnm-core-impl/nm-setting-ip-config.c:1362
+#: src/libnm-core-impl/nm-setting-ip-config.c:1394
 #, c-format
 msgid "'%s' is not a valid IPv6 address"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:1382
+#: src/libnm-core-impl/nm-setting-ip-config.c:1384
 #, c-format
 msgid "invalid prefix %s"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:1414
+#: src/libnm-core-impl/nm-setting-ip-config.c:1416
 #, c-format
 msgid "%s is not a valid route type"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:1507
+#: src/libnm-core-impl/nm-setting-ip-config.c:1509
 msgid "route scope is invalid for local route"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:1519
+#: src/libnm-core-impl/nm-setting-ip-config.c:1521
 #, c-format
 msgid "a %s route cannot have a next-hop"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:2705
+#: src/libnm-core-impl/nm-setting-ip-config.c:2707
 msgid "missing priority"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:2718
+#: src/libnm-core-impl/nm-setting-ip-config.c:2720
 msgid "missing table"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:2728
+#: src/libnm-core-impl/nm-setting-ip-config.c:2730
 msgid "invalid action type"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:2737
+#: src/libnm-core-impl/nm-setting-ip-config.c:2739
 msgid "has from/src but the prefix-length is zero"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:2745
+#: src/libnm-core-impl/nm-setting-ip-config.c:2747
 msgid "missing from/src for a non zero prefix-length"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:2752
+#: src/libnm-core-impl/nm-setting-ip-config.c:2754
 msgid "invalid from/src"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:2759
+#: src/libnm-core-impl/nm-setting-ip-config.c:2761
 msgid "invalid prefix length for from/src"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:2768
+#: src/libnm-core-impl/nm-setting-ip-config.c:2770
 msgid "has to/dst but the prefix-length is zero"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:2776
+#: src/libnm-core-impl/nm-setting-ip-config.c:2778
 msgid "missing to/dst for a non zero prefix-length"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:2783
+#: src/libnm-core-impl/nm-setting-ip-config.c:2785
 msgid "invalid to/dst"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:2790
+#: src/libnm-core-impl/nm-setting-ip-config.c:2792
 msgid "invalid prefix length for to/dst"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:2800
+#: src/libnm-core-impl/nm-setting-ip-config.c:2802
 msgid "invalid iifname"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:2810
+#: src/libnm-core-impl/nm-setting-ip-config.c:2812
 msgid "invalid oifname"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:2818
+#: src/libnm-core-impl/nm-setting-ip-config.c:2820
 msgid "invalid source port range"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:2826
+#: src/libnm-core-impl/nm-setting-ip-config.c:2828
 msgid "invalid destination port range"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:2836
+#: src/libnm-core-impl/nm-setting-ip-config.c:2838
 msgid "suppress_prefixlength out of range"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:2844
+#: src/libnm-core-impl/nm-setting-ip-config.c:2846
 msgid "suppress_prefixlength is only allowed with the to-table action"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:2987
+#: src/libnm-core-impl/nm-setting-ip-config.c:2989
 #, c-format
 msgid "invalid key \"%s\""
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:2999
+#: src/libnm-core-impl/nm-setting-ip-config.c:3001
 #, c-format
 msgid "duplicate key %s"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:3015
+#: src/libnm-core-impl/nm-setting-ip-config.c:3017
 #, c-format
 msgid "invalid variant type '%s' for \"%s\""
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:3026
+#: src/libnm-core-impl/nm-setting-ip-config.c:3028
 msgid "missing \"family\""
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:3034
+#: src/libnm-core-impl/nm-setting-ip-config.c:3036
 msgid "invalid \"family\""
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:3091
+#: src/libnm-core-impl/nm-setting-ip-config.c:3093
 msgid "\"uid-range-start\" is greater than \"uid-range-end\""
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:3285
+#: src/libnm-core-impl/nm-setting-ip-config.c:3287
 msgid "Unsupported to-string-flags argument"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:3293
+#: src/libnm-core-impl/nm-setting-ip-config.c:3295
 msgid "Unsupported extra-argument"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:3595
+#: src/libnm-core-impl/nm-setting-ip-config.c:3597
 #, c-format
 msgid "unsupported key \"%s\""
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:3602
+#: src/libnm-core-impl/nm-setting-ip-config.c:3604
 #, c-format
 msgid "duplicate key \"%s\""
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:3609
+#: src/libnm-core-impl/nm-setting-ip-config.c:3611
 #, c-format
 msgid "invalid value for \"%s\""
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:3621
+#: src/libnm-core-impl/nm-setting-ip-config.c:3623
 msgid "empty text does not describe a rule"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:3629
+#: src/libnm-core-impl/nm-setting-ip-config.c:3631
 #, c-format
 msgid "missing argument for \"%s\""
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:3643
+#: src/libnm-core-impl/nm-setting-ip-config.c:3645
 msgid "invalid \"from\" part"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:3659
+#: src/libnm-core-impl/nm-setting-ip-config.c:3661
 msgid "invalid \"to\" part"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:3670
+#: src/libnm-core-impl/nm-setting-ip-config.c:3672
 msgid "cannot detect address family for rule"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:3737
-#: src/libnm-core-impl/nm-setting-ip-config.c:3827
+#: src/libnm-core-impl/nm-setting-ip-config.c:3739
+#: src/libnm-core-impl/nm-setting-ip-config.c:3829
 #, c-format
 msgid "rule is invalid: %s"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:3808
+#: src/libnm-core-impl/nm-setting-ip-config.c:3810
 msgid "invalid address family"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:5080
+#: src/libnm-core-impl/nm-setting-ip-config.c:5084
 #, c-format
 msgid "rule #%u is invalid: %s"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:5448
+#: src/libnm-core-impl/nm-setting-ip-config.c:5452
 #, c-format
 msgid "%d. DNS server address is invalid"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:5467
+#: src/libnm-core-impl/nm-setting-ip-config.c:5471
 #, c-format
 msgid "%d. IP address is invalid"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:5482
+#: src/libnm-core-impl/nm-setting-ip-config.c:5486
 #, c-format
 msgid "%d. IP address has 'label' property with invalid type"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:5494
+#: src/libnm-core-impl/nm-setting-ip-config.c:5498
 #, c-format
 msgid "%d. IP address has invalid label '%s'"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:5512
+#: src/libnm-core-impl/nm-setting-ip-config.c:5516
 msgid "gateway cannot be set if there are no addresses configured"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:5524
+#: src/libnm-core-impl/nm-setting-ip-config.c:5528
 msgid "gateway is invalid"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:5542
+#: src/libnm-core-impl/nm-setting-ip-config.c:5546
 #, c-format
 msgid "%d. route is invalid"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:5555
+#: src/libnm-core-impl/nm-setting-ip-config.c:5559
 #, c-format
 msgid "invalid attribute: %s"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:5575
+#: src/libnm-core-impl/nm-setting-ip-config.c:5579
 #, c-format
 msgid "%u. rule has wrong address-family"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:5587
+#: src/libnm-core-impl/nm-setting-ip-config.c:5591
 #, c-format
 msgid "%u. rule is invalid: %s"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:5603
+#: src/libnm-core-impl/nm-setting-ip-config.c:5607
 #, c-format
 msgid "'%s' is not a valid IAID"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:5617
+#: src/libnm-core-impl/nm-setting-ip-config.c:5621
 #, c-format
 msgid "the property cannot be set when '%s' is disabled"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:5643
+#: src/libnm-core-impl/nm-setting-ip-config.c:5647
 msgid "the property is currently supported only for DHCPv4"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:5660
+#: src/libnm-core-impl/nm-setting-ip-config.c:5664
 #, c-format
 msgid "'%s' is not a valid IP or subnet"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:5676
+#: src/libnm-core-impl/nm-setting-ip-config.c:5680
 #, c-format
 msgid "a gateway is incompatible with '%s'"
 msgstr ""
@@ -2398,22 +2394,22 @@ msgid "'%s' is not allowed in fail_mode"
 msgstr ""
 
 #: src/libnm-core-impl/nm-setting-ovs-external-ids.c:90
-#: src/libnm-core-impl/nm-setting-user.c:91
+#: src/libnm-core-impl/nm-setting-user.c:93
 msgid "missing key"
 msgstr ""
 
 #: src/libnm-core-impl/nm-setting-ovs-external-ids.c:98
-#: src/libnm-core-impl/nm-setting-user.c:99
+#: src/libnm-core-impl/nm-setting-user.c:101
 msgid "key is too long"
 msgstr ""
 
 #: src/libnm-core-impl/nm-setting-ovs-external-ids.c:105
-#: src/libnm-core-impl/nm-setting-user.c:106
+#: src/libnm-core-impl/nm-setting-user.c:108
 msgid "key must be UTF8"
 msgstr ""
 
 #: src/libnm-core-impl/nm-setting-ovs-external-ids.c:114
-#: src/libnm-core-impl/nm-setting-user.c:153
+#: src/libnm-core-impl/nm-setting-user.c:155
 msgid "key contains invalid characters"
 msgstr ""
 
@@ -2422,33 +2418,33 @@ msgid "key cannot start with \"NM.\""
 msgstr ""
 
 #: src/libnm-core-impl/nm-setting-ovs-external-ids.c:153
-#: src/libnm-core-impl/nm-setting-user.c:180
+#: src/libnm-core-impl/nm-setting-user.c:182
 msgid "value is missing"
 msgstr ""
 
 #: src/libnm-core-impl/nm-setting-ovs-external-ids.c:162
-#: src/libnm-core-impl/nm-setting-user.c:189
+#: src/libnm-core-impl/nm-setting-user.c:191
 msgid "value is too large"
 msgstr ""
 
 #: src/libnm-core-impl/nm-setting-ovs-external-ids.c:170
-#: src/libnm-core-impl/nm-setting-user.c:197
+#: src/libnm-core-impl/nm-setting-user.c:199
 msgid "value is not valid UTF8"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ovs-external-ids.c:313
-#: src/libnm-core-impl/nm-setting-user.c:357
+#: src/libnm-core-impl/nm-setting-ovs-external-ids.c:315
+#: src/libnm-core-impl/nm-setting-user.c:361
 #, c-format
 msgid "invalid key \"%s\": %s"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ovs-external-ids.c:337
-#: src/libnm-core-impl/nm-setting-user.c:381
+#: src/libnm-core-impl/nm-setting-ovs-external-ids.c:339
+#: src/libnm-core-impl/nm-setting-user.c:385
 #, c-format
 msgid "maximum number of user data entries reached (%u instead of %u)"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ovs-external-ids.c:380
+#: src/libnm-core-impl/nm-setting-ovs-external-ids.c:382
 msgid ""
 "OVS external IDs can only be added to a profile of type OVS bridge/port/"
 "interface or to OVS system interface"
@@ -2666,15 +2662,15 @@ msgstr ""
 msgid "'%s': invalid group ID"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-user.c:131
+#: src/libnm-core-impl/nm-setting-user.c:133
 msgid "key requires a '.' for a namespace"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-user.c:146
+#: src/libnm-core-impl/nm-setting-user.c:148
 msgid "key cannot contain \"..\""
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-user.c:314
+#: src/libnm-core-impl/nm-setting-user.c:318
 msgid "maximum number of user data entries reached"
 msgstr ""
 
@@ -2696,29 +2692,29 @@ msgstr ""
 msgid "vlan setting should have a ethernet setting as well"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-vpn.c:574
+#: src/libnm-core-impl/nm-setting-vpn.c:576
 msgid "cannot set connection.multi-connect for VPN setting"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-vpn.c:613
+#: src/libnm-core-impl/nm-setting-vpn.c:615
 msgid "setting contained a secret with an empty name"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-vpn.c:652
-#: src/libnm-core-impl/nm-setting.c:3325
+#: src/libnm-core-impl/nm-setting-vpn.c:654
+#: src/libnm-core-impl/nm-setting.c:3339
 msgid "not a secret property"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-vpn.c:660
+#: src/libnm-core-impl/nm-setting-vpn.c:662
 msgid "secret is not of correct type"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-vpn.c:742
-#: src/libnm-core-impl/nm-setting-vpn.c:792
+#: src/libnm-core-impl/nm-setting-vpn.c:744
+#: src/libnm-core-impl/nm-setting-vpn.c:794
 msgid "secret name cannot be empty"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-vpn.c:758
+#: src/libnm-core-impl/nm-setting-vpn.c:760
 msgid "secret flags property not found"
 msgstr ""
 
@@ -2921,50 +2917,50 @@ msgstr ""
 msgid "conflicting value of mac-address-randomization and cloned-mac-address"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-wpan.c:171
+#: src/libnm-core-impl/nm-setting-wpan.c:173
 msgid "page must be defined along with a channel"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-wpan.c:180
+#: src/libnm-core-impl/nm-setting-wpan.c:182
 #, c-format
 msgid "page must be between %d and %d"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-wpan.c:191
+#: src/libnm-core-impl/nm-setting-wpan.c:193
 #, c-format
 msgid "channel must not be between %d and %d"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting.c:1649 src/libnm-core-impl/nm-setting.c:1689
-#: src/libnm-core-impl/nm-setting.c:1995
+#: src/libnm-core-impl/nm-setting.c:1663 src/libnm-core-impl/nm-setting.c:1703
+#: src/libnm-core-impl/nm-setting.c:2009
 #, c-format
 msgid "can't set property of type '%s' from value of type '%s'"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting.c:1665
+#: src/libnm-core-impl/nm-setting.c:1679
 #, c-format
 msgid "value of type '%s' is invalid or out of range for property '%s'"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting.c:1710
+#: src/libnm-core-impl/nm-setting.c:1724
 #, c-format
 msgid "can not set property: %s"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting.c:1934
+#: src/libnm-core-impl/nm-setting.c:1948
 msgid "duplicate property"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting.c:1954
+#: src/libnm-core-impl/nm-setting.c:1968
 msgid "unknown property"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting.c:2028 src/libnm-core-impl/nm-setting.c:2110
+#: src/libnm-core-impl/nm-setting.c:2042 src/libnm-core-impl/nm-setting.c:2124
 #, c-format
 msgid "failed to set property: %s"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting.c:3222
+#: src/libnm-core-impl/nm-setting.c:3236
 msgid "secret not found"
 msgstr ""
 
@@ -3033,226 +3029,226 @@ msgstr ""
 msgid "invalid link-watchers: %s"
 msgstr ""
 
-#: src/libnm-core-impl/nm-utils.c:2259
+#: src/libnm-core-impl/nm-utils.c:2267
 #, c-format
 msgid "'%s' is not a valid handle."
 msgstr ""
 
-#: src/libnm-core-impl/nm-utils.c:2407
+#: src/libnm-core-impl/nm-utils.c:2415
 #, c-format
 msgid "'%s' unexpected: parent already specified."
 msgstr ""
 
-#: src/libnm-core-impl/nm-utils.c:2425
+#: src/libnm-core-impl/nm-utils.c:2433
 #, c-format
 msgid "invalid handle: '%s'"
 msgstr ""
 
-#: src/libnm-core-impl/nm-utils.c:2447
+#: src/libnm-core-impl/nm-utils.c:2455
 msgid "parent not specified."
 msgstr ""
 
-#: src/libnm-core-impl/nm-utils.c:2511
+#: src/libnm-core-impl/nm-utils.c:2519
 #, c-format
 msgid "unsupported qdisc option: '%s'."
 msgstr ""
 
-#: src/libnm-core-impl/nm-utils.c:2641
+#: src/libnm-core-impl/nm-utils.c:2649
 msgid "action name missing."
 msgstr ""
 
-#: src/libnm-core-impl/nm-utils.c:2666
+#: src/libnm-core-impl/nm-utils.c:2674
 #, c-format
 msgid "unsupported action option: '%s'."
 msgstr ""
 
-#: src/libnm-core-impl/nm-utils.c:2803
+#: src/libnm-core-impl/nm-utils.c:2811
 msgid "invalid action: "
 msgstr ""
 
-#: src/libnm-core-impl/nm-utils.c:2807
+#: src/libnm-core-impl/nm-utils.c:2815
 #, c-format
 msgid "unsupported tfilter option: '%s'."
 msgstr ""
 
-#: src/libnm-core-impl/nm-utils.c:3107
+#: src/libnm-core-impl/nm-utils.c:3115
 #, c-format
 msgid "failed stat file %s: %s"
 msgstr ""
 
-#: src/libnm-core-impl/nm-utils.c:3118
+#: src/libnm-core-impl/nm-utils.c:3126
 #, c-format
 msgid "not a file (%s)"
 msgstr ""
 
-#: src/libnm-core-impl/nm-utils.c:3129
+#: src/libnm-core-impl/nm-utils.c:3137
 #, c-format
 msgid "invalid file owner %d for %s"
 msgstr ""
 
-#: src/libnm-core-impl/nm-utils.c:3141
+#: src/libnm-core-impl/nm-utils.c:3149
 #, c-format
 msgid "file permissions for %s"
 msgstr ""
 
-#: src/libnm-core-impl/nm-utils.c:3151
+#: src/libnm-core-impl/nm-utils.c:3159
 #, c-format
 msgid "reject %s"
 msgstr ""
 
-#: src/libnm-core-impl/nm-utils.c:3171
+#: src/libnm-core-impl/nm-utils.c:3179
 #, c-format
 msgid "path is not absolute (%s)"
 msgstr ""
 
-#: src/libnm-core-impl/nm-utils.c:3186
+#: src/libnm-core-impl/nm-utils.c:3194
 #, c-format
 msgid "Plugin file does not exist (%s)"
 msgstr ""
 
-#: src/libnm-core-impl/nm-utils.c:3195
+#: src/libnm-core-impl/nm-utils.c:3203
 #, c-format
 msgid "Plugin is not a valid file (%s)"
 msgstr ""
 
-#: src/libnm-core-impl/nm-utils.c:3206
+#: src/libnm-core-impl/nm-utils.c:3214
 #, c-format
 msgid "libtool archives are not supported (%s)"
 msgstr ""
 
-#: src/libnm-core-impl/nm-utils.c:3283
+#: src/libnm-core-impl/nm-utils.c:3291
 #, c-format
 msgid "Could not find \"%s\" binary"
 msgstr ""
 
-#: src/libnm-core-impl/nm-utils.c:4106
+#: src/libnm-core-impl/nm-utils.c:4114
 msgid "unknown secret flags"
 msgstr ""
 
-#: src/libnm-core-impl/nm-utils.c:4116
+#: src/libnm-core-impl/nm-utils.c:4124
 msgid "conflicting secret flags"
 msgstr ""
 
-#: src/libnm-core-impl/nm-utils.c:4127
+#: src/libnm-core-impl/nm-utils.c:4135
 msgid "secret flags must not be \"not-required\""
 msgstr ""
 
-#: src/libnm-core-impl/nm-utils.c:4135
+#: src/libnm-core-impl/nm-utils.c:4143
 msgid "unsupported secret flags"
 msgstr ""
 
-#: src/libnm-core-impl/nm-utils.c:4165
+#: src/libnm-core-impl/nm-utils.c:4173
 msgid "can't be simultaneously disabled and enabled"
 msgstr ""
 
-#: src/libnm-core-impl/nm-utils.c:4173
+#: src/libnm-core-impl/nm-utils.c:4181
 msgid "WPS is required"
 msgstr ""
 
-#: src/libnm-core-impl/nm-utils.c:4241
+#: src/libnm-core-impl/nm-utils.c:4249
 #, c-format
 msgid "not a valid ethernet MAC address for mask at position %lld"
 msgstr ""
 
-#: src/libnm-core-impl/nm-utils.c:4260
+#: src/libnm-core-impl/nm-utils.c:4268
 #, c-format
 msgid "not a valid ethernet MAC address #%u at position %lld"
 msgstr ""
 
-#: src/libnm-core-impl/nm-utils.c:4892
+#: src/libnm-core-impl/nm-utils.c:4902
 msgid "not valid utf-8"
 msgstr ""
 
-#: src/libnm-core-impl/nm-utils.c:4913 src/libnm-core-impl/nm-utils.c:4966
+#: src/libnm-core-impl/nm-utils.c:4923 src/libnm-core-impl/nm-utils.c:4976
 msgid "is not a JSON object"
 msgstr ""
 
-#: src/libnm-core-impl/nm-utils.c:4942
+#: src/libnm-core-impl/nm-utils.c:4952
 msgid "value is NULL"
 msgstr ""
 
-#: src/libnm-core-impl/nm-utils.c:4942
+#: src/libnm-core-impl/nm-utils.c:4952
 msgid "value is empty"
 msgstr ""
 
-#: src/libnm-core-impl/nm-utils.c:4954
+#: src/libnm-core-impl/nm-utils.c:4964
 #, c-format
 msgid "invalid JSON at position %d (%s)"
 msgstr ""
 
-#: src/libnm-core-impl/nm-utils.c:5082 src/libnm-core-impl/nm-utils.c:5102
+#: src/libnm-core-impl/nm-utils.c:5092 src/libnm-core-impl/nm-utils.c:5112
 msgid "unterminated escape sequence"
 msgstr ""
 
-#: src/libnm-core-impl/nm-utils.c:5128
+#: src/libnm-core-impl/nm-utils.c:5138
 #, c-format
 msgid "unknown attribute '%s'"
 msgstr ""
 
-#: src/libnm-core-impl/nm-utils.c:5146
+#: src/libnm-core-impl/nm-utils.c:5156
 #, c-format
 msgid "missing key-value separator '%c' after '%s'"
 msgstr ""
 
-#: src/libnm-core-impl/nm-utils.c:5166
+#: src/libnm-core-impl/nm-utils.c:5176
 #, c-format
 msgid "invalid uint32 value '%s' for attribute '%s'"
 msgstr ""
 
-#: src/libnm-core-impl/nm-utils.c:5180
+#: src/libnm-core-impl/nm-utils.c:5190
 #, c-format
 msgid "invalid int32 value '%s' for attribute '%s'"
 msgstr ""
 
-#: src/libnm-core-impl/nm-utils.c:5193
+#: src/libnm-core-impl/nm-utils.c:5203
 #, c-format
 msgid "invalid uint64 value '%s' for attribute '%s'"
 msgstr ""
 
-#: src/libnm-core-impl/nm-utils.c:5206
+#: src/libnm-core-impl/nm-utils.c:5216
 #, c-format
 msgid "invalid uint8 value '%s' for attribute '%s'"
 msgstr ""
 
-#: src/libnm-core-impl/nm-utils.c:5220
+#: src/libnm-core-impl/nm-utils.c:5230
 #, c-format
 msgid "invalid boolean value '%s' for attribute '%s'"
 msgstr ""
 
-#: src/libnm-core-impl/nm-utils.c:5234
+#: src/libnm-core-impl/nm-utils.c:5244
 #, c-format
 msgid "unsupported attribute '%s' of type '%s'"
 msgstr ""
 
-#: src/libnm-core-impl/nm-utils.c:5535
+#: src/libnm-core-impl/nm-utils.c:5545
 #, c-format
 msgid "Bridge VLANs %d and %d are not sorted by ascending vid"
 msgstr ""
 
-#: src/libnm-core-impl/nm-utils.c:5559
+#: src/libnm-core-impl/nm-utils.c:5569
 #, c-format
 msgid "duplicate bridge VLAN vid %u"
 msgstr ""
 
-#: src/libnm-core-impl/nm-utils.c:5571
+#: src/libnm-core-impl/nm-utils.c:5581
 msgid "only one VLAN can be the PVID"
 msgstr ""
 
-#: src/libnm-core-impl/nm-utils.c:5616
+#: src/libnm-core-impl/nm-utils.c:5626
 #, c-format
 msgid "unknown flags 0x%x"
 msgstr ""
 
-#: src/libnm-core-impl/nm-utils.c:5628
+#: src/libnm-core-impl/nm-utils.c:5638
 msgid ""
 "'fqdn-no-update' and 'fqdn-serv-update' flags cannot be set at the same time"
 msgstr ""
 
-#: src/libnm-core-impl/nm-utils.c:5639
+#: src/libnm-core-impl/nm-utils.c:5649
 msgid "'fqdn-clear-flags' flag is incompatible with other FQDN flags"
 msgstr ""
 
-#: src/libnm-core-impl/nm-utils.c:5647
+#: src/libnm-core-impl/nm-utils.c:5657
 msgid "DHCPv6 does not support the E (encoded) FQDN flag"
 msgstr ""
 
@@ -3281,11 +3277,11 @@ msgstr ""
 msgid "cannot load VPN plugin in '%s': invalid service name"
 msgstr ""
 
-#: src/libnm-core-impl/nm-vpn-editor-plugin.c:481
+#: src/libnm-core-impl/nm-vpn-editor-plugin.c:493
 msgid "the plugin does not support import capability"
 msgstr ""
 
-#: src/libnm-core-impl/nm-vpn-editor-plugin.c:505
+#: src/libnm-core-impl/nm-vpn-editor-plugin.c:517
 msgid "the plugin does not support export capability"
 msgstr ""
 
@@ -4234,7 +4230,7 @@ msgstr ""
 #: src/libnmc-base/nm-secret-agent-simple.c:979
 #: src/libnmc-base/nm-vpn-helpers.c:143 src/libnmc-base/nm-vpn-helpers.c:147
 #: src/libnmc-base/nm-vpn-helpers.c:153 src/libnmc-base/nm-vpn-helpers.c:158
-#: src/nmcli/devices.c:4689 src/nmtui/nmt-page-dsl.c:64
+#: src/nmcli/devices.c:4691 src/nmtui/nmt-page-dsl.c:64
 #: src/nmtui/nmt-page-wifi.c:271 src/nmtui/nmt-page-wifi.c:305
 #: src/nmtui/nmt-page-wifi.c:344
 msgid "Password"
@@ -6837,7 +6833,7 @@ msgid ""
 "string may be escaped using C-style escapes, nevertheless this property "
 "cannot contain nul bytes. If the per-profile value is unspecified (the "
 "default), a global connection default gets consulted. If still unspecified, "
-"the DHCP option is not sent to the server. Since 1.28"
+"the DHCP option is not sent to the server."
 msgstr ""
 
 #: src/libnmc-setting/settings-docs.h.in:170
@@ -6959,7 +6955,7 @@ msgid ""
 "is dependent on \"ipv4.method\". When set to \"default\", it honors the "
 "global connection default, before falling back to \"auto\". Note that if "
 "\"ipv4.method\" is \"disabled\", then link local addressing is always "
-"disabled too. The default is \"default\". Since 1.40"
+"disabled too. The default is \"default\"."
 msgstr ""
 
 #: src/libnmc-setting/settings-docs.h.in:178
@@ -9414,14 +9410,14 @@ msgstr ""
 #: src/nmcli/connections.c:2432 src/nmcli/connections.c:3153
 #: src/nmcli/connections.c:3165 src/nmcli/connections.c:3177
 #: src/nmcli/connections.c:3413 src/nmcli/connections.c:9640
-#: src/nmcli/connections.c:9662 src/nmcli/devices.c:3344
-#: src/nmcli/devices.c:3357 src/nmcli/devices.c:3369 src/nmcli/devices.c:3673
-#: src/nmcli/devices.c:3684 src/nmcli/devices.c:3703 src/nmcli/devices.c:3712
-#: src/nmcli/devices.c:3734 src/nmcli/devices.c:3745 src/nmcli/devices.c:3766
-#: src/nmcli/devices.c:4330 src/nmcli/devices.c:4341 src/nmcli/devices.c:4350
-#: src/nmcli/devices.c:4364 src/nmcli/devices.c:4382 src/nmcli/devices.c:4391
-#: src/nmcli/devices.c:4547 src/nmcli/devices.c:4558 src/nmcli/devices.c:4777
-#: src/nmcli/devices.c:4956 src/nmcli/devices.c:5177
+#: src/nmcli/connections.c:9662 src/nmcli/devices.c:3346
+#: src/nmcli/devices.c:3359 src/nmcli/devices.c:3371 src/nmcli/devices.c:3675
+#: src/nmcli/devices.c:3686 src/nmcli/devices.c:3705 src/nmcli/devices.c:3714
+#: src/nmcli/devices.c:3736 src/nmcli/devices.c:3747 src/nmcli/devices.c:3768
+#: src/nmcli/devices.c:4332 src/nmcli/devices.c:4343 src/nmcli/devices.c:4352
+#: src/nmcli/devices.c:4366 src/nmcli/devices.c:4384 src/nmcli/devices.c:4393
+#: src/nmcli/devices.c:4549 src/nmcli/devices.c:4560 src/nmcli/devices.c:4779
+#: src/nmcli/devices.c:4958 src/nmcli/devices.c:5179
 #, c-format
 msgid "Error: %s argument is missing."
 msgstr ""
@@ -9435,13 +9431,13 @@ msgstr ""
 #: src/nmcli/connections.c:3213 src/nmcli/connections.c:9146
 #: src/nmcli/connections.c:9230 src/nmcli/connections.c:9769
 #: src/nmcli/devices.c:2010 src/nmcli/devices.c:2286 src/nmcli/devices.c:2453
-#: src/nmcli/devices.c:2579 src/nmcli/devices.c:2763 src/nmcli/devices.c:3544
-#: src/nmcli/devices.c:4511 src/nmcli/devices.c:4963 src/nmcli/general.c:1068
+#: src/nmcli/devices.c:2579 src/nmcli/devices.c:2763 src/nmcli/devices.c:3546
+#: src/nmcli/devices.c:4513 src/nmcli/devices.c:4965 src/nmcli/general.c:1068
 #, c-format
 msgid "Error: %s."
 msgstr ""
 
-#: src/nmcli/connections.c:2651 src/nmcli/devices.c:4730
+#: src/nmcli/connections.c:2651 src/nmcli/devices.c:4732
 #, c-format
 msgid "no active connection on device '%s'"
 msgstr ""
@@ -9518,8 +9514,8 @@ msgstr ""
 #: src/nmcli/connections.c:3187 src/nmcli/connections.c:9673
 #: src/nmcli/devices.c:1967 src/nmcli/devices.c:2016 src/nmcli/devices.c:2459
 #: src/nmcli/devices.c:2651 src/nmcli/devices.c:2718 src/nmcli/devices.c:2918
-#: src/nmcli/devices.c:3404 src/nmcli/devices.c:3782 src/nmcli/devices.c:4401
-#: src/nmcli/devices.c:4564 src/nmcli/devices.c:4785 src/nmcli/devices.c:4968
+#: src/nmcli/devices.c:3406 src/nmcli/devices.c:3784 src/nmcli/devices.c:4403
+#: src/nmcli/devices.c:4566 src/nmcli/devices.c:4787 src/nmcli/devices.c:4970
 #, c-format
 msgid "Error: invalid extra argument '%s'."
 msgstr ""
@@ -10752,7 +10748,7 @@ msgstr ""
 msgid "Error: Device '%s' not found.\n"
 msgstr ""
 
-#: src/nmcli/devices.c:1184 src/nmcli/devices.c:5201
+#: src/nmcli/devices.c:1184 src/nmcli/devices.c:5203
 msgid "Error: not all devices found."
 msgstr ""
 
@@ -10933,218 +10929,218 @@ msgstr ""
 msgid "%s: device removed\n"
 msgstr ""
 
-#: src/nmcli/devices.c:3078
+#: src/nmcli/devices.c:3080
 msgid "Wi-Fi scan list"
 msgstr ""
 
-#: src/nmcli/devices.c:3195 src/nmcli/devices.c:3476
+#: src/nmcli/devices.c:3197 src/nmcli/devices.c:3478
 #, c-format
 msgid "Error: Access point with bssid '%s' not found."
 msgstr ""
 
-#: src/nmcli/devices.c:3397
+#: src/nmcli/devices.c:3399
 #, c-format
 msgid "Error: 'device wifi': %s"
 msgstr ""
 
-#: src/nmcli/devices.c:3417
+#: src/nmcli/devices.c:3419
 #, c-format
 msgid "Error: invalid rescan argument: '%s' not among [auto, no, yes]"
 msgstr ""
 
-#: src/nmcli/devices.c:3456
+#: src/nmcli/devices.c:3458
 #, c-format
 msgid "Error: Device '%s' not found."
 msgstr ""
 
-#: src/nmcli/devices.c:3460
+#: src/nmcli/devices.c:3462
 #, c-format
 msgid ""
 "Error: Device '%s' was not recognized as a Wi-Fi device, check "
 "NetworkManager Wi-Fi plugin."
 msgstr ""
 
-#: src/nmcli/devices.c:3465 src/nmcli/devices.c:3817 src/nmcli/devices.c:4446
-#: src/nmcli/devices.c:4581 src/nmcli/devices.c:4716
+#: src/nmcli/devices.c:3467 src/nmcli/devices.c:3819 src/nmcli/devices.c:4448
+#: src/nmcli/devices.c:4583 src/nmcli/devices.c:4718
 #, c-format
 msgid "Error: Device '%s' is not a Wi-Fi device."
 msgstr ""
 
-#: src/nmcli/devices.c:3645
+#: src/nmcli/devices.c:3647
 msgid "SSID or BSSID: "
 msgstr ""
 
-#: src/nmcli/devices.c:3650
+#: src/nmcli/devices.c:3652
 msgid "Error: SSID or BSSID are missing."
 msgstr ""
 
-#: src/nmcli/devices.c:3694
+#: src/nmcli/devices.c:3696
 #, c-format
 msgid "Error: bssid argument value '%s' is not a valid BSSID."
 msgstr ""
 
-#: src/nmcli/devices.c:3725
+#: src/nmcli/devices.c:3727
 #, c-format
 msgid ""
 "Error: wep-key-type argument value '%s' is invalid, use 'key' or 'phrase'."
 msgstr ""
 
-#: src/nmcli/devices.c:3753 src/nmcli/devices.c:3774
+#: src/nmcli/devices.c:3755 src/nmcli/devices.c:3776
 #, c-format
 msgid "Error: %s: %s."
 msgstr ""
 
-#: src/nmcli/devices.c:3796
+#: src/nmcli/devices.c:3798
 #, c-format
 msgid "Error: BSSID to connect to (%s) differs from bssid argument (%s)."
 msgstr ""
 
-#: src/nmcli/devices.c:3804
+#: src/nmcli/devices.c:3806
 #, c-format
 msgid "Error: Parameter '%s' is neither SSID nor BSSID."
 msgstr ""
 
-#: src/nmcli/devices.c:3820 src/nmcli/devices.c:4449 src/nmcli/devices.c:4584
-#: src/nmcli/devices.c:4816
+#: src/nmcli/devices.c:3822 src/nmcli/devices.c:4451 src/nmcli/devices.c:4586
+#: src/nmcli/devices.c:4818
 msgid "Error: No Wi-Fi device found."
 msgstr ""
 
-#: src/nmcli/devices.c:3842
+#: src/nmcli/devices.c:3844
 #, c-format
 msgid "Error: Failed to scan hidden SSID: %s."
 msgstr ""
 
-#: src/nmcli/devices.c:3874
+#: src/nmcli/devices.c:3876
 #, c-format
 msgid "Error: No network with SSID '%s' found."
 msgstr ""
 
-#: src/nmcli/devices.c:3878
+#: src/nmcli/devices.c:3880
 #, c-format
 msgid "Error: No access point with BSSID '%s' found."
 msgstr ""
 
-#: src/nmcli/devices.c:3907
+#: src/nmcli/devices.c:3909
 #, c-format
 msgid "Error: Connection '%s' exists but properties don't match."
 msgstr ""
 
-#: src/nmcli/devices.c:3956
+#: src/nmcli/devices.c:3958
 #, c-format
 msgid ""
 "Warning: '%s' should be SSID for hidden APs; but it looks like a BSSID.\n"
 msgstr ""
 
-#: src/nmcli/devices.c:3998
+#: src/nmcli/devices.c:4000
 msgid "Password: "
 msgstr ""
 
-#: src/nmcli/devices.c:4136
+#: src/nmcli/devices.c:4138
 #, c-format
 msgid "'%s' is not valid WPA PSK"
 msgstr ""
 
-#: src/nmcli/devices.c:4157
+#: src/nmcli/devices.c:4159
 #, c-format
 msgid "'%s' is not valid WEP key (it should be 5 or 13 ASCII chars)"
 msgstr ""
 
-#: src/nmcli/devices.c:4176
+#: src/nmcli/devices.c:4178
 #, c-format
 msgid "Hotspot password: %s\n"
 msgstr ""
 
-#: src/nmcli/devices.c:4355
+#: src/nmcli/devices.c:4357
 msgid "Error: ssid is too long."
 msgstr ""
 
-#: src/nmcli/devices.c:4373
+#: src/nmcli/devices.c:4375
 #, c-format
 msgid "Error: band argument value '%s' is invalid; use 'a' or 'bg'."
 msgstr ""
 
-#: src/nmcli/devices.c:4424
+#: src/nmcli/devices.c:4426
 msgid "Error: channel requires band too."
 msgstr ""
 
-#: src/nmcli/devices.c:4431
+#: src/nmcli/devices.c:4433
 #, c-format
 msgid "Error: channel '%s' not valid for band '%s'."
 msgstr ""
 
-#: src/nmcli/devices.c:4462
+#: src/nmcli/devices.c:4464
 #, c-format
 msgid "Error: Device '%s' supports neither AP nor Ad-Hoc mode."
 msgstr ""
 
-#: src/nmcli/devices.c:4489
+#: src/nmcli/devices.c:4491
 #, c-format
 msgid "Error: Invalid 'password': %s."
 msgstr ""
 
-#: src/nmcli/devices.c:4540 src/nmcli/devices.c:4770
+#: src/nmcli/devices.c:4542 src/nmcli/devices.c:4772
 #, c-format
 msgid "Error: '%s' cannot repeat."
 msgstr ""
 
-#: src/nmcli/devices.c:4675 src/nmcli/devices.c:4678 src/nmcli/devices.c:4682
-#: src/nmcli/devices.c:4685 src/nmtui/nmt-page-wifi.c:253
+#: src/nmcli/devices.c:4677 src/nmcli/devices.c:4680 src/nmcli/devices.c:4684
+#: src/nmcli/devices.c:4687 src/nmtui/nmt-page-wifi.c:253
 msgid "Security"
 msgstr ""
 
-#: src/nmcli/devices.c:4675
+#: src/nmcli/devices.c:4677
 msgid "None"
 msgstr ""
 
-#: src/nmcli/devices.c:4804
+#: src/nmcli/devices.c:4806
 #, c-format
 msgid "%s"
 msgstr ""
 
 #. Main header name
-#: src/nmcli/devices.c:4857
+#: src/nmcli/devices.c:4859
 msgid "Device LLDP neighbors"
 msgstr ""
 
-#: src/nmcli/devices.c:4990
+#: src/nmcli/devices.c:4992
 #, c-format
 msgid "Error: 'device lldp list': %s"
 msgstr ""
 
-#: src/nmcli/devices.c:5058
+#: src/nmcli/devices.c:5060
 msgid "Checkpoint was removed."
 msgstr ""
 
 #. The command is done, we're in the confirmation prompt.
-#: src/nmcli/devices.c:5065
+#: src/nmcli/devices.c:5067
 msgid "No"
 msgstr ""
 
-#: src/nmcli/devices.c:5078
+#: src/nmcli/devices.c:5080
 #, c-format
 msgid "Error: Destroying a checkpoint failed: %s"
 msgstr ""
 
-#: src/nmcli/devices.c:5100 src/nmcli/devices.c:5101
+#: src/nmcli/devices.c:5102 src/nmcli/devices.c:5103
 msgid "Yes"
 msgstr ""
 
-#: src/nmcli/devices.c:5127
+#: src/nmcli/devices.c:5129
 #, c-format
 msgid "Error: Creating a checkpoint failed: %s"
 msgstr ""
 
-#: src/nmcli/devices.c:5143
+#: src/nmcli/devices.c:5145
 #, c-format
 msgid "Error: %s"
 msgstr ""
 
-#: src/nmcli/devices.c:5182 src/nmcli/nmcli.c:885
+#: src/nmcli/devices.c:5184 src/nmcli/nmcli.c:885
 #, c-format
 msgid "Error: '%s' is not a valid timeout."
 msgstr ""
 
-#: src/nmcli/devices.c:5209
+#: src/nmcli/devices.c:5211
 msgid "Error: Expected a command to run after '--'"
 msgstr ""
 

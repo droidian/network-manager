@@ -179,83 +179,84 @@ TESTS = $(am__EXEEXT_11)
 @BUILD_DOCS_TRUE@@HAVE_INTROSPECTION_TRUE@am__append_16 = src/nmcli/generate-docs-nm-settings-nmcli.xml
 @HAVE_INTROSPECTION_TRUE@am__append_17 = $(libnm_noinst_data)
 @HAVE_INTROSPECTION_TRUE@am__append_18 = $(src_libnm_client_impl_tests_programs_req_introspection)
-@HAVE_INTROSPECTION_FALSE@am__append_19 = $(src_libnm_client_impl_tests_programs_req_introspection)
-@REQUIRE_ROOT_TESTS_TRUE@am__append_20 = -DREQUIRE_ROOT_TESTS=1
+@HAVE_INTROSPECTION_TRUE@am__append_19 = check-local-libnm-gir
+@HAVE_INTROSPECTION_FALSE@am__append_20 = $(src_libnm_client_impl_tests_programs_req_introspection)
+@REQUIRE_ROOT_TESTS_TRUE@am__append_21 = -DREQUIRE_ROOT_TESTS=1
 
 ###############################################################################
 # src/core/ppp
 ###############################################################################
-@WITH_PPP_TRUE@am__append_21 = src/core/ppp/libnm-ppp-plugin.la
-@WITH_PPP_TRUE@am__append_22 = src/core/ppp/nm-pppd-plugin.la
+@WITH_PPP_TRUE@am__append_22 = src/core/ppp/libnm-ppp-plugin.la
+@WITH_PPP_TRUE@am__append_23 = src/core/ppp/nm-pppd-plugin.la
 
 ###############################################################################
 # src/core/settings/plugins/ifcfg-rh
 ###############################################################################
-@CONFIG_PLUGIN_IFCFG_RH_TRUE@am__append_23 = src/core/settings/plugins/ifcfg-rh/libnm-settings-plugin-ifcfg-rh.la
-@CONFIG_PLUGIN_IFCFG_RH_TRUE@am__append_24 = \
+@CONFIG_PLUGIN_IFCFG_RH_TRUE@am__append_24 = src/core/settings/plugins/ifcfg-rh/libnm-settings-plugin-ifcfg-rh.la
+@CONFIG_PLUGIN_IFCFG_RH_TRUE@am__append_25 = \
 @CONFIG_PLUGIN_IFCFG_RH_TRUE@	src/core/settings/plugins/ifcfg-rh/libnmdbus-ifcfg-rh.la \
 @CONFIG_PLUGIN_IFCFG_RH_TRUE@	src/core/settings/plugins/ifcfg-rh/libnms-ifcfg-rh-core.la
 
-@CONFIG_PLUGIN_IFCFG_RH_TRUE@am__append_25 = $(nodist_src_core_settings_plugins_ifcfg_rh_libnmdbus_ifcfg_rh_la_SOURCES)
-@CONFIG_PLUGIN_IFCFG_RH_TRUE@am__append_26 = check-local-symbols-settings-ifcfg-rh
+@CONFIG_PLUGIN_IFCFG_RH_TRUE@am__append_26 = $(nodist_src_core_settings_plugins_ifcfg_rh_libnmdbus_ifcfg_rh_la_SOURCES)
+@CONFIG_PLUGIN_IFCFG_RH_TRUE@am__append_27 = check-local-symbols-settings-ifcfg-rh
 
 ###############################################################################
 # src/core/settings/plugins/ifcfg-rh/tests
 ###############################################################################
-@CONFIG_PLUGIN_IFCFG_RH_TRUE@am__append_27 = src/core/settings/plugins/ifcfg-rh/tests/test-ifcfg-rh
-@CONFIG_PLUGIN_IFCFG_RH_TRUE@am__append_28 = \
+@CONFIG_PLUGIN_IFCFG_RH_TRUE@am__append_28 = src/core/settings/plugins/ifcfg-rh/tests/test-ifcfg-rh
+@CONFIG_PLUGIN_IFCFG_RH_TRUE@am__append_29 = \
 @CONFIG_PLUGIN_IFCFG_RH_TRUE@	src/core/settings/plugins/ifcfg-rh/nm-ifup \
 @CONFIG_PLUGIN_IFCFG_RH_TRUE@	src/core/settings/plugins/ifcfg-rh/nm-ifdown
 
-@CONFIG_PLUGIN_IFCFG_RH_TRUE@am__append_29 = install-data-hook-ifcfg-rh
+@CONFIG_PLUGIN_IFCFG_RH_TRUE@am__append_30 = install-data-hook-ifcfg-rh
 
 ###############################################################################
-@CONFIG_PLUGIN_IFCFG_RH_TRUE@am__append_30 = src/core/settings/plugins/ifcfg-rh/nm-ifcfg-rh.conf
+@CONFIG_PLUGIN_IFCFG_RH_TRUE@am__append_31 = src/core/settings/plugins/ifcfg-rh/nm-ifcfg-rh.conf
 
 ###############################################################################
 # src/core/settings/plugins/ifupdown
 ###############################################################################
-@CONFIG_PLUGIN_IFUPDOWN_TRUE@am__append_31 = src/core/settings/plugins/ifupdown/libnm-settings-plugin-ifupdown.la
-@CONFIG_PLUGIN_IFUPDOWN_TRUE@am__append_32 = src/core/settings/plugins/ifupdown/libnms-ifupdown-core.la
-@CONFIG_PLUGIN_IFUPDOWN_TRUE@am__append_33 = check-local-symbols-settings-ifupdown
+@CONFIG_PLUGIN_IFUPDOWN_TRUE@am__append_32 = src/core/settings/plugins/ifupdown/libnm-settings-plugin-ifupdown.la
+@CONFIG_PLUGIN_IFUPDOWN_TRUE@am__append_33 = src/core/settings/plugins/ifupdown/libnms-ifupdown-core.la
+@CONFIG_PLUGIN_IFUPDOWN_TRUE@am__append_34 = check-local-symbols-settings-ifupdown
 
 ###############################################################################
-@CONFIG_PLUGIN_IFUPDOWN_TRUE@am__append_34 = src/core/settings/plugins/ifupdown/tests/test-ifupdown
+@CONFIG_PLUGIN_IFUPDOWN_TRUE@am__append_35 = src/core/settings/plugins/ifupdown/tests/test-ifupdown
 
 ###############################################################################
-@WITH_MODEM_MANAGER_1_TRUE@am__append_35 = src/core/devices/wwan/libnm-wwan.la \
+@WITH_MODEM_MANAGER_1_TRUE@am__append_36 = src/core/devices/wwan/libnm-wwan.la \
 @WITH_MODEM_MANAGER_1_TRUE@	src/core/devices/wwan/libnm-device-plugin-wwan.la \
 @WITH_MODEM_MANAGER_1_TRUE@	src/core/devices/bluetooth/libnm-device-plugin-bluetooth.la
-@WITH_MODEM_MANAGER_1_TRUE@@WITH_OFONO_TRUE@am__append_36 = \
+@WITH_MODEM_MANAGER_1_TRUE@@WITH_OFONO_TRUE@am__append_37 = \
 @WITH_MODEM_MANAGER_1_TRUE@@WITH_OFONO_TRUE@	src/core/devices/wwan/nm-modem-ofono.c \
 @WITH_MODEM_MANAGER_1_TRUE@@WITH_OFONO_TRUE@	src/core/devices/wwan/nm-modem-ofono.h
 
-@WITH_MODEM_MANAGER_1_TRUE@am__append_37 = check-local-devices-wwan \
+@WITH_MODEM_MANAGER_1_TRUE@am__append_38 = check-local-devices-wwan \
 @WITH_MODEM_MANAGER_1_TRUE@	check-local-devices-bluetooth
-@WITH_MODEM_MANAGER_1_TRUE@am__append_38 = src/core/devices/wwan/tests/test-service-providers
+@WITH_MODEM_MANAGER_1_TRUE@am__append_39 = src/core/devices/wwan/tests/test-service-providers
 
 ###############################################################################
 # src/core/devices/bluetooth
 ###############################################################################
-@WITH_MODEM_MANAGER_1_TRUE@am__append_39 = src/core/devices/bluetooth/libnm-bluetooth-utils.la
-@WITH_BLUEZ5_DUN_TRUE@@WITH_MODEM_MANAGER_1_TRUE@am__append_40 = \
+@WITH_MODEM_MANAGER_1_TRUE@am__append_40 = src/core/devices/bluetooth/libnm-bluetooth-utils.la
+@WITH_BLUEZ5_DUN_TRUE@@WITH_MODEM_MANAGER_1_TRUE@am__append_41 = \
 @WITH_BLUEZ5_DUN_TRUE@@WITH_MODEM_MANAGER_1_TRUE@	src/core/devices/bluetooth/nm-bluez5-dun.c \
 @WITH_BLUEZ5_DUN_TRUE@@WITH_MODEM_MANAGER_1_TRUE@	src/core/devices/bluetooth/nm-bluez5-dun.h \
 @WITH_BLUEZ5_DUN_TRUE@@WITH_MODEM_MANAGER_1_TRUE@	$(NULL)
 
-@WITH_BLUEZ5_DUN_TRUE@@WITH_MODEM_MANAGER_1_TRUE@am__append_41 = $(BLUEZ5_CFLAGS)
-@WITH_BLUEZ5_DUN_TRUE@@WITH_MODEM_MANAGER_1_TRUE@am__append_42 = $(BLUEZ5_LIBS)
+@WITH_BLUEZ5_DUN_TRUE@@WITH_MODEM_MANAGER_1_TRUE@am__append_42 = $(BLUEZ5_CFLAGS)
+@WITH_BLUEZ5_DUN_TRUE@@WITH_MODEM_MANAGER_1_TRUE@am__append_43 = $(BLUEZ5_LIBS)
 
 ###############################################################################
-@WITH_MODEM_MANAGER_1_TRUE@am__append_43 = \
+@WITH_MODEM_MANAGER_1_TRUE@am__append_44 = \
 @WITH_MODEM_MANAGER_1_TRUE@	src/core/devices/bluetooth/tests/nm-bt-test
 
 
 ###############################################################################
 # src/core/devices/wifi
 ###############################################################################
-@WITH_WIFI_TRUE@am__append_44 = src/core/devices/wifi/libnm-wifi-base.la
-@WITH_IWD_TRUE@@WITH_WIFI_TRUE@am__append_45 = \
+@WITH_WIFI_TRUE@am__append_45 = src/core/devices/wifi/libnm-wifi-base.la
+@WITH_IWD_TRUE@@WITH_WIFI_TRUE@am__append_46 = \
 @WITH_IWD_TRUE@@WITH_WIFI_TRUE@	src/core/devices/wifi/nm-device-iwd.c \
 @WITH_IWD_TRUE@@WITH_WIFI_TRUE@	src/core/devices/wifi/nm-device-iwd.h \
 @WITH_IWD_TRUE@@WITH_WIFI_TRUE@	src/core/devices/wifi/nm-device-iwd-p2p.c \
@@ -264,52 +265,52 @@ TESTS = $(am__EXEEXT_11)
 @WITH_IWD_TRUE@@WITH_WIFI_TRUE@	src/core/devices/wifi/nm-iwd-manager.h \
 @WITH_IWD_TRUE@@WITH_WIFI_TRUE@	$(NULL)
 
-@WITH_WIFI_TRUE@am__append_46 = src/core/devices/wifi/libnm-device-plugin-wifi.la
-@WITH_WIFI_TRUE@am__append_47 = check-local-devices-wifi
-@WITH_WIFI_TRUE@am__append_48 = src/core/devices/wifi/tests/test-devices-wifi
+@WITH_WIFI_TRUE@am__append_47 = src/core/devices/wifi/libnm-device-plugin-wifi.la
+@WITH_WIFI_TRUE@am__append_48 = check-local-devices-wifi
+@WITH_WIFI_TRUE@am__append_49 = src/core/devices/wifi/tests/test-devices-wifi
 
 ###############################################################################
 # src/core/devices/team
 ###############################################################################
-@WITH_TEAMDCTL_TRUE@am__append_49 = src/core/devices/team/libnm-device-plugin-team.la
-@WITH_TEAMDCTL_TRUE@am__append_50 = check-local-devices-team
-@WITH_OPENVSWITCH_TRUE@am__append_51 = src/core/devices/ovs/libnm-device-plugin-ovs.la
-@WITH_OPENVSWITCH_TRUE@am__append_52 = check-local-devices-ovs
-@BUILD_DOCS_TRUE@am__append_53 = $(libnmc_setting_settings_doc_h)
-@BUILD_DOCS_TRUE@am__append_54 = check-local-settings-docs
+@WITH_TEAMDCTL_TRUE@am__append_50 = src/core/devices/team/libnm-device-plugin-team.la
+@WITH_TEAMDCTL_TRUE@am__append_51 = check-local-devices-team
+@WITH_OPENVSWITCH_TRUE@am__append_52 = src/core/devices/ovs/libnm-device-plugin-ovs.la
+@WITH_OPENVSWITCH_TRUE@am__append_53 = check-local-devices-ovs
+@BUILD_DOCS_TRUE@am__append_54 = $(libnmc_setting_settings_doc_h)
+@BUILD_DOCS_TRUE@am__append_55 = check-local-settings-docs
 
 ###############################################################################
 # src/nmcli
 ###############################################################################
-@BUILD_NMCLI_TRUE@am__append_55 = src/nmcli/nmcli
-@BUILD_NMCLI_TRUE@am__append_56 = install-data-hook-nmcli
-@BUILD_NMCLI_TRUE@am__append_57 = uninstall-hook-nmcli
+@BUILD_NMCLI_TRUE@am__append_56 = src/nmcli/nmcli
+@BUILD_NMCLI_TRUE@am__append_57 = install-data-hook-nmcli
+@BUILD_NMCLI_TRUE@am__append_58 = uninstall-hook-nmcli
 
 ###############################################################################
 # src/libnmt-newt
 ###############################################################################
-@BUILD_NMTUI_TRUE@am__append_58 = src/libnmt-newt/libnmt-newt.a
+@BUILD_NMTUI_TRUE@am__append_59 = src/libnmt-newt/libnmt-newt.a
 
 ###############################################################################
 # src/nmtui
 ###############################################################################
-@BUILD_NMTUI_TRUE@am__append_59 = src/nmtui/nmtui
-@BUILD_NMTUI_TRUE@am__append_60 = install-exec-hook-nmtui
-@BUILD_NMTUI_TRUE@am__append_61 = uninstall-hook-nmtui
+@BUILD_NMTUI_TRUE@am__append_60 = src/nmtui/nmtui
+@BUILD_NMTUI_TRUE@am__append_61 = install-exec-hook-nmtui
+@BUILD_NMTUI_TRUE@am__append_62 = uninstall-hook-nmtui
 
 ###############################################################################
 # src/nm-cloud-setup
 ###############################################################################
-@BUILD_NM_CLOUD_SETUP_TRUE@am__append_62 = src/nm-cloud-setup/libnm-cloud-setup-core.a
-@BUILD_NM_CLOUD_SETUP_TRUE@am__append_63 = src/nm-cloud-setup/nm-cloud-setup
-@BUILD_NM_CLOUD_SETUP_TRUE@@HAVE_SYSTEMD_TRUE@am__append_64 = \
+@BUILD_NM_CLOUD_SETUP_TRUE@am__append_63 = src/nm-cloud-setup/libnm-cloud-setup-core.a
+@BUILD_NM_CLOUD_SETUP_TRUE@am__append_64 = src/nm-cloud-setup/nm-cloud-setup
+@BUILD_NM_CLOUD_SETUP_TRUE@@HAVE_SYSTEMD_TRUE@am__append_65 = \
 @BUILD_NM_CLOUD_SETUP_TRUE@@HAVE_SYSTEMD_TRUE@	src/nm-cloud-setup/nm-cloud-setup.service \
 @BUILD_NM_CLOUD_SETUP_TRUE@@HAVE_SYSTEMD_TRUE@	src/nm-cloud-setup/nm-cloud-setup.timer \
 @BUILD_NM_CLOUD_SETUP_TRUE@@HAVE_SYSTEMD_TRUE@	$(NULL)
 
-@BUILD_NM_CLOUD_SETUP_TRUE@@HAVE_SYSTEMD_TRUE@am__append_65 = install-data-hook-cloud-setup
-@BUILD_NM_CLOUD_SETUP_TRUE@@HAVE_SYSTEMD_TRUE@am__append_66 = uninstall-hook-cloud-setup
-@BUILD_NM_CLOUD_SETUP_TRUE@am__append_67 = \
+@BUILD_NM_CLOUD_SETUP_TRUE@@HAVE_SYSTEMD_TRUE@am__append_66 = install-data-hook-cloud-setup
+@BUILD_NM_CLOUD_SETUP_TRUE@@HAVE_SYSTEMD_TRUE@am__append_67 = uninstall-hook-cloud-setup
+@BUILD_NM_CLOUD_SETUP_TRUE@am__append_68 = \
 @BUILD_NM_CLOUD_SETUP_TRUE@	src/nm-cloud-setup/90-nm-cloud-setup.sh \
 @BUILD_NM_CLOUD_SETUP_TRUE@	src/nm-cloud-setup/meson.build \
 @BUILD_NM_CLOUD_SETUP_TRUE@	src/nm-cloud-setup/nm-cloud-setup.service.in \
@@ -317,60 +318,60 @@ TESTS = $(am__EXEEXT_11)
 @BUILD_NM_CLOUD_SETUP_TRUE@	src/nm-cloud-setup/tests/meson.build \
 @BUILD_NM_CLOUD_SETUP_TRUE@	$(NULL)
 
-@BUILD_NM_CLOUD_SETUP_TRUE@am__append_68 = \
+@BUILD_NM_CLOUD_SETUP_TRUE@am__append_69 = \
 @BUILD_NM_CLOUD_SETUP_TRUE@	src/nm-cloud-setup/nm-cloud-setup.service
 
-@BUILD_NM_CLOUD_SETUP_TRUE@am__append_69 = src/nm-cloud-setup/tests/test-cloud-setup-general
+@BUILD_NM_CLOUD_SETUP_TRUE@am__append_70 = src/nm-cloud-setup/tests/test-cloud-setup-general
 
 ###############################################################################
 # data
 ###############################################################################
-@HAVE_SYSTEMD_TRUE@am__append_70 = \
+@HAVE_SYSTEMD_TRUE@am__append_71 = \
 @HAVE_SYSTEMD_TRUE@	data/NetworkManager.service \
 @HAVE_SYSTEMD_TRUE@	data/NetworkManager-wait-online.service \
 @HAVE_SYSTEMD_TRUE@	data/NetworkManager-dispatcher.service \
 @HAVE_SYSTEMD_TRUE@	data/nm-priv-helper.service \
 @HAVE_SYSTEMD_TRUE@	$(NULL)
 
-@HAVE_INTROSPECTION_TRUE@am__append_71 = $(man_nm_settings_xml)
-@CONFIG_PLUGIN_IFCFG_RH_TRUE@am__append_72 = man/nm-settings-ifcfg-rh.5
-@CONFIG_PLUGIN_IFCFG_RH_FALSE@am__append_73 = man/nm-settings-ifcfg-rh.5
+@HAVE_INTROSPECTION_TRUE@am__append_72 = $(man_nm_settings_xml)
+@CONFIG_PLUGIN_IFCFG_RH_TRUE@am__append_73 = man/nm-settings-ifcfg-rh.5
 @CONFIG_PLUGIN_IFCFG_RH_FALSE@am__append_74 = man/nm-settings-ifcfg-rh.5
-@WITH_OPENVSWITCH_TRUE@am__append_75 = man/nm-openvswitch.7
-@WITH_OPENVSWITCH_FALSE@am__append_76 = man/nm-openvswitch.7
+@CONFIG_PLUGIN_IFCFG_RH_FALSE@am__append_75 = man/nm-settings-ifcfg-rh.5
+@WITH_OPENVSWITCH_TRUE@am__append_76 = man/nm-openvswitch.7
 @WITH_OPENVSWITCH_FALSE@am__append_77 = man/nm-openvswitch.7
-@BUILD_NM_CLOUD_SETUP_TRUE@am__append_78 = man/nm-cloud-setup.8
-@BUILD_NM_CLOUD_SETUP_FALSE@am__append_79 = man/nm-cloud-setup.8
+@WITH_OPENVSWITCH_FALSE@am__append_78 = man/nm-openvswitch.7
+@BUILD_NM_CLOUD_SETUP_TRUE@am__append_79 = man/nm-cloud-setup.8
 @BUILD_NM_CLOUD_SETUP_FALSE@am__append_80 = man/nm-cloud-setup.8
-@HAVE_DOCS_TRUE@am__append_81 = install-data-hook-man
-@HAVE_DOCS_TRUE@am__append_82 = uninstall-hook-man
-@HAVE_DOCS_TRUE@am__append_83 = $(man_pages) $(man_pages_autogen)
-@BUILD_DOCS_TRUE@am__append_84 = $(man_pages) $(man_pages_autogen)
+@BUILD_NM_CLOUD_SETUP_FALSE@am__append_81 = man/nm-cloud-setup.8
+@HAVE_DOCS_TRUE@am__append_82 = install-data-hook-man
+@HAVE_DOCS_TRUE@am__append_83 = uninstall-hook-man
+@HAVE_DOCS_TRUE@am__append_84 = $(man_pages) $(man_pages_autogen)
+@BUILD_DOCS_TRUE@am__append_85 = $(man_pages) $(man_pages_autogen)
 
 ###############################################################################
 # vapi
 ###############################################################################
-@ENABLE_VAPIGEN_TRUE@am__append_85 = \
+@ENABLE_VAPIGEN_TRUE@am__append_86 = \
 @ENABLE_VAPIGEN_TRUE@	vapi/libnm.vapi
 
-@ENABLE_VAPIGEN_TRUE@am__append_86 = \
+@ENABLE_VAPIGEN_TRUE@am__append_87 = \
 @ENABLE_VAPIGEN_TRUE@	$(VAPIGEN_VAPIS) \
 @ENABLE_VAPIGEN_TRUE@	$(VAPIGEN_VAPIS:.vapi=.deps)
 
-@ENABLE_VAPIGEN_TRUE@am__append_87 = $(VAPIGEN_VAPIS)
+@ENABLE_VAPIGEN_TRUE@am__append_88 = $(VAPIGEN_VAPIS)
 
 ###############################################################################
-@ENABLE_TESTS_TRUE@am__append_88 = $(check_programs) $(check_programs_norun)
-@ENABLE_TESTS_TRUE@am__append_89 = $(check_ltlibraries)
-@ENABLE_TESTS_FALSE@am__append_90 = $(check_programs) $(check_programs_norun)
-@ENABLE_TESTS_FALSE@am__append_91 = $(check_ltlibraries)
-@WITH_QT_TRUE@am__append_92 = \
+@ENABLE_TESTS_TRUE@am__append_89 = $(check_programs) $(check_programs_norun)
+@ENABLE_TESTS_TRUE@am__append_90 = $(check_ltlibraries)
+@ENABLE_TESTS_FALSE@am__append_91 = $(check_programs) $(check_programs_norun)
+@ENABLE_TESTS_FALSE@am__append_92 = $(check_ltlibraries)
+@WITH_QT_TRUE@am__append_93 = \
 @WITH_QT_TRUE@	examples/C/qt/add-connection-wired \
 @WITH_QT_TRUE@	examples/C/qt/list-connections \
 @WITH_QT_TRUE@	examples/C/qt/change-ipv4-addresses \
 @WITH_QT_TRUE@	examples/C/qt/monitor-nm-running
 
-@WITH_QT_TRUE@am__append_93 = \
+@WITH_QT_TRUE@am__append_94 = \
 @WITH_QT_TRUE@	examples/C/qt/monitor-nm-running.moc
 
 subdir = .
@@ -4225,13 +4226,13 @@ noinst_LTLIBRARIES = src/c-siphash/libc-siphash.la \
 	src/core/libNetworkManager.la \
 	src/libnm-systemd-core/libnm-systemd-core.la $(NULL) \
 	src/libnm-systemd-shared/libnm-systemd-shared.la \
-	src/nm-initrd-generator/libnmi-core.la $(am__append_24) \
-	$(am__append_32) $(am__append_39) $(am__append_44) \
-	src/nm-dispatcher/libnm-dispatcher-core.la $(am__append_89)
-check_LTLIBRARIES = $(am__append_91)
-noinst_LIBRARIES = $(am__append_58) $(am__append_62)
+	src/nm-initrd-generator/libnmi-core.la $(am__append_25) \
+	$(am__append_33) $(am__append_40) $(am__append_45) \
+	src/nm-dispatcher/libnm-dispatcher-core.la $(am__append_90)
+check_LTLIBRARIES = $(am__append_92)
+noinst_LIBRARIES = $(am__append_59) $(am__append_63)
 noinst_DATA = $(am__append_13)
-dist_libexec_SCRIPTS = $(am__append_28)
+dist_libexec_SCRIPTS = $(am__append_29)
 
 ###############################################################################
 lib_LTLIBRARIES = src/libnm-client-impl/libnm.la
@@ -4240,31 +4241,31 @@ plugin_LTLIBRARIES = $(core_plugins)
 ###############################################################################
 # src/core/devices/adsl
 ###############################################################################
-core_plugins = $(am__append_21) $(am__append_23) $(am__append_31) \
+core_plugins = $(am__append_22) $(am__append_24) $(am__append_32) \
 	src/core/devices/adsl/libnm-device-plugin-adsl.la \
-	$(am__append_35) $(am__append_46) $(am__append_49) \
-	$(am__append_51)
+	$(am__append_36) $(am__append_47) $(am__append_50) \
+	$(am__append_52)
 service_DATA = 
-man_MANS = $(am__append_83)
+man_MANS = $(am__append_84)
 examples_DATA = data/server.conf
 CLEANFILES = $(introspection_sources) $(DBUS_INTERFACE_DOCS) \
-	src/core/NetworkManager.ver $(am__append_25) \
+	src/core/NetworkManager.ver $(am__append_26) \
 	$(dispatcher_nmdbus_dispatcher_sources) \
 	src/nm-dispatcher/org.freedesktop.nm_dispatcher.service \
 	src/nm-priv-helper/org.freedesktop.nm_priv_helper.service \
-	$(am__append_68) src/tests/client/test-client.log \
+	$(am__append_69) src/tests/client/test-client.log \
 	data/NetworkManager-dispatcher.service \
 	data/NetworkManager-wait-online.service \
 	data/NetworkManager.service data/nm-priv-helper.service \
-	data/server.conf $(NULL) $(am__append_71) man/common.ent \
-	$(am__append_84) $(am__append_87) $(GLIB_GENERATED) \
+	data/server.conf $(NULL) $(am__append_72) man/common.ent \
+	$(am__append_85) $(am__append_88) $(GLIB_GENERATED) \
 	$(INTROSPECTION_GIRS) $(typelib_DATA) cscope.in.out cscope.out \
-	cscope.po.out $(NULL) $(am__append_93)
+	cscope.po.out $(NULL) $(am__append_94)
 
 ###############################################################################
-DISTCLEANFILES = config-extra.h $(polkit_policy_DATA) \
-	src/libnm-client-impl/libnm.pc $(am__append_16) \
-	$(am__append_17) $(am__append_53)
+DISTCLEANFILES = config-extra.h po/.Makefile.patched \
+	$(polkit_policy_DATA) src/libnm-client-impl/libnm.pc \
+	$(am__append_16) $(am__append_17) $(am__append_54)
 
 ###############################################################################
 
@@ -4351,6 +4352,7 @@ EXTRA_DIST = src/c-stdaux/src/c-stdaux.h $(NULL) \
 	tools/generate-docs-nm-settings-docs-gir.py \
 	src/libnm-client-impl/meson.build $(NULL) \
 	src/libnm-client-impl/tests/meson.build \
+	src/libnm-client-impl/tests/test-gir.py \
 	src/contrib/meson.build src/contrib/tests/meson.build $(NULL) \
 	src/libnm-systemd-shared/meson.build \
 	src/libnm-systemd-core/meson.build \
@@ -4667,6 +4669,7 @@ EXTRA_DIST = src/c-stdaux/src/c-stdaux.h $(NULL) \
 	src/core/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test-ibft \
 	src/core/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test-infiniband \
 	src/core/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test-ip6-disabled.cexpected \
+	src/core/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test-ipoib \
 	src/core/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test-link_local \
 	src/core/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test-minimal \
 	src/core/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test-misc-variables \
@@ -4793,6 +4796,10 @@ EXTRA_DIST = src/c-stdaux/src/c-stdaux.h $(NULL) \
 	src/core/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test_roundtrip_ethtool-3.cexpected \
 	src/core/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test_roundtrip_ethtool-4.cexpected \
 	src/core/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test_roundtrip_ethtool-5.cexpected \
+	src/core/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test_roundtrip_ethtool-6.cexpected \
+	src/core/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test_roundtrip_ethtool-7.cexpected \
+	src/core/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test_roundtrip_ethtool-8.cexpected \
+	src/core/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test_roundtrip_ethtool-9.cexpected \
 	src/core/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test_write_wired_auto_negotiate_on.cexpected \
 	src/core/settings/plugins/ifcfg-rh/tests/network-scripts/keys-test-wifi-dynamic-wep-leap \
 	src/core/settings/plugins/ifcfg-rh/tests/network-scripts/keys-test-wifi-leap \
@@ -4910,7 +4917,7 @@ EXTRA_DIST = src/c-stdaux/src/c-stdaux.h $(NULL) \
 	src/libnmc-setting/meson.build \
 	src/libnmc-setting/tests/meson.build \
 	src/libnmt-newt/meson.build src/nmtui/meson.build \
-	$(am__append_67) src/tests/client/test-client.sh \
+	$(am__append_68) src/tests/client/test-client.sh \
 	src/tests/client/test-client.py \
 	src/tests/client/test-client.check-on-disk/test_001.expected \
 	src/tests/client/test-client.check-on-disk/test_002.expected \
@@ -4924,7 +4931,7 @@ EXTRA_DIST = src/c-stdaux/src/c-stdaux.h $(NULL) \
 	data/NetworkManager-wait-online.service.in \
 	data/NetworkManager.service.in data/nm-priv-helper.service.in \
 	data/meson.build data/nm-shared.xml data/server.conf.in \
-	$(NULL) $(am__append_73) $(am__append_76) $(am__append_79) \
+	$(NULL) $(am__append_74) $(am__append_77) $(am__append_80) \
 	man/common.ent.in $(man_nm_settings_xml) $(addsuffix \
 	.xsl,$(basename $(man_nm_settings_xml))) $(man_pages) \
 	$(addsuffix .xml,$(basename $(man_pages))) \
@@ -5016,16 +5023,16 @@ EXTRA_DIST = src/c-stdaux/src/c-stdaux.h $(NULL) \
 EXTRA_LTLIBRARIES = 
 dist_hook = dist-hook-settings-ifcfg-rh-alias-files
 dist_dependencies = src/libnm-core-public/nm-vpn-dbus-types.xml \
-	src/libnm-core-public/nm-dbus-types.xml $(am__append_74) \
-	$(am__append_77) $(am__append_80) $(man_pages) \
+	src/libnm-core-public/nm-dbus-types.xml $(am__append_75) \
+	$(am__append_78) $(am__append_81) $(man_pages) \
 	$(man_pages_autogen)
 dist_configure_check = $(am__append_2)
-install_data_hook = install-data-hook-dirs $(am__append_29) \
-	install-data-hook-dispatcher $(am__append_56) $(am__append_65) \
-	$(am__append_81)
-install_exec_hook = $(am__append_60)
-uninstall_hook = $(am__append_57) $(am__append_61) $(am__append_66) \
+install_data_hook = install-data-hook-dirs $(am__append_30) \
+	install-data-hook-dispatcher $(am__append_57) $(am__append_66) \
 	$(am__append_82)
+install_exec_hook = $(am__append_61)
+uninstall_hook = $(am__append_58) $(am__append_62) $(am__append_67) \
+	$(am__append_83)
 BUILT_SOURCES = src/libnm-core-public/nm-vpn-dbus-types.xml \
 	src/libnm-core-public/nm-dbus-types.xml $(gir_DATA) \
 	$(typelib_DATA)
@@ -5039,9 +5046,9 @@ man_pages = man/NetworkManager-dispatcher.8 \
 	man/NetworkManager-wait-online.service.8 man/NetworkManager.8 \
 	man/NetworkManager.conf.5 man/nm-initrd-generator.8 \
 	man/nm-online.1 man/nmcli-examples.7 man/nmcli.1 man/nmtui.1 \
-	$(NULL) $(am__append_75) $(am__append_78)
+	$(NULL) $(am__append_76) $(am__append_79)
 man_pages_autogen = man/nm-settings-dbus.5 man/nm-settings-keyfile.5 \
-	man/nm-settings-nmcli.5 $(NULL) $(am__append_72)
+	man/nm-settings-nmcli.5 $(NULL) $(am__append_73)
 
 ###############################################################################
 
@@ -5089,8 +5096,8 @@ check_programs = src/libnm-platform/tests/test-nm-platform \
 	src/core/dhcp/tests/test-dhcp-dhclient \
 	src/core/dhcp/tests/test-dhcp-utils \
 	src/core/settings/plugins/keyfile/tests/test-keyfile-settings \
-	$(am__append_27) $(am__append_34) $(am__append_38) \
-	$(am__append_48) src/core/dnsmasq/tests/test-dnsmasq-utils \
+	$(am__append_28) $(am__append_35) $(am__append_39) \
+	$(am__append_49) src/core/dnsmasq/tests/test-dnsmasq-utils \
 	src/core/platform/tests/test-address-fake \
 	src/core/platform/tests/test-address-linux \
 	src/core/platform/tests/test-cleanup-fake \
@@ -5110,8 +5117,8 @@ check_programs = src/libnm-platform/tests/test-nm-platform \
 	src/core/tests/test-l3cfg src/core/tests/test-systemd \
 	src/core/tests/test-utils src/core/tests/test-wired-defname \
 	$(NULL) src/nm-dispatcher/tests/test-dispatcher-envp \
-	src/libnmc-setting/tests/test-libnmc-setting $(am__append_69)
-check_programs_norun = $(am__append_19) $(am__append_43) \
+	src/libnmc-setting/tests/test-libnmc-setting $(am__append_70)
+check_programs_norun = $(am__append_20) $(am__append_44) \
 	src/core/platform/tests/monitor \
 	src/core/ndisc/tests/test-ndisc-linux \
 	examples/C/glib/add-connection-gdbus \
@@ -5122,7 +5129,7 @@ check_programs_norun = $(am__append_19) $(am__append_43) \
 	examples/C/glib/list-connections-libnm \
 	examples/C/glib/monitor-nm-running-gdbus \
 	examples/C/glib/monitor-nm-state-gdbus \
-	examples/C/glib/vpn-import-libnm $(NULL) $(am__append_92)
+	examples/C/glib/vpn-import-libnm $(NULL) $(am__append_93)
 
 ###############################################################################
 
@@ -5136,20 +5143,20 @@ check_ltlibraries = $(am__append_7) $(am__append_8) $(am__append_9) \
 	src/libnmc-base/libnmc-base.la \
 	src/libnmc-setting/libnmc-setting.la
 check_local = check-docs check-local-exports-libnm $(am__append_15) \
-	check-config-options $(am__append_26) $(am__append_33) \
-	check-local-devices-adsl $(am__append_37) $(am__append_47) \
-	$(am__append_50) $(am__append_52) $(am__append_54) \
-	check-local-tests-client check-local-gitlab-ci check-tree \
-	check-po-msgfmt
-VAPIGEN_VAPIS = $(am__append_85)
-dbusservice_DATA = $(am__append_30) \
+	$(am__append_19) check-config-options $(am__append_27) \
+	$(am__append_34) check-local-devices-adsl $(am__append_38) \
+	$(am__append_48) $(am__append_51) $(am__append_53) \
+	$(am__append_55) check-local-tests-client \
+	check-local-gitlab-ci check-tree check-po-msgfmt
+VAPIGEN_VAPIS = $(am__append_86)
+dbusservice_DATA = $(am__append_31) \
 	src/nm-dispatcher/nm-dispatcher.conf \
 	src/nm-priv-helper/nm-priv-helper.conf \
 	src/core/org.freedesktop.NetworkManager.conf
 dbusactivation_DATA =  \
 	src/nm-dispatcher/org.freedesktop.nm_dispatcher.service \
 	src/nm-priv-helper/org.freedesktop.nm_priv_helper.service
-systemdsystemunit_DATA = $(am__append_64) $(am__append_70)
+systemdsystemunit_DATA = $(am__append_65) $(am__append_71)
 INTROSPECTION_GIRS = $(am__append_12)
 INTROSPECTION_SCANNER_ARGS = 
 INTROSPECTION_COMPILER_ARGS = 
@@ -5164,9 +5171,9 @@ nodist_libnminclude_HEADERS = $(src_libnm_core_public_mkenums_h) \
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = src/libnm-client-impl/libnm.pc
 pppd_plugindir = $(PPPD_PLUGIN_DIR)
-pppd_plugin_LTLIBRARIES = $(am__append_22)
+pppd_plugin_LTLIBRARIES = $(am__append_23)
 vapidir = $(datadir)/vala/vapi
-vapi_DATA = $(am__append_86)
+vapi_DATA = $(am__append_87)
 examplesdir = $(docdir)/examples
 rundir = $(runstatedir)/NetworkManager
 statedir = $(localstatedir)/lib/NetworkManager
@@ -6640,7 +6647,7 @@ src_core_cppflags = \
 	\
 	$(NULL)
 
-src_core_cppflags_test = $(src_core_cppflags) $(NULL) $(am__append_20)
+src_core_cppflags_test = $(src_core_cppflags) $(NULL) $(am__append_21)
 src_core_ldflags = $(CODE_COVERAGE_LDFLAGS)
 
 ###############################################################################
@@ -7531,7 +7538,7 @@ src_core_devices_adsl_libnm_device_plugin_adsl_la_LIBADD = \
 @WITH_MODEM_MANAGER_1_TRUE@	src/core/devices/wwan/nm-modem.h \
 @WITH_MODEM_MANAGER_1_TRUE@	src/core/devices/wwan/nm-service-providers.c \
 @WITH_MODEM_MANAGER_1_TRUE@	src/core/devices/wwan/nm-service-providers.h \
-@WITH_MODEM_MANAGER_1_TRUE@	$(NULL) $(am__append_36)
+@WITH_MODEM_MANAGER_1_TRUE@	$(NULL) $(am__append_37)
 @WITH_MODEM_MANAGER_1_TRUE@src_core_devices_wwan_libnm_wwan_la_CPPFLAGS = $(src_core_devices_wwan_cppflags)
 @WITH_MODEM_MANAGER_1_TRUE@src_core_devices_wwan_libnm_wwan_la_LDFLAGS = \
 @WITH_MODEM_MANAGER_1_TRUE@	-avoid-version \
@@ -7582,13 +7589,13 @@ src_core_devices_adsl_libnm_device_plugin_adsl_la_LIBADD = \
 @WITH_MODEM_MANAGER_1_TRUE@src_core_devices_bluetooth_libnm_bluetooth_utils_la_SOURCES = src/core/devices/bluetooth/nm-bluez-common.h \
 @WITH_MODEM_MANAGER_1_TRUE@	src/core/devices/bluetooth/nm-bt-error.c \
 @WITH_MODEM_MANAGER_1_TRUE@	src/core/devices/bluetooth/nm-bt-error.h \
-@WITH_MODEM_MANAGER_1_TRUE@	$(NULL) $(am__append_40)
+@WITH_MODEM_MANAGER_1_TRUE@	$(NULL) $(am__append_41)
 @WITH_MODEM_MANAGER_1_TRUE@src_core_devices_bluetooth_libnm_bluetooth_utils_la_CPPFLAGS =  \
 @WITH_MODEM_MANAGER_1_TRUE@	$(src_core_cppflags_base) $(NULL) \
-@WITH_MODEM_MANAGER_1_TRUE@	$(am__append_41)
+@WITH_MODEM_MANAGER_1_TRUE@	$(am__append_42)
 @WITH_MODEM_MANAGER_1_TRUE@src_core_devices_bluetooth_libnm_bluetooth_utils_la_LIBADD =  \
 @WITH_MODEM_MANAGER_1_TRUE@	$(GLIB_LIBS) $(NULL) \
-@WITH_MODEM_MANAGER_1_TRUE@	$(am__append_42)
+@WITH_MODEM_MANAGER_1_TRUE@	$(am__append_43)
 @WITH_MODEM_MANAGER_1_TRUE@src_core_devices_bluetooth_libnm_device_plugin_bluetooth_la_SOURCES = \
 @WITH_MODEM_MANAGER_1_TRUE@	src/core/devices/bluetooth/nm-bluez-manager.c \
 @WITH_MODEM_MANAGER_1_TRUE@	src/core/devices/bluetooth/nm-bluez-manager.h \
@@ -7636,7 +7643,7 @@ src_core_devices_adsl_libnm_device_plugin_adsl_la_LIBADD = \
 @WITH_WIFI_TRUE@	src/core/devices/wifi/nm-wifi-p2p-peer.h \
 @WITH_WIFI_TRUE@	src/core/devices/wifi/nm-wifi-utils.c \
 @WITH_WIFI_TRUE@	src/core/devices/wifi/nm-wifi-utils.h $(NULL) \
-@WITH_WIFI_TRUE@	$(am__append_45)
+@WITH_WIFI_TRUE@	$(am__append_46)
 @WITH_WIFI_TRUE@src_core_devices_wifi_libnm_wifi_base_la_CPPFLAGS = $(src_core_cppflags_device_plugin)
 @WITH_WIFI_TRUE@src_core_devices_wifi_libnm_wifi_base_la_LIBADD = \
 @WITH_WIFI_TRUE@	$(GLIB_LIBS)
@@ -21043,6 +21050,21 @@ dist-configure-check:
 	@echo "*** 'make dist' requires '--enable-gtk-doc --enable-introspection'. ***"
 	@false
 
+# Gettext's Makefile has a race with parallel builds during dist.
+# Hack around that.
+# See also:
+#   https://gitlab.freedesktop.org/NetworkManager/NetworkManager/-/merge_requests/1094#note_1435313
+#   https://lists.gnu.org/archive/html/bug-gettext/2022-06/msg00022.html
+#   https://gitlab.freedesktop.org/NetworkManager/NetworkManager/-/merge_requests/1405
+po/.Makefile.patched:
+	sed -i \
+	    -e 's#^dist2: \$$(srcdir)/stamp-po \$$(DISTFILES)#dist2: \$$(srcdir)/stamp-po\n\t\$$(MAKE) \$$(DISTFILES)#' \
+	    -e 's#^dist2: stamp-po \$$(DISTFILES)#dist2: stamp-po\n\t\$$(MAKE) \$$(DISTFILES)#' \
+	    "$(builddir)/po/Makefile" && \
+	touch "$(builddir)/po/.Makefile.patched"
+
+dist: po/.Makefile.patched
+
 dist: $(dist_configure_check) $(dist_dependencies)
 
 ###############################################################################
@@ -21180,6 +21202,13 @@ check-local-exports-libnm: src/libnm-client-impl/libnm.la
 
 @HAVE_INTROSPECTION_TRUE@man/nm-settings-docs-%.xml: src/libnm-client-impl/nm-property-infos-%.xml src/libnm-client-impl/nm-settings-docs-gir.xml tools/generate-docs-nm-settings-docs-merge.py man/common.ent
 @HAVE_INTROSPECTION_TRUE@	$(AM_V_GEN) "$(PYTHON)" $(srcdir)/tools/generate-docs-nm-settings-docs-merge.py $@ $(wordlist 1,2,$^)
+
+check-local-libnm-gir: $(builddir)/src/libnm-client-impl/NM-1.0.gir
+check-local-libnm-gir: $(srcdir)/src/libnm-client-impl/libnm.ver
+check-local-libnm-gir:
+	"$(PYTHON)" $(srcdir)/src/libnm-client-impl/tests/test-gir.py \
+		--gir $(builddir)/src/libnm-client-impl/NM-1.0.gir \
+		--ver $(srcdir)/src/libnm-client-impl/libnm.ver
 
 $(src_libnm_client_impl_tests_test_libnm_OBJECTS):                  $(src_libnm_core_public_mkenums_h) $(src_libnm_client_public_mkenums_h)
 $(src_libnm_client_impl_tests_test_nm_client_OBJECTS):              $(src_libnm_core_public_mkenums_h) $(src_libnm_client_public_mkenums_h)

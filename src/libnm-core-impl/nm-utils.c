@@ -1942,6 +1942,8 @@ next:
  * include additional attributes.
  *
  * Returns: (transfer none): a new floating #GVariant representing @addresses.
+ *
+ * Since: 1.42, 1.40.4
  **/
 GVariant *
 nm_utils_ip_addresses_to_variant(GPtrArray *addresses)
@@ -1995,6 +1997,8 @@ nm_utils_ip_addresses_to_variant(GPtrArray *addresses)
  *
  * Returns: (transfer full) (element-type NMIPAddress): a newly allocated
  *   #GPtrArray of #NMIPAddress objects
+ *
+ * Since: 1.42, 1.40.4
  **/
 GPtrArray *
 nm_utils_ip_addresses_from_variant(GVariant *value, int family)
@@ -2054,6 +2058,8 @@ nm_utils_ip_addresses_from_variant(GVariant *value, int family)
  * prefix, next hop, metric, and additional attributes).
  *
  * Returns: (transfer none): a new floating #GVariant representing @routes.
+ *
+ * Since: 1.42, 1.40.4
  **/
 GVariant *
 nm_utils_ip_routes_to_variant(GPtrArray *routes)
@@ -2120,6 +2126,8 @@ nm_utils_ip_routes_to_variant(GPtrArray *routes)
  *
  * Returns: (transfer full) (element-type NMIPRoute): a newly allocated
  *   #GPtrArray of #NMIPRoute objects
+ *
+ * Since: 1.42, 1.40.4
  **/
 GPtrArray *
 nm_utils_ip_routes_from_variant(GVariant *value, int family)
@@ -4314,6 +4322,8 @@ nm_utils_is_valid_iface_name_utf8safe(const char *utf8safe_name)
  *
  * Before 1.20, this function did not accept %NULL as @name argument. If you
  *   want to run against older versions of libnm, don't pass %NULL.
+ *
+ * Since: 1.6
  */
 gboolean
 nm_utils_is_valid_iface_name(const char *name, GError **error)
@@ -5249,7 +5259,7 @@ next:
     return g_steal_pointer(&ht);
 }
 
-/*
+/**
  * nm_utils_format_variant_attributes:
  * @attributes: (element-type utf8 GVariant): a #GHashTable mapping attribute names to #GVariant values
  * @attr_separator: the attribute separator character
@@ -5275,8 +5285,8 @@ nm_utils_format_variant_attributes(GHashTable *attributes,
 
 /*****************************************************************************/
 
-/*
- * nm_utils_get_timestamp_msec():
+/**
+ * nm_utils_get_timestamp_msec:
  *
  * Gets current time in milliseconds of CLOCK_BOOTTIME.
  *
@@ -5314,7 +5324,7 @@ nm_utils_get_timestamp_msec(void)
  * Returns: the version ID of the libnm version. That is, the %NM_VERSION
  *   at runtime.
  *
- * Since: 1.6.0
+ * Since: 1.6
  */
 guint
 nm_utils_version(void)

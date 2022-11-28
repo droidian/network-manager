@@ -18,7 +18,7 @@
     <indexterm zone="NMCapability">
       <primary>NMCapability</primary>
     </indexterm>
-    <para><para><link linkend="NMCapability">NMCapability</link> names the numbers in the Capabilities property. Capabilities are positive numbers. They are part of stable API and a certain capability number is guaranteed not to change.</para><para>The range 0x7000 - 0x7FFF of capabilities is guaranteed not to be used by upstream NetworkManager. It could thus be used for downstream extensions.</para><para></para></para>
+    <para><para><link linkend="NMCapability">NMCapability</link> names the numbers in the Capabilities property. Capabilities are positive numbers. They are part of stable API and a certain capability number is guaranteed not to change.</para><para>The range 0x7000 - 0x7FFF of capabilities is guaranteed not to be used by upstream NetworkManager. It could thus be used for downstream extensions.</para><para>Since: 1.6</para><para></para></para>
     <refsect3 role="enum_members">
       <title>Values</title>
       <informaltable role="enum_members_table" pgwide="1" frame="none">
@@ -1613,7 +1613,7 @@
     <indexterm zone="NMCheckpointCreateFlags">
       <primary>NMCheckpointCreateFlags</primary>
     </indexterm>
-    <para><para>The flags for CheckpointCreate call</para><para>Since: 1.4 (gi flags generated since 1.12)</para><para></para></para>
+    <para><para>The flags for CheckpointCreate call</para><para>Since: 1.12 (public since 1.4, g-ir since 1.12)</para><para></para></para>
     <refsect3 role="enum_members">
       <title>Values</title>
       <informaltable role="enum_members_table" pgwide="1" frame="none">
