@@ -1,3 +1,9 @@
+network-manager (1.40.4-1ubuntu2) lunar; urgency=medium
+
+  * Fix network-manager-config-connectivity-ubuntu.postinst
+
+ -- Jeremy Bicha <jbicha@ubuntu.com>  Tue, 29 Nov 2022 14:25:45 -0500
+
 network-manager (1.40.4-1ubuntu1) lunar; urgency=medium
 
   * Resynchronize on Debian, remaining changes:
