@@ -1,3 +1,13 @@
+network-manager (1.40.6-1) unstable; urgency=medium
+
+  * New upstream version 1.40.6
+  * Depend on polkitd in preference to policykit-1.
+    The latter is a deprecated, transitional package, that also pulls in
+    pkexec, which network-manager doesn't need. Keep policykit-1 as an
+    alternative dependency to make backports easier.
+
+ -- Michael Biebl <biebl@debian.org>  Wed, 30 Nov 2022 22:59:25 +0100
+
 network-manager (1.40.4-1ubuntu2) lunar; urgency=medium
 
   * Fix network-manager-config-connectivity-ubuntu.postinst
