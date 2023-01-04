@@ -2,12 +2,12 @@
 .\"     Title: nm-settings-nmcli
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 11/30/2022
+.\"      Date: 12/16/2022
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.40.6
+.\"    Source: NetworkManager 1.40.8
 .\"  Language: English
 .\"
-.TH "NM\-SETTINGS\-NMCLI" "5" "" "NetworkManager 1\&.40\&.6" "Configuration"
+.TH "NM\-SETTINGS\-NMCLI" "5" "" "NetworkManager 1\&.40\&.8" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -2924,7 +2924,7 @@ Format: boolean
 .RS 4
 Alias: cak
 .sp
-The pre\-shared CAK (Connectivity Association Key) for MACsec Key Agreement\&.
+The pre\-shared CAK (Connectivity Association Key) for MACsec Key Agreement\&. Must be a string of 32 hexadecimal characters\&.
 .sp
 Format: string
 .RE
@@ -2940,7 +2940,7 @@ Format: NMSettingSecretFlags (uint32)
 .RS 4
 Alias: ckn
 .sp
-The pre\-shared CKN (Connectivity\-association Key Name) for MACsec Key Agreement\&.
+The pre\-shared CKN (Connectivity\-association Key Name) for MACsec Key Agreement\&. Must be a string of hexadecimal characters with a even length between 2 and 64\&.
 .sp
 Format: string
 .RE

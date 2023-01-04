@@ -4838,6 +4838,7 @@ get_ip_iface_identifier(NMDevice *self, NMUtilsIPv6IfaceId *out_iid)
     NMDevicePrivate      *priv     = NM_DEVICE_GET_PRIVATE(self);
     NMPlatform           *platform = nm_device_get_platform(self);
     const NMPlatformLink *pllink;
+    NMLinkType            link_type;
     const guint8         *hwaddr;
     guint8                pseudo_hwaddr[ETH_ALEN];
     gsize                 hwaddr_len;
@@ -4855,6 +4856,8 @@ get_ip_iface_identifier(NMDevice *self, NMUtilsIPv6IfaceId *out_iid)
     hwaddr = nmp_link_address_get(&pllink->l_address, &hwaddr_len);
     if (hwaddr_len <= 0)
         return FALSE;
+
+    link_type = pllink->type;
 
     if (pllink->type == NM_LINK_TYPE_6LOWPAN) {
         /* If the underlying IEEE 802.15.4 device has a short address we generate
@@ -4876,10 +4879,11 @@ get_ip_iface_identifier(NMDevice *self, NMUtilsIPv6IfaceId *out_iid)
 
             hwaddr     = pseudo_hwaddr;
             hwaddr_len = G_N_ELEMENTS(pseudo_hwaddr);
+            link_type  = NM_LINK_TYPE_ETHERNET;
         }
     }
 
-    success = nm_utils_get_ipv6_interface_identifier(pllink->type,
+    success = nm_utils_get_ipv6_interface_identifier(link_type,
                                                      hwaddr,
                                                      hwaddr_len,
                                                      priv->dev_id,
@@ -6828,7 +6832,7 @@ device_link_changed(gpointer user_data)
          * bring it up probably has failed because of the
          * invalid hardware address; try again.
          */
-        nm_device_bring_up(self, TRUE, NULL);
+        nm_device_bring_up(self);
         nm_device_queue_recheck_available(self,
                                           NM_DEVICE_STATE_REASON_NONE,
                                           NM_DEVICE_STATE_REASON_NONE);
@@ -9719,7 +9723,7 @@ activate_stage2_device_config(NMDevice *self)
     _routing_rules_sync(self, NM_TERNARY_TRUE);
 
     if (!nm_device_sys_iface_state_is_external_or_assume(self)) {
-        if (!nm_device_bring_up(self, FALSE, &no_firmware)) {
+        if (!nm_device_bring_up_full(self, FALSE, TRUE, &no_firmware)) {
             nm_device_state_changed(self,
                                     NM_DEVICE_STATE_FAILED,
                                     no_firmware ? NM_DEVICE_STATE_REASON_FIRMWARE_MISSING
@@ -13994,7 +13998,10 @@ carrier_detect_wait(NMDevice *self)
 }
 
 gboolean
-nm_device_bring_up(NMDevice *self, gboolean block, gboolean *no_firmware)
+nm_device_bring_up_full(NMDevice *self,
+                        gboolean  block,
+                        gboolean  update_carrier,
+                        gboolean *no_firmware)
 {
     gboolean             device_is_up = FALSE;
     NMDeviceCapabilities capabilities;
@@ -14021,8 +14028,8 @@ nm_device_bring_up(NMDevice *self, gboolean block, gboolean *no_firmware)
             return FALSE;
     }
 
-    /* Store carrier immediately. */
-    nm_device_set_carrier_from_platform(self);
+    if (update_carrier)
+        nm_device_set_carrier_from_platform(self);
 
     device_is_up = nm_device_is_up(self);
     if (block && !device_is_up) {
@@ -14059,6 +14066,12 @@ nm_device_bring_up(NMDevice *self, gboolean block, gboolean *no_firmware)
     _dev_l3_cfg_commit(self, TRUE);
 
     return TRUE;
+}
+
+gboolean
+nm_device_bring_up(NMDevice *self)
+{
+    return nm_device_bring_up_full(self, TRUE, TRUE, NULL);
 }
 
 void
@@ -15814,7 +15827,7 @@ _set_state_full(NMDevice *self, NMDeviceState state, NMDeviceStateReason reason,
 
         if (priv->sys_iface_state == NM_DEVICE_SYS_IFACE_STATE_MANAGED) {
             if (old_state == NM_DEVICE_STATE_UNMANAGED || priv->firmware_missing) {
-                if (!nm_device_bring_up(self, TRUE, &no_firmware) && no_firmware)
+                if (!nm_device_bring_up_full(self, TRUE, FALSE, &no_firmware) && no_firmware)
                     _LOGW(LOGD_PLATFORM, "firmware may be missing.");
                 nm_device_set_firmware_missing(self, no_firmware ? TRUE : FALSE);
             }
@@ -16574,7 +16587,7 @@ handle_fail:
     }
 
     if (was_taken_down) {
-        if (!nm_device_bring_up(self, TRUE, NULL))
+        if (!nm_device_bring_up(self))
             return FALSE;
     }
 
@@ -17832,7 +17845,7 @@ dispose(GObject *object)
         priv->sriov.next = NULL;
     }
 
-    g_clear_object(&priv->l3cfg);
+    g_clear_object(&priv->l3cfg_);
     g_clear_object(&priv->l3ipdata_4.ip_config);
     g_clear_object(&priv->l3ipdata_6.ip_config);
 

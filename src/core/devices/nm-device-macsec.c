@@ -187,8 +187,7 @@ update_properties(NMDevice *device)
 
     g_object_freeze_notify((GObject *) device);
 
-    if (priv->props.parent_ifindex != props->parent_ifindex)
-        nm_device_parent_set_ifindex(device, props->parent_ifindex);
+    nm_device_parent_set_ifindex(device, plink->parent);
 
 #define CHECK_PROPERTY_CHANGED(field, prop)      \
     G_STMT_START                                 \
@@ -402,7 +401,7 @@ supplicant_iface_state_is_completed(NMDeviceMacsec *self, NMSupplicantInterfaceS
         nm_clear_g_source(&priv->supplicant.lnk_timeout_id);
         nm_clear_g_source(&priv->supplicant.con_timeout_id);
 
-        nm_device_bring_up(NM_DEVICE(self), TRUE, NULL);
+        nm_device_bring_up(NM_DEVICE(self));
 
         /* If this is the initial association during device activation,
          * schedule the next activation stage.

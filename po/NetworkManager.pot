@@ -6,10 +6,10 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: NetworkManager 1.40.6\n"
+"Project-Id-Version: NetworkManager 1.40.8\n"
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/NetworkManager/"
 "NetworkManager/issues\n"
-"POT-Creation-Date: 2022-11-30 16:29+0100\n"
+"POT-Creation-Date: 2022-12-16 15:48+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1403,7 +1403,7 @@ msgid "property is not specified"
 msgstr ""
 
 #: src/libnm-core-impl/nm-setting-6lowpan.c:103
-#: src/libnm-core-impl/nm-setting-macsec.c:306
+#: src/libnm-core-impl/nm-setting-macsec.c:317
 #: src/libnm-core-impl/nm-setting-vlan.c:609
 #, c-format
 msgid "'%s' value doesn't match '%s=%s'"
@@ -1411,7 +1411,7 @@ msgstr ""
 
 #: src/libnm-core-impl/nm-setting-6lowpan.c:119
 #: src/libnm-core-impl/nm-setting-ip-tunnel.c:360
-#: src/libnm-core-impl/nm-setting-macsec.c:322
+#: src/libnm-core-impl/nm-setting-macsec.c:333
 #: src/libnm-core-impl/nm-setting-macvlan.c:140
 #: src/libnm-core-impl/nm-setting-vlan.c:625
 #: src/libnm-core-impl/nm-setting-vxlan.c:379
@@ -2332,32 +2332,36 @@ msgstr ""
 msgid "the key is empty"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-macsec.c:260
+#: src/libnm-core-impl/nm-setting-macsec.c:261
 #, c-format
 msgid "the key must be %d characters"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-macsec.c:269
+#: src/libnm-core-impl/nm-setting-macsec.c:271
+msgid "the key must have an even number of characters between 2 and 64"
+msgstr ""
+
+#: src/libnm-core-impl/nm-setting-macsec.c:280
 msgid "the key contains non-hexadecimal characters"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-macsec.c:338
+#: src/libnm-core-impl/nm-setting-macsec.c:349
 #: src/libnm-core-impl/nm-setting-macvlan.c:156
 #: src/libnm-core-impl/nm-setting-vlan.c:638
 #, c-format
 msgid "property is not specified and neither is '%s:%s'"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-macsec.c:369
+#: src/libnm-core-impl/nm-setting-macsec.c:380
 #, c-format
 msgid "EAP key management requires '%s' setting presence"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-macsec.c:378
+#: src/libnm-core-impl/nm-setting-macsec.c:389
 msgid "must be either psk (0) or eap (1)"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-macsec.c:389
+#: src/libnm-core-impl/nm-setting-macsec.c:400
 msgid "only valid for psk mode"
 msgstr ""
 
@@ -7250,7 +7254,8 @@ msgstr ""
 
 #: src/libnmc-setting/settings-docs.h.in:229
 msgid ""
-"The pre-shared CAK (Connectivity Association Key) for MACsec Key Agreement."
+"The pre-shared CAK (Connectivity Association Key) for MACsec Key Agreement. "
+"Must be a string of 32 hexadecimal characters."
 msgstr ""
 
 #: src/libnmc-setting/settings-docs.h.in:230
@@ -7260,7 +7265,8 @@ msgstr ""
 #: src/libnmc-setting/settings-docs.h.in:231
 msgid ""
 "The pre-shared CKN (Connectivity-association Key Name) for MACsec Key "
-"Agreement."
+"Agreement. Must be a string of hexadecimal characters with a even length "
+"between 2 and 64."
 msgstr ""
 
 #: src/libnmc-setting/settings-docs.h.in:232

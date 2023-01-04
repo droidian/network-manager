@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN" "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd">
-<refentry id="nm-settings-nmcli"><refentryinfo><title>nm-settings-nmcli</title><author>NetworkManager developers</author></refentryinfo><refmeta><refentrytitle>nm-settings-nmcli</refentrytitle><manvolnum>5</manvolnum><refmiscinfo class="source">NetworkManager</refmiscinfo><refmiscinfo class="manual">Configuration</refmiscinfo><refmiscinfo class="version">1.40.6</refmiscinfo></refmeta><refnamediv><refname>nm-settings-nmcli</refname><refpurpose>Description of settings and properties of NetworkManager connection profiles for nmcli</refpurpose></refnamediv><refsect1 id="description"><title>Description</title><para>
+<refentry id="nm-settings-nmcli"><refentryinfo><title>nm-settings-nmcli</title><author>NetworkManager developers</author></refentryinfo><refmeta><refentrytitle>nm-settings-nmcli</refentrytitle><manvolnum>5</manvolnum><refmiscinfo class="source">NetworkManager</refmiscinfo><refmiscinfo class="manual">Configuration</refmiscinfo><refmiscinfo class="version">1.40.8</refmiscinfo></refmeta><refnamediv><refname>nm-settings-nmcli</refname><refpurpose>Description of settings and properties of NetworkManager connection profiles for nmcli</refpurpose></refnamediv><refsect1 id="description"><title>Description</title><para>
           NetworkManager is based on a concept of connection profiles, sometimes referred to as
           connections only. These connection profiles contain a network configuration. When
           NetworkManager activates a connection profile on a network device the configuration will
@@ -492,10 +492,10 @@ Example: <literal>priority 5 from 1:2:3::5/128 table 45</literal>
         <variablelist><varlistentry><term><option id="nm-settings-nmcli.property.macsec.encrypt">encrypt</option></term><listitem><para>
             Alias: encrypt</para><para> Whether the transmitted traffic must be encrypted.</para><para>
             Format: boolean</para></listitem></varlistentry><varlistentry><term><option id="nm-settings-nmcli.property.macsec.mka-cak">mka-cak</option></term><listitem><para>
-            Alias: cak</para><para> The pre-shared CAK (Connectivity Association Key) for MACsec Key Agreement.</para><para>
+            Alias: cak</para><para> The pre-shared CAK (Connectivity Association Key) for MACsec Key Agreement. Must be a string of 32 hexadecimal characters.</para><para>
             Format: string</para></listitem></varlistentry><varlistentry><term><option id="nm-settings-nmcli.property.macsec.mka-cak-flags">mka-cak-flags</option></term><listitem><para> Flags indicating how to handle the "mka-cak" property.</para><para>
             Format: NMSettingSecretFlags (uint32)</para></listitem></varlistentry><varlistentry><term><option id="nm-settings-nmcli.property.macsec.mka-ckn">mka-ckn</option></term><listitem><para>
-            Alias: ckn</para><para> The pre-shared CKN (Connectivity-association Key Name) for MACsec Key Agreement.</para><para>
+            Alias: ckn</para><para> The pre-shared CKN (Connectivity-association Key Name) for MACsec Key Agreement. Must be a string of hexadecimal characters with a even length between 2 and 64.</para><para>
             Format: string</para></listitem></varlistentry><varlistentry><term><option id="nm-settings-nmcli.property.macsec.mode">mode</option></term><listitem><para>
             Alias: mode</para><para> Specifies how the CAK (Connectivity Association Key) for MKA (MACsec Key Agreement) is obtained.</para><para>
             Format: int32</para></listitem></varlistentry><varlistentry><term><option id="nm-settings-nmcli.property.macsec.parent">parent</option></term><listitem><para>
