@@ -6,10 +6,10 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: NetworkManager 1.40.8\n"
+"Project-Id-Version: NetworkManager 1.40.10\n"
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/NetworkManager/"
 "NetworkManager/issues\n"
-"POT-Creation-Date: 2022-12-16 15:48+0100\n"
+"POT-Creation-Date: 2023-01-11 12:01+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -301,7 +301,7 @@ msgstr ""
 msgid "Team connection"
 msgstr ""
 
-#: src/core/devices/wifi/nm-device-olpc-mesh.c:112 src/nmcli/devices.c:1397
+#: src/core/devices/wifi/nm-device-olpc-mesh.c:112 src/nmcli/devices.c:1394
 msgid "Mesh"
 msgstr ""
 
@@ -770,15 +770,15 @@ msgstr ""
 msgid "The connection was not a MAC-VLAN connection."
 msgstr ""
 
-#: src/libnm-client-impl/nm-device-modem.c:179
+#: src/libnm-client-impl/nm-device-modem.c:181
 msgid "The connection was not a modem connection."
 msgstr ""
 
-#: src/libnm-client-impl/nm-device-modem.c:189
+#: src/libnm-client-impl/nm-device-modem.c:191
 msgid "The connection was not a valid modem connection."
 msgstr ""
 
-#: src/libnm-client-impl/nm-device-modem.c:198
+#: src/libnm-client-impl/nm-device-modem.c:200
 msgid "The device is lacking capabilities required by the connection."
 msgstr ""
 
@@ -3653,46 +3653,46 @@ msgid ""
 "type '%s'"
 msgstr ""
 
-#: src/libnm-glib-aux/nm-shared-utils.c:5745
+#: src/libnm-glib-aux/nm-shared-utils.c:5756
 msgid "interface name is missing"
 msgstr ""
 
-#: src/libnm-glib-aux/nm-shared-utils.c:5753
+#: src/libnm-glib-aux/nm-shared-utils.c:5764
 msgid "interface name is too short"
 msgstr ""
 
-#: src/libnm-glib-aux/nm-shared-utils.c:5761
+#: src/libnm-glib-aux/nm-shared-utils.c:5772
 msgid "interface name is reserved"
 msgstr ""
 
-#: src/libnm-glib-aux/nm-shared-utils.c:5774
+#: src/libnm-glib-aux/nm-shared-utils.c:5785
 msgid "interface name contains an invalid character"
 msgstr ""
 
-#: src/libnm-glib-aux/nm-shared-utils.c:5782
+#: src/libnm-glib-aux/nm-shared-utils.c:5793
 msgid "interface name is longer than 15 characters"
 msgstr ""
 
-#: src/libnm-glib-aux/nm-shared-utils.c:5807
+#: src/libnm-glib-aux/nm-shared-utils.c:5818
 #, c-format
 msgid "'%%' is not allowed in interface names"
 msgstr ""
 
-#: src/libnm-glib-aux/nm-shared-utils.c:5819
+#: src/libnm-glib-aux/nm-shared-utils.c:5830
 #, c-format
 msgid "'%s' is not allowed as interface name"
 msgstr ""
 
-#: src/libnm-glib-aux/nm-shared-utils.c:5841
+#: src/libnm-glib-aux/nm-shared-utils.c:5852
 msgid ""
 "interface name must be alphanumerical with no forward or backward slashes"
 msgstr ""
 
-#: src/libnm-glib-aux/nm-shared-utils.c:5858
+#: src/libnm-glib-aux/nm-shared-utils.c:5869
 msgid "interface name must not be empty"
 msgstr ""
 
-#: src/libnm-glib-aux/nm-shared-utils.c:5866
+#: src/libnm-glib-aux/nm-shared-utils.c:5877
 msgid "interface name must be UTF-8 encoded"
 msgstr ""
 
@@ -3818,7 +3818,7 @@ msgstr ""
 #: src/libnmc-setting/nm-meta-setting-desc.c:885
 #: src/libnmc-setting/nm-meta-setting-desc.c:2847 src/nmcli/connections.c:5533
 #: src/nmcli/connections.c:7507 src/nmcli/connections.c:7508
-#: src/nmcli/devices.c:590 src/nmcli/devices.c:596 src/nmcli/devices.c:1408
+#: src/nmcli/devices.c:590 src/nmcli/devices.c:596 src/nmcli/devices.c:1405
 #: src/nmcli/general.c:92 src/nmcli/utils.h:313
 msgid "yes"
 msgstr ""
@@ -3827,7 +3827,7 @@ msgstr ""
 #: src/libnmc-setting/nm-meta-setting-desc.c:885
 #: src/libnmc-setting/nm-meta-setting-desc.c:2850 src/nmcli/connections.c:5532
 #: src/nmcli/connections.c:7507 src/nmcli/connections.c:7508
-#: src/nmcli/devices.c:590 src/nmcli/devices.c:596 src/nmcli/devices.c:1408
+#: src/nmcli/devices.c:590 src/nmcli/devices.c:596 src/nmcli/devices.c:1405
 #: src/nmcli/general.c:93 src/nmcli/utils.h:313
 msgid "no"
 msgstr ""
@@ -4234,7 +4234,7 @@ msgstr ""
 #: src/libnmc-base/nm-secret-agent-simple.c:979
 #: src/libnmc-base/nm-vpn-helpers.c:143 src/libnmc-base/nm-vpn-helpers.c:147
 #: src/libnmc-base/nm-vpn-helpers.c:153 src/libnmc-base/nm-vpn-helpers.c:158
-#: src/nmcli/devices.c:4691 src/nmtui/nmt-page-dsl.c:64
+#: src/nmcli/devices.c:4688 src/nmtui/nmt-page-dsl.c:64
 #: src/nmtui/nmt-page-wifi.c:271 src/nmtui/nmt-page-wifi.c:305
 #: src/nmtui/nmt-page-wifi.c:344
 msgid "Password"
@@ -9361,9 +9361,9 @@ msgstr ""
 msgid "Active connection details"
 msgstr ""
 
-#: src/nmcli/connections.c:1795 src/nmcli/devices.c:1663
-#: src/nmcli/devices.c:1680 src/nmcli/devices.c:1698 src/nmcli/devices.c:1717
-#: src/nmcli/devices.c:1781 src/nmcli/devices.c:1910
+#: src/nmcli/connections.c:1795 src/nmcli/devices.c:1660
+#: src/nmcli/devices.c:1677 src/nmcli/devices.c:1695 src/nmcli/devices.c:1714
+#: src/nmcli/devices.c:1778 src/nmcli/devices.c:1907
 msgid "NAME"
 msgstr ""
 
@@ -9416,14 +9416,14 @@ msgstr ""
 #: src/nmcli/connections.c:2432 src/nmcli/connections.c:3153
 #: src/nmcli/connections.c:3165 src/nmcli/connections.c:3177
 #: src/nmcli/connections.c:3413 src/nmcli/connections.c:9640
-#: src/nmcli/connections.c:9662 src/nmcli/devices.c:3346
-#: src/nmcli/devices.c:3359 src/nmcli/devices.c:3371 src/nmcli/devices.c:3675
-#: src/nmcli/devices.c:3686 src/nmcli/devices.c:3705 src/nmcli/devices.c:3714
-#: src/nmcli/devices.c:3736 src/nmcli/devices.c:3747 src/nmcli/devices.c:3768
-#: src/nmcli/devices.c:4332 src/nmcli/devices.c:4343 src/nmcli/devices.c:4352
-#: src/nmcli/devices.c:4366 src/nmcli/devices.c:4384 src/nmcli/devices.c:4393
-#: src/nmcli/devices.c:4549 src/nmcli/devices.c:4560 src/nmcli/devices.c:4779
-#: src/nmcli/devices.c:4958 src/nmcli/devices.c:5179
+#: src/nmcli/connections.c:9662 src/nmcli/devices.c:3343
+#: src/nmcli/devices.c:3356 src/nmcli/devices.c:3368 src/nmcli/devices.c:3672
+#: src/nmcli/devices.c:3683 src/nmcli/devices.c:3702 src/nmcli/devices.c:3711
+#: src/nmcli/devices.c:3733 src/nmcli/devices.c:3744 src/nmcli/devices.c:3765
+#: src/nmcli/devices.c:4329 src/nmcli/devices.c:4340 src/nmcli/devices.c:4349
+#: src/nmcli/devices.c:4363 src/nmcli/devices.c:4381 src/nmcli/devices.c:4390
+#: src/nmcli/devices.c:4546 src/nmcli/devices.c:4557 src/nmcli/devices.c:4776
+#: src/nmcli/devices.c:4955 src/nmcli/devices.c:5176
 #, c-format
 msgid "Error: %s argument is missing."
 msgstr ""
@@ -9436,14 +9436,14 @@ msgstr ""
 #: src/nmcli/connections.c:2559 src/nmcli/connections.c:3139
 #: src/nmcli/connections.c:3213 src/nmcli/connections.c:9146
 #: src/nmcli/connections.c:9230 src/nmcli/connections.c:9769
-#: src/nmcli/devices.c:2010 src/nmcli/devices.c:2286 src/nmcli/devices.c:2453
-#: src/nmcli/devices.c:2579 src/nmcli/devices.c:2763 src/nmcli/devices.c:3546
-#: src/nmcli/devices.c:4513 src/nmcli/devices.c:4965 src/nmcli/general.c:1068
+#: src/nmcli/devices.c:2007 src/nmcli/devices.c:2283 src/nmcli/devices.c:2450
+#: src/nmcli/devices.c:2576 src/nmcli/devices.c:2760 src/nmcli/devices.c:3543
+#: src/nmcli/devices.c:4510 src/nmcli/devices.c:4962 src/nmcli/general.c:1068
 #, c-format
 msgid "Error: %s."
 msgstr ""
 
-#: src/nmcli/connections.c:2651 src/nmcli/devices.c:4732
+#: src/nmcli/connections.c:2651 src/nmcli/devices.c:4729
 #, c-format
 msgid "no active connection on device '%s'"
 msgstr ""
@@ -9518,10 +9518,10 @@ msgid "invalid passwd-file '%s': %s"
 msgstr ""
 
 #: src/nmcli/connections.c:3187 src/nmcli/connections.c:9673
-#: src/nmcli/devices.c:1967 src/nmcli/devices.c:2016 src/nmcli/devices.c:2459
-#: src/nmcli/devices.c:2651 src/nmcli/devices.c:2718 src/nmcli/devices.c:2918
-#: src/nmcli/devices.c:3406 src/nmcli/devices.c:3784 src/nmcli/devices.c:4403
-#: src/nmcli/devices.c:4566 src/nmcli/devices.c:4787 src/nmcli/devices.c:4970
+#: src/nmcli/devices.c:1964 src/nmcli/devices.c:2013 src/nmcli/devices.c:2456
+#: src/nmcli/devices.c:2648 src/nmcli/devices.c:2715 src/nmcli/devices.c:2915
+#: src/nmcli/devices.c:3403 src/nmcli/devices.c:3781 src/nmcli/devices.c:4400
+#: src/nmcli/devices.c:4563 src/nmcli/devices.c:4784 src/nmcli/devices.c:4967
 #, c-format
 msgid "Error: invalid extra argument '%s'."
 msgstr ""
@@ -9645,7 +9645,7 @@ msgstr ""
 msgid "Error: invalid <setting>.<property> '%s'."
 msgstr ""
 
-#: src/nmcli/connections.c:5429 src/nmcli/devices.c:2185
+#: src/nmcli/connections.c:5429 src/nmcli/devices.c:2182
 #, c-format
 msgid "Warning: %s.\n"
 msgstr ""
@@ -10479,7 +10479,7 @@ msgstr ""
 msgid "Interface(s): "
 msgstr ""
 
-#: src/nmcli/devices.c:71 src/nmcli/devices.c:1442
+#: src/nmcli/devices.c:71 src/nmcli/devices.c:1439
 msgid "(none)"
 msgstr ""
 
@@ -10754,399 +10754,399 @@ msgstr ""
 msgid "Error: Device '%s' not found.\n"
 msgstr ""
 
-#: src/nmcli/devices.c:1184 src/nmcli/devices.c:5203
+#: src/nmcli/devices.c:1184 src/nmcli/devices.c:5200
 msgid "Error: not all devices found."
 msgstr ""
 
-#: src/nmcli/devices.c:1216
+#: src/nmcli/devices.c:1213
 msgid "No interface specified"
 msgstr ""
 
-#: src/nmcli/devices.c:1237
+#: src/nmcli/devices.c:1234
 #, c-format
 msgid "Device '%s' not found"
 msgstr ""
 
-#: src/nmcli/devices.c:1349
+#: src/nmcli/devices.c:1346
 #, c-format
 msgid "%u MHz"
 msgstr ""
 
-#: src/nmcli/devices.c:1350
+#: src/nmcli/devices.c:1347
 #, c-format
 msgid "%u Mbit/s"
 msgstr ""
 
-#: src/nmcli/devices.c:1395
+#: src/nmcli/devices.c:1392
 msgid "Ad-Hoc"
 msgstr ""
 
-#: src/nmcli/devices.c:1396
+#: src/nmcli/devices.c:1393
 msgid "Infra"
 msgstr ""
 
-#: src/nmcli/devices.c:1398
+#: src/nmcli/devices.c:1395
 msgid "N/A"
 msgstr ""
 
-#: src/nmcli/devices.c:1590
+#: src/nmcli/devices.c:1587
 msgid "Device details"
 msgstr ""
 
-#: src/nmcli/devices.c:1607
+#: src/nmcli/devices.c:1604
 #, c-format
 msgid "Error: 'device show': %s"
 msgstr ""
 
-#: src/nmcli/devices.c:1984
+#: src/nmcli/devices.c:1981
 msgid "Status of devices"
 msgstr ""
 
-#: src/nmcli/devices.c:1988
+#: src/nmcli/devices.c:1985
 #, c-format
 msgid "Error: 'device status': %s"
 msgstr ""
 
-#: src/nmcli/devices.c:2051 src/nmcli/general.c:527
+#: src/nmcli/devices.c:2048 src/nmcli/general.c:527
 #, c-format
 msgid "Error: Timeout %d sec expired."
 msgstr ""
 
-#: src/nmcli/devices.c:2126
+#: src/nmcli/devices.c:2123
 #, c-format
 msgid "Device '%s' successfully activated with '%s'.\n"
 msgstr ""
 
-#: src/nmcli/devices.c:2132
+#: src/nmcli/devices.c:2129
 msgid ""
 "Hint: \"nmcli dev wifi show-password\" shows the Wi-Fi name and password.\n"
 msgstr ""
 
-#: src/nmcli/devices.c:2135
+#: src/nmcli/devices.c:2132
 #, c-format
 msgid "Error: Connection activation failed: (%d) %s.\n"
 msgstr ""
 
-#: src/nmcli/devices.c:2166
+#: src/nmcli/devices.c:2163
 #, c-format
 msgid "Error: Failed to setup a Wi-Fi hotspot: %s"
 msgstr ""
 
-#: src/nmcli/devices.c:2170
+#: src/nmcli/devices.c:2167
 #, c-format
 msgid "Error: Failed to add/activate new connection: %s"
 msgstr ""
 
-#: src/nmcli/devices.c:2174
+#: src/nmcli/devices.c:2171
 #, c-format
 msgid "Error: Failed to activate connection: %s"
 msgstr ""
 
-#: src/nmcli/devices.c:2242
+#: src/nmcli/devices.c:2239
 #, c-format
 msgid "Error: Device activation failed: %s"
 msgstr ""
 
-#: src/nmcli/devices.c:2292
+#: src/nmcli/devices.c:2289
 #, c-format
 msgid "Error: extra argument not allowed: '%s'."
 msgstr ""
 
-#: src/nmcli/devices.c:2361 src/nmcli/devices.c:2374 src/nmcli/devices.c:2629
+#: src/nmcli/devices.c:2358 src/nmcli/devices.c:2371 src/nmcli/devices.c:2626
 #, c-format
 msgid "Device '%s' successfully disconnected.\n"
 msgstr ""
 
-#: src/nmcli/devices.c:2363 src/nmcli/devices.c:2699
+#: src/nmcli/devices.c:2360 src/nmcli/devices.c:2696
 #, c-format
 msgid "Device '%s' successfully removed.\n"
 msgstr ""
 
-#: src/nmcli/devices.c:2423 src/nmcli/devices.c:2505
+#: src/nmcli/devices.c:2420 src/nmcli/devices.c:2502
 #, c-format
 msgid "Error: Reapplying connection to device '%s' (%s) failed: %s"
 msgstr ""
 
-#: src/nmcli/devices.c:2433 src/nmcli/devices.c:2514
+#: src/nmcli/devices.c:2430 src/nmcli/devices.c:2511
 #, c-format
 msgid "Connection successfully reapplied to device '%s'.\n"
 msgstr ""
 
-#: src/nmcli/devices.c:2536
+#: src/nmcli/devices.c:2533
 #, c-format
 msgid "Error: Reading applied connection from device '%s' (%s) failed: %s"
 msgstr ""
 
-#: src/nmcli/devices.c:2613
+#: src/nmcli/devices.c:2610
 msgid "Error: not all devices disconnected."
 msgstr ""
 
-#: src/nmcli/devices.c:2614
+#: src/nmcli/devices.c:2611
 #, c-format
 msgid "Error: Device '%s' (%s) disconnecting failed: %s\n"
 msgstr ""
 
-#: src/nmcli/devices.c:2690
+#: src/nmcli/devices.c:2687
 msgid "Error: not all devices deleted."
 msgstr ""
 
-#: src/nmcli/devices.c:2691
+#: src/nmcli/devices.c:2688
 #, c-format
 msgid "Error: Device '%s' (%s) deletion failed: %s\n"
 msgstr ""
 
-#: src/nmcli/devices.c:2769
+#: src/nmcli/devices.c:2766
 msgid "Error: No property specified."
 msgstr ""
 
-#: src/nmcli/devices.c:2786 src/nmcli/devices.c:2805 src/nmcli/general.c:797
+#: src/nmcli/devices.c:2783 src/nmcli/devices.c:2802 src/nmcli/general.c:797
 #: src/nmcli/general.c:819
 #, c-format
 msgid "Error: '%s' argument is missing."
 msgstr ""
 
-#: src/nmcli/devices.c:2794
+#: src/nmcli/devices.c:2791
 #, c-format
 msgid "Error: 'managed': %s."
 msgstr ""
 
-#: src/nmcli/devices.c:2813
+#: src/nmcli/devices.c:2810
 #, c-format
 msgid "Error: 'autoconnect': %s."
 msgstr ""
 
-#: src/nmcli/devices.c:2820 src/nmcli/general.c:869
+#: src/nmcli/devices.c:2817 src/nmcli/general.c:869
 #, c-format
 msgid "Error: property '%s' is not known."
 msgstr ""
 
-#: src/nmcli/devices.c:2867
+#: src/nmcli/devices.c:2864
 #, c-format
 msgid "%s: using connection '%s'\n"
 msgstr ""
 
-#: src/nmcli/devices.c:2893
+#: src/nmcli/devices.c:2890
 #, c-format
 msgid "%s: device created\n"
 msgstr ""
 
-#: src/nmcli/devices.c:2900
+#: src/nmcli/devices.c:2897
 #, c-format
 msgid "%s: device removed\n"
 msgstr ""
 
-#: src/nmcli/devices.c:3080
+#: src/nmcli/devices.c:3077
 msgid "Wi-Fi scan list"
 msgstr ""
 
-#: src/nmcli/devices.c:3197 src/nmcli/devices.c:3478
+#: src/nmcli/devices.c:3194 src/nmcli/devices.c:3475
 #, c-format
 msgid "Error: Access point with bssid '%s' not found."
 msgstr ""
 
-#: src/nmcli/devices.c:3399
+#: src/nmcli/devices.c:3396
 #, c-format
 msgid "Error: 'device wifi': %s"
 msgstr ""
 
-#: src/nmcli/devices.c:3419
+#: src/nmcli/devices.c:3416
 #, c-format
 msgid "Error: invalid rescan argument: '%s' not among [auto, no, yes]"
 msgstr ""
 
-#: src/nmcli/devices.c:3458
+#: src/nmcli/devices.c:3455
 #, c-format
 msgid "Error: Device '%s' not found."
 msgstr ""
 
-#: src/nmcli/devices.c:3462
+#: src/nmcli/devices.c:3459
 #, c-format
 msgid ""
 "Error: Device '%s' was not recognized as a Wi-Fi device, check "
 "NetworkManager Wi-Fi plugin."
 msgstr ""
 
-#: src/nmcli/devices.c:3467 src/nmcli/devices.c:3819 src/nmcli/devices.c:4448
-#: src/nmcli/devices.c:4583 src/nmcli/devices.c:4718
+#: src/nmcli/devices.c:3464 src/nmcli/devices.c:3816 src/nmcli/devices.c:4445
+#: src/nmcli/devices.c:4580 src/nmcli/devices.c:4715
 #, c-format
 msgid "Error: Device '%s' is not a Wi-Fi device."
 msgstr ""
 
-#: src/nmcli/devices.c:3647
+#: src/nmcli/devices.c:3644
 msgid "SSID or BSSID: "
 msgstr ""
 
-#: src/nmcli/devices.c:3652
+#: src/nmcli/devices.c:3649
 msgid "Error: SSID or BSSID are missing."
 msgstr ""
 
-#: src/nmcli/devices.c:3696
+#: src/nmcli/devices.c:3693
 #, c-format
 msgid "Error: bssid argument value '%s' is not a valid BSSID."
 msgstr ""
 
-#: src/nmcli/devices.c:3727
+#: src/nmcli/devices.c:3724
 #, c-format
 msgid ""
 "Error: wep-key-type argument value '%s' is invalid, use 'key' or 'phrase'."
 msgstr ""
 
-#: src/nmcli/devices.c:3755 src/nmcli/devices.c:3776
+#: src/nmcli/devices.c:3752 src/nmcli/devices.c:3773
 #, c-format
 msgid "Error: %s: %s."
 msgstr ""
 
-#: src/nmcli/devices.c:3798
+#: src/nmcli/devices.c:3795
 #, c-format
 msgid "Error: BSSID to connect to (%s) differs from bssid argument (%s)."
 msgstr ""
 
-#: src/nmcli/devices.c:3806
+#: src/nmcli/devices.c:3803
 #, c-format
 msgid "Error: Parameter '%s' is neither SSID nor BSSID."
 msgstr ""
 
-#: src/nmcli/devices.c:3822 src/nmcli/devices.c:4451 src/nmcli/devices.c:4586
-#: src/nmcli/devices.c:4818
+#: src/nmcli/devices.c:3819 src/nmcli/devices.c:4448 src/nmcli/devices.c:4583
+#: src/nmcli/devices.c:4815
 msgid "Error: No Wi-Fi device found."
 msgstr ""
 
-#: src/nmcli/devices.c:3844
+#: src/nmcli/devices.c:3841
 #, c-format
 msgid "Error: Failed to scan hidden SSID: %s."
 msgstr ""
 
-#: src/nmcli/devices.c:3876
+#: src/nmcli/devices.c:3873
 #, c-format
 msgid "Error: No network with SSID '%s' found."
 msgstr ""
 
-#: src/nmcli/devices.c:3880
+#: src/nmcli/devices.c:3877
 #, c-format
 msgid "Error: No access point with BSSID '%s' found."
 msgstr ""
 
-#: src/nmcli/devices.c:3909
+#: src/nmcli/devices.c:3906
 #, c-format
 msgid "Error: Connection '%s' exists but properties don't match."
 msgstr ""
 
-#: src/nmcli/devices.c:3958
+#: src/nmcli/devices.c:3955
 #, c-format
 msgid ""
 "Warning: '%s' should be SSID for hidden APs; but it looks like a BSSID.\n"
 msgstr ""
 
-#: src/nmcli/devices.c:4000
+#: src/nmcli/devices.c:3997
 msgid "Password: "
 msgstr ""
 
-#: src/nmcli/devices.c:4138
+#: src/nmcli/devices.c:4135
 #, c-format
 msgid "'%s' is not valid WPA PSK"
 msgstr ""
 
-#: src/nmcli/devices.c:4159
+#: src/nmcli/devices.c:4156
 #, c-format
 msgid "'%s' is not valid WEP key (it should be 5 or 13 ASCII chars)"
 msgstr ""
 
-#: src/nmcli/devices.c:4178
+#: src/nmcli/devices.c:4175
 #, c-format
 msgid "Hotspot password: %s\n"
 msgstr ""
 
-#: src/nmcli/devices.c:4357
+#: src/nmcli/devices.c:4354
 msgid "Error: ssid is too long."
 msgstr ""
 
-#: src/nmcli/devices.c:4375
+#: src/nmcli/devices.c:4372
 #, c-format
 msgid "Error: band argument value '%s' is invalid; use 'a' or 'bg'."
 msgstr ""
 
-#: src/nmcli/devices.c:4426
+#: src/nmcli/devices.c:4423
 msgid "Error: channel requires band too."
 msgstr ""
 
-#: src/nmcli/devices.c:4433
+#: src/nmcli/devices.c:4430
 #, c-format
 msgid "Error: channel '%s' not valid for band '%s'."
 msgstr ""
 
-#: src/nmcli/devices.c:4464
+#: src/nmcli/devices.c:4461
 #, c-format
 msgid "Error: Device '%s' supports neither AP nor Ad-Hoc mode."
 msgstr ""
 
-#: src/nmcli/devices.c:4491
+#: src/nmcli/devices.c:4488
 #, c-format
 msgid "Error: Invalid 'password': %s."
 msgstr ""
 
-#: src/nmcli/devices.c:4542 src/nmcli/devices.c:4772
+#: src/nmcli/devices.c:4539 src/nmcli/devices.c:4769
 #, c-format
 msgid "Error: '%s' cannot repeat."
 msgstr ""
 
-#: src/nmcli/devices.c:4677 src/nmcli/devices.c:4680 src/nmcli/devices.c:4684
-#: src/nmcli/devices.c:4687 src/nmtui/nmt-page-wifi.c:253
+#: src/nmcli/devices.c:4674 src/nmcli/devices.c:4677 src/nmcli/devices.c:4681
+#: src/nmcli/devices.c:4684 src/nmtui/nmt-page-wifi.c:253
 msgid "Security"
 msgstr ""
 
-#: src/nmcli/devices.c:4677
+#: src/nmcli/devices.c:4674
 msgid "None"
 msgstr ""
 
-#: src/nmcli/devices.c:4806
+#: src/nmcli/devices.c:4803
 #, c-format
 msgid "%s"
 msgstr ""
 
 #. Main header name
-#: src/nmcli/devices.c:4859
+#: src/nmcli/devices.c:4856
 msgid "Device LLDP neighbors"
 msgstr ""
 
-#: src/nmcli/devices.c:4992
+#: src/nmcli/devices.c:4989
 #, c-format
 msgid "Error: 'device lldp list': %s"
 msgstr ""
 
-#: src/nmcli/devices.c:5060
+#: src/nmcli/devices.c:5057
 msgid "Checkpoint was removed."
 msgstr ""
 
 #. The command is done, we're in the confirmation prompt.
-#: src/nmcli/devices.c:5067
+#: src/nmcli/devices.c:5064
 msgid "No"
 msgstr ""
 
-#: src/nmcli/devices.c:5080
+#: src/nmcli/devices.c:5077
 #, c-format
 msgid "Error: Destroying a checkpoint failed: %s"
 msgstr ""
 
-#: src/nmcli/devices.c:5102 src/nmcli/devices.c:5103
+#: src/nmcli/devices.c:5099 src/nmcli/devices.c:5100
 msgid "Yes"
 msgstr ""
 
-#: src/nmcli/devices.c:5129
+#: src/nmcli/devices.c:5126
 #, c-format
 msgid "Error: Creating a checkpoint failed: %s"
 msgstr ""
 
-#: src/nmcli/devices.c:5145
+#: src/nmcli/devices.c:5142
 #, c-format
 msgid "Error: %s"
 msgstr ""
 
-#: src/nmcli/devices.c:5184 src/nmcli/nmcli.c:885
+#: src/nmcli/devices.c:5181 src/nmcli/nmcli.c:885
 #, c-format
 msgid "Error: '%s' is not a valid timeout."
 msgstr ""
 
-#: src/nmcli/devices.c:5211
+#: src/nmcli/devices.c:5208
 msgid "Error: Expected a command to run after '--'"
 msgstr ""
 
@@ -11938,7 +11938,7 @@ msgstr ""
 msgid "WireGuard connection %d"
 msgstr ""
 
-#: src/nmtui/nmt-device-entry.c:348
+#: src/nmtui/nmt-device-entry.c:350
 msgid "Select..."
 msgstr ""
 

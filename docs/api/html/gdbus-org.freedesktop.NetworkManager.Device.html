@@ -129,6 +129,10 @@ Reapply can make the applied-connection different from the
 settings-connection, just like updating the settings-connection can make
 them different.
 </p>
+<p>
+Since 1.42, 1.40.10, "preserve-external-ip" flag (0x1) is supported to not
+remove externally added IP addresses and routes on the device during reapply.
+</p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
 <col align="left" valign="top">
@@ -150,7 +154,7 @@ If non-zero, the current version id of the applied-connection must match. The cu
 <tr>
 <td><p><span class="term"><code class="literal">IN u <em class="parameter"><code>flags</code></em></code>:</span></p></td>
 <td><p>
-Flags which would modify the behavior of the Reapply call. There are no flags defined currently and the users should use the value of 0.
+Flags which would modify the behavior of the Reapply call. Invalid flags are rejected.
 </p></td>
 </tr>
 </tbody>

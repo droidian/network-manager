@@ -722,6 +722,7 @@ NMSettingsConnectionFlags
 NMActivationStateFlags
 NMSettingsAddConnection2Flags
 NMSettingsUpdate2Flags
+NMDeviceReapplyFlags
 NMTernary
 NMManagerReloadFlags
 NMDeviceInterfaceFlags

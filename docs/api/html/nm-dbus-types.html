@@ -3071,7 +3071,7 @@
 <hr>
 <div class="refsect2">
 <a name="NMMetered"></a><h3>enum NMMetered</h3>
-<p>The NMMetered enum has two different purposes: one is to configure "connection.metered" setting of a connection profile in NMSettingConnection, and the other is to express the actual metered state of the NMDevice at a given moment.</p>
+<p>The NMMetered enum has two different purposes: one is to configure "connection.metered" setting of a connection profile in NMSettingConnection, and the other is to express the actual metered state of the <a href="/usr/share/gtk-doc/html/libnm/NMDevice.html#NMDevice-struct">NMDevice</a> at a given moment.</p>
 <p>For the connection profile only NM_METERED_UNKNOWN, NM_METERED_NO and NM_METERED_YES are allowed.</p>
 <p>The device's metered state at runtime is determined by the profile which is currently active. If the profile explicitly specifies NM_METERED_NO or NM_METERED_YES, then the device's metered state is as such. If the connection profile leaves it undecided at NM_METERED_UNKNOWN (the default), then NetworkManager tries to guess the metered state, for example based on the device type or on DHCP options (like Android devices exposing a "ANDROID_METERED" DHCP vendor option). This then leads to either NM_METERED_GUESS_NO or NM_METERED_GUESS_YES.</p>
 <p>Most applications probably should treat the runtime state NM_METERED_GUESS_YES like NM_METERED_YES, and all other states as not metered.</p>
@@ -4619,12 +4619,63 @@
 </div>
 <hr>
 <div class="refsect2">
+<a name="NMDeviceReapplyFlags"></a><h3>enum NMDeviceReapplyFlags</h3>
+<p>Flags for the Reapply() D-Bus call of a device and nm_device_reapply_async().</p>
+<p>Since: 1.42, 1.40.10</p>
+<p>On 1.40.10+, no GFlags type is created.</p>
+<p></p>
+<div class="refsect3">
+<a name="id-1.4.17.2.30.4"></a><h4>Values</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="300px" class="enum_members_name">
+<col width="100px" class="enum_members_value">
+<col class="enum_members_description">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td class="enum_member_name">
+<p>NM_DEVICE_REAPPLY_FLAGS_NONE</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">0</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>no flag set.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_DEVICE_REAPPLY_FLAGS_PRESERVE_EXTERNAL_IP</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">0x1</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>during reapply, preserve external IP addresses and routes.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
 <a name="NMTernary"></a><h3>enum NMTernary</h3>
 <p>An boolean value that can be overridden by a default.</p>
 <p>Since: 1.14</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.17.2.30.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.31.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -4689,7 +4740,7 @@
 <p>Since: 1.22</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.17.2.31.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.32.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -4784,7 +4835,7 @@
 <p>Since: 1.22</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.17.2.32.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.33.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -4893,7 +4944,7 @@
 <p><a class="link" href="nm-dbus-types.html#NMClientPermission" title="enum NMClientPermission">NMClientPermission</a> values indicate various permissions that NetworkManager clients can obtain to perform certain tasks on behalf of the current user.</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.17.2.33.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.34.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -5182,7 +5233,7 @@
 <p><a class="link" href="nm-dbus-types.html#NMClientPermissionResult" title="enum NMClientPermissionResult">NMClientPermissionResult</a> values indicate what authorizations and permissions the user requires to obtain a given <a class="link" href="nm-dbus-types.html#NMClientPermission" title="enum NMClientPermission">NMClientPermission</a></p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.17.2.34.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.35.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -5262,7 +5313,7 @@
 <p>Since: 1.38</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.17.2.35.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.36.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -5326,7 +5377,7 @@
 <p>Since: 1.40</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.17.2.36.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.37.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">

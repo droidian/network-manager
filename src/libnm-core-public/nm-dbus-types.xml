@@ -1908,6 +1908,36 @@
     </refsect3>
   </refsect2>
 
+  <refsect2 id="NMDeviceReapplyFlags" role="enum">
+    <title>enum NMDeviceReapplyFlags</title>
+    <indexterm zone="NMDeviceReapplyFlags">
+      <primary>NMDeviceReapplyFlags</primary>
+    </indexterm>
+    <para><para>Flags for the Reapply() D-Bus call of a device and nm_device_reapply_async().</para><para>Since: 1.42, 1.40.10</para><para>On 1.40.10+, no GFlags type is created.</para><para></para></para>
+    <refsect3 role="enum_members">
+      <title>Values</title>
+      <informaltable role="enum_members_table" pgwide="1" frame="none">
+        <tgroup cols="4">
+          <colspec colname="enum_members_name" colwidth="300px" />
+          <colspec colname="enum_members_value" colwidth="100px"/>
+          <colspec colname="enum_members_description" />
+          <tbody>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_REAPPLY_FLAGS_NONE</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>no flag set.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_REAPPLY_FLAGS_PRESERVE_EXTERNAL_IP</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x1</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>during reapply, preserve external IP addresses and routes.</para><para></para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+    </refsect3>
+  </refsect2>
+
   <refsect2 id="NMTernary" role="enum">
     <title>enum NMTernary</title>
     <indexterm zone="NMTernary">

@@ -100,6 +100,9 @@ that the user made these changes intentionally outside of NetworkManager).
 Reapply can make the applied-connection different from the
 settings-connection, just like updating the settings-connection can make
 them different.
+</para><para>
+Since 1.42, 1.40.10, "preserve-external-ip" flag (0x1) is supported to not
+remove externally added IP addresses and routes on the device during reapply.
 </para>
 <variablelist role="params">
 <varlistentry>
@@ -117,7 +120,7 @@ If non-zero, the current version id of the applied-connection must match. The cu
 <varlistentry>
   <term><literal>IN u <parameter>flags</parameter></literal>:</term>
   <listitem><para>
-Flags which would modify the behavior of the Reapply call. There are no flags defined currently and the users should use the value of 0.
+Flags which would modify the behavior of the Reapply call. Invalid flags are rejected.
 </para></listitem>
 </varlistentry>
 </variablelist>

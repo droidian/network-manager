@@ -490,6 +490,10 @@
 </tr>
 <tr>
 <td class="datatype_keyword">enum</td>
+<td class="function_name"><a class="link" href="libnm-nm-dbus-interface.html#NMDeviceReapplyFlags" title="enum NMDeviceReapplyFlags">NMDeviceReapplyFlags</a></td>
+</tr>
+<tr>
+<td class="datatype_keyword">enum</td>
 <td class="function_name"><a class="link" href="libnm-nm-dbus-interface.html#NMTernary" title="enum NMTernary">NMTernary</a></td>
 </tr>
 <tr>
@@ -3668,6 +3672,40 @@ the profile. Since: 1.20.</p>
 </table></div>
 </div>
 <p class="since">Since: 1.12</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMDeviceReapplyFlags"></a><h3>enum NMDeviceReapplyFlags</h3>
+<p>Flags for the <code class="function">Reapply()</code> D-Bus call of a device and
+<a class="link" href="NMDevice.html#nm-device-reapply-async" title="nm_device_reapply_async ()"><code class="function">nm_device_reapply_async()</code></a>.</p>
+<div class="refsect3">
+<a name="NMDeviceReapplyFlags.members"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="300px" class="enum_members_name">
+<col class="enum_members_description">
+<col width="200px" class="enum_members_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="enum_member_name"><p><a name="NM-DEVICE-REAPPLY-FLAGS-NONE:CAPS"></a>NM_DEVICE_REAPPLY_FLAGS_NONE</p></td>
+<td class="enum_member_description">
+<p>no flag set.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-DEVICE-REAPPLY-FLAGS-PRESERVE-EXTERNAL-IP:CAPS"></a>NM_DEVICE_REAPPLY_FLAGS_PRESERVE_EXTERNAL_IP</p></td>
+<td class="enum_member_description">
+<p>during reapply,
+preserve external IP addresses and routes.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p class="since">Since: 1.42, 1.40.10</p>
 </div>
 <hr>
 <div class="refsect2">

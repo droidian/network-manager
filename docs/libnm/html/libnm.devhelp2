@@ -494,6 +494,7 @@
     <keyword type="enum" name="enum NMActivationStateFlags" link="libnm-nm-dbus-interface.html#NMActivationStateFlags" since="1.10"/>
     <keyword type="enum" name="enum NMSettingsAddConnection2Flags" link="libnm-nm-dbus-interface.html#NMSettingsAddConnection2Flags" since="1.20"/>
     <keyword type="enum" name="enum NMSettingsUpdate2Flags" link="libnm-nm-dbus-interface.html#NMSettingsUpdate2Flags" since="1.12"/>
+    <keyword type="enum" name="enum NMDeviceReapplyFlags" link="libnm-nm-dbus-interface.html#NMDeviceReapplyFlags" since="1.42, 1.40.10"/>
     <keyword type="enum" name="enum NMTernary" link="libnm-nm-dbus-interface.html#NMTernary" since="1.14"/>
     <keyword type="enum" name="enum NMManagerReloadFlags" link="libnm-nm-dbus-interface.html#NMManagerReloadFlags" since="1.22"/>
     <keyword type="enum" name="enum NMDeviceInterfaceFlags" link="libnm-nm-dbus-interface.html#NMDeviceInterfaceFlags" since="1.22"/>
@@ -3485,6 +3486,8 @@
     <keyword type="constant" name="NM_SETTINGS_UPDATE2_FLAG_VOLATILE" link="libnm-nm-dbus-interface.html#NM-SETTINGS-UPDATE2-FLAG-VOLATILE:CAPS"/>
     <keyword type="constant" name="NM_SETTINGS_UPDATE2_FLAG_BLOCK_AUTOCONNECT" link="libnm-nm-dbus-interface.html#NM-SETTINGS-UPDATE2-FLAG-BLOCK-AUTOCONNECT:CAPS"/>
     <keyword type="constant" name="NM_SETTINGS_UPDATE2_FLAG_NO_REAPPLY" link="libnm-nm-dbus-interface.html#NM-SETTINGS-UPDATE2-FLAG-NO-REAPPLY:CAPS"/>
+    <keyword type="constant" name="NM_DEVICE_REAPPLY_FLAGS_NONE" link="libnm-nm-dbus-interface.html#NM-DEVICE-REAPPLY-FLAGS-NONE:CAPS"/>
+    <keyword type="constant" name="NM_DEVICE_REAPPLY_FLAGS_PRESERVE_EXTERNAL_IP" link="libnm-nm-dbus-interface.html#NM-DEVICE-REAPPLY-FLAGS-PRESERVE-EXTERNAL-IP:CAPS"/>
     <keyword type="constant" name="NM_TERNARY_DEFAULT" link="libnm-nm-dbus-interface.html#NM-TERNARY-DEFAULT:CAPS"/>
     <keyword type="constant" name="NM_TERNARY_FALSE" link="libnm-nm-dbus-interface.html#NM-TERNARY-FALSE:CAPS"/>
     <keyword type="constant" name="NM_TERNARY_TRUE" link="libnm-nm-dbus-interface.html#NM-TERNARY-TRUE:CAPS"/>
