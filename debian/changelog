@@ -1,3 +1,9 @@
+network-manager (1.40.12-1) unstable; urgency=medium
+
+  * New upstream version 1.40.12
+
+ -- Michael Biebl <biebl@debian.org>  Thu, 26 Jan 2023 21:54:37 +0100
+
 network-manager (1.40.10-1ubuntu1) lunar; urgency=medium
 
   * Resynchronize on Debian, remaining changes:
