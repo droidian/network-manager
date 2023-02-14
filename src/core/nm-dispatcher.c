@@ -8,6 +8,7 @@
 
 #include "nm-dispatcher.h"
 
+#include "libnm-glib-aux/nm-dbus-aux.h"
 #include "libnm-core-aux-extern/nm-dispatcher-api.h"
 #include "NetworkManagerUtils.h"
 #include "nm-utils.h"
@@ -179,7 +180,6 @@ dump_ip_to_props(const NML3ConfigData *l3cd, int addr_family, GVariantBuilder *b
     const NMPObject   *default_route;
     const char *const *strarr;
     const in_addr_t   *ip4arr;
-    gconstpointer      iparr;
 
     if (IS_IPv4)
         g_variant_builder_init(&int_builder, G_VARIANT_TYPE("aau"));
@@ -223,14 +223,17 @@ dump_ip_to_props(const NML3ConfigData *l3cd, int addr_family, GVariantBuilder *b
         g_variant_builder_init(&int_builder, G_VARIANT_TYPE("au"));
     else
         g_variant_builder_init(&int_builder, G_VARIANT_TYPE("aay"));
-    iparr = nm_l3_config_data_get_nameservers(l3cd, addr_family, &n);
+    strarr = nm_l3_config_data_get_nameservers(l3cd, addr_family, &n);
     for (i = 0; i < n; i++) {
+        NMIPAddr a;
+
+        if (!nm_utils_dnsname_parse_assert(addr_family, strarr[i], NULL, &a, NULL))
+            continue;
+
         if (IS_IPv4)
-            g_variant_builder_add(&int_builder, "u", ((const in_addr_t *) iparr)[i]);
-        else {
-            var1 = nm_g_variant_new_ay_in6addr(&(((const struct in6_addr *) iparr)[i]));
-            g_variant_builder_add(&int_builder, "@ay", var1);
-        }
+            g_variant_builder_add(&int_builder, "u", &a);
+        else
+            g_variant_builder_add(&int_builder, "@ay", nm_g_variant_new_ay_in6addr(&a.addr6));
     }
     g_variant_builder_add(builder, "{sv}", "nameservers", g_variant_builder_end(&int_builder));
 
@@ -426,7 +429,7 @@ dispatcher_done_cb(GObject *source, GAsyncResult *result, gpointer user_data)
     if (!ret) {
         NMLogLevel log_level = LOGL_DEBUG;
 
-        if (_nm_dbus_error_has_name(error, "org.freedesktop.systemd1.LoadFailed")) {
+        if (nm_dbus_error_is(error, "org.freedesktop.systemd1.LoadFailed")) {
             g_dbus_error_strip_remote_error(error);
             log_level = LOGL_WARN;
         }
@@ -465,7 +468,8 @@ static const char *action_table[] = {[NM_DISPATCHER_ACTION_HOSTNAME]      = NMD_
                                      [NM_DISPATCHER_ACTION_DHCP_CHANGE_4] = NMD_ACTION_DHCP4_CHANGE,
                                      [NM_DISPATCHER_ACTION_DHCP_CHANGE_6] = NMD_ACTION_DHCP6_CHANGE,
                                      [NM_DISPATCHER_ACTION_CONNECTIVITY_CHANGE] =
-                                         NMD_ACTION_CONNECTIVITY_CHANGE};
+                                         NMD_ACTION_CONNECTIVITY_CHANGE,
+                                     [NM_DISPATCHER_ACTION_REAPPLY] = NMD_ACTION_REAPPLY};
 
 static const char *
 action_to_string(NMDispatcherAction action)

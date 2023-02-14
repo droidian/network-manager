@@ -6,8 +6,8 @@
 <meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
 <link rel="home" href="index.html" title="libnm Reference Manual">
 <link rel="up" href="ch05.html" title="Utility API Reference">
-<link rel="prev" href="libnm-nm-utils.html" title="nm-utils">
-<link rel="next" href="ch06.html" title="VPN Plugin API Reference">
+<link rel="prev" href="libnm-nm-ethtool-utils.html" title="nm-ethtool-utils">
+<link rel="next" href="libnm-nm-version-macros.html" title="nm-version-macros">
 <meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
@@ -19,8 +19,8 @@
 </td>
 <td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
 <td><a accesskey="u" href="ch05.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
-<td><a accesskey="p" href="libnm-nm-utils.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
-<td><a accesskey="n" href="ch06.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+<td><a accesskey="p" href="libnm-nm-ethtool-utils.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="libnm-nm-version-macros.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
 </tr></table>
 <div class="refentry">
 <a name="libnm-nm-version"></a><div class="titlepage"></div>
@@ -72,7 +72,7 @@
 <tr>
 <td class="define_keyword">#define</td>
 <td class="function_name">
-<a class="link" href="libnm-nm-version.html#NM-DEPRECATED-IN-1-8-FOR:CAPS" title="NM_DEPRECATED_IN_1_8_FOR()">NM_DEPRECATED_IN_1_8_FOR</a><span class="c_punctuation">()</span>
+<a class="link" href="libnm-nm-vpn-dbus-interface.html#NM-DEPRECATED-IN-1-8-FOR:CAPS" title="NM_DEPRECATED_IN_1_8_FOR()">NM_DEPRECATED_IN_1_8_FOR</a><span class="c_punctuation">()</span>
 </td>
 </tr>
 <tr>
@@ -118,11 +118,9 @@
 </td>
 </tr>
 <tr>
-<td class="function_type">
-<span class="returnvalue">0</span>
-</td>
+<td class="define_keyword">#define</td>
 <td class="function_name">
-<a class="link" href="NMDeviceDummy.html#NM-DEPRECATED-IN-1-24-FOR:CAPS" title="NM_DEPRECATED_IN_1_24_FOR ()">NM_DEPRECATED_IN_1_24_FOR</a> <span class="c_punctuation">()</span>
+<a class="link" href="libnm-nm-version.html#NM-DEPRECATED-IN-1-24-FOR:CAPS" title="NM_DEPRECATED_IN_1_24_FOR()">NM_DEPRECATED_IN_1_24_FOR</a><span class="c_punctuation">()</span>
 </td>
 </tr>
 <tr>
@@ -171,6 +169,12 @@
 <td class="define_keyword">#define</td>
 <td class="function_name">
 <a class="link" href="libnm-nm-version.html#NM-DEPRECATED-IN-1-40-FOR:CAPS" title="NM_DEPRECATED_IN_1_40_FOR()">NM_DEPRECATED_IN_1_40_FOR</a><span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name">
+<a class="link" href="libnm-nm-version.html#NM-DEPRECATED-IN-1-42-FOR:CAPS" title="NM_DEPRECATED_IN_1_42_FOR()">NM_DEPRECATED_IN_1_42_FOR</a><span class="c_punctuation">()</span>
 </td>
 </tr>
 </tbody>
@@ -370,7 +374,11 @@
 </tr>
 <tr>
 <td class="define_keyword">#define</td>
-<td class="function_name"><a class="link" href="libnm-nm-version.html#NM-AVAILABLE-IN-1-40-4:CAPS" title="NM_AVAILABLE_IN_1_40_4">NM_AVAILABLE_IN_1_40_4</a></td>
+<td class="function_name"><a class="link" href="libnm-nm-version.html#NM-DEPRECATED-IN-1-42:CAPS" title="NM_DEPRECATED_IN_1_42">NM_DEPRECATED_IN_1_42</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libnm-nm-version.html#NM-AVAILABLE-IN-1-42:CAPS" title="NM_AVAILABLE_IN_1_42">NM_AVAILABLE_IN_1_42</a></td>
 </tr>
 </tbody>
 </table></div>
@@ -458,10 +466,9 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="NM-DEPRECATED-IN-1-24-FOR:CAPS"></a><h3>NM_DEPRECATED_IN_1_24_FOR ()</h3>
-<pre class="programlisting"><span class="returnvalue">0</span>
-NM_DEPRECATED_IN_1_24_FOR ();</pre>
-<div class="warning"><p><code class="literal">NM_DEPRECATED_IN_1_24_FOR</code> is deprecated and should not be used in newly-written code.</p></div>
+<a name="NM-DEPRECATED-IN-1-24-FOR:CAPS"></a><h3>NM_DEPRECATED_IN_1_24_FOR()</h3>
+<pre class="programlisting">#define NM_DEPRECATED_IN_1_24_FOR(f) G_DEPRECATED_FOR(f)
+</pre>
 </div>
 <hr>
 <div class="refsect2">
@@ -509,6 +516,12 @@ NM_DEPRECATED_IN_1_24_FOR ();</pre>
 <div class="refsect2">
 <a name="NM-DEPRECATED-IN-1-40-FOR:CAPS"></a><h3>NM_DEPRECATED_IN_1_40_FOR()</h3>
 <pre class="programlisting">#define NM_DEPRECATED_IN_1_40_FOR(f) G_DEPRECATED_FOR(f)
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-DEPRECATED-IN-1-42-FOR:CAPS"></a><h3>NM_DEPRECATED_IN_1_42_FOR()</h3>
+<pre class="programlisting">#define NM_DEPRECATED_IN_1_42_FOR(f) G_DEPRECATED_FOR(f)
 </pre>
 </div>
 </div>
@@ -789,8 +802,14 @@ NM_DEPRECATED_IN_1_24_FOR ();</pre>
 </div>
 <hr>
 <div class="refsect2">
-<a name="NM-AVAILABLE-IN-1-40-4:CAPS"></a><h3>NM_AVAILABLE_IN_1_40_4</h3>
-<pre class="programlisting">#define NM_AVAILABLE_IN_1_40_4 G_UNAVAILABLE(1, 40.4)
+<a name="NM-DEPRECATED-IN-1-42:CAPS"></a><h3>NM_DEPRECATED_IN_1_42</h3>
+<pre class="programlisting">#define NM_DEPRECATED_IN_1_42        G_DEPRECATED
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-AVAILABLE-IN-1-42:CAPS"></a><h3>NM_AVAILABLE_IN_1_42</h3>
+<pre class="programlisting">#define NM_AVAILABLE_IN_1_42 G_UNAVAILABLE(1, 42)
 </pre>
 </div>
 </div>

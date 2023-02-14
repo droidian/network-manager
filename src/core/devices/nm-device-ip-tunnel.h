@@ -11,7 +11,7 @@
 
 #define NM_TYPE_DEVICE_IP_TUNNEL (nm_device_ip_tunnel_get_type())
 #define NM_DEVICE_IP_TUNNEL(obj) \
-    (G_TYPE_CHECK_INSTANCE_CAST((obj), NM_TYPE_DEVICE_IP_TUNNEL, NMDeviceIPTunnel))
+    (_NM_G_TYPE_CHECK_INSTANCE_CAST((obj), NM_TYPE_DEVICE_IP_TUNNEL, NMDeviceIPTunnel))
 #define NM_DEVICE_IP_TUNNEL_CLASS(klass) \
     (G_TYPE_CHECK_CLASS_CAST((klass), NM_TYPE_DEVICE_IP_TUNNEL, NMDeviceIPTunnelClass))
 #define NM_IS_DEVICE_IP_TUNNEL(obj) (G_TYPE_CHECK_INSTANCE_TYPE((obj), NM_TYPE_DEVICE_IP_TUNNEL))
@@ -31,6 +31,7 @@
 #define NM_DEVICE_IP_TUNNEL_ENCAPSULATION_LIMIT "encapsulation-limit"
 #define NM_DEVICE_IP_TUNNEL_FLOW_LABEL          "flow-label"
 #define NM_DEVICE_IP_TUNNEL_FLAGS               "flags"
+#define NM_DEVICE_IP_TUNNEL_FWMARK              "fwmark"
 
 typedef struct _NMDeviceIPTunnel      NMDeviceIPTunnel;
 typedef struct _NMDeviceIPTunnelClass NMDeviceIPTunnelClass;

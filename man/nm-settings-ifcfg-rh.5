@@ -2,12 +2,12 @@
 .\"     Title: nm-settings-ifcfg-rh
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 01/26/2023
+.\"      Date: 02/10/2023
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.40.12
+.\"    Source: NetworkManager 1.42.0
 .\"  Language: English
 .\"
-.TH "NM\-SETTINGS\-IFCFG\-RH" "5" "" "NetworkManager 1\&.40\&.12" "Configuration"
+.TH "NM\-SETTINGS\-IFCFG\-RH" "5" "" "NetworkManager 1\&.42\&.0" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -369,7 +369,477 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&2.\ \&802\-1x setting
+.B Table\ \&2.\ \&802\-11\-wireless setting
+.TS
+allbox tab(:);
+lB lB lB lB.
+T{
+Property
+T}:T{
+Ifcfg\-rh Variable
+T}:T{
+Default
+T}:T{
+Description
+T}
+.T&
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l.
+T{
+ssid
+T}:T{
+ESSID
+T}:T{
+\ \&
+T}:T{
+SSID of Wi\-Fi network\&.\fB
+
+Example: \fRESSID="Quick Net"
+T}
+T{
+mode
+T}:T{
+MODE
+T}:T{
+\ \&
+T}:T{
+Wi\-Fi network mode\&.\fB
+
+Allowed values: \fRAd\-Hoc, Managed (Auto)  [case insensitive]
+T}
+T{
+band
+T}:T{
+BAND\fI(+)\fR
+T}:T{
+\ \&
+T}:T{
+BAND alone is honored, but CHANNEL overrides BAND since it implies a band\&.\fB
+
+Example: \fRBAND=bg\fB
+
+Allowed values: \fRa, bg
+T}
+T{
+channel
+T}:T{
+CHANNEL
+T}:T{
+\ \&
+T}:T{
+Channel used for the Wi\-Fi communication\&. Channels greater than 14 mean "a" band, otherwise the band is "bg"\&.\fB
+
+Example: \fRCHANNEL=6
+T}
+T{
+bssid
+T}:T{
+BSSID\fI(+)\fR
+T}:T{
+\ \&
+T}:T{
+Restricts association only to a single AP\&.\fB
+
+Example: \fRBSSID=00:1E:BD:64:83:21
+T}
+T{
+rate
+T}:T{
+(none)
+T}:T{
+\ \&
+T}:T{
+This property is not handled by ifcfg\-rh plugin\&.
+T}
+T{
+tx\-power
+T}:T{
+(none)
+T}:T{
+\ \&
+T}:T{
+This property is not handled by ifcfg\-rh plugin\&.
+T}
+T{
+mac\-address
+T}:T{
+HWADDR
+T}:T{
+\ \&
+T}:T{
+Hardware address of the device in traditional hex\-digits\-and\-colons notation (e\&.g\&. 00:22:68:14:5A:05)\&. Note that for initscripts this is the current MAC address of the device as found during ifup\&. For NetworkManager this is the permanent MAC address\&. Or in case no permanent MAC address exists, the MAC address initially configured on the device\&.
+T}
+T{
+cloned\-mac\-address
+T}:T{
+MACADDR
+T}:T{
+\ \&
+T}:T{
+Cloned (spoofed) MAC address in traditional hex\-digits\-and\-colons notation (e\&.g\&. 00:22:68:14:5A:99)\&.
+T}
+T{
+generate\-mac\-address\-mask
+T}:T{
+GENERATE_MAC_ADDRESS_MASK\fI(+)\fR
+T}:T{
+\ \&
+T}:T{
+the MAC address mask for generating randomized and stable cloned\-mac\-address\&.
+T}
+T{
+mac\-address\-blacklist
+T}:T{
+HWADDR_BLACKLIST\fI(+)\fR
+T}:T{
+\ \&
+T}:T{
+It denies usage of the connection for any device whose address is listed\&.
+T}
+T{
+seen\-bssids
+T}:T{
+(none)
+T}:T{
+\ \&
+T}:T{
+This property is not handled by ifcfg\-rh plugin\&.
+T}
+T{
+mtu
+T}:T{
+MTU
+T}:T{
+\ \&
+T}:T{
+MTU of the wireless interface\&.
+T}
+T{
+hidden
+T}:T{
+SSID_HIDDEN\fI(+)\fR
+T}:T{
+\ \&
+T}:T{
+Whether the network hides the SSID\&.
+T}
+T{
+powersave
+T}:T{
+POWERSAVE\fI(+)\fR
+T}:T{
+\ \&
+T}:T{
+Enables or disables Wi\-Fi power saving\&.\fB
+
+Example: \fRPOWERSAVE=enable\fB
+
+Allowed values: \fRdefault, ignore, enable, disable
+T}
+T{
+mac\-address\-randomization
+T}:T{
+MAC_ADDRESS_RANDOMIZATION\fI(+)\fR
+T}:T{
+\ \&
+T}:T{
+Enables or disables Wi\-Fi MAC address randomization\&.\fB
+
+Example: \fRMAC_ADDRESS_RANDOMIZATION=always\fB
+
+Allowed values: \fRdefault, never, always
+T}
+T{
+security
+T}:T{
+(none)
+T}:T{
+\ \&
+T}:T{
+This property is deprecated and not handled by ifcfg\-rh\-plugin\&.
+T}
+T{
+ap\-isolation
+T}:T{
+AP_ISOLATION\fI(+)\fR
+T}:T{
+missing variable means global default
+T}:T{
+Whether AP isolation is enabled\fB
+
+Allowed values: \fR"yes", "no"
+T}
+.TE
+.sp 1
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.B Table\ \&3.\ \&802\-11\-wireless\-security setting
+.TS
+allbox tab(:);
+lB lB lB lB.
+T{
+Property
+T}:T{
+Ifcfg\-rh Variable
+T}:T{
+Default
+T}:T{
+Description
+T}
+.T&
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l.
+T{
+key\-mgmt
+T}:T{
+KEY_MGMT\fI(+)\fR
+T}:T{
+\ \&
+T}:T{
+Key management method\&.\fB
+
+Allowed values: \fRnone, ieee8021x, owe, wpa\-psk, sae, wpa\-eap, wpa\-eap\-suite\-b\-192
+T}
+T{
+wep\-tx\-keyidx
+T}:T{
+DEFAULTKEY
+T}:T{
+1
+T}:T{
+Index of active WEP key\&. Note that in ifcfg format the index starts counting at 1, while NetworkManager API otherwise is zero based\&.\fB
+
+Allowed values: \fR1, 2, 3, 4
+T}
+T{
+auth\-alg
+T}:T{
+SECURITYMODE\fI(+)\fR
+T}:T{
+\ \&
+T}:T{
+Authentication algorithm for WEP\&.\fB
+
+Allowed values: \fRrestricted, open, leap
+T}
+T{
+proto
+T}:T{
+WPA_ALLOW_WPA\fI(+)\fR, WPA_ALLOW_WPA2\fI(+)\fR
+T}:T{
+no
+T}:T{
+Allowed WPA protocols, WPA and WPA2 (RSN)\&.\fB
+
+Allowed values: \fRyes, no
+T}
+T{
+pairwise
+T}:T{
+CIPHER_PAIRWISE\fI(+)\fR
+T}:T{
+\ \&
+T}:T{
+Restrict pairwise encryption algorithms, specified as a space separated list\&.\fB
+
+Allowed values: \fRCCMP, TKIP
+T}
+T{
+group
+T}:T{
+CIPHER_GROUP\fI(+)\fR
+T}:T{
+\ \&
+T}:T{
+Restrict group/broadcast encryption algorithms, specified as a space separated list\&.\fB
+
+Allowed values: \fRCCMP, TKIP, WEP40, WEP104
+T}
+T{
+pmf
+T}:T{
+PMF\fI(+)\fR
+T}:T{
+\ \&
+T}:T{
+Enables or disables PMF (802\&.11w)\fB
+
+Example: \fRPMF=required\fB
+
+Allowed values: \fRdefault, disable, optional, required
+T}
+T{
+leap\-username
+T}:T{
+IEEE_8021X_IDENTITY\fI(+)\fR
+T}:T{
+\ \&
+T}:T{
+Login name for LEAP\&.
+T}
+T{
+wep\-key0
+T}:T{
+KEY1, KEY_PASSPHRASE1\fI(+)\fR
+T}:T{
+\ \&
+T}:T{
+The first WEP key (used in most networks)\&. See also DEFAULTKEY for key index\&.
+T}
+T{
+wep\-key1
+T}:T{
+KEY2, KEY_PASSPHRASE2\fI(+)\fR
+T}:T{
+\ \&
+T}:T{
+WEP key with index 1\&. See also DEFAULTKEY for key index\&.
+T}
+T{
+wep\-key2
+T}:T{
+KEY3, KEY_PASSPHRASE3\fI(+)\fR
+T}:T{
+\ \&
+T}:T{
+WEP key with index 2\&. See also DEFAULTKEY for key index\&.
+T}
+T{
+wep\-key3
+T}:T{
+KEY4, KEY_PASSPHRASE4\fI(+)\fR
+T}:T{
+\ \&
+T}:T{
+WEP key with index 3\&. See also DEFAULTKEY for key index\&.
+T}
+T{
+wep\-key\-flags
+T}:T{
+WEP_KEY_FLAGS\fI(+)\fR
+T}:T{
+\ \&
+T}:T{
+Password flags for KEY<i>, KEY_PASSPHRASE<i> password\&. (see the section called \(lqSecret flags\(rq for _FLAGS values)
+T}
+T{
+psk
+T}:T{
+WPA_PSK
+T}:T{
+\ \&
+T}:T{
+Pre\-Shared\-Key for WPA networks\&.
+T}
+T{
+psk\-flags
+T}:T{
+WPA_PSK_FLAGS\fI(+)\fR
+T}:T{
+\ \&
+T}:T{
+Password flags for WPA_PSK_FLAGS\&. (see the section called \(lqSecret flags\(rq for _FLAGS values)\fB
+
+Example: \fRWPA_PSK_FLAGS=user
+T}
+T{
+leap\-password
+T}:T{
+IEEE_8021X_PASSWORD\fI(+)\fR
+T}:T{
+\ \&
+T}:T{
+Password for LEAP\&. It can also go to "key\-" lookaside file, or it can be owned by a secret agent\&.
+T}
+T{
+leap\-password\-flags
+T}:T{
+IEEE_8021X_PASSWORD_FLAGS\fI(+)\fR
+T}:T{
+\ \&
+T}:T{
+Password flags for IEEE_8021X_PASSWORD_FLAGS\&. (see the section called \(lqSecret flags\(rq for _FLAGS values)
+T}
+T{
+wep\-key\-type
+T}:T{
+KEY<i> or KEY_PASSPHRASE<i>\fI(+)\fR; KEY_TYPE\fI(+)\fR
+T}:T{
+\ \&
+T}:T{
+KEY is used for "key" type (10 or 26 hexadecimal characters, or 5 or 13 character string prefixed with "s:")\&. KEY_PASSPHRASE is used for WEP passphrases\&. KEY_TYPE specifies the key type and can be either \*(Aqkey\*(Aq or \*(Aqpassphrase\*(Aq\&. KEY_TYPE is redundant and can be omitted\&.\fB
+
+Example: \fRKEY1=s:ahoj, KEY1=0a1c45bc02, KEY_PASSPHRASE1=mysupersecretkey
+T}
+T{
+wps\-method
+T}:T{
+WPS_METHOD
+T}:T{
+\ \&
+T}:T{
+Used to control the WPS methods to be used Valid values are "default", "auto", "disabled", "pin" and "pbc"\&. If omitted, whatver the AP announces is used\&.\fB
+
+Example: \fRWPS_METHOD=disabled, WPS_METHOD="pin pbc"
+T}
+T{
+fils
+T}:T{
+FILS\fI(+)\fR
+T}:T{
+\ \&
+T}:T{
+Enables or disables FILS (802\&.11ai)\fB
+
+Example: \fRFILS=required\fB
+
+Allowed values: \fRdefault, disable, optional, required
+T}
+.TE
+.sp 1
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.B Table\ \&4.\ \&802\-1x setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -814,7 +1284,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&3.\ \&bond\-port setting
+.B Table\ \&5.\ \&802\-3\-ethernet setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -828,17 +1298,165 @@ T}:T{
 Description
 T}
 .T&
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
 l l l l.
 T{
-queue\-id
+port
 T}:T{
-BONDING_OPTS: queue\-id=
+(none)
 T}:T{
-0
+\ \&
 T}:T{
-Queue ID\&.\fB
+The property is not saved by the plugin\&.
+T}
+T{
+speed
+T}:T{
+ETHTOOL_OPTS
+T}:T{
+\ \&
+T}:T{
+Fixed speed for the ethernet link\&. It is added as "speed" parameter in the ETHTOOL_OPTS variable\&.
+T}
+T{
+duplex
+T}:T{
+ETHTOOL_OPTS
+T}:T{
+\ \&
+T}:T{
+Fixed duplex mode for the ethernet link\&. It is added as "duplex" parameter in the ETHOOL_OPTS variable\&.
+T}
+T{
+auto\-negotiate
+T}:T{
+ETHTOOL_OPTS
+T}:T{
+\ \&
+T}:T{
+Whether link speed and duplex autonegotiation is enabled\&. It is not saved only if disabled and no values are provided for the "speed" and "duplex" parameters (skips link configuration)\&.
+T}
+T{
+mac\-address
+T}:T{
+HWADDR
+T}:T{
+\ \&
+T}:T{
+Hardware address of the device in traditional hex\-digits\-and\-colons notation (e\&.g\&. 00:22:68:14:5A:05)\&. Note that for initscripts this is the current MAC address of the device as found during ifup\&. For NetworkManager this is the permanent MAC address\&. Or in case no permanent MAC address exists, the MAC address initially configured on the device\&.
+T}
+T{
+cloned\-mac\-address
+T}:T{
+MACADDR
+T}:T{
+\ \&
+T}:T{
+Cloned (spoofed) MAC address in traditional hex\-digits\-and\-colons notation (e\&.g\&. 00:22:68:14:5A:99)\&.
+T}
+T{
+generate\-mac\-address\-mask
+T}:T{
+GENERATE_MAC_ADDRESS_MASK\fI(+)\fR
+T}:T{
+\ \&
+T}:T{
+the MAC address mask for generating randomized and stable cloned\-mac\-address\&.
+T}
+T{
+mac\-address\-blacklist
+T}:T{
+HWADDR_BLACKLIST\fI(+)\fR
+T}:T{
+\ \&
+T}:T{
+It denies usage of the connection for any device whose address is listed\&.\fB
 
-Allowed values: \fR0 \- 65535
+Example: \fRHWADDR_BLACKLIST="00:22:68:11:69:08 00:11:22:11:44:55"
+T}
+T{
+mtu
+T}:T{
+MTU
+T}:T{
+\ \&
+T}:T{
+MTU of the interface\&.
+T}
+T{
+s390\-subchannels
+T}:T{
+SUBCHANNELS
+T}:T{
+\ \&
+T}:T{
+Subchannels for IBM S390 hosts\&.\fB
+
+Example: \fRSUBCHANNELS=0\&.0\&.b00a,0\&.0\&.b00b,0\&.0\&.b00c
+T}
+T{
+s390\-nettype
+T}:T{
+NETTYPE
+T}:T{
+\ \&
+T}:T{
+Network type of the S390 host\&.\fB
+
+Example: \fRNETTYPE=qeth\fB
+
+Allowed values: \fR"qeth", "lcs" or "ctc"
+T}
+T{
+s390\-options
+T}:T{
+OPTIONS and PORTNAME, CTCPROTO,
+T}:T{
+\ \&
+T}:T{
+S390 device options\&. All options go to OPTIONS, except for "portname" and "ctcprot" that have their own variables\&.
+T}
+T{
+wake\-on\-lan
+T}:T{
+ETHTOOL_OPTS, ETHTOOL_WAKE_ON_LAN
+T}:T{
+\ \&
+T}:T{
+Wake on Lan mode for ethernet\&. The setting "ignore" is expressed with "ETHTOOL_WAKE_ON_LAN=ignore"\&. Otherwise, the "ETHTOOL_OPTS" variable is set with the value "wol" and several of the characters "p|u|m|b|a|g|s|f|d" as explained in the ethtool manual page\&.
+T}
+T{
+wake\-on\-lan\-password
+T}:T{
+ETHTOOL_OPTS
+T}:T{
+\ \&
+T}:T{
+Password for secure\-on based Wake\-on\-Lan\&. It is added as "sopass" parameter in the ETHTOOL_OPTS variable\&.\fB
+
+Example: \fRETHTOOL_OPTS="wol gs sopass 00:11:22:33:44:55"
+T}
+T{
+accept\-all\-mac\-addresses
+T}:T{
+ACCEPT_ALL_MAC_ADDRESSES
+T}:T{
+\ \&
+T}:T{
+Enforce the interface to accept all the packets\&.
 T}
 .TE
 .sp 1
@@ -847,7 +1465,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&4.\ \&bond setting
+.B Table\ \&6.\ \&bond setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -880,7 +1498,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&5.\ \&bridge\-port setting
+.B Table\ \&7.\ \&bond\-port setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -894,51 +1512,17 @@ T}:T{
 Description
 T}
 .T&
-l l l l
-l l l l
-l l l l
 l l l l.
 T{
-priority
+queue\-id
 T}:T{
-BRIDGING_OPTS: priority=
+BONDING_OPTS: queue\-id=
 T}:T{
-32
+0
 T}:T{
-STP priority\&.\fB
+Queue ID\&.\fB
 
-Allowed values: \fR0 \- 63
-T}
-T{
-path\-cost
-T}:T{
-BRIDGING_OPTS: path_cost=
-T}:T{
-100
-T}:T{
-STP cost\&.\fB
-
-Allowed values: \fR1 \- 65535
-T}
-T{
-hairpin\-mode
-T}:T{
-BRIDGING_OPTS: hairpin_mode=
-T}:T{
-yes
-T}:T{
-Hairpin mode of the bridge port\&.
-T}
-T{
-vlans
-T}:T{
-BRIDGE_PORT_VLANS
-T}:T{
-\ \&
-T}:T{
-List of VLANs on the bridge port\fB
-
-Example: \fRBRIDGE_PORT_VLANS="1 pvid untagged,20,300\-400 untagged"
+Allowed values: \fR0 \- 65535
 T}
 .TE
 .sp 1
@@ -947,7 +1531,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&6.\ \&bridge setting
+.B Table\ \&8.\ \&bridge setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -1278,7 +1862,74 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&7.\ \&connection setting
+.B Table\ \&9.\ \&bridge\-port setting
+.TS
+allbox tab(:);
+lB lB lB lB.
+T{
+Property
+T}:T{
+Ifcfg\-rh Variable
+T}:T{
+Default
+T}:T{
+Description
+T}
+.T&
+l l l l
+l l l l
+l l l l
+l l l l.
+T{
+priority
+T}:T{
+BRIDGING_OPTS: priority=
+T}:T{
+32
+T}:T{
+STP priority\&.\fB
+
+Allowed values: \fR0 \- 63
+T}
+T{
+path\-cost
+T}:T{
+BRIDGING_OPTS: path_cost=
+T}:T{
+100
+T}:T{
+STP cost\&.\fB
+
+Allowed values: \fR1 \- 65535
+T}
+T{
+hairpin\-mode
+T}:T{
+BRIDGING_OPTS: hairpin_mode=
+T}:T{
+yes
+T}:T{
+Hairpin mode of the bridge port\&.
+T}
+T{
+vlans
+T}:T{
+BRIDGE_PORT_VLANS
+T}:T{
+\ \&
+T}:T{
+List of VLANs on the bridge port\fB
+
+Example: \fRBRIDGE_PORT_VLANS="1 pvid untagged,20,300\-400 untagged"
+T}
+.TE
+.sp 1
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.B Table\ \&10.\ \&connection setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -1611,7 +2262,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&8.\ \&dcb setting
+.B Table\ \&11.\ \&dcb setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -1806,7 +2457,7 @@ All DCB related configuration is a NetworkManager extension\&. DCB=yes must be u
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&9.\ \&ethtool setting
+.B Table\ \&12.\ \&ethtool setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -1828,7 +2479,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&10.\ \&hostname setting
+.B Table\ \&13.\ \&hostname setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -1869,7 +2520,7 @@ whether the system hostname can be determined from DHCP\fB
 Example: \fRHOSTNAME_FROM_DHCP=0,1
 T}
 T{
-from\-dhcp
+from\-dns\-lookup
 T}:T{
 HOSTNAME_FROM_DNS_LOOKUP\fI(+)\fR
 T}:T{
@@ -1897,7 +2548,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&11.\ \&infiniband setting
+.B Table\ \&14.\ \&infiniband setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -1974,7 +2625,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&12.\ \&ipv4 setting
+.B Table\ \&15.\ \&ipv4 setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -1988,6 +2639,8 @@ T}:T{
 Description
 T}
 .T&
+l l l l
+l l l l
 l l l l
 l l l l
 l l l l
@@ -2167,6 +2820,15 @@ The priority for DNS servers of this connection\&. Lower values have higher prio
 Example: \fRIPV4_DNS_PRIORITY=20
 T}
 T{
+auto\-route\-ext\-gw
+T}:T{
+IPV4_AUTO_ROUTE_EXT_GW\fI(+)\fR
+T}:T{
+yes
+T}:T{
+VPN connections will default to add the route automatically unless this setting is set to %FALSE\&. For other connection types, adding such an automatic route is currently not supported and setting this to %TRUE has no effect\&.
+T}
+T{
 dhcp\-client\-id
 T}:T{
 DHCP_CLIENT_ID\fI(+)\fR
@@ -2198,6 +2860,17 @@ T}:T{
 A timeout after which the DHCP transaction fails in case of no response\&.\fB
 
 Example: \fRIPV4_DHCP_TIMEOUT=10
+T}
+T{
+dhcp\-hostname\-flags
+T}:T{
+DHCP_HOSTNAME_FLAGS
+T}:T{
+\ \&
+T}:T{
+flags for the DHCP hostname and FQDN properties\fB
+
+Example: \fRDHCP_HOSTNAME_FLAGS=5
 T}
 T{
 dhcp\-fqdn
@@ -2239,7 +2912,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&13.\ \&ipv6 setting
+.B Table\ \&16.\ \&ipv6 setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2253,6 +2926,7 @@ T}:T{
 Description
 T}
 .T&
+l l l l
 l l l l
 l l l l
 l l l l
@@ -2441,6 +3115,15 @@ List of DNS options to be added to /etc/resolv\&.conf\fB
 Example: \fRIPV6_RES_OPTIONS=ndots:2 timeout:3
 T}
 T{
+auto\-route\-ext\-gw
+T}:T{
+IPV6_AUTO_ROUTE_EXT_GW\fI(+)\fR
+T}:T{
+yes
+T}:T{
+VPN connections will default to add the route automatically unless this setting is set to %FALSE\&. For other connection types, adding such an automatic route is currently not supported and setting this to %TRUE has no effect\&.
+T}
+T{
 ip6\-privacy
 T}:T{
 IPV6_PRIVACY, IPV6_PRIVACY_PREFER_PUBLIC_IP\fI(+)\fR
@@ -2478,7 +3161,7 @@ The IPv6 tokenized interface identifier token\fB
 Example: \fRIPV6_TOKEN=::53
 T}
 T{
-dhcp\-timeout
+ra\-timeout
 T}:T{
 IPV6_RA_TIMEOUT\fI(+)\fR
 T}:T{
@@ -2506,7 +3189,38 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&14.\ \&match setting
+.B Table\ \&17.\ \&loopback setting
+.TS
+allbox tab(:);
+lB lB lB lB.
+T{
+Property
+T}:T{
+Ifcfg\-rh Variable
+T}:T{
+Default
+T}:T{
+Description
+T}
+.T&
+l l l l.
+T{
+mtu
+T}:T{
+MTU
+T}:T{
+\ \&
+T}:T{
+MTU of the interface\&.
+T}
+.TE
+.sp 1
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.B Table\ \&18.\ \&match setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2539,7 +3253,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&15.\ \&ovs\-bridge setting
+.B Table\ \&19.\ \&ovs\-bridge setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2561,7 +3275,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&16.\ \&ovs\-dpdk setting
+.B Table\ \&20.\ \&ovs\-dpdk setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2583,7 +3297,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&17.\ \&ovs\-external\-ids setting
+.B Table\ \&21.\ \&ovs\-external\-ids setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2605,7 +3319,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&18.\ \&ovs\-interface setting
+.B Table\ \&22.\ \&ovs\-interface setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2627,7 +3341,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&19.\ \&ovs\-patch setting
+.B Table\ \&23.\ \&ovs\-other\-config setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2649,7 +3363,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&20.\ \&ovs\-port setting
+.B Table\ \&24.\ \&ovs\-patch setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2671,7 +3385,29 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&21.\ \&proxy setting
+.B Table\ \&25.\ \&ovs\-port setting
+.TS
+allbox tab(:);
+lB lB lB lB.
+T{
+Property
+T}:T{
+Ifcfg\-rh Variable
+T}:T{
+Default
+T}:T{
+Description
+T}
+.T&
+.
+.TE
+.sp 1
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.B Table\ \&26.\ \&proxy setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2738,7 +3474,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&22.\ \&sriov setting
+.B Table\ \&27.\ \&sriov setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2795,7 +3531,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&23.\ \&tc setting
+.B Table\ \&28.\ \&tc setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2823,7 +3559,7 @@ Queueing disciplines to set on the interface\&. When no QDISC1, QDISC2, \&.\&.\&
 Example: \fRQDISC1=ingress, QDISC2="root handle 1234: fq_codel"
 T}
 T{
-qdiscs
+tfilters
 T}:T{
 FILTER1\fI(+)\fR, FILTER2\fI(+)\fR, \&.\&.\&., TC_COMMIT\fI(+)\fR
 T}:T{
@@ -2840,38 +3576,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&24.\ \&team\-port setting
-.TS
-allbox tab(:);
-lB lB lB lB.
-T{
-Property
-T}:T{
-Ifcfg\-rh Variable
-T}:T{
-Default
-T}:T{
-Description
-T}
-.T&
-l l l l.
-T{
-config
-T}:T{
-TEAM_PORT_CONFIG
-T}:T{
-\ \&
-T}:T{
-Team port configuration in JSON\&. See man teamd\&.conf for details\&.
-T}
-.TE
-.sp 1
-.sp
-.it 1 an-trap
-.nr an-no-space-flag 1
-.nr an-break-flag 1
-.br
-.B Table\ \&25.\ \&team setting
+.B Table\ \&29.\ \&team setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2902,7 +3607,38 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&26.\ \&user setting
+.B Table\ \&30.\ \&team\-port setting
+.TS
+allbox tab(:);
+lB lB lB lB.
+T{
+Property
+T}:T{
+Ifcfg\-rh Variable
+T}:T{
+Default
+T}:T{
+Description
+T}
+.T&
+l l l l.
+T{
+config
+T}:T{
+TEAM_PORT_CONFIG
+T}:T{
+\ \&
+T}:T{
+Team port configuration in JSON\&. See man teamd\&.conf for details\&.
+T}
+.TE
+.sp 1
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.B Table\ \&31.\ \&user setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2935,7 +3671,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&27.\ \&veth setting
+.B Table\ \&32.\ \&veth setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2957,7 +3693,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&28.\ \&vlan setting
+.B Table\ \&33.\ \&vlan setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2971,6 +3707,7 @@ T}:T{
 Description
 T}
 .T&
+l l l l
 l l l l
 l l l l
 l l l l
@@ -3005,6 +3742,17 @@ T}:T{
 VLAN flags\&.\fB
 
 Allowed values: \fR"yes or "no" for GVRP and MVRP; "LOOSE_BINDING" and "NO_REORDER_HDR" for VLAN_FLAGS
+T}
+T{
+protocol
+T}:T{
+VLAN_PROTOCOL
+T}:T{
+\ \&
+T}:T{
+VLAN protocol\&.\fB
+
+Example: \fRVLAN_PROTOCOL="802\&.1ad"
 T}
 T{
 ingress\-priority\-map
@@ -3046,7 +3794,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&29.\ \&vrf setting
+.B Table\ \&34.\ \&vrf setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -3068,7 +3816,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&30.\ \&wifi\-p2p setting
+.B Table\ \&35.\ \&wifi\-p2p setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -3090,188 +3838,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&31.\ \&802\-3\-ethernet setting
-.TS
-allbox tab(:);
-lB lB lB lB.
-T{
-Property
-T}:T{
-Ifcfg\-rh Variable
-T}:T{
-Default
-T}:T{
-Description
-T}
-.T&
-l l l l
-l l l l
-l l l l
-l l l l
-l l l l
-l l l l
-l l l l
-l l l l
-l l l l
-l l l l
-l l l l
-l l l l
-l l l l
-l l l l
-l l l l.
-T{
-port
-T}:T{
-(none)
-T}:T{
-\ \&
-T}:T{
-The property is not saved by the plugin\&.
-T}
-T{
-speed
-T}:T{
-ETHTOOL_OPTS
-T}:T{
-\ \&
-T}:T{
-Fixed speed for the ethernet link\&. It is added as "speed" parameter in the ETHTOOL_OPTS variable\&.
-T}
-T{
-duplex
-T}:T{
-ETHTOOL_OPTS
-T}:T{
-\ \&
-T}:T{
-Fixed duplex mode for the ethernet link\&. It is added as "duplex" parameter in the ETHOOL_OPTS variable\&.
-T}
-T{
-auto\-negotiate
-T}:T{
-ETHTOOL_OPTS
-T}:T{
-\ \&
-T}:T{
-Whether link speed and duplex autonegotiation is enabled\&. It is not saved only if disabled and no values are provided for the "speed" and "duplex" parameters (skips link configuration)\&.
-T}
-T{
-mac\-address
-T}:T{
-HWADDR
-T}:T{
-\ \&
-T}:T{
-Hardware address of the device in traditional hex\-digits\-and\-colons notation (e\&.g\&. 00:22:68:14:5A:05)\&. Note that for initscripts this is the current MAC address of the device as found during ifup\&. For NetworkManager this is the permanent MAC address\&. Or in case no permanent MAC address exists, the MAC address initially configured on the device\&.
-T}
-T{
-cloned\-mac\-address
-T}:T{
-MACADDR
-T}:T{
-\ \&
-T}:T{
-Cloned (spoofed) MAC address in traditional hex\-digits\-and\-colons notation (e\&.g\&. 00:22:68:14:5A:99)\&.
-T}
-T{
-generate\-mac\-address\-mask
-T}:T{
-GENERATE_MAC_ADDRESS_MASK\fI(+)\fR
-T}:T{
-\ \&
-T}:T{
-the MAC address mask for generating randomized and stable cloned\-mac\-address\&.
-T}
-T{
-mac\-address\-blacklist
-T}:T{
-HWADDR_BLACKLIST\fI(+)\fR
-T}:T{
-\ \&
-T}:T{
-It denies usage of the connection for any device whose address is listed\&.\fB
-
-Example: \fRHWADDR_BLACKLIST="00:22:68:11:69:08 00:11:22:11:44:55"
-T}
-T{
-mtu
-T}:T{
-MTU
-T}:T{
-\ \&
-T}:T{
-MTU of the interface\&.
-T}
-T{
-s390\-subchannels
-T}:T{
-SUBCHANNELS
-T}:T{
-\ \&
-T}:T{
-Subchannels for IBM S390 hosts\&.\fB
-
-Example: \fRSUBCHANNELS=0\&.0\&.b00a,0\&.0\&.b00b,0\&.0\&.b00c
-T}
-T{
-s390\-nettype
-T}:T{
-NETTYPE
-T}:T{
-\ \&
-T}:T{
-Network type of the S390 host\&.\fB
-
-Example: \fRNETTYPE=qeth\fB
-
-Allowed values: \fR"qeth", "lcs" or "ctc"
-T}
-T{
-s390\-options
-T}:T{
-OPTIONS and PORTNAME, CTCPROTO,
-T}:T{
-\ \&
-T}:T{
-S390 device options\&. All options go to OPTIONS, except for "portname" and "ctcprot" that have their own variables\&.
-T}
-T{
-wake\-on\-lan
-T}:T{
-ETHTOOL_OPTS, ETHTOOL_WAKE_ON_LAN
-T}:T{
-\ \&
-T}:T{
-Wake on Lan mode for ethernet\&. The setting "ignore" is expressed with "ETHTOOL_WAKE_ON_LAN=ignore"\&. Otherwise, the "ETHTOOL_OPTS" variable is set with the value "wol" and several of the characters "p|u|m|b|a|g|s|f|d" as explained in the ethtool manual page\&.
-T}
-T{
-wake\-on\-lan\-password
-T}:T{
-ETHTOOL_OPTS
-T}:T{
-\ \&
-T}:T{
-Password for secure\-on based Wake\-on\-Lan\&. It is added as "sopass" parameter in the ETHTOOL_OPTS variable\&.\fB
-
-Example: \fRETHTOOL_OPTS="wol gs sopass 00:11:22:33:44:55"
-T}
-T{
-accept\-all\-mac\-addresses
-T}:T{
-ACCEPT_ALL_MAC_ADDRESSES
-T}:T{
-\ \&
-T}:T{
-Enforce the interface to accept all the packets\&.
-T}
-.TE
-.sp 1
-.sp
-.it 1 an-trap
-.nr an-no-space-flag 1
-.nr an-break-flag 1
-.br
-.B Table\ \&32.\ \&wireguard setting
+.B Table\ \&36.\ \&wireguard setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -3293,477 +3860,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&33.\ \&802\-11\-wireless\-security setting
-.TS
-allbox tab(:);
-lB lB lB lB.
-T{
-Property
-T}:T{
-Ifcfg\-rh Variable
-T}:T{
-Default
-T}:T{
-Description
-T}
-.T&
-l l l l
-l l l l
-l l l l
-l l l l
-l l l l
-l l l l
-l l l l
-l l l l
-l l l l
-l l l l
-l l l l
-l l l l
-l l l l
-l l l l
-l l l l
-l l l l
-l l l l
-l l l l
-l l l l
-l l l l.
-T{
-key\-mgmt
-T}:T{
-KEY_MGMT\fI(+)\fR
-T}:T{
-\ \&
-T}:T{
-Key management method\&.\fB
-
-Allowed values: \fRnone, ieee8021x, owe, wpa\-psk, sae, wpa\-eap, wpa\-eap\-suite\-b\-192
-T}
-T{
-wep\-tx\-keyidx
-T}:T{
-DEFAULTKEY
-T}:T{
-1
-T}:T{
-Index of active WEP key\&. Note that in ifcfg format the index starts counting at 1, while NetworkManager API otherwise is zero based\&.\fB
-
-Allowed values: \fR1, 2, 3, 4
-T}
-T{
-auth\-alg
-T}:T{
-SECURITYMODE\fI(+)\fR
-T}:T{
-\ \&
-T}:T{
-Authentication algorithm for WEP\&.\fB
-
-Allowed values: \fRrestricted, open, leap
-T}
-T{
-proto
-T}:T{
-WPA_ALLOW_WPA\fI(+)\fR, WPA_ALLOW_WPA2\fI(+)\fR
-T}:T{
-no
-T}:T{
-Allowed WPA protocols, WPA and WPA2 (RSN)\&.\fB
-
-Allowed values: \fRyes, no
-T}
-T{
-pairwise
-T}:T{
-CIPHER_PAIRWISE\fI(+)\fR
-T}:T{
-\ \&
-T}:T{
-Restrict pairwise encryption algorithms, specified as a space separated list\&.\fB
-
-Allowed values: \fRCCMP, TKIP
-T}
-T{
-group
-T}:T{
-CIPHER_GROUP\fI(+)\fR
-T}:T{
-\ \&
-T}:T{
-Restrict group/broadcast encryption algorithms, specified as a space separated list\&.\fB
-
-Allowed values: \fRCCMP, TKIP, WEP40, WEP104
-T}
-T{
-pmf
-T}:T{
-PMF\fI(+)\fR
-T}:T{
-\ \&
-T}:T{
-Enables or disables PMF (802\&.11w)\fB
-
-Example: \fRPMF=required\fB
-
-Allowed values: \fRdefault, disable, optional, required
-T}
-T{
-leap\-username
-T}:T{
-IEEE_8021X_IDENTITY\fI(+)\fR
-T}:T{
-\ \&
-T}:T{
-Login name for LEAP\&.
-T}
-T{
-wep\-key0
-T}:T{
-KEY1, KEY_PASSPHRASE1\fI(+)\fR
-T}:T{
-\ \&
-T}:T{
-The first WEP key (used in most networks)\&. See also DEFAULTKEY for key index\&.
-T}
-T{
-wep\-key1
-T}:T{
-KEY2, KEY_PASSPHRASE2\fI(+)\fR
-T}:T{
-\ \&
-T}:T{
-WEP key with index 1\&. See also DEFAULTKEY for key index\&.
-T}
-T{
-wep\-key2
-T}:T{
-KEY3, KEY_PASSPHRASE3\fI(+)\fR
-T}:T{
-\ \&
-T}:T{
-WEP key with index 2\&. See also DEFAULTKEY for key index\&.
-T}
-T{
-wep\-key3
-T}:T{
-KEY4, KEY_PASSPHRASE4\fI(+)\fR
-T}:T{
-\ \&
-T}:T{
-WEP key with index 3\&. See also DEFAULTKEY for key index\&.
-T}
-T{
-wep\-key\-flags
-T}:T{
-WEP_KEY_FLAGS\fI(+)\fR
-T}:T{
-\ \&
-T}:T{
-Password flags for KEY<i>, KEY_PASSPHRASE<i> password\&. (see the section called \(lqSecret flags\(rq for _FLAGS values)
-T}
-T{
-psk
-T}:T{
-WPA_PSK
-T}:T{
-\ \&
-T}:T{
-Pre\-Shared\-Key for WPA networks\&.
-T}
-T{
-psk\-flags
-T}:T{
-WPA_PSK_FLAGS\fI(+)\fR
-T}:T{
-\ \&
-T}:T{
-Password flags for WPA_PSK_FLAGS\&. (see the section called \(lqSecret flags\(rq for _FLAGS values)\fB
-
-Example: \fRWPA_PSK_FLAGS=user
-T}
-T{
-leap\-password
-T}:T{
-IEEE_8021X_PASSWORD\fI(+)\fR
-T}:T{
-\ \&
-T}:T{
-Password for LEAP\&. It can also go to "key\-" lookaside file, or it can be owned by a secret agent\&.
-T}
-T{
-leap\-password\-flags
-T}:T{
-IEEE_8021X_PASSWORD_FLAGS\fI(+)\fR
-T}:T{
-\ \&
-T}:T{
-Password flags for IEEE_8021X_PASSWORD_FLAGS\&. (see the section called \(lqSecret flags\(rq for _FLAGS values)
-T}
-T{
-wep\-key\-type
-T}:T{
-KEY<i> or KEY_PASSPHRASE<i>\fI(+)\fR; KEY_TYPE\fI(+)\fR
-T}:T{
-\ \&
-T}:T{
-KEY is used for "key" type (10 or 26 hexadecimal characters, or 5 or 13 character string prefixed with "s:")\&. KEY_PASSPHRASE is used for WEP passphrases\&. KEY_TYPE specifies the key type and can be either \*(Aqkey\*(Aq or \*(Aqpassphrase\*(Aq\&. KEY_TYPE is redundant and can be omitted\&.\fB
-
-Example: \fRKEY1=s:ahoj, KEY1=0a1c45bc02, KEY_PASSPHRASE1=mysupersecretkey
-T}
-T{
-wps\-method
-T}:T{
-WPS_METHOD
-T}:T{
-\ \&
-T}:T{
-Used to control the WPS methods to be used Valid values are "default", "auto", "disabled", "pin" and "pbc"\&. If omitted, whatver the AP announces is used\&.\fB
-
-Example: \fRWPS_METHOD=disabled, WPS_METHOD="pin pbc"
-T}
-T{
-fils
-T}:T{
-FILS\fI(+)\fR
-T}:T{
-\ \&
-T}:T{
-Enables or disables FILS (802\&.11ai)\fB
-
-Example: \fRFILS=required\fB
-
-Allowed values: \fRdefault, disable, optional, required
-T}
-.TE
-.sp 1
-.sp
-.it 1 an-trap
-.nr an-no-space-flag 1
-.nr an-break-flag 1
-.br
-.B Table\ \&34.\ \&802\-11\-wireless setting
-.TS
-allbox tab(:);
-lB lB lB lB.
-T{
-Property
-T}:T{
-Ifcfg\-rh Variable
-T}:T{
-Default
-T}:T{
-Description
-T}
-.T&
-l l l l
-l l l l
-l l l l
-l l l l
-l l l l
-l l l l
-l l l l
-l l l l
-l l l l
-l l l l
-l l l l
-l l l l
-l l l l
-l l l l
-l l l l
-l l l l
-l l l l
-l l l l.
-T{
-ssid
-T}:T{
-ESSID
-T}:T{
-\ \&
-T}:T{
-SSID of Wi\-Fi network\&.\fB
-
-Example: \fRESSID="Quick Net"
-T}
-T{
-mode
-T}:T{
-MODE
-T}:T{
-\ \&
-T}:T{
-Wi\-Fi network mode\&.\fB
-
-Allowed values: \fRAd\-Hoc, Managed (Auto)  [case insensitive]
-T}
-T{
-band
-T}:T{
-BAND\fI(+)\fR
-T}:T{
-\ \&
-T}:T{
-BAND alone is honored, but CHANNEL overrides BAND since it implies a band\&.\fB
-
-Example: \fRBAND=bg\fB
-
-Allowed values: \fRa, bg
-T}
-T{
-channel
-T}:T{
-CHANNEL
-T}:T{
-\ \&
-T}:T{
-Channel used for the Wi\-Fi communication\&. Channels greater than 14 mean "a" band, otherwise the band is "bg"\&.\fB
-
-Example: \fRCHANNEL=6
-T}
-T{
-bssid
-T}:T{
-BSSID\fI(+)\fR
-T}:T{
-\ \&
-T}:T{
-Restricts association only to a single AP\&.\fB
-
-Example: \fRBSSID=00:1E:BD:64:83:21
-T}
-T{
-rate
-T}:T{
-(none)
-T}:T{
-\ \&
-T}:T{
-This property is not handled by ifcfg\-rh plugin\&.
-T}
-T{
-tx\-power
-T}:T{
-(none)
-T}:T{
-\ \&
-T}:T{
-This property is not handled by ifcfg\-rh plugin\&.
-T}
-T{
-mac\-address
-T}:T{
-HWADDR
-T}:T{
-\ \&
-T}:T{
-Hardware address of the device in traditional hex\-digits\-and\-colons notation (e\&.g\&. 00:22:68:14:5A:05)\&. Note that for initscripts this is the current MAC address of the device as found during ifup\&. For NetworkManager this is the permanent MAC address\&. Or in case no permanent MAC address exists, the MAC address initially configured on the device\&.
-T}
-T{
-cloned\-mac\-address
-T}:T{
-MACADDR
-T}:T{
-\ \&
-T}:T{
-Cloned (spoofed) MAC address in traditional hex\-digits\-and\-colons notation (e\&.g\&. 00:22:68:14:5A:99)\&.
-T}
-T{
-generate\-mac\-address\-mask
-T}:T{
-GENERATE_MAC_ADDRESS_MASK\fI(+)\fR
-T}:T{
-\ \&
-T}:T{
-the MAC address mask for generating randomized and stable cloned\-mac\-address\&.
-T}
-T{
-mac\-address\-blacklist
-T}:T{
-HWADDR_BLACKLIST\fI(+)\fR
-T}:T{
-\ \&
-T}:T{
-It denies usage of the connection for any device whose address is listed\&.
-T}
-T{
-seen\-bssids
-T}:T{
-(none)
-T}:T{
-\ \&
-T}:T{
-This property is not handled by ifcfg\-rh plugin\&.
-T}
-T{
-mtu
-T}:T{
-MTU
-T}:T{
-\ \&
-T}:T{
-MTU of the wireless interface\&.
-T}
-T{
-hidden
-T}:T{
-SSID_HIDDEN\fI(+)\fR
-T}:T{
-\ \&
-T}:T{
-Whether the network hides the SSID\&.
-T}
-T{
-powersave
-T}:T{
-POWERSAVE\fI(+)\fR
-T}:T{
-\ \&
-T}:T{
-Enables or disables Wi\-Fi power saving\&.\fB
-
-Example: \fRPOWERSAVE=enable\fB
-
-Allowed values: \fRdefault, ignore, enable, disable
-T}
-T{
-mac\-address\-randomization
-T}:T{
-MAC_ADDRESS_RANDOMIZATION\fI(+)\fR
-T}:T{
-\ \&
-T}:T{
-Enables or disables Wi\-Fi MAC address randomization\&.\fB
-
-Example: \fRMAC_ADDRESS_RANDOMIZATION=always\fB
-
-Allowed values: \fRdefault, never, always
-T}
-T{
-security
-T}:T{
-(none)
-T}:T{
-\ \&
-T}:T{
-This property is deprecated and not handled by ifcfg\-rh\-plugin\&.
-T}
-T{
-ap\-isolation
-T}:T{
-AP_ISOLATION\fI(+)\fR
-T}:T{
-missing variable means global default
-T}:T{
-Whether AP isolation is enabled\fB
-
-Allowed values: \fR"yes", "no"
-T}
-.TE
-.sp 1
-.sp
-.it 1 an-trap
-.nr an-no-space-flag 1
-.nr an-break-flag 1
-.br
-.B Table\ \&35.\ \&wpan setting
+.B Table\ \&37.\ \&wpan setting
 .TS
 allbox tab(:);
 lB lB lB lB.

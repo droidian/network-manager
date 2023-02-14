@@ -1,4 +1,5 @@
 # translation of zh_TW.po to Traditional Chinese
+# This file is distributed under the same license as the NetworkManager package.
 # Traditional Chinese translation of Network Manager.
 # Copyright (C) 2005, 2010 Free Software Foundation, Inc.
 #
@@ -20,7 +21,7 @@ msgstr ""
 "Project-Id-Version: NetworkManager\n"
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/NetworkManager/"
 "NetworkManager/issues\n"
-"POT-Creation-Date: 2022-08-11 16:06-0300\n"
+"POT-Creation-Date: 2022-08-15 18:14-0300\n"
 "PO-Revision-Date: 2019-06-28 19:18+0800\n"
 "Last-Translator: Hsiu-Ming Chang <cges30901@gmail.com>\n"
 "Language-Team: Traditional Chinese <zh@li.org>\n"
@@ -13454,7 +13455,7 @@ msgstr "nmcli 工具，版本 %s\n"
 #: src/nmcli/nmcli.c:901
 #, c-format
 msgid "Error: Option '%s' is unknown, try 'nmcli -help'."
-msgstr "錯誤：選項 '%s' 不明，請嚐試 'nmcli -help'。"
+msgstr "錯誤：選項 '%s' 不明，請嘗試 'nmcli -help'。"
 
 #: src/nmcli/nmcli.c:959 src/nmcli/nmcli.c:968
 #, c-format

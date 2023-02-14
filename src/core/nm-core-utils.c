@@ -58,7 +58,7 @@ G_STATIC_ASSERT(sizeof(NMUtilsTestFlags) <= sizeof(int));
 static int _nm_utils_testing = 0;
 
 gboolean
-nm_utils_get_testing_initialized()
+nm_utils_get_testing_initialized(void)
 {
     NMUtilsTestFlags flags;
 
@@ -69,7 +69,7 @@ nm_utils_get_testing_initialized()
 }
 
 NMUtilsTestFlags
-nm_utils_get_testing()
+nm_utils_get_testing(void)
 {
     NMUtilsTestFlags flags;
 
@@ -2333,14 +2333,14 @@ nm_utils_log_connection_diff(NMConnection *connection,
 
     for (i = 0; i < sorted_hashes->len; i++) {
         LogConnectionSettingData *setting_data =
-            &g_array_index(sorted_hashes, LogConnectionSettingData, i);
+            &nm_g_array_index(sorted_hashes, LogConnectionSettingData, i);
 
         _log_connection_sort_names(setting_data, sorted_names);
         print_setting_header = TRUE;
         for (j = 0; j < sorted_names->len; j++) {
             char                     *str_conn, *str_diff;
             LogConnectionSettingItem *item =
-                &g_array_index(sorted_names, LogConnectionSettingItem, j);
+                &nm_g_array_index(sorted_names, LogConnectionSettingItem, j);
 
             str_conn = (item->diff_result & NM_SETTING_DIFF_RESULT_IN_A)
                            ? _log_connection_get_property(setting_data->setting, item->item_name)
@@ -2717,11 +2717,17 @@ _host_id_hash_v2(const guint8 *seed_arr,
     const UuidData                  *machine_id_data;
     char                             slen[100];
 
-    /*
-        (stat -c '%s' /var/lib/NetworkManager/secret_key;
-         echo -n ' ';
-         cat /var/lib/NetworkManager/secret_key;
-         cat /etc/machine-id | tr -d '\n' | sed -n 's/[a-f0-9-]/\0/pg') | sha256sum
+    /* The following snippet generates the same (binary) host-id:
+
+        (
+          stat -c '%s' /var/lib/NetworkManager/secret_key | tr -d '\n';
+          echo -n ' ';
+          cat /var/lib/NetworkManager/secret_key;
+          cat /etc/machine-id | tr -d '\n' | sed -n 's/[a-f0-9-]/\0/pg'
+        ) \
+        | sha256sum \
+        | awk '{print $1}' \
+        | xxd -r -p
     */
 
     nm_sprintf_buf(slen, "%" G_GSIZE_FORMAT " ", seed_len);
@@ -3013,7 +3019,7 @@ nmtst_utils_host_id_pop(void)
 
     nm_log_dbg(LOGD_CORE, "nmtst: host-id pop");
 
-    h = &g_array_index(nmtst_host_id_stack, HostIdData, nmtst_host_id_stack->len - 1);
+    h = &nm_g_array_index(nmtst_host_id_stack, HostIdData, nmtst_host_id_stack->len - 1);
 
     g_free((char *) h->host_id);
     g_array_set_size(nmtst_host_id_stack, nmtst_host_id_stack->len - 1u);
@@ -3022,7 +3028,7 @@ nmtst_utils_host_id_pop(void)
             &host_id_static,
             h,
             nmtst_host_id_stack->len == 0u ? nmtst_host_id_static_0
-                                           : nm_g_array_last(nmtst_host_id_stack, HostIdData)))
+                                           : &nm_g_array_last(nmtst_host_id_stack, HostIdData)))
         g_assert_not_reached();
 }
 
@@ -3864,7 +3870,7 @@ nm_utils_dhcp_client_id_duid(guint32 iaid, const guint8 *duid, gsize duid_len)
         guint8  type;
         guint32 iaid;
         guint8  duid[];
-    } * client_id;
+    }    *client_id;
     gsize total_size;
 
     /* the @duid must include the 16 bit duid-type and the data (of max 128 bytes). */
@@ -3914,7 +3920,7 @@ nm_utils_dhcp_client_id_systemd_node_specific_full(guint32       iaid,
                 } en;
             };
         } duid;
-    } * client_id;
+    }      *client_id;
     guint64 u64;
 
     g_return_val_if_fail(machine_id, NULL);
@@ -4193,7 +4199,7 @@ nm_utils_get_reverse_dns_domains_ip_6(const struct in6_addr *ip, guint8 plen, GP
         return;
 
     memcpy(&addr, ip, sizeof(struct in6_addr));
-    nm_utils_ip6_address_clear_host_address(&addr, NULL, plen);
+    nm_ip6_addr_clear_host_address(&addr, NULL, plen);
 
     /* Number of nibbles to include in domains */
     nibbles = (plen - 1) / 4 + 1;
@@ -4338,7 +4344,7 @@ skip:
 
     result = g_new(char *, paths->len + 1);
     for (i = 0; i < paths->len; i++)
-        result[i] = g_array_index(paths, struct plugin_info, i).path;
+        result[i] = nm_g_array_index(paths, struct plugin_info, i).path;
     result[i] = NULL;
 
     g_array_free(paths, TRUE);

@@ -15,6 +15,7 @@
 #include <linux/rtnetlink.h>
 
 #include "n-acd/src/n-acd.h"
+#include "libnm-platform/nm-platform-utils.h"
 
 #define SIGNAL_DATA_FMT "'%s-%s' ifindex %d%s%s%s (%d times received)"
 #define SIGNAL_DATA_ARG(data)                                                                     \
@@ -22,8 +23,60 @@
         (data)->ifname ? " ifname '" : "", (data)->ifname ?: "", (data)->ifname ? "'" : "",       \
         (data)->received_count
 
-int NMTSTP_ENV1_IFINDEX = -1;
-int NMTSTP_ENV1_EX      = -1;
+int NMTSTP_ENV1_IFINDEXES[];
+
+const char *const NMTSTP_ENV1_DEVICE_NAME[] = {
+    "nm-test-device0",
+    "nm-test-device1",
+};
+
+int NMTSTP_ENV1_EX = -1;
+
+/*****************************************************************************/
+
+typedef struct {
+    const char *module_name;
+
+    NMLinkType iftype;
+
+    /* These modules create additional interfaces, like
+     * "gre0" for "ip_gre" module.
+     *
+     * - actually some modules create multiple interfaces, like "ip_gre"
+     *   creating "gre0", "gretap0", "erspan0".
+     * - if already an interface with such name exist, kernel would create
+     *   names like "gre1" or "gretap1". We don't care for that, because
+     *   we run in our own namespace and we control which interfaces are there.
+     *   We wouldn't create an interface with such a conflicting name.
+     *
+     * Anyway. This is the name of *one* of the interfaces that the module would
+     * create. */
+    const char *ifname;
+
+    /* This only gets set, if iftype is NM_LINK_TYPE_UNKNOWN. It corresponds to
+     * NMPlatformLink.kind. */
+    const char *ifkind;
+
+} IPTunnelModInfo;
+
+#define INF(_module_name, _iftype, _ifname, ...)                                           \
+    {                                                                                      \
+        .module_name = ""_module_name, .iftype = _iftype, .ifname = ""_ifname, __VA_ARGS__ \
+    }
+
+static const IPTunnelModInfo ip_tunnel_mod_infos[] = {
+    INF("ip_gre", NM_LINK_TYPE_GRE, "gre0"),
+    INF("ip_gre", NM_LINK_TYPE_GRETAP, "gretap0"),
+    INF("ip_gre", NM_LINK_TYPE_UNKNOWN, "erspan0", .ifkind = "erspan"),
+    INF("ipip", NM_LINK_TYPE_IPIP, "tunl0"),
+    INF("ip6_tunnel", NM_LINK_TYPE_IP6TNL, "ip6tnl0"),
+    INF("ip6_gre", NM_LINK_TYPE_IP6GRE, "ip6gre0"),
+    INF("sit", NM_LINK_TYPE_SIT, "sit0"),
+    INF("ip_vti", NM_LINK_TYPE_VTI, "ip_vti0"),
+    INF("ip6_vti", NM_LINK_TYPE_VTI6, "ip6_vti0"),
+};
+
+#undef INF
 
 /*****************************************************************************/
 
@@ -218,13 +271,13 @@ _nmtstp_platform_ip_addresses_assert(const char        *filename,
             }
 
             if (!addr_bin->found) {
-                char sbuf[NM_UTILS_INET_ADDRSTRLEN];
+                char sbuf[NM_INET_ADDRSTRLEN];
 
                 g_error("%s:%d: IPv%c address %s was not found on ifindex %d",
                         filename,
                         lineno,
                         nm_utils_addr_family_to_char(addr_bin->addr_family),
-                        nm_utils_inet_ntop(addr_bin->addr_family, &addr_bin->addr, sbuf),
+                        nm_inet_ntop(addr_bin->addr_family, &addr_bin->addr, sbuf),
                         ifindex);
             }
         }
@@ -583,7 +636,7 @@ _nmtstp_assert_ip4_route_exists(const char *file,
     r = _ip4_route_get(platform, ifindex, network, plen, metric, tos, &c);
 
     if (c != c_exists && c_exists != -1) {
-        char sbuf[NM_UTILS_INET_ADDRSTRLEN];
+        char sbuf[NM_INET_ADDRSTRLEN];
 
         NM_PRAGMA_WARNING_DISABLE_DANGLING_POINTER
         g_error("[%s:%u] %s(): The ip4 route %s/%d metric %u tos %u shall exist %u times, but "
@@ -591,7 +644,7 @@ _nmtstp_assert_ip4_route_exists(const char *file,
                 file,
                 line,
                 func,
-                _nm_utils_inet4_ntop(network, sbuf),
+                nm_inet4_ntop(network, sbuf),
                 plen,
                 metric,
                 tos,
@@ -683,8 +736,8 @@ _nmtstp_assert_ip6_route_exists(const char            *file,
     r = _ip6_route_get(platform, ifindex, network, plen, metric, src, src_plen, &c);
 
     if (c != c_exists && c_exists != -1) {
-        char s_src[NM_UTILS_INET_ADDRSTRLEN];
-        char s_network[NM_UTILS_INET_ADDRSTRLEN];
+        char s_src[NM_INET_ADDRSTRLEN];
+        char s_network[NM_INET_ADDRSTRLEN];
 
         NM_PRAGMA_WARNING_DISABLE_DANGLING_POINTER
         g_error("[%s:%u] %s(): The ip6 route %s/%d metric %u src %s/%d shall exist %u times, but "
@@ -692,10 +745,10 @@ _nmtstp_assert_ip6_route_exists(const char            *file,
                 file,
                 line,
                 func,
-                _nm_utils_inet6_ntop(network, s_network),
+                nm_inet6_ntop(network, s_network),
                 plen,
                 metric,
-                _nm_utils_inet6_ntop(src, s_src),
+                nm_inet6_ntop(src, s_src),
                 src_plen,
                 c_exists,
                 c);
@@ -735,6 +788,642 @@ nmtstp_run_command(const char *format, ...)
     _LOGD("Command finished: result=%d", result);
 
     return result;
+}
+
+/*****************************************************************************/
+
+static int
+_assert_platform_sort_objs(gconstpointer ptr_a, gconstpointer ptr_b)
+{
+    const NMPObject *a = *((const NMPObject *const *) ptr_a);
+    const NMPObject *b = *((const NMPObject *const *) ptr_b);
+
+    g_assert(NMP_OBJECT_IS_VALID(a));
+    g_assert(NMP_OBJECT_IS_VALID(b));
+    g_assert(NMP_OBJECT_GET_TYPE(a) == NMP_OBJECT_GET_TYPE(b));
+
+    NM_CMP_RETURN(nmp_object_id_cmp(a, b));
+    g_assert_not_reached();
+    return 0;
+}
+
+static void
+_assert_platform_printarr(NMPObjectType obj_type, GPtrArray *arr1, GPtrArray *arr2)
+{
+    char  sbuf[NM_UTILS_TO_STRING_BUFFER_SIZE];
+    guint i;
+
+    _LOGT("compare arrays of %s. In cache %u entries, fetched %u entries",
+          NMP_OBJECT_TYPE_NAME(obj_type),
+          nm_g_ptr_array_len(arr1),
+          nm_g_ptr_array_len(arr2));
+
+    for (i = 0; i < nm_g_ptr_array_len(arr1); i++) {
+        _LOGT("cache[%u] %s",
+              i,
+              nmp_object_to_string(arr1->pdata[i], NMP_OBJECT_TO_STRING_ALL, sbuf, sizeof(sbuf)));
+    }
+    for (i = 0; i < nm_g_ptr_array_len(arr2); i++) {
+        _LOGT("fetch[%u] %s",
+              i,
+              nmp_object_to_string(arr2->pdata[i], NMP_OBJECT_TO_STRING_ALL, sbuf, sizeof(sbuf)));
+    }
+
+    switch (obj_type) {
+    case NMP_OBJECT_TYPE_LINK:
+        nmtstp_run_command("ip -d link");
+        break;
+    case NMP_OBJECT_TYPE_IP4_ADDRESS:
+        nmtstp_run_command("ip -d -4 address");
+        break;
+    case NMP_OBJECT_TYPE_IP6_ADDRESS:
+        nmtstp_run_command("ip -d -6 address");
+        break;
+    case NMP_OBJECT_TYPE_IP4_ROUTE:
+        nmtstp_run_command("ip -d -4 route show table all");
+        break;
+    case NMP_OBJECT_TYPE_IP6_ROUTE:
+        nmtstp_run_command("ip -d -6 route show table all");
+        break;
+    default:
+        g_assert_not_reached();
+        break;
+    }
+}
+
+static gboolean
+_assert_platform_normalize_all(GPtrArray *arr)
+{
+    guint    i;
+    gboolean normalized = FALSE;
+
+    for (i = 0; i < nm_g_ptr_array_len(arr); i++) {
+        const NMPObject **ptr         = (gpointer) &arr->pdata[i];
+        nm_auto_nmpobj NMPObject *new = NULL;
+        gboolean skip                 = FALSE;
+
+        switch (NMP_OBJECT_GET_TYPE(*ptr)) {
+        case NMP_OBJECT_TYPE_LINK:
+        {
+            const NMPlatformLink *link = NMP_OBJECT_CAST_LINK(*ptr);
+
+            if (nmtstp_link_is_iptunnel_special(link)) {
+                /* These are special interfaces for the ip tunnel modules, like
+                 * "gre0" created by the "ip_gre" module.
+                 *
+                 * These interfaces can appear at any moment, when the module
+                 * gets loaded (by anybody on the host). We might want to avoid
+                 * that by calling nmtstp_ensure_module(), but it's worse.
+                 * Kernel does not send correct RTM_NEWLINK events when those
+                 * interfaces get created. So the cache content based on the
+                 * events will differ from a new load from a dump.
+                 *
+                 * We need to ignore those interfaces. */
+                skip = TRUE;
+            } else if (link->type == NM_LINK_TYPE_UNKNOWN) {
+                /* The link type is not detected. This might be a generated
+                 * interface like nmtstp_link_is_iptunnel_special(), but for
+                 * kernel modules that we don't know about. Ignore them too. */
+                skip = TRUE;
+            }
+
+            if (!skip) {
+                new                  = nmp_object_clone(*ptr, FALSE);
+                new->link.rx_packets = 0;
+                new->link.rx_bytes   = 0;
+                new->link.tx_packets = 0;
+                new->link.tx_bytes   = 0;
+            }
+            if (nmp_object_ref_set(ptr, new))
+                normalized = TRUE;
+            break;
+        }
+        default:
+            break;
+        }
+    }
+
+    while (g_ptr_array_remove(arr, NULL)) {
+        /* Remove NULL values. */
+        normalized = TRUE;
+    }
+
+    return normalized;
+}
+
+static gboolean
+_assert_platform_compare_arr(NMPObjectType obj_type,
+                             const char   *detail_type,
+                             GPtrArray    *arr1,
+                             GPtrArray    *arr2,
+                             gboolean      normalized,
+                             gboolean      share_multi_idx,
+                             gboolean      do_assert)
+{
+    const NMPClass *obj_class = nmp_class_from_type(obj_type);
+    char            sbuf1[NM_UTILS_TO_STRING_BUFFER_SIZE];
+    char            sbuf2[NM_UTILS_TO_STRING_BUFFER_SIZE];
+    int             idx;
+    int             idx_pointer_comp = -1;
+
+#define _fail_msg(do_assert, ...) \
+    G_STMT_START                  \
+    {                             \
+        if (do_assert) {          \
+            g_error(__VA_ARGS__); \
+        } else {                  \
+            _LOGW(__VA_ARGS__);   \
+            return FALSE;         \
+        }                         \
+    }                             \
+    G_STMT_END
+
+    for (idx = 0; TRUE; idx++) {
+        if (nm_g_ptr_array_len(arr1) == idx && nm_g_ptr_array_len(arr2) == idx)
+            break;
+        if (idx >= nm_g_ptr_array_len(arr1)) {
+            _assert_platform_printarr(obj_type, arr1, arr2);
+            _fail_msg(do_assert,
+                      "Comparing %s (%s) for platform fails. Platform now shows entry #%u which is "
+                      "not in the cache but expected %s",
+                      obj_class->obj_type_name,
+                      detail_type,
+                      idx,
+                      nmp_object_to_string(arr2->pdata[idx],
+                                           NMP_OBJECT_TO_STRING_ALL,
+                                           sbuf1,
+                                           sizeof(sbuf1)));
+        }
+        if (idx >= nm_g_ptr_array_len(arr2)) {
+            _assert_platform_printarr(obj_type, arr1, arr2);
+            _fail_msg(
+                do_assert,
+                "Comparing %s (%s) for platform fails. Platform has no more entry #%u which is "
+                "still in the cache as %s",
+                obj_class->obj_type_name,
+                detail_type,
+                idx,
+                nmp_object_to_string(arr1->pdata[idx],
+                                     NMP_OBJECT_TO_STRING_ALL,
+                                     sbuf1,
+                                     sizeof(sbuf1)));
+        }
+        if (!nmp_object_equal(arr1->pdata[idx], arr2->pdata[idx])) {
+            _assert_platform_printarr(obj_type, arr1, arr2);
+            _fail_msg(do_assert,
+                      "Comparing %s (%s) for platform fails. Platform entry #%u is now %s but in "
+                      "cache is %s",
+                      obj_class->obj_type_name,
+                      detail_type,
+                      idx,
+                      nmp_object_to_string(arr2->pdata[idx],
+                                           NMP_OBJECT_TO_STRING_ALL,
+                                           sbuf1,
+                                           sizeof(sbuf1)),
+                      nmp_object_to_string(arr1->pdata[idx],
+                                           NMP_OBJECT_TO_STRING_ALL,
+                                           sbuf2,
+                                           sizeof(sbuf2)));
+        }
+
+        if (!normalized && (share_multi_idx != (arr1->pdata[idx] == arr2->pdata[idx]))
+            && idx_pointer_comp == -1)
+            idx_pointer_comp = idx;
+    }
+
+    if (idx_pointer_comp != -1) {
+        _assert_platform_printarr(obj_type, arr1, arr2);
+        _fail_msg(do_assert,
+                  "Comparing %s (%s) for platform fails for pointer comparison. Platform entry "
+                  "#%u is now %s but in cache is %s",
+                  obj_class->obj_type_name,
+                  detail_type,
+                  idx_pointer_comp,
+                  nmp_object_to_string(arr2->pdata[idx_pointer_comp],
+                                       NMP_OBJECT_TO_STRING_ALL,
+                                       sbuf1,
+                                       sizeof(sbuf1)),
+                  nmp_object_to_string(arr1->pdata[idx_pointer_comp],
+                                       NMP_OBJECT_TO_STRING_ALL,
+                                       sbuf2,
+                                       sizeof(sbuf2)));
+    }
+
+    return TRUE;
+}
+
+/*****************************************************************************/
+
+gboolean
+nmtstp_link_is_iptunnel_special(const NMPlatformLink *link)
+{
+    int i;
+
+    g_assert(link);
+
+    /* These interfaces are autogenerated when loading the ip tunnel
+     * modules. For example, loading "ip_gre" results in interfaces
+     * "gre0", "gretap0", "erspan0".
+     *
+     * Actually, if the interface names are already taken ("gre0" already
+     * exists), it will create "gre1" and so on. We don't care about that,
+     * because in our test's netns that is not happening. */
+
+    for (i = 0; i < (int) G_N_ELEMENTS(ip_tunnel_mod_infos); i++) {
+        const IPTunnelModInfo *module_info = &ip_tunnel_mod_infos[i];
+
+        if (module_info->iftype != link->type)
+            continue;
+        if (!nm_streq(module_info->ifname, link->name))
+            continue;
+        if (module_info->ifkind && !nm_streq(module_info->ifkind, link->kind))
+            continue;
+
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
+/*****************************************************************************/
+
+gboolean
+nmtstp_ensure_module(const char *module_name)
+{
+    /* using iproute2 seems to fail sometimes? Force use of platform code. */
+    const int              EX          = 0;
+    gs_free char          *test_ifname = NULL;
+    const NMPlatformLink  *link;
+    static int             module_state[G_N_ELEMENTS(ip_tunnel_mod_infos)] = {0};
+    int                    i_module_info;
+    const IPTunnelModInfo *module_info = NULL;
+    int                    i;
+    int                    ifindex;
+    gboolean               result;
+
+    if (!module_name) {
+        result = TRUE;
+        for (i = 0; i < (int) G_N_ELEMENTS(ip_tunnel_mod_infos); i++) {
+            if (!nmtstp_ensure_module(ip_tunnel_mod_infos[i].module_name))
+                result = FALSE;
+        }
+        return result;
+    }
+
+    for (i_module_info = 0; i_module_info < (int) G_N_ELEMENTS(ip_tunnel_mod_infos);
+         i_module_info++) {
+        if (nm_streq(module_name, ip_tunnel_mod_infos[i_module_info].module_name)) {
+            module_info = &ip_tunnel_mod_infos[i_module_info];
+            break;
+        }
+    }
+    if (!module_info)
+        g_error("%s:%d: Module name \"%s\" not implemented!", __FILE__, __LINE__, module_name);
+
+    test_ifname = g_strdup_printf("nm-mod-%s", module_info->ifname);
+    g_assert(nm_utils_ifname_valid_kernel(test_ifname, NULL));
+
+again:
+    i = g_atomic_int_get(&module_state[i_module_info]);
+    if (i != 0)
+        return i > 0;
+
+    /* When tunnel modules get loaded, then interfaces like "gre0", "gretap0"
+     * and "erspan0" (for "ip_gre" module) appear. For other modules, the interfaces
+     * are named differently. Of course, unless those interface name are already taken,
+     * in which case it will create "gre1", etc). So ugly.
+     *
+     * Anyway. as we run unit tests in parallel (`make check -j`), another
+     * test might just load the module just now, which results in the creation of
+     * those interfaces in our current namespace. That can break the test.
+     */
+
+    link = nmtstp_link_get_typed(NM_PLATFORM_GET, 0, test_ifname, module_info->iftype);
+    g_assert(!link);
+
+    link = nmtstp_link_get_typed(NM_PLATFORM_GET, 0, module_info->ifname, module_info->iftype);
+    if (link) {
+        g_assert(nmtstp_link_is_iptunnel_special(link));
+        /* An interface with this name exists. While technically this could not be the interface
+         * generated by the kernel module, in our test netns we can assume that it is. This is
+         * good enough. */
+        result = TRUE;
+        goto out;
+    }
+
+    /* Try to load the module. It probably won't work, because we don't have permissions.
+     * Ignore any failure. */
+    nmp_utils_modprobe(NULL, TRUE, module_info->module_name, NULL);
+
+    if (nm_streq(module_name, "ip_gre")) {
+        link = nmtstp_link_gre_add(NULL,
+                                   EX,
+                                   test_ifname,
+                                   &((const NMPlatformLnkGre){
+                                       .local          = nmtst_inet4_from_string("192.168.233.204"),
+                                       .remote         = nmtst_inet4_from_string("172.168.10.25"),
+                                       .parent_ifindex = 0,
+                                       .ttl            = 174,
+                                       .tos            = 37,
+                                       .path_mtu_discovery = TRUE,
+                                   }));
+    } else if (nm_streq(module_name, "ipip")) {
+        link = nmtstp_link_ipip_add(NULL,
+                                    EX,
+                                    test_ifname,
+                                    &((const NMPlatformLnkIpIp){
+                                        .local              = nmtst_inet4_from_string("1.2.3.4"),
+                                        .remote             = nmtst_inet4_from_string("5.6.7.8"),
+                                        .parent_ifindex     = 0,
+                                        .tos                = 32,
+                                        .path_mtu_discovery = FALSE,
+                                    }));
+    } else if (nm_streq(module_name, "ip6_tunnel")) {
+        link = nmtstp_link_ip6tnl_add(NULL,
+                                      EX,
+                                      test_ifname,
+                                      &((const NMPlatformLnkIp6Tnl){
+                                          .local       = nmtst_inet6_from_string("fd01::15"),
+                                          .remote      = nmtst_inet6_from_string("fd01::16"),
+                                          .tclass      = 20,
+                                          .encap_limit = 6,
+                                          .flow_label  = 1337,
+                                          .proto       = IPPROTO_IPV6,
+                                      }));
+    } else if (nm_streq(module_name, "ip6_gre")) {
+        link = nmtstp_link_ip6gre_add(NULL,
+                                      EX,
+                                      test_ifname,
+                                      &((const NMPlatformLnkIp6Tnl){
+                                          .local      = nmtst_inet6_from_string("fd01::42"),
+                                          .remote     = nmtst_inet6_from_string("fd01::aaaa"),
+                                          .tclass     = 21,
+                                          .flow_label = 1338,
+                                          .is_gre     = TRUE,
+                                      }));
+    } else if (nm_streq(module_name, "sit")) {
+        link = nmtstp_link_sit_add(NULL,
+                                   EX,
+                                   test_ifname,
+                                   &((const NMPlatformLnkSit){
+                                       .local  = nmtst_inet4_from_string("192.168.200.1"),
+                                       .remote = nmtst_inet4_from_string("172.25.100.14"),
+                                       .ttl    = 0,
+                                       .tos    = 31,
+                                       .path_mtu_discovery = FALSE,
+                                   }));
+    } else if (nm_streq(module_name, "ip_vti")) {
+        link = nmtstp_link_vti_add(NULL,
+                                   EX,
+                                   test_ifname,
+                                   &((const NMPlatformLnkVti){
+                                       .local  = nmtst_inet4_from_string("192.168.212.204"),
+                                       .remote = nmtst_inet4_from_string("172.168.11.25"),
+                                       .ikey   = 12,
+                                       .okey   = 13,
+                                   }));
+    } else if (nm_streq(module_name, "ip6_vti")) {
+        link = nmtstp_link_vti6_add(NULL,
+                                    EX,
+                                    test_ifname,
+                                    &((const NMPlatformLnkVti6){
+                                        .local  = nmtst_inet6_from_string("fd01::1"),
+                                        .remote = nmtst_inet6_from_string("fd02::2"),
+                                        .ikey   = 13,
+                                        .okey   = 14,
+                                    }));
+    } else
+        g_error("%s:%d: Module name \"%s\" not implemented!", __FILE__, __LINE__, module_name);
+
+    if (!link) {
+        /* We might be unable to add the interface, if the kernel module does not exist.
+         * Be graceful about that. */
+        ifindex = 0;
+        g_assert(!nmtstp_link_get_typed(NM_PLATFORM_GET, 0, test_ifname, module_info->iftype));
+        g_assert(
+            !nmtstp_link_get_typed(NM_PLATFORM_GET, 0, module_info->ifname, module_info->iftype));
+    } else {
+        ifindex = link->ifindex;
+
+        g_assert(link);
+        g_assert(
+            link
+            == nmtstp_link_get_typed(NM_PLATFORM_GET, ifindex, test_ifname, module_info->iftype));
+
+        nmtstp_link_delete(NULL, -1, link->ifindex, test_ifname, TRUE);
+
+        link = nmtstp_link_get_typed(NM_PLATFORM_GET, 0, module_info->ifname, module_info->iftype);
+        g_assert(nmtstp_link_is_iptunnel_special(link));
+    }
+
+    result = ifindex > 0 ? 1 : -1;
+
+out:
+    if (!g_atomic_int_compare_and_exchange(&module_state[i_module_info], 0, result))
+        goto again;
+
+    if (!result) {
+        /* The function aims to be graceful about missing kernel modules. */
+
+        /* g_error("Failure to ensure module \"%s\"", module_name); */
+    }
+
+    return result;
+}
+
+gboolean
+nmtstp_check_platform_full(NMPlatform *platform, guint32 obj_type_flags, gboolean do_assert)
+{
+    static const NMPObjectType obj_types[] = {
+        NMP_OBJECT_TYPE_IP4_ADDRESS,
+        NMP_OBJECT_TYPE_IP6_ADDRESS,
+        NMP_OBJECT_TYPE_IP4_ROUTE,
+        NMP_OBJECT_TYPE_IP6_ROUTE,
+        NMP_OBJECT_TYPE_LINK,
+    };
+    gboolean                    obj_type_flags_all = (obj_type_flags == 0u);
+    gs_unref_object NMPlatform *platform2          = NULL;
+    int                         i_obj_types;
+    gboolean                    share_multi_idx = nmtst_get_rand_bool();
+
+    /* This test creates a new NMLinuxPlatform instance. This will fill
+     * the cache with a new dump.
+     *
+     * Then it compares the content with @platform and checks that they
+     * agree. This tests that @platform cache is consistent, as it was
+     * updated based on netlink events. */
+
+    g_assert(NM_IS_LINUX_PLATFORM(platform));
+
+    _LOGD("assert-platform: start");
+
+    nm_platform_process_events(platform);
+
+    platform2 = nm_linux_platform_new(share_multi_idx ? nm_platform_get_multi_idx(platform) : NULL,
+                                      TRUE,
+                                      nmtst_get_rand_bool(),
+                                      nmtst_get_rand_bool());
+    g_assert(NM_IS_LINUX_PLATFORM(platform2));
+
+    for (i_obj_types = 0; i_obj_types < (int) G_N_ELEMENTS(obj_types); i_obj_types++) {
+        const NMPObjectType          obj_type         = obj_types[i_obj_types];
+        const guint32                i_obj_type_flags = nmp_object_type_to_flags(obj_type);
+        gs_unref_ptrarray GPtrArray *arr1             = NULL;
+        gs_unref_ptrarray GPtrArray *arr2             = NULL;
+        NMPLookup                    lookup;
+        gboolean                     check_unordered = TRUE;
+        guint                        idx;
+        gboolean                     normalized;
+
+        if (!obj_type_flags_all) {
+            if (!NM_FLAGS_ANY(obj_type_flags, i_obj_type_flags))
+                continue;
+            obj_type_flags = NM_FLAGS_UNSET(obj_type_flags, i_obj_type_flags);
+        }
+
+        nmp_lookup_init_obj_type(&lookup, obj_type);
+
+        arr1 = nm_platform_lookup_clone(platform, &lookup, NULL, NULL) ?: g_ptr_array_new();
+        arr2 = nm_platform_lookup_clone(platform2, &lookup, NULL, NULL) ?: g_ptr_array_new();
+
+        normalized = _assert_platform_normalize_all(arr1);
+        normalized = _assert_platform_normalize_all(arr2);
+
+        if (check_unordered) {
+            /* We need to sort the two lists. */
+            g_ptr_array_sort(arr1, _assert_platform_sort_objs);
+            g_ptr_array_sort(arr2, _assert_platform_sort_objs);
+        }
+
+        if (!_assert_platform_compare_arr(obj_type,
+                                          "main",
+                                          arr1,
+                                          arr2,
+                                          normalized,
+                                          share_multi_idx,
+                                          do_assert))
+            return FALSE;
+
+        if (NM_IN_SET(obj_type, NMP_OBJECT_TYPE_IP4_ROUTE, NMP_OBJECT_TYPE_IP6_ROUTE)) {
+            /* For routes, the WEAK_ID needs to be sorted and match the expected order. Check that. */
+            g_assert(!normalized);
+            for (idx = 0; idx < nm_g_ptr_array_len(arr1); idx++) {
+                const NMPObject             *obj1         = arr1->pdata[idx];
+                const NMPObject             *obj2         = arr2->pdata[idx];
+                gs_unref_ptrarray GPtrArray *arr1b        = NULL;
+                gs_unref_ptrarray GPtrArray *arr2b        = NULL;
+                gs_unref_ptrarray GPtrArray *arr1b_sorted = NULL;
+                gs_unref_ptrarray GPtrArray *arr2b_sorted = NULL;
+                guint                        found_obj1   = 0;
+                guint                        found_obj2   = 0;
+                guint                        i;
+
+                nmp_lookup_init_route_by_weak_id(&lookup, obj1);
+                arr1b =
+                    nm_platform_lookup_clone(platform, &lookup, NULL, NULL) ?: g_ptr_array_new();
+                g_assert_cmpint(arr1b->len, >, 0u);
+
+                nmp_lookup_init_route_by_weak_id(&lookup, obj2);
+                arr2b =
+                    nm_platform_lookup_clone(platform2, &lookup, NULL, NULL) ?: g_ptr_array_new();
+                g_assert_cmpint(arr2b->len, ==, arr1b->len);
+
+                /* First check that the lists agree, if we sort them. The list of
+                 * weak-ids was supposed to honor the sort order from `ip route show`,
+                 * but as that is not the case (see blow), first check whether at
+                 * least the same routes are in the list (with wrong sort order). */
+                arr1b_sorted = nm_g_ptr_array_new_clone(arr1b, NULL, NULL, NULL);
+                arr2b_sorted = nm_g_ptr_array_new_clone(arr2b, NULL, NULL, NULL);
+                g_ptr_array_sort(arr1b_sorted, _assert_platform_sort_objs);
+                g_ptr_array_sort(arr2b_sorted, _assert_platform_sort_objs);
+                if (!_assert_platform_compare_arr(obj_type,
+                                                  "weak-id-sorted",
+                                                  arr1b_sorted,
+                                                  arr2b_sorted,
+                                                  normalized,
+                                                  share_multi_idx,
+                                                  do_assert))
+                    return FALSE;
+
+                if (obj_type == NMP_OBJECT_TYPE_IP6_ROUTE) {
+                    /* For IPv6, the weak-ids are actually not sorted correctly.
+                     * This is because IPv6 multihop/ECMP routes get split into
+                     * multiple objects, and we don't get this right.
+                     *
+                     * This may be a bug. But we probably don't rely on this
+                     * anymore, because the weak-id were used to find which
+                     * route got replaced with `NLM_F_REPLACE`, but that anyway
+                     * doesn't work. We now always request a new dump. */
+                } else if (obj_type == NMP_OBJECT_TYPE_IP4_ROUTE) {
+                    /* For IPv4, it also does not reliably always work. This may
+                     * be a bug we want to fix. For now, ignore the check.
+                     *
+                     * a) Kernel can wrongly allow to configure the same route twice.
+                     * That means, the same route is visible in `ip route` output,
+                     * meaning, it would be added twice to the platform cache.
+                     * At least due to that problem, may the weak-id not be properly sorted.
+                     * See https://bugzilla.redhat.com/show_bug.cgi?id=2165720 which is
+                     * a bug of kernel allowing to configure the exact same route twice.
+                     *
+                     * b) See https://bugzilla.redhat.com/show_bug.cgi?id=2162315 which is
+                     * a bug where kernel does allow to configure single-hop routes that differ by
+                     * their next-hop weight, but on the netlink API those routes look the same.
+                     *
+                     * Due to a) and b), the platform cache may contain only one instance
+                     * of a route, which is visible more than once in `ip route` output.
+                     * This merging of different routes causes problems, and it also means
+                     * that the RTM_NEWROUTE events are wrongly interpreted and the weak-id
+                     * is not properly sorted.
+                     */
+                } else {
+                    /* Assert that also the original, not-sorted lists agree. */
+                    if (!_assert_platform_compare_arr(obj_type,
+                                                      "weak-id",
+                                                      arr1b,
+                                                      arr2b,
+                                                      normalized,
+                                                      share_multi_idx,
+                                                      do_assert))
+                        return FALSE;
+                }
+
+                for (i = 0; i < arr1b->len; i++) {
+                    if (arr1b->pdata[i] == obj1)
+                        found_obj1++;
+                    if (arr2b->pdata[i] == obj2)
+                        found_obj2++;
+                }
+
+                g_assert_cmpint(found_obj1, ==, 1u);
+                g_assert_cmpint(found_obj2, ==, 1u);
+            }
+        }
+    }
+
+    g_clear_object(&platform2);
+
+    _LOGD("assert-platform: done");
+
+    g_assert_cmpint(obj_type_flags, ==, 0u);
+
+    return TRUE;
+}
+
+void
+nmtstp_check_platform(NMPlatform *platform, guint32 obj_type_flags)
+{
+    if (!nmtstp_check_platform_full(platform, obj_type_flags, FALSE)) {
+        /* It's unclear why this failure sometimes happens. It happens
+         * on gitlab-ci on Ubuntu/Debian(??).
+         *
+         * Retrying shortly after seems to avoid it. */
+        g_usleep(20 * 1000);
+        nm_platform_process_events(platform);
+        nmtstp_run_command("ip route");
+        nm_platform_process_events(platform);
+
+        nmtstp_check_platform_full(platform, obj_type_flags, TRUE);
+    }
 }
 
 /*****************************************************************************/
@@ -1036,7 +1725,7 @@ nmtstp_ip_address_assert_lifetime(const NMPlatformIPAddress *addr,
 
 static void
 _ip_address_add(NMPlatform     *platform,
-                gboolean        external_command,
+                int             external_command,
                 gboolean        is_v4,
                 int             ifindex,
                 const NMIPAddr *address,
@@ -1058,8 +1747,8 @@ _ip_address_add(NMPlatform     *platform,
         gs_free char *s_valid     = NULL;
         gs_free char *s_preferred = NULL;
         gs_free char *s_label     = NULL;
-        char          b1[NM_UTILS_INET_ADDRSTRLEN];
-        char          b2[NM_UTILS_INET_ADDRSTRLEN];
+        char          b1[NM_INET_ADDRSTRLEN];
+        char          b2[NM_INET_ADDRSTRLEN];
 
         ifname = nm_platform_link_get_name(platform, ifindex);
         g_assert(ifname);
@@ -1072,18 +1761,18 @@ _ip_address_add(NMPlatform     *platform,
             s_label = g_strdup_printf("%s:%s", ifname, label);
 
         if (is_v4) {
-            char s_peer[NM_UTILS_INET_ADDRSTRLEN + 50];
+            char s_peer[NM_INET_ADDRSTRLEN + 50];
 
             g_assert(flags == 0);
 
             if (peer_address->addr4 != address->addr4 || nmtst_get_rand_uint32() % 2) {
                 /* If the peer is the same as the local address, we can omit it. The result should be identical */
-                nm_sprintf_buf(s_peer, " peer %s", _nm_utils_inet4_ntop(peer_address->addr4, b2));
+                nm_sprintf_buf(s_peer, " peer %s", nm_inet4_ntop(peer_address->addr4, b2));
             } else
                 s_peer[0] = '\0';
 
             nmtstp_run_command_check("ip address change %s%s/%d dev %s%s%s%s",
-                                     _nm_utils_inet4_ntop(address->addr4, b1),
+                                     nm_inet4_ntop(address->addr4, b1),
                                      s_peer,
                                      plen,
                                      ifname,
@@ -1096,10 +1785,10 @@ _ip_address_add(NMPlatform     *platform,
             /* flags not implemented (yet) */
             g_assert(flags == 0);
             nmtstp_run_command_check("ip address change %s%s%s/%d dev %s%s%s%s",
-                                     _nm_utils_inet6_ntop(&address->addr6, b1),
+                                     nm_inet6_ntop(&address->addr6, b1),
                                      !IN6_IS_ADDR_UNSPECIFIED(&peer_address->addr6) ? " peer " : "",
                                      !IN6_IS_ADDR_UNSPECIFIED(&peer_address->addr6)
-                                         ? _nm_utils_inet6_ntop(&peer_address->addr6, b2)
+                                         ? nm_inet6_ntop(&peer_address->addr6, b2)
                                          : "",
                                      plen,
                                      ifname,
@@ -1188,7 +1877,7 @@ _ip_address_add(NMPlatform     *platform,
 
 void
 nmtstp_ip4_address_add(NMPlatform *platform,
-                       gboolean    external_command,
+                       int         external_command,
                        int         ifindex,
                        in_addr_t   address,
                        int         plen,
@@ -1213,7 +1902,7 @@ nmtstp_ip4_address_add(NMPlatform *platform,
 
 void
 nmtstp_ip6_address_add(NMPlatform     *platform,
-                       gboolean        external_command,
+                       int             external_command,
                        int             ifindex,
                        struct in6_addr address,
                        int             plen,
@@ -1257,8 +1946,8 @@ nmtstp_ip4_route_add(NMPlatform      *platform,
     route.metric    = metric;
     route.mss       = mss;
 
-    g_assert(
-        NMTST_NM_ERR_SUCCESS(nm_platform_ip4_route_add(platform, NMP_NLM_FLAG_REPLACE, &route)));
+    g_assert(NMTST_NM_ERR_SUCCESS(
+        nm_platform_ip4_route_add(platform, NMP_NLM_FLAG_REPLACE, &route, NULL)));
 }
 
 void
@@ -1291,7 +1980,7 @@ nmtstp_ip6_route_add(NMPlatform      *platform,
 
 static void
 _ip_address_del(NMPlatform     *platform,
-                gboolean        external_command,
+                int             external_command,
                 gboolean        is_v4,
                 int             ifindex,
                 const NMIPAddr *address,
@@ -1306,8 +1995,8 @@ _ip_address_del(NMPlatform     *platform,
 
     if (external_command) {
         const char *ifname;
-        char        b1[NM_UTILS_INET_ADDRSTRLEN];
-        char        b2[NM_UTILS_INET_ADDRSTRLEN];
+        char        b1[NM_INET_ADDRSTRLEN];
+        char        b2[NM_INET_ADDRSTRLEN];
         int         success;
         gboolean    had_address;
 
@@ -1325,18 +2014,17 @@ _ip_address_del(NMPlatform     *platform,
             had_address = !!nm_platform_ip6_address_get(platform, ifindex, &address->addr6);
 
         if (is_v4) {
-            success = nmtstp_run_command("ip address delete %s%s%s/%d dev %s",
-                                         _nm_utils_inet4_ntop(address->addr4, b1),
-                                         peer_address->addr4 != address->addr4 ? " peer " : "",
-                                         peer_address->addr4 != address->addr4
-                                             ? _nm_utils_inet4_ntop(peer_address->addr4, b2)
-                                             : "",
-                                         plen,
-                                         ifname);
+            success = nmtstp_run_command(
+                "ip address delete %s%s%s/%d dev %s",
+                nm_inet4_ntop(address->addr4, b1),
+                peer_address->addr4 != address->addr4 ? " peer " : "",
+                peer_address->addr4 != address->addr4 ? nm_inet4_ntop(peer_address->addr4, b2) : "",
+                plen,
+                ifname);
         } else {
             g_assert(!peer_address);
             success = nmtstp_run_command("ip address delete %s/%d dev %s",
-                                         _nm_utils_inet6_ntop(&address->addr6, b1),
+                                         nm_inet6_ntop(&address->addr6, b1),
                                          plen,
                                          ifname);
         }
@@ -1391,7 +2079,7 @@ _ip_address_del(NMPlatform     *platform,
 
 void
 nmtstp_ip4_address_del(NMPlatform *platform,
-                       gboolean    external_command,
+                       int         external_command,
                        int         ifindex,
                        in_addr_t   address,
                        int         plen,
@@ -1408,7 +2096,7 @@ nmtstp_ip4_address_del(NMPlatform *platform,
 
 void
 nmtstp_ip6_address_del(NMPlatform     *platform,
-                       gboolean        external_command,
+                       int             external_command,
                        int             ifindex,
                        struct in6_addr address,
                        int             plen)
@@ -1478,7 +2166,7 @@ nmtstp_link_bridge_normalize_jiffies_time(const NMPlatformLnkBridge *requested,
 
 const NMPlatformLink *
 nmtstp_link_bridge_add(NMPlatform                *platform,
-                       gboolean                   external_command,
+                       int                        external_command,
                        const char                *name,
                        const NMPlatformLnkBridge *lnk)
 {
@@ -1633,10 +2321,7 @@ nmtstp_link_bridge_add(NMPlatform                *platform,
     return pllink;
 }
 const NMPlatformLink *
-nmtstp_link_veth_add(NMPlatform *platform,
-                     gboolean    external_command,
-                     const char *name,
-                     const char *peer)
+nmtstp_link_veth_add(NMPlatform *platform, int external_command, const char *name, const char *peer)
 {
     const NMPlatformLink *pllink  = NULL;
     gboolean              success = FALSE;
@@ -1681,7 +2366,7 @@ again:
 }
 
 const NMPlatformLink *
-nmtstp_link_dummy_add(NMPlatform *platform, gboolean external_command, const char *name)
+nmtstp_link_dummy_add(NMPlatform *platform, int external_command, const char *name)
 {
     const NMPlatformLink *pllink = NULL;
     gboolean              success;
@@ -1706,7 +2391,7 @@ nmtstp_link_dummy_add(NMPlatform *platform, gboolean external_command, const cha
 
 const NMPlatformLink *
 nmtstp_link_gre_add(NMPlatform             *platform,
-                    gboolean                external_command,
+                    int                     external_command,
                     const char             *name,
                     const NMPlatformLnkGre *lnk)
 {
@@ -1734,13 +2419,13 @@ nmtstp_link_gre_add(NMPlatform             *platform,
         obj  = lnk->is_tap ? "link" : "tunnel";
         type = lnk->is_tap ? "type gretap" : "mode gre";
 
-        success = !nmtstp_run_command("ip %s add %s %s %s local %s remote %s ttl %u tos %02x %s",
+        success = !nmtstp_run_command("ip %s add %s %s%s%s local %s remote %s ttl %u tos %02x %s",
                                       obj,
                                       name,
                                       type,
-                                      dev ?: "",
-                                      _nm_utils_inet4_ntop(lnk->local, b1),
-                                      _nm_utils_inet4_ntop(lnk->remote, b2),
+                                      NM_PRINT_FMT_QUOTED2(dev, " ", dev, ""),
+                                      nm_inet4_ntop(lnk->local, b1),
+                                      nm_inet4_ntop(lnk->remote, b2),
                                       lnk->ttl,
                                       lnk->tos,
                                       lnk->path_mtu_discovery ? "pmtudisc" : "nopmtudisc");
@@ -1757,14 +2442,14 @@ nmtstp_link_gre_add(NMPlatform             *platform,
 
 const NMPlatformLink *
 nmtstp_link_ip6tnl_add(NMPlatform                *platform,
-                       gboolean                   external_command,
+                       int                        external_command,
                        const char                *name,
                        const NMPlatformLnkIp6Tnl *lnk)
 {
     const NMPlatformLink *pllink = NULL;
     gboolean              success;
-    char                  b1[NM_UTILS_INET_ADDRSTRLEN];
-    char                  b2[NM_UTILS_INET_ADDRSTRLEN];
+    char                  b1[NM_INET_ADDRSTRLEN];
+    char                  b2[NM_INET_ADDRSTRLEN];
     char                  encap[20];
     char                  tclass[20];
     gboolean              encap_ignore;
@@ -1800,13 +2485,13 @@ nmtstp_link_ip6tnl_add(NMPlatform                *platform,
         tclass_inherit = NM_FLAGS_HAS(lnk->flags, IP6_TNL_F_USE_ORIG_TCLASS);
 
         success = !nmtstp_run_command(
-            "ip -6 tunnel add %s mode %s %s local %s remote %s ttl %u tclass %s encaplimit %s "
+            "ip -6 tunnel add %s mode %s%s%s local %s remote %s ttl %u tclass %s encaplimit %s "
             "flowlabel %x",
             name,
             mode,
-            dev,
-            _nm_utils_inet6_ntop(&lnk->local, b1),
-            _nm_utils_inet6_ntop(&lnk->remote, b2),
+            NM_PRINT_FMT_QUOTED2(dev, " ", dev, ""),
+            nm_inet6_ntop(&lnk->local, b1),
+            nm_inet6_ntop(&lnk->remote, b2),
             lnk->ttl,
             tclass_inherit ? "inherit" : nm_sprintf_buf(tclass, "%02x", lnk->tclass),
             encap_ignore ? "none" : nm_sprintf_buf(encap, "%u", lnk->encap_limit),
@@ -1823,14 +2508,14 @@ nmtstp_link_ip6tnl_add(NMPlatform                *platform,
 
 const NMPlatformLink *
 nmtstp_link_ip6gre_add(NMPlatform                *platform,
-                       gboolean                   external_command,
+                       int                        external_command,
                        const char                *name,
                        const NMPlatformLnkIp6Tnl *lnk)
 {
     const NMPlatformLink *pllink = NULL;
     gboolean              success;
-    char                  b1[NM_UTILS_INET_ADDRSTRLEN];
-    char                  b2[NM_UTILS_INET_ADDRSTRLEN];
+    char                  b1[NM_INET_ADDRSTRLEN];
+    char                  b2[NM_INET_ADDRSTRLEN];
     char                  tclass[20];
     gboolean              tclass_inherit;
 
@@ -1851,12 +2536,12 @@ nmtstp_link_ip6gre_add(NMPlatform                *platform,
         tclass_inherit = NM_FLAGS_HAS(lnk->flags, IP6_TNL_F_USE_ORIG_TCLASS);
 
         success = !nmtstp_run_command(
-            "ip link add %s type %s %s local %s remote %s ttl %u tclass %s flowlabel %x",
+            "ip link add %s type %s%s%s local %s remote %s ttl %u tclass %s flowlabel %x",
             name,
             lnk->is_tap ? "ip6gretap" : "ip6gre",
-            dev,
-            _nm_utils_inet6_ntop(&lnk->local, b1),
-            _nm_utils_inet6_ntop(&lnk->remote, b2),
+            NM_PRINT_FMT_QUOTED2(dev, " ", dev, ""),
+            nm_inet6_ntop(&lnk->local, b1),
+            nm_inet6_ntop(&lnk->remote, b2),
             lnk->ttl,
             tclass_inherit ? "inherit" : nm_sprintf_buf(tclass, "%02x", lnk->tclass),
             lnk->flow_label);
@@ -1882,7 +2567,7 @@ nmtstp_link_ip6gre_add(NMPlatform                *platform,
 
 const NMPlatformLink *
 nmtstp_link_ipip_add(NMPlatform              *platform,
-                     gboolean                 external_command,
+                     int                      external_command,
                      const char              *name,
                      const NMPlatformLnkIpIp *lnk)
 {
@@ -1905,11 +2590,11 @@ nmtstp_link_ipip_add(NMPlatform              *platform,
                 g_strdup_printf("dev %s", nm_platform_link_get_name(platform, lnk->parent_ifindex));
 
         success = !nmtstp_run_command(
-            "ip tunnel add %s mode ipip %s local %s remote %s ttl %u tos %02x %s",
+            "ip tunnel add %s mode ipip%s%s local %s remote %s ttl %u tos %02x %s",
             name,
-            dev,
-            _nm_utils_inet4_ntop(lnk->local, b1),
-            _nm_utils_inet4_ntop(lnk->remote, b2),
+            NM_PRINT_FMT_QUOTED2(dev, " ", dev, ""),
+            nm_inet4_ntop(lnk->local, b1),
+            nm_inet4_ntop(lnk->remote, b2),
             lnk->ttl,
             lnk->tos,
             lnk->path_mtu_discovery ? "pmtudisc" : "nopmtudisc");
@@ -1925,7 +2610,7 @@ nmtstp_link_ipip_add(NMPlatform              *platform,
 
 const NMPlatformLink *
 nmtstp_link_macvlan_add(NMPlatform                 *platform,
-                        gboolean                    external_command,
+                        int                         external_command,
                         const char                 *name,
                         int                         parent,
                         const NMPlatformLnkMacvlan *lnk)
@@ -1945,10 +2630,10 @@ nmtstp_link_macvlan_add(NMPlatform                 *platform,
     if (external_command) {
         const char *dev;
         char       *modes[] = {
-                  [MACVLAN_MODE_BRIDGE]   = "bridge",
-                  [MACVLAN_MODE_VEPA]     = "vepa",
-                  [MACVLAN_MODE_PRIVATE]  = "private",
-                  [MACVLAN_MODE_PASSTHRU] = "passthru",
+            [MACVLAN_MODE_BRIDGE]   = "bridge",
+            [MACVLAN_MODE_VEPA]     = "vepa",
+            [MACVLAN_MODE_PRIVATE]  = "private",
+            [MACVLAN_MODE_PASSTHRU] = "passthru",
         };
 
         dev = nm_platform_link_get_name(platform, parent);
@@ -1974,7 +2659,7 @@ nmtstp_link_macvlan_add(NMPlatform                 *platform,
 
 const NMPlatformLink *
 nmtstp_link_sit_add(NMPlatform             *platform,
-                    gboolean                external_command,
+                    int                     external_command,
                     const char             *name,
                     const NMPlatformLnkSit *lnk)
 {
@@ -2004,8 +2689,8 @@ nmtstp_link_sit_add(NMPlatform             *platform,
             !nmtstp_run_command("ip tunnel add %s mode sit%s local %s remote %s ttl %u tos %02x %s",
                                 name,
                                 dev,
-                                _nm_utils_inet4_ntop(lnk->local, b1),
-                                _nm_utils_inet4_ntop(lnk->remote, b2),
+                                nm_inet4_ntop(lnk->local, b1),
+                                nm_inet4_ntop(lnk->remote, b2),
                                 lnk->ttl,
                                 lnk->tos,
                                 lnk->path_mtu_discovery ? "pmtudisc" : "nopmtudisc");
@@ -2021,7 +2706,7 @@ nmtstp_link_sit_add(NMPlatform             *platform,
 
 const NMPlatformLink *
 nmtstp_link_tun_add(NMPlatform             *platform,
-                    gboolean                external_command,
+                    int                     external_command,
                     const char             *name,
                     const NMPlatformLnkTun *lnk,
                     int                    *out_fd)
@@ -2085,8 +2770,134 @@ nmtstp_link_tun_add(NMPlatform             *platform,
 }
 
 const NMPlatformLink *
-nmtstp_link_vrf_add(NMPlatform             *platform,
+nmtstp_link_vlan_add(NMPlatform              *platform,
+                     int                      external_command,
+                     const char              *name,
+                     int                      parent,
+                     const NMPlatformLnkVlan *lnk)
+{
+    const NMPlatformLink *pllink = NULL;
+    gboolean              success;
+
+    g_assert(nm_utils_ifname_valid_kernel(name, NULL));
+
+    external_command = nmtstp_run_command_check_external(external_command);
+
+    _init_platform(&platform, external_command);
+
+    if (external_command) {
+        const char *dev;
+
+        dev = nm_platform_link_get_name(platform, parent);
+        g_assert(dev);
+        g_assert(NM_IN_SET(lnk->protocol, ETH_P_8021Q, ETH_P_8021AD));
+
+        success = !nmtstp_run_command(
+            "ip link add name %s link %s type vlan id %hu protocol %s%s%s%s%s",
+            name,
+            dev,
+            lnk->id,
+            lnk->protocol == ETH_P_8021Q ? "802.1Q" : "802.1ad",
+            !(lnk->flags & _NM_VLAN_FLAG_REORDER_HEADERS) ? " reorder_hdr off" : "",
+            (lnk->flags & _NM_VLAN_FLAG_GVRP) ? " gvrp on" : "",
+            (lnk->flags & _NM_VLAN_FLAG_MVRP) ? " mvrp on" : "",
+            (lnk->flags & _NM_VLAN_FLAG_LOOSE_BINDING) ? " loose_binding on" : "");
+        if (success)
+            pllink = nmtstp_assert_wait_for_link(platform, name, NM_LINK_TYPE_VLAN, 100);
+    } else
+        success =
+            NMTST_NM_ERR_SUCCESS(nm_platform_link_vlan_add(platform, name, parent, lnk, &pllink));
+
+    _assert_pllink(platform, success, pllink, name, NM_LINK_TYPE_VLAN);
+
+    return pllink;
+}
+
+const NMPlatformLink *
+nmtstp_link_vti_add(NMPlatform             *platform,
                     gboolean                external_command,
+                    const char             *name,
+                    const NMPlatformLnkVti *lnk)
+{
+    const NMPlatformLink *pllink = NULL;
+    gboolean              success;
+    char                  b1[INET_ADDRSTRLEN];
+    char                  b2[INET_ADDRSTRLEN];
+
+    g_assert(nm_utils_ifname_valid_kernel(name, NULL));
+    external_command = nmtstp_run_command_check_external(external_command);
+    _init_platform(&platform, external_command);
+    g_assert(lnk->fwmark == 0);
+
+    if (external_command) {
+        gs_free char *dev = NULL;
+
+        if (lnk->parent_ifindex)
+            dev =
+                g_strdup_printf("dev %s", nm_platform_link_get_name(platform, lnk->parent_ifindex));
+
+        success =
+            !nmtstp_run_command("ip link add %s type vti %s local %s remote %s ikey %u okey %u",
+                                name,
+                                dev ?: "",
+                                nm_inet4_ntop(lnk->local, b1),
+                                nm_inet4_ntop(lnk->remote, b2),
+                                lnk->ikey,
+                                lnk->okey);
+        if (success)
+            pllink = nmtstp_assert_wait_for_link(platform, name, NM_LINK_TYPE_VTI, 100);
+    } else
+        success = NMTST_NM_ERR_SUCCESS(nm_platform_link_vti_add(platform, name, lnk, &pllink));
+
+    _assert_pllink(platform, success, pllink, name, NM_LINK_TYPE_VTI);
+
+    return pllink;
+}
+
+const NMPlatformLink *
+nmtstp_link_vti6_add(NMPlatform              *platform,
+                     gboolean                 external_command,
+                     const char              *name,
+                     const NMPlatformLnkVti6 *lnk)
+{
+    const NMPlatformLink *pllink = NULL;
+    gboolean              success;
+    char                  b1[INET6_ADDRSTRLEN];
+    char                  b2[INET6_ADDRSTRLEN];
+
+    g_assert(nm_utils_ifname_valid_kernel(name, NULL));
+    external_command = nmtstp_run_command_check_external(external_command);
+    _init_platform(&platform, external_command);
+    g_assert(lnk->fwmark == 0);
+
+    if (external_command) {
+        gs_free char *dev = NULL;
+
+        if (lnk->parent_ifindex)
+            dev =
+                g_strdup_printf("dev %s", nm_platform_link_get_name(platform, lnk->parent_ifindex));
+
+        success =
+            !nmtstp_run_command("ip link add %s type vti6 %s local %s remote %s ikey %u okey %u",
+                                name,
+                                dev ?: "",
+                                nm_inet6_ntop(&lnk->local, b1),
+                                nm_inet6_ntop(&lnk->remote, b2),
+                                lnk->ikey,
+                                lnk->okey);
+        if (success)
+            pllink = nmtstp_assert_wait_for_link(platform, name, NM_LINK_TYPE_VTI6, 100);
+    } else
+        success = NMTST_NM_ERR_SUCCESS(nm_platform_link_vti6_add(platform, name, lnk, &pllink));
+
+    _assert_pllink(platform, success, pllink, name, NM_LINK_TYPE_VTI6);
+
+    return pllink;
+}
+
+const NMPlatformLink *
+nmtstp_link_vrf_add(NMPlatform             *platform,
+                    int                     external_command,
                     const char             *name,
                     const NMPlatformLnkVrf *lnk,
                     gboolean               *out_not_supported)
@@ -2123,7 +2934,7 @@ nmtstp_link_vrf_add(NMPlatform             *platform,
 
 const NMPlatformLink *
 nmtstp_link_vxlan_add(NMPlatform               *platform,
-                      gboolean                  external_command,
+                      int                       external_command,
                       const char               *name,
                       const NMPlatformLnkVxlan *lnk)
 {
@@ -2139,24 +2950,24 @@ nmtstp_link_vxlan_add(NMPlatform               *platform,
 
     if (external_command) {
         gs_free char *dev = NULL;
-        char          local[NM_UTILS_INET_ADDRSTRLEN];
-        char          group[NM_UTILS_INET_ADDRSTRLEN];
+        char          local[NM_INET_ADDRSTRLEN];
+        char          group[NM_INET_ADDRSTRLEN];
 
         if (lnk->parent_ifindex)
             dev =
                 g_strdup_printf("dev %s", nm_platform_link_get_name(platform, lnk->parent_ifindex));
 
         if (lnk->local)
-            _nm_utils_inet4_ntop(lnk->local, local);
+            nm_inet4_ntop(lnk->local, local);
         else if (memcmp(&lnk->local6, &in6addr_any, sizeof(in6addr_any)))
-            _nm_utils_inet6_ntop(&lnk->local6, local);
+            nm_inet6_ntop(&lnk->local6, local);
         else
             local[0] = '\0';
 
         if (lnk->group)
-            _nm_utils_inet4_ntop(lnk->group, group);
+            nm_inet4_ntop(lnk->group, group);
         else if (memcmp(&lnk->group6, &in6addr_any, sizeof(in6addr_any)))
-            _nm_utils_inet6_ntop(&lnk->group6, group);
+            nm_inet6_ntop(&lnk->group6, group);
         else
             group[0] = '\0';
 
@@ -2239,7 +3050,7 @@ nmtstp_link_get(NMPlatform *platform, int ifindex, const char *name)
 
 void
 nmtstp_link_delete(NMPlatform *platform,
-                   gboolean    external_command,
+                   int         external_command,
                    int         ifindex,
                    const char *name,
                    gboolean    require_exist)
@@ -2291,7 +3102,7 @@ nmtstp_link_delete(NMPlatform *platform,
 /*****************************************************************************/
 
 void
-nmtstp_link_set_updown(NMPlatform *platform, gboolean external_command, int ifindex, gboolean up)
+nmtstp_link_set_updown(NMPlatform *platform, int external_command, int ifindex, gboolean up)
 {
     const NMPlatformLink *plink;
     gint64                end_time;
@@ -2739,7 +3550,7 @@ nmtstp_acd_defender_new(int ifindex, in_addr_t ip_addr, const NMEtherAddr *mac_a
     NAcdProbe                                         *probe        = NULL;
     int                                                fd;
     int                                                r;
-    char                                               sbuf_addr[NM_UTILS_INET_ADDRSTRLEN];
+    char                                               sbuf_addr[NM_INET_ADDRSTRLEN];
 
     g_assert_cmpint(ifindex, >, 0);
     g_assert(mac_addr);
@@ -2780,7 +3591,7 @@ nmtstp_acd_defender_new(int ifindex, in_addr_t ip_addr, const NMEtherAddr *mac_a
           NM_HASH_OBFUSCATE_PTR(defender),
           ifindex,
           NM_ETHER_ADDR_FORMAT_VAL(mac_addr),
-          _nm_utils_inet4_ntop(ip_addr, sbuf_addr));
+          nm_inet4_ntop(ip_addr, sbuf_addr));
 
     n_acd_probe_set_userdata(defender->probe, defender);
 

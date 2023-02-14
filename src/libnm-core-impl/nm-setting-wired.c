@@ -292,7 +292,7 @@ nm_setting_wired_get_mac_address_blacklist(NMSettingWired *setting)
     g_return_val_if_fail(NM_IS_SETTING_WIRED(setting), NULL);
 
     priv = NM_SETTING_WIRED_GET_PRIVATE(setting);
-    return (const char *const *) priv->mac_address_blacklist->data;
+    return nm_g_array_data(priv->mac_address_blacklist);
 }
 
 /**
@@ -327,7 +327,7 @@ nm_setting_wired_get_mac_blacklist_item(NMSettingWired *setting, guint32 idx)
     priv = NM_SETTING_WIRED_GET_PRIVATE(setting);
     g_return_val_if_fail(idx <= priv->mac_address_blacklist->len, NULL);
 
-    return g_array_index(priv->mac_address_blacklist, const char *, idx);
+    return nm_g_array_index(priv->mac_address_blacklist, const char *, idx);
 }
 
 /**
@@ -355,7 +355,7 @@ nm_setting_wired_add_mac_blacklist_item(NMSettingWired *setting, const char *mac
 
     priv = NM_SETTING_WIRED_GET_PRIVATE(setting);
     for (i = 0; i < priv->mac_address_blacklist->len; i++) {
-        candidate = g_array_index(priv->mac_address_blacklist, char *, i);
+        candidate = nm_g_array_index(priv->mac_address_blacklist, char *, i);
         if (nm_utils_hwaddr_matches(mac, -1, candidate, -1))
             return FALSE;
     }
@@ -409,7 +409,7 @@ nm_setting_wired_remove_mac_blacklist_item_by_value(NMSettingWired *setting, con
 
     priv = NM_SETTING_WIRED_GET_PRIVATE(setting);
     for (i = 0; i < priv->mac_address_blacklist->len; i++) {
-        candidate = g_array_index(priv->mac_address_blacklist, char *, i);
+        candidate = nm_g_array_index(priv->mac_address_blacklist, char *, i);
         if (!nm_utils_hwaddr_matches(mac, -1, candidate, -1)) {
             g_array_remove_index(priv->mac_address_blacklist, i);
             _notify(setting, PROP_MAC_ADDRESS_BLACKLIST);
@@ -810,7 +810,7 @@ verify(NMSetting *setting, NMConnection *connection, GError **error)
     }
 
     for (i = 0; i < priv->mac_address_blacklist->len; i++) {
-        const char *mac = g_array_index(priv->mac_address_blacklist, const char *, i);
+        const char *mac = nm_g_array_index(priv->mac_address_blacklist, const char *, i);
 
         if (!nm_utils_hwaddr_valid(mac, ETH_ALEN)) {
             g_set_error(error,
@@ -1007,7 +1007,7 @@ get_property(GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
         g_value_set_string(value, nm_setting_wired_get_cloned_mac_address(setting));
         break;
     case PROP_MAC_ADDRESS_BLACKLIST:
-        g_value_set_boxed(value, (char **) priv->mac_address_blacklist->data);
+        g_value_set_boxed(value, nm_g_array_data(priv->mac_address_blacklist));
         break;
     case PROP_S390_SUBCHANNELS:
         g_value_set_boxed(value, priv->s390_subchannels);
@@ -1311,7 +1311,8 @@ nm_setting_wired_class_init(NMSettingWiredClass *klass)
      *   (e.g. 00:22:68:12:79:A2), or semicolon separated list of 6 bytes (obsolete)
      *   (e.g. 0;34;104;18;121;162)
      * ---end---
-     * ---ifcfg-rh---
+     */
+    /* ---ifcfg-rh---
      * property: mac-address
      * variable: HWADDR
      * description: Hardware address of the device in traditional hex-digits-and-colons
@@ -1359,13 +1360,15 @@ nm_setting_wired_class_init(NMSettingWiredClass *klass)
      *   (e.g. 00:22:68:12:79:B2), or semicolon separated list of 6 bytes (obsolete)
      *   (e.g. 0;34;104;18;121;178).
      * ---end---
-     * ---ifcfg-rh---
+     */
+    /* ---ifcfg-rh---
      * property: cloned-mac-address
      * variable: MACADDR
      * description: Cloned (spoofed) MAC address in traditional hex-digits-and-colons
      *    notation (e.g. 00:22:68:14:5A:99).
      * ---end---
-     * ---dbus---
+     */
+    /* ---dbus---
      * property: cloned-mac-address
      * format: byte array
      * description: This D-Bus field is deprecated in favor of "assigned-mac-address"
@@ -1382,11 +1385,13 @@ nm_setting_wired_class_init(NMSettingWiredClass *klass)
     _nm_properties_override_gobj(
         properties_override,
         obj_properties[PROP_CLONED_MAC_ADDRESS],
-        NM_SETT_INFO_PROPERT_TYPE_DBUS(G_VARIANT_TYPE_BYTESTRING,
-                                       .compare_fcn           = compare_fcn_cloned_mac_address,
-                                       .to_dbus_fcn           = _nm_utils_hwaddr_cloned_get,
-                                       .from_dbus_fcn         = _nm_utils_hwaddr_cloned_set,
-                                       .missing_from_dbus_fcn = _nm_utils_hwaddr_cloned_not_set, ));
+        NM_SETT_INFO_PROPERT_TYPE_DBUS(
+            G_VARIANT_TYPE_BYTESTRING,
+            .compare_fcn           = compare_fcn_cloned_mac_address,
+            .to_dbus_fcn           = _nm_sett_info_prop_to_dbus_fcn_cloned_mac_address,
+            .from_dbus_fcn         = _nm_sett_info_prop_from_dbus_fcn_cloned_mac_address,
+            .missing_from_dbus_fcn = _nm_sett_info_prop_missing_from_dbus_fcn_cloned_mac_address, ),
+        .dbus_deprecated = TRUE);
 
     /* ---dbus---
      * property: assigned-mac-address
@@ -1465,7 +1470,8 @@ nm_setting_wired_class_init(NMSettingWiredClass *klass)
      * description: MAC address blacklist.
      * example: mac-address-blacklist= 00:22:68:12:79:A6;00:22:68:12:79:78
      * ---end---
-     * ---ifcfg-rh---
+     */
+    /* ---ifcfg-rh---
      * property: mac-address-blacklist
      * variable: HWADDR_BLACKLIST(+)
      * description: It denies usage of the connection for any device whose address
@@ -1551,7 +1557,7 @@ nm_setting_wired_class_init(NMSettingWiredClass *klass)
                                               s390_nettype);
 
     /**
-     * NMSettingWired:s390-options: (type GHashTable(utf8,utf8)):
+     * NMSettingWired:s390-options: (type GHashTable(utf8,utf8))
      *
      * Dictionary of key/value pairs of s390-specific device options.  Both keys
      * and values must be strings.  Allowed keys include "portno", "layer2",

@@ -461,6 +461,7 @@ test_read_netmask_1(void)
     gs_free char                 *content    = NULL;
     NMSettingConnection          *s_con;
     NMSettingIPConfig            *s_ip4;
+    NMSettingIPConfig            *s_ip6;
     NMIPAddress                  *ip4_addr;
     const char                   *FILENAME = TEST_IFCFG_DIR "/ifcfg-netmask-1";
 
@@ -470,11 +471,19 @@ test_read_netmask_1(void)
     g_assert_cmpstr(nm_setting_connection_get_id(s_con), ==, "System netmask-1");
 
     s_ip4 = nmtst_connection_assert_setting(connection, NM_TYPE_SETTING_IP4_CONFIG);
-    g_assert_cmpuint(nm_setting_ip_config_get_num_dns(s_ip4), ==, 1);
+    g_assert_cmpuint(nm_setting_ip_config_get_num_dns(s_ip4), ==, 2);
+    g_assert_cmpstr(nm_setting_ip_config_get_dns(s_ip4, 0), ==, "192.0.2.1");
+    g_assert_cmpstr(nm_setting_ip_config_get_dns(s_ip4, 1), ==, "192.0.2.2#adfs.afddsaf");
+
     ip4_addr = nm_setting_ip_config_get_address(s_ip4, 0);
     g_assert(ip4_addr);
     g_assert_cmpstr(nm_ip_address_get_address(ip4_addr), ==, "102.0.2.2");
     g_assert_cmpint(nm_ip_address_get_prefix(ip4_addr), ==, 15);
+
+    s_ip6 = nmtst_connection_assert_setting(connection, NM_TYPE_SETTING_IP6_CONFIG);
+    g_assert_cmpuint(nm_setting_ip_config_get_num_dns(s_ip6), ==, 2);
+    g_assert_cmpstr(nm_setting_ip_config_get_dns(s_ip6, 0), ==, "1::2");
+    g_assert_cmpstr(nm_setting_ip_config_get_dns(s_ip6, 1), ==, "1::3#dfdf.er");
 
     nmtst_assert_connection_verifies_without_normalization(connection);
 
@@ -1356,6 +1365,7 @@ test_read_wired_static_routes(void)
     nmtst_assert_route_attribute_byte(ip4_route, NM_IP_ROUTE_ATTRIBUTE_TOS, 0x28);
     nmtst_assert_route_attribute_uint32(ip4_route, NM_IP_ROUTE_ATTRIBUTE_WINDOW, 30000);
     nmtst_assert_route_attribute_uint32(ip4_route, NM_IP_ROUTE_ATTRIBUTE_CWND, 12);
+    nmtst_assert_route_attribute_uint32(ip4_route, NM_IP_ROUTE_ATTRIBUTE_WEIGHT, 5);
     nmtst_assert_route_attribute_uint32(ip4_route, NM_IP_ROUTE_ATTRIBUTE_INITCWND, 13);
     nmtst_assert_route_attribute_uint32(ip4_route, NM_IP_ROUTE_ATTRIBUTE_INITRWND, 14);
     nmtst_assert_route_attribute_uint32(ip4_route, NM_IP_ROUTE_ATTRIBUTE_MTU, 9000);
@@ -1390,6 +1400,10 @@ test_read_wired_static_routes(void)
     g_assert_cmpint(nm_ip_route_get_prefix(ip4_route), ==, 32);
     nmtst_assert_route_attribute_string(ip4_route, NM_IP_ROUTE_ATTRIBUTE_TYPE, "local");
     nmtst_assert_route_attribute_byte(ip4_route, NM_IP_ROUTE_ATTRIBUTE_SCOPE, 254);
+
+    g_assert_cmpint(nm_setting_ip_config_get_num_dns(s_ip4), ==, 2);
+    g_assert_cmpstr(nm_setting_ip_config_get_dns(s_ip4, 0), ==, "4.2.2.1");
+    g_assert_cmpstr(nm_setting_ip_config_get_dns(s_ip4, 1), ==, "4.2.2.2#dns.name");
 }
 
 static void
@@ -2036,11 +2050,11 @@ test_read_wired_aliases_good(gconstpointer test_data)
                                                           NULL};
     const char                   *expected_address_3[] = {"192.168.1.5", "192.168.1.6", NULL};
     const char                   *expected_label_0[]   = {
-                            NULL,
-                            "aliasem0:1",
-                            "aliasem0:2",
-                            "aliasem0:99",
-                            NULL,
+        NULL,
+        "aliasem0:1",
+        "aliasem0:2",
+        "aliasem0:99",
+        NULL,
     };
     const char *expected_label_3[] = {
         NULL,
@@ -2082,7 +2096,7 @@ test_read_wired_aliases_good(gconstpointer test_data)
         g_assert(ip4_addr != NULL);
 
         addr = nm_ip_address_get_address(ip4_addr);
-        g_assert(nm_utils_ipaddr_is_valid(AF_INET, addr));
+        g_assert(nm_inet_is_valid(AF_INET, addr));
 
         for (j = 0; j < expected_num_addresses; j++) {
             if (!g_strcmp0(addr, expected_address[j]))
@@ -4266,6 +4280,7 @@ static void
 test_write_wired_static(void)
 {
     nmtst_auto_unlinkfile char   *testfile   = NULL;
+    nmtst_auto_unlinkfile char   *route4file = NULL;
     nmtst_auto_unlinkfile char   *route6file = NULL;
     gs_unref_object NMConnection *connection = NULL;
     gs_unref_object NMConnection *reread     = NULL;
@@ -4275,6 +4290,7 @@ test_write_wired_static(void)
     NMSettingIPConfig            *s_ip6, *reread_s_ip6;
     NMIPAddress                  *addr;
     NMIPAddress                  *addr6;
+    NMIPRoute                    *route4;
     NMIPRoute                    *route6;
     GError                       *error = NULL;
 
@@ -4379,6 +4395,13 @@ test_write_wired_static(void)
     nm_setting_ip_config_add_route(s_ip6, route6);
     nm_ip_route_unref(route6);
 
+    route4 = nm_ip_route_new(AF_INET, "1.1.1.1", 24, "1.2.3.4", 99, &error);
+    g_assert_no_error(error);
+    nm_ip_route_set_attribute(route4, NM_IP_ROUTE_ATTRIBUTE_CWND, g_variant_new_uint32(100));
+    nm_ip_route_set_attribute(route4, NM_IP_ROUTE_ATTRIBUTE_WEIGHT, g_variant_new_uint32(5));
+    nm_setting_ip_config_add_route(s_ip4, route4);
+    nm_ip_route_unref(route4);
+
     /* DNS servers */
     nm_setting_ip_config_add_dns(s_ip6, "fade:0102:0103::face");
     nm_setting_ip_config_add_dns(s_ip6, "cafe:ffff:eeee:dddd:cccc:bbbb:aaaa:feed");
@@ -4390,7 +4413,9 @@ test_write_wired_static(void)
     nmtst_assert_connection_verifies(connection);
 
     _writer_new_connection(connection, TEST_SCRATCH_DIR, &testfile);
+
     route6file = utils_get_route6_path(testfile);
+    route4file = utils_get_route_path(testfile);
 
     reread = _connection_from_file(testfile, NULL, TYPE_ETHERNET, NULL);
 
@@ -7754,6 +7779,7 @@ test_read_vlan_interface(void)
 
     g_assert_cmpstr(nm_setting_vlan_get_parent(s_vlan), ==, "eth9");
     g_assert_cmpint(nm_setting_vlan_get_id(s_vlan), ==, 43);
+    g_assert_cmpstr(nm_setting_vlan_get_protocol(s_vlan), ==, "802.1ad");
     g_assert_cmpint(nm_setting_vlan_get_flags(s_vlan),
                     ==,
                     NM_VLAN_FLAG_GVRP | NM_VLAN_FLAG_LOOSE_BINDING | NM_VLAN_FLAG_REORDER_HEADERS);
@@ -7930,6 +7956,7 @@ test_read_vlan_flags_1(void)
 
     g_assert_cmpstr(nm_setting_vlan_get_parent(s_vlan), ==, "eth9");
     g_assert_cmpint(nm_setting_vlan_get_id(s_vlan), ==, 44);
+    g_assert_cmpstr(nm_setting_vlan_get_protocol(s_vlan), ==, NULL);
     g_assert_cmpint(nm_setting_vlan_get_flags(s_vlan),
                     ==,
                     NM_VLAN_FLAG_LOOSE_BINDING | NM_VLAN_FLAG_REORDER_HEADERS);

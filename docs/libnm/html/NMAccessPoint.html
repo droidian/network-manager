@@ -577,7 +577,7 @@ with this function.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>connections</p></td>
-<td class="parameter_description"><p>an array of <span class="type">NMConnections</span> to
+<td class="parameter_description"><p>an array of <a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html#NMConnection-struct"><span class="type">NMConnections</span></a> to
 filter. </p></td>
 <td class="parameter_annotations"><span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMConnection]</span></td>
 </tr>
@@ -587,7 +587,7 @@ filter. </p></td>
 <div class="refsect3">
 <a name="nm-access-point-filter-connections.returns"></a><h4>Returns</h4>
 <p>an array of
-<span class="type">NMConnections</span> that could be activated with the given <em class="parameter"><code>ap</code></em>
+<a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html#NMConnection-struct"><span class="type">NMConnections</span></a> that could be activated with the given <em class="parameter"><code>ap</code></em>
 .  The array should
 be freed with <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#g-ptr-array-unref"><code class="function">g_ptr_array_unref()</code></a> when it is no longer required.</p>
 <p>WARNING: the transfer annotation for this function may not work correctly
@@ -601,7 +601,7 @@ You can filter the list yourself with <a class="link" href="NMAccessPoint.html#n
 <a name="nm-access-point-connection-valid"></a><h3>nm_access_point_connection_valid ()</h3>
 <pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 nm_access_point_connection_valid (<em class="parameter"><code><a class="link" href="NMAccessPoint.html" title="NMAccessPoint"><span class="type">NMAccessPoint</span></a> *ap</code></em>,
-                                  <em class="parameter"><code><a class="link" href="NMConnection.html" title="NMConnection"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
+                                  <em class="parameter"><code><a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html#NMConnection-struct"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
 <p>Validates a given connection against a given Wi-Fi access point to ensure that
 the connection may be activated with that AP.  The connection must match the
 <em class="parameter"><code>ap</code></em>
@@ -624,7 +624,7 @@ against</p></td>
 </tr>
 <tr>
 <td class="parameter_name"><p>connection</p></td>
-<td class="parameter_description"><p>an <a class="link" href="NMConnection.html" title="NMConnection"><span class="type">NMConnection</span></a> to validate against <em class="parameter"><code>ap</code></em>
+<td class="parameter_description"><p>an <a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html#NMConnection-struct"><span class="type">NMConnection</span></a> to validate against <em class="parameter"><code>ap</code></em>
 </p></td>
 <td class="parameter_annotations"> </td>
 </tr>

@@ -18,6 +18,7 @@
 #include "main-utils.h"
 #include "NetworkManagerUtils.h"
 #include "nm-config.h"
+#include "libnm-glib-aux/nm-io-utils.h"
 
 static gboolean
 sighup_handler(gpointer user_data)
@@ -76,34 +77,20 @@ nm_main_utils_setup_signals(GMainLoop *main_loop)
 gboolean
 nm_main_utils_write_pidfile(const char *pidfile)
 {
-    char     pid[16];
-    int      fd;
-    int      errsv;
-    gboolean success = FALSE;
+    gs_free_error GError *error = NULL;
+    char                  pid[16];
 
-    if ((fd = open(pidfile, O_CREAT | O_WRONLY | O_TRUNC | O_CLOEXEC, 00644)) < 0) {
-        errsv = errno;
-        fprintf(stderr, _("Opening %s failed: %s\n"), pidfile, nm_strerror_native(errsv));
+    nm_sprintf_buf(pid, "%lld", (long long) getpid());
+    if (!nm_utils_file_set_contents(pidfile, pid, -1, 00644, NULL, NULL, &error)) {
+        fprintf(stderr, _("Writing to %s failed: %s\n"), pidfile, error->message);
         return FALSE;
     }
 
-    g_snprintf(pid, sizeof(pid), "%d", getpid());
-    if (write(fd, pid, strlen(pid)) < 0) {
-        errsv = errno;
-        fprintf(stderr, _("Writing to %s failed: %s\n"), pidfile, nm_strerror_native(errsv));
-    } else
-        success = TRUE;
-
-    if (nm_close(fd)) {
-        errsv = errno;
-        fprintf(stderr, _("Closing %s failed: %s\n"), pidfile, nm_strerror_native(errsv));
-    }
-
-    return success;
+    return TRUE;
 }
 
 void
-nm_main_utils_ensure_statedir()
+nm_main_utils_ensure_statedir(void)
 {
     gs_free char *parent = NULL;
     int           errsv;
@@ -129,7 +116,7 @@ nm_main_utils_ensure_statedir()
 }
 
 void
-nm_main_utils_ensure_rundir()
+nm_main_utils_ensure_rundir(void)
 {
     int errsv;
 

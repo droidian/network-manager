@@ -14,7 +14,8 @@
 #define NM_DHCP_TIMEOUT_INFINITY ((guint32) G_MAXINT32)
 
 #define NM_TYPE_DHCP_CLIENT (nm_dhcp_client_get_type())
-#define NM_DHCP_CLIENT(obj) (G_TYPE_CHECK_INSTANCE_CAST((obj), NM_TYPE_DHCP_CLIENT, NMDhcpClient))
+#define NM_DHCP_CLIENT(obj) \
+    (_NM_G_TYPE_CHECK_INSTANCE_CAST((obj), NM_TYPE_DHCP_CLIENT, NMDhcpClient))
 #define NM_DHCP_CLIENT_CLASS(klass) \
     (G_TYPE_CHECK_CLASS_CAST((klass), NM_TYPE_DHCP_CLIENT, NMDhcpClientClass))
 #define NM_IS_DHCP_CLIENT(obj)         (G_TYPE_CHECK_INSTANCE_TYPE((obj), NM_TYPE_DHCP_CLIENT))
@@ -91,9 +92,8 @@ typedef struct {
      * NMDhcpClient is supposed to run. */
     NML3Cfg *l3cfg;
 
-    /* FIXME(l3cfg:dhcp:previous-lease): most parameters of NMDhcpClient are immutable,
-     * so to change them (during reapply), we need to create and start
-     * a new NMDhcpClient instance.
+    /* Most parameters of NMDhcpClient are immutable, so to change them (during
+     * reapply), we need to create and start a new NMDhcpClient instance.
      *
      * However, while the restart happens, we want to stick to the previous
      * lease (if any). Allow the caller to provide such a previous lease,
@@ -120,7 +120,7 @@ typedef struct {
     const char *uuid;
 
     /* Set to reduce the number of broadcast packets when the
-	 * anycast hardware address of the DHCP service is known. */
+     * anycast hardware address of the DHCP service is known. */
     const char *anycast_address;
 
     /* The hostname or FQDN to send. */
@@ -224,18 +224,7 @@ const NMDhcpClientConfig *nm_dhcp_client_get_config(NMDhcpClient *self);
 
 pid_t nm_dhcp_client_get_pid(NMDhcpClient *self);
 
-static inline const NML3ConfigData *
-nm_dhcp_client_get_lease(NMDhcpClient *self)
-{
-    /* FIXME(l3cfg:dhcp:previous-lease): this function returns the currently
-     * valid, exposed lease.
-     *
-     * Note that NMDhcpClient should accept as construct argument a *previous* lease,
-     * and (if that lease is still valid), pretend that it's good to use. The point is
-     * so that during reapply we keep using the current address, until a new lease
-     * was received. */
-    return NULL;
-}
+const NML3ConfigData *nm_dhcp_client_get_lease(NMDhcpClient *self);
 
 void nm_dhcp_client_stop(NMDhcpClient *self, gboolean release);
 

@@ -7,7 +7,7 @@
 #define __NETWORKMANAGER_OVSDB_H__
 
 #define NM_TYPE_OVSDB            (nm_ovsdb_get_type())
-#define NM_OVSDB(obj)            (G_TYPE_CHECK_INSTANCE_CAST((obj), NM_TYPE_OVSDB, NMOvsdb))
+#define NM_OVSDB(obj)            (_NM_G_TYPE_CHECK_INSTANCE_CAST((obj), NM_TYPE_OVSDB, NMOvsdb))
 #define NM_OVSDB_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST((klass), NM_TYPE_OVSDB, NMOvsdbClass))
 #define NM_IS_OVSDB(obj)         (G_TYPE_CHECK_INSTANCE_TYPE((obj), NM_TYPE_OVSDB))
 #define NM_IS_OVSDB_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE((klass), NM_TYPE_OVSDB))
@@ -47,14 +47,14 @@ void nm_ovsdb_set_interface_mtu(NMOvsdb        *self,
                                 NMOvsdbCallback callback,
                                 gpointer        user_data);
 
-struct _NMSettingOvsExternalIDs;
-
-void nm_ovsdb_set_external_ids(NMOvsdb                         *self,
-                               NMDeviceType                     device_type,
-                               const char                      *ifname,
-                               const char                      *connection_uuid,
-                               struct _NMSettingOvsExternalIDs *s_exid_old,
-                               struct _NMSettingOvsExternalIDs *s_exid_new);
+void nm_ovsdb_set_reapply(NMOvsdb                 *self,
+                          NMDeviceType             device_type,
+                          const char              *ifname,
+                          const char              *connection_uuid,
+                          NMSettingOvsExternalIDs *s_external_ids_old,
+                          NMSettingOvsExternalIDs *s_external_ids_new,
+                          NMSettingOvsOtherConfig *s_other_config_old,
+                          NMSettingOvsOtherConfig *s_other_config_new);
 
 gboolean nm_ovsdb_is_ready(NMOvsdb *self);
 

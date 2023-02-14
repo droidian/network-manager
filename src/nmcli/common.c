@@ -354,15 +354,15 @@ print_ip_config(NMIPConfig      *cfg,
             g_strdup_printf("IP%c.%s", nm_utils_addr_family_to_char(addr_family), one_field);
     }
 
-    if (!nmc_print(nmc_config,
-                   (gpointer[]){cfg, NULL},
-                   NULL,
-                   NULL,
-                   addr_family == AF_INET
-                       ? NMC_META_GENERIC_GROUP("IP4", metagen_ip4_config, N_("GROUP"))
-                       : NMC_META_GENERIC_GROUP("IP6", metagen_ip6_config, N_("GROUP")),
-                   field_str,
-                   &error)) {
+    if (!nmc_print_table(nmc_config,
+                         (gpointer[]){cfg, NULL},
+                         NULL,
+                         NULL,
+                         addr_family == AF_INET
+                             ? NMC_META_GENERIC_GROUP("IP4", metagen_ip4_config, N_("GROUP"))
+                             : NMC_META_GENERIC_GROUP("IP6", metagen_ip6_config, N_("GROUP")),
+                         field_str,
+                         &error)) {
         return FALSE;
     }
     return TRUE;
@@ -385,15 +385,15 @@ print_dhcp_config(NMDhcpConfig    *dhcp,
             g_strdup_printf("DHCP%c.%s", nm_utils_addr_family_to_char(addr_family), one_field);
     }
 
-    if (!nmc_print(nmc_config,
-                   (gpointer[]){dhcp, NULL},
-                   NULL,
-                   NULL,
-                   addr_family == AF_INET
-                       ? NMC_META_GENERIC_GROUP("DHCP4", metagen_dhcp_config, N_("GROUP"))
-                       : NMC_META_GENERIC_GROUP("DHCP6", metagen_dhcp_config, N_("GROUP")),
-                   field_str,
-                   &error)) {
+    if (!nmc_print_table(nmc_config,
+                         (gpointer[]){dhcp, NULL},
+                         NULL,
+                         NULL,
+                         addr_family == AF_INET
+                             ? NMC_META_GENERIC_GROUP("DHCP4", metagen_dhcp_config, N_("GROUP"))
+                             : NMC_META_GENERIC_GROUP("DHCP6", metagen_dhcp_config, N_("GROUP")),
+                         field_str,
+                         &error)) {
         return FALSE;
     }
     return TRUE;
@@ -432,9 +432,12 @@ nmc_find_connection(const GPtrArray *connections,
     GPtrArray                   *result              = out_result ? *out_result : NULL;
     const guint                  result_inital_len   = result ? result->len : 0u;
     guint                        i, j;
+    gboolean                     must_match_uniquely;
 
     nm_assert(connections);
     nm_assert(filter_val);
+
+    must_match_uniquely = NM_IN_STRSET(filter_type, "uuid", "path");
 
     for (i = 0; i < connections->len; i++) {
         gboolean      match_by_uuid = FALSE;
@@ -450,6 +453,12 @@ nmc_find_connection(const GPtrArray *connections,
                 nmc_complete_strings(filter_val, v);
             if (nm_streq0(filter_val, v)) {
                 match_by_uuid = TRUE;
+                goto found;
+            }
+            if (filter_type && !nm_str_is_empty(filter_val) && g_str_has_prefix(v, filter_val)) {
+                /* If the selector is qualified by "uuid", prefix matches for the UUID are
+                 * also OK. At least, if they result in a unique match. */
+                nm_assert(must_match_uniquely);
                 goto found;
             }
         }
@@ -483,14 +492,26 @@ nmc_find_connection(const GPtrArray *connections,
         continue;
 
 found:
+
+        if (must_match_uniquely && (best_candidate || best_candidate_uuid)) {
+            /* We found duplicates. This is wrong. */
+            if (out_result && *out_result) {
+                /* Remove the element that we added before. */
+                g_ptr_array_set_size(*out_result, result_inital_len);
+            }
+            return NULL;
+        }
+
         if (match_by_uuid) {
             if (!complete && !out_result)
                 return connection;
-            best_candidate_uuid = connection;
+            if (!best_candidate_uuid)
+                best_candidate_uuid = connection;
         } else {
             if (!best_candidate)
                 best_candidate = connection;
         }
+
         if (out_result) {
             gboolean already_tracked = FALSE;
 
@@ -639,16 +660,16 @@ vpn_openconnect_get_secrets(NMConnection *connection, GPtrArray *secrets)
     /* Interactively authenticate to OpenConnect server and get secrets */
     ret = nm_vpn_openconnect_authenticate_helper(gw, &cookie, &gateway, &gwcert, &status, &error);
     if (!ret) {
-        g_printerr(_("Error: openconnect failed: %s\n"), error->message);
+        nmc_printerr(_("Error: openconnect failed: %s\n"), error->message);
         g_clear_error(&error);
         return FALSE;
     }
 
     if (WIFEXITED(status)) {
         if (WEXITSTATUS(status) != 0)
-            g_printerr(_("Error: openconnect failed with status %d\n"), WEXITSTATUS(status));
+            nmc_printerr(_("Error: openconnect failed with status %d\n"), WEXITSTATUS(status));
     } else if (WIFSIGNALED(status))
-        g_printerr(_("Error: openconnect failed with signal %d\n"), WTERMSIG(status));
+        nmc_printerr(_("Error: openconnect failed with signal %d\n"), WTERMSIG(status));
 
     /* Append port to the host value */
     if (gateway && port) {
@@ -722,7 +743,7 @@ get_secrets_from_user(const NmcConfig *nmc_config,
                     }
                 }
                 if (msg)
-                    g_print("%s\n", msg);
+                    nmc_print("%s\n", msg);
 
                 echo_on = secret->is_secret ? nmc_config->show_secrets : TRUE;
 
@@ -739,10 +760,10 @@ get_secrets_from_user(const NmcConfig *nmc_config,
                     pwd = g_strdup("");
             } else {
                 if (msg)
-                    g_print("%s\n", msg);
-                g_printerr(_("Warning: password for '%s' not given in 'passwd-file' "
-                             "and nmcli cannot ask without '--ask' option.\n"),
-                           secret->entry_id);
+                    nmc_print("%s\n", msg);
+                nmc_printerr(_("Warning: password for '%s' not given in 'passwd-file' "
+                               "and nmcli cannot ask without '--ask' option.\n"),
+                             secret->entry_id);
             }
         }
         /* No password provided, cancel the secrets. */
@@ -874,7 +895,10 @@ static void
 readline_cb(char *line)
 {
     rl_got_line = TRUE;
-    rl_string   = line;
+
+    free(rl_string);
+    rl_string = line;
+
     rl_callback_handler_remove();
 }
 
@@ -889,13 +913,15 @@ static char *
 nmc_readline_helper(const NmcConfig *nmc_config, const char *prompt)
 {
     GSource *io_source;
+    char    *result;
 
     nmc_set_in_readline(TRUE);
 
     io_source = nm_g_unix_fd_add_source(STDIN_FILENO, G_IO_IN, stdin_ready_cb, NULL);
 
 read_again:
-    rl_string   = NULL;
+    nm_clear_free(&rl_string);
+
     rl_got_line = FALSE;
     rl_callback_handler_install(prompt, readline_cb);
 
@@ -921,7 +947,6 @@ read_again:
         if (nmc_config->in_editor || (rl_string && *rl_string)) {
             /* In editor, or the line is not empty */
             /* Call readline again to get new prompt (repeat) */
-            g_free(rl_string);
             goto read_again;
         } else {
             /* Not in editor and line is empty, exit */
@@ -934,16 +959,19 @@ read_again:
     }
 
     /* Return NULL, not empty string */
-    if (rl_string && *rl_string == '\0') {
-        g_free(rl_string);
-        rl_string = NULL;
-    }
+    if (rl_string && *rl_string == '\0')
+        nm_clear_free(&rl_string);
 
     nm_clear_g_source_inst(&io_source);
 
     nmc_set_in_readline(FALSE);
 
-    return rl_string;
+    if (!rl_string)
+        return NULL;
+
+    result = g_strdup(rl_string);
+    nm_clear_free(&rl_string);
+    return result;
 }
 
 /**
@@ -1014,7 +1042,7 @@ nmc_readline_echo(const NmcConfig *nmc_config, gboolean echo_on, const char *pro
 #if HAVE_READLINE_HISTORY
     nm_auto_free HISTORY_STATE *saved_history  = NULL;
     HISTORY_STATE               passwd_history = {
-                      0,
+        0,
     };
 #else
     int start, curpos;
@@ -1504,7 +1532,7 @@ nmc_do_cmd(NmCli *nmc, const NMCCommand cmds[], const char *cmd, int argc, const
     if (argc == 1 && nmc->complete) {
         for (c = cmds; c->cmd; ++c) {
             if (!*cmd || matches(cmd, c->cmd))
-                g_print("%s\n", c->cmd);
+                nmc_print("%s\n", c->cmd);
         }
         nmc_complete_help(cmd);
         g_task_return_boolean(task, TRUE);
@@ -1584,7 +1612,7 @@ nmc_complete_strv(const char *prefix, gssize nargs, const char *const *args)
         if (prefix && !matches(prefix, candidate))
             continue;
 
-        g_print("%s\n", candidate);
+        nmc_print("%s\n", candidate);
     }
 }
 

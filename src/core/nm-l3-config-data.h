@@ -495,12 +495,16 @@ const in_addr_t *nm_l3_config_data_get_wins(const NML3ConfigData *self, guint *o
 
 gboolean nm_l3_config_data_add_wins(NML3ConfigData *self, in_addr_t wins);
 
-gconstpointer
+const char *const *
 nm_l3_config_data_get_nameservers(const NML3ConfigData *self, int addr_family, guint *out_len);
 
-gboolean nm_l3_config_data_add_nameserver(NML3ConfigData                        *self,
-                                          int                                    addr_family,
-                                          gconstpointer /* (const NMIPAddr *) */ nameserver);
+gboolean
+nm_l3_config_data_add_nameserver(NML3ConfigData *self, int addr_family, const char *nameserver);
+
+gboolean nm_l3_config_data_add_nameserver_detail(NML3ConfigData *self,
+                                                 int             addr_family,
+                                                 gconstpointer   addr_bin,
+                                                 const char     *server_name);
 
 gboolean nm_l3_config_data_clear_nameservers(NML3ConfigData *self, int addr_family);
 
@@ -599,5 +603,10 @@ nmtst_l3_config_data_get_best_gateway(const NML3ConfigData *self, int addr_famil
 
     return nm_platform_ip_route_get_gateway(addr_family, NMP_OBJECT_CAST_IP_ROUTE(rt));
 }
+
+void nm_l3_config_data_hash_dns(const NML3ConfigData *l3cd,
+                                GChecksum            *sum,
+                                int                   addr_family,
+                                NMDnsIPConfigType     dns_ip_config_type);
 
 #endif /* __NM_L3_CONFIG_DATA_H__ */

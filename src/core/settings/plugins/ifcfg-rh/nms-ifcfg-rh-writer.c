@@ -1453,6 +1453,7 @@ write_vlan_setting(NMConnection *connection, shvarFile *ifcfg, gboolean *wired, 
     svSetValueStr(ifcfg, "TYPE", TYPE_VLAN);
     svSetValueStr(ifcfg, "PHYSDEV", nm_setting_vlan_get_parent(s_vlan));
     svSetValueInt64(ifcfg, "VLAN_ID", nm_setting_vlan_get_id(s_vlan));
+    svSetValueStr(ifcfg, "VLAN_PROTOCOL", nm_setting_vlan_get_protocol(s_vlan));
 
     vlan_flags = nm_setting_vlan_get_flags(s_vlan);
     svSetValueBoolean(ifcfg, "REORDER_HDR", NM_FLAGS_HAS(vlan_flags, NM_VLAN_FLAG_REORDER_HEADERS));
@@ -2359,13 +2360,14 @@ get_route_attributes_string(NMIPRoute *route, int family)
                 /* we also have a corresponding attribute with the numeric value. The
                  * lock setting is handled above. */
             }
-        } else if (nm_streq(names[i], NM_IP_ROUTE_ATTRIBUTE_SCOPE)) {
+        } else if (NM_IN_STRSET(names[i], NM_IP_ROUTE_ATTRIBUTE_SCOPE)) {
             g_string_append_printf(str, "%s %u", names[i], (unsigned) g_variant_get_byte(attr));
         } else if (nm_streq(names[i], NM_IP_ROUTE_ATTRIBUTE_TOS)) {
             g_string_append_printf(str, "%s 0x%02x", names[i], (unsigned) g_variant_get_byte(attr));
         } else if (NM_IN_STRSET(names[i],
+                                NM_IP_ROUTE_ATTRIBUTE_RTO_MIN,
                                 NM_IP_ROUTE_ATTRIBUTE_TABLE,
-                                NM_IP_ROUTE_ATTRIBUTE_RTO_MIN)) {
+                                NM_IP_ROUTE_ATTRIBUTE_WEIGHT)) {
             g_string_append_printf(str, "%s %u", names[i], (unsigned) g_variant_get_uint32(attr));
         } else if (nm_streq(names[i], NM_IP_ROUTE_ATTRIBUTE_QUICKACK)) {
             g_string_append_printf(str, "%s %u", names[i], (unsigned) g_variant_get_boolean(attr));
@@ -2416,8 +2418,8 @@ write_route_file_svformat(const char *filename, NMSettingIPConfig *s_ip4)
 
         svSetValueStr(routefile, addr_key, nm_ip_route_get_dest(route));
 
-        netmask = _nm_utils_ip4_prefix_to_netmask(nm_ip_route_get_prefix(route));
-        svSetValueStr(routefile, netmask_key, _nm_utils_inet4_ntop(netmask, buf));
+        netmask = nm_ip4_addr_netmask_from_prefix(nm_ip_route_get_prefix(route));
+        svSetValueStr(routefile, netmask_key, nm_inet4_ntop(netmask, buf));
 
         svSetValueStr(routefile, gw_key, nm_ip_route_get_next_hop(route));
 
@@ -2826,9 +2828,7 @@ write_ip4_setting(NMConnection *connection,
         if (has_netmask) {
             char buf[INET_ADDRSTRLEN];
 
-            svSetValueStr(ifcfg,
-                          tag,
-                          _nm_utils_inet4_ntop(_nm_utils_ip4_prefix_to_netmask(prefix), buf));
+            svSetValueStr(ifcfg, tag, nm_inet4_ntop(nm_ip4_addr_netmask_from_prefix(prefix), buf));
         }
 
         n++;
@@ -2937,6 +2937,10 @@ write_ip4_setting(NMConnection *connection,
         }
         svSetValueStr(ifcfg, "DHCP_REJECT_SERVERS", str->str);
     }
+
+    svSetValueTernary(ifcfg,
+                      "IPV4_AUTO_ROUTE_EXT_GW",
+                      nm_setting_ip_config_get_auto_route_ext_gw(s_ip4));
 }
 
 static void
@@ -3197,6 +3201,10 @@ write_ip6_setting(NMConnection *connection, shvarFile *ifcfg, GString **out_rout
     write_res_options(ifcfg, s_ip6, "IPV6_RES_OPTIONS");
 
     NM_SET_OUT(out_route6_content, write_route_file(s_ip6));
+
+    svSetValueTernary(ifcfg,
+                      "IPV6_AUTO_ROUTE_EXT_GW",
+                      nm_setting_ip_config_get_auto_route_ext_gw(s_ip6));
 }
 
 static void

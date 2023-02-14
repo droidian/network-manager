@@ -274,7 +274,346 @@ DEVICETYPE=TeamPort
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.12.7.4"></a><p class="title"><b>Table 12. 802-1x setting</b></p>
+<a name="id-1.2.12.7.4"></a><p class="title"><b>Table 12. 802-11-wireless setting</b></p>
+<div class="table-contents"><table class="table" summary="802-11-wireless setting" border="1">
+<colgroup>
+<col>
+<col>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>Property</th>
+<th>Ifcfg-rh Variable</th>
+<th>Default</th>
+<th>Description</th>
+</tr></thead>
+<tbody>
+<tr>
+<td align="left">ssid</td>
+<td align="left">ESSID</td>
+<td align="left"> </td>
+<td align="left">SSID of Wi-Fi network.<span class="bold"><strong>
+
+Example: </strong></span>ESSID="Quick Net"</td>
+</tr>
+<tr>
+<td align="left">mode</td>
+<td align="left">MODE</td>
+<td align="left"> </td>
+<td align="left">Wi-Fi network mode.<span class="bold"><strong>
+
+Allowed values: </strong></span>Ad-Hoc, Managed (Auto)  [case insensitive]</td>
+</tr>
+<tr>
+<td align="left">band</td>
+<td align="left">BAND<span class="emphasis"><em>(+)</em></span>
+</td>
+<td align="left"> </td>
+<td align="left">BAND alone is honored, but CHANNEL overrides BAND since it implies a band.<span class="bold"><strong>
+
+Example: </strong></span>BAND=bg<span class="bold"><strong>
+
+Allowed values: </strong></span>a, bg</td>
+</tr>
+<tr>
+<td align="left">channel</td>
+<td align="left">CHANNEL</td>
+<td align="left"> </td>
+<td align="left">Channel used for the Wi-Fi communication. Channels greater than 14 mean "a" band, otherwise the band is "bg".<span class="bold"><strong>
+
+Example: </strong></span>CHANNEL=6</td>
+</tr>
+<tr>
+<td align="left">bssid</td>
+<td align="left">BSSID<span class="emphasis"><em>(+)</em></span>
+</td>
+<td align="left"> </td>
+<td align="left">Restricts association only to a single AP.<span class="bold"><strong>
+
+Example: </strong></span>BSSID=00:1E:BD:64:83:21</td>
+</tr>
+<tr>
+<td align="left">rate</td>
+<td align="left">(none)</td>
+<td align="left"> </td>
+<td align="left">This property is not handled by ifcfg-rh plugin.</td>
+</tr>
+<tr>
+<td align="left">tx-power</td>
+<td align="left">(none)</td>
+<td align="left"> </td>
+<td align="left">This property is not handled by ifcfg-rh plugin.</td>
+</tr>
+<tr>
+<td align="left">mac-address</td>
+<td align="left">HWADDR</td>
+<td align="left"> </td>
+<td align="left">Hardware address of the device in traditional hex-digits-and-colons notation (e.g. 00:22:68:14:5A:05). Note that for initscripts this is the current MAC address of the device as found during ifup. For NetworkManager this is the permanent MAC address. Or in case no permanent MAC address exists, the MAC address initially configured on the device.</td>
+</tr>
+<tr>
+<td align="left">cloned-mac-address</td>
+<td align="left">MACADDR</td>
+<td align="left"> </td>
+<td align="left">Cloned (spoofed) MAC address in traditional hex-digits-and-colons notation (e.g. 00:22:68:14:5A:99).</td>
+</tr>
+<tr>
+<td align="left">generate-mac-address-mask</td>
+<td align="left">GENERATE_MAC_ADDRESS_MASK<span class="emphasis"><em>(+)</em></span>
+</td>
+<td align="left"> </td>
+<td align="left">the MAC address mask for generating randomized and stable cloned-mac-address.</td>
+</tr>
+<tr>
+<td align="left">mac-address-blacklist</td>
+<td align="left">HWADDR_BLACKLIST<span class="emphasis"><em>(+)</em></span>
+</td>
+<td align="left"> </td>
+<td align="left">It denies usage of the connection for any device whose address is listed.</td>
+</tr>
+<tr>
+<td align="left">seen-bssids</td>
+<td align="left">(none)</td>
+<td align="left"> </td>
+<td align="left">This property is not handled by ifcfg-rh plugin.</td>
+</tr>
+<tr>
+<td align="left">mtu</td>
+<td align="left">MTU</td>
+<td align="left"> </td>
+<td align="left">MTU of the wireless interface.</td>
+</tr>
+<tr>
+<td align="left">hidden</td>
+<td align="left">SSID_HIDDEN<span class="emphasis"><em>(+)</em></span>
+</td>
+<td align="left"> </td>
+<td align="left">Whether the network hides the SSID.</td>
+</tr>
+<tr>
+<td align="left">powersave</td>
+<td align="left">POWERSAVE<span class="emphasis"><em>(+)</em></span>
+</td>
+<td align="left"> </td>
+<td align="left">Enables or disables Wi-Fi power saving.<span class="bold"><strong>
+
+Example: </strong></span>POWERSAVE=enable<span class="bold"><strong>
+
+Allowed values: </strong></span>default, ignore, enable, disable</td>
+</tr>
+<tr>
+<td align="left">mac-address-randomization</td>
+<td align="left">MAC_ADDRESS_RANDOMIZATION<span class="emphasis"><em>(+)</em></span>
+</td>
+<td align="left"> </td>
+<td align="left">Enables or disables Wi-Fi MAC address randomization.<span class="bold"><strong>
+
+Example: </strong></span>MAC_ADDRESS_RANDOMIZATION=always<span class="bold"><strong>
+
+Allowed values: </strong></span>default, never, always</td>
+</tr>
+<tr>
+<td align="left">security</td>
+<td align="left">(none)</td>
+<td align="left"> </td>
+<td align="left">This property is deprecated and not handled by ifcfg-rh-plugin.</td>
+</tr>
+<tr>
+<td align="left">ap-isolation</td>
+<td align="left">AP_ISOLATION<span class="emphasis"><em>(+)</em></span>
+</td>
+<td align="left">missing variable means global default</td>
+<td align="left">Whether AP isolation is enabled<span class="bold"><strong>
+
+Allowed values: </strong></span>"yes", "no"</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<br class="table-break"><div class="table">
+<a name="id-1.2.12.7.5"></a><p class="title"><b>Table 13. 802-11-wireless-security setting</b></p>
+<div class="table-contents"><table class="table" summary="802-11-wireless-security setting" border="1">
+<colgroup>
+<col>
+<col>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>Property</th>
+<th>Ifcfg-rh Variable</th>
+<th>Default</th>
+<th>Description</th>
+</tr></thead>
+<tbody>
+<tr>
+<td align="left">key-mgmt</td>
+<td align="left">KEY_MGMT<span class="emphasis"><em>(+)</em></span>
+</td>
+<td align="left"> </td>
+<td align="left">Key management method.<span class="bold"><strong>
+
+Allowed values: </strong></span>none, ieee8021x, owe, wpa-psk, sae, wpa-eap, wpa-eap-suite-b-192</td>
+</tr>
+<tr>
+<td align="left">wep-tx-keyidx</td>
+<td align="left">DEFAULTKEY</td>
+<td align="left">1</td>
+<td align="left">Index of active WEP key. Note that in ifcfg format the index starts counting at 1, while NetworkManager API otherwise is zero based.<span class="bold"><strong>
+
+Allowed values: </strong></span>1, 2, 3, 4</td>
+</tr>
+<tr>
+<td align="left">auth-alg</td>
+<td align="left">SECURITYMODE<span class="emphasis"><em>(+)</em></span>
+</td>
+<td align="left"> </td>
+<td align="left">Authentication algorithm for WEP.<span class="bold"><strong>
+
+Allowed values: </strong></span>restricted, open, leap</td>
+</tr>
+<tr>
+<td align="left">proto</td>
+<td align="left">WPA_ALLOW_WPA<span class="emphasis"><em>(+)</em></span>, WPA_ALLOW_WPA2<span class="emphasis"><em>(+)</em></span>
+</td>
+<td align="left">no</td>
+<td align="left">Allowed WPA protocols, WPA and WPA2 (RSN).<span class="bold"><strong>
+
+Allowed values: </strong></span>yes, no</td>
+</tr>
+<tr>
+<td align="left">pairwise</td>
+<td align="left">CIPHER_PAIRWISE<span class="emphasis"><em>(+)</em></span>
+</td>
+<td align="left"> </td>
+<td align="left">Restrict pairwise encryption algorithms, specified as a space separated list.<span class="bold"><strong>
+
+Allowed values: </strong></span>CCMP, TKIP</td>
+</tr>
+<tr>
+<td align="left">group</td>
+<td align="left">CIPHER_GROUP<span class="emphasis"><em>(+)</em></span>
+</td>
+<td align="left"> </td>
+<td align="left">Restrict group/broadcast encryption algorithms, specified as a space separated list.<span class="bold"><strong>
+
+Allowed values: </strong></span>CCMP, TKIP, WEP40, WEP104</td>
+</tr>
+<tr>
+<td align="left">pmf</td>
+<td align="left">PMF<span class="emphasis"><em>(+)</em></span>
+</td>
+<td align="left"> </td>
+<td align="left">Enables or disables PMF (802.11w)<span class="bold"><strong>
+
+Example: </strong></span>PMF=required<span class="bold"><strong>
+
+Allowed values: </strong></span>default, disable, optional, required</td>
+</tr>
+<tr>
+<td align="left">leap-username</td>
+<td align="left">IEEE_8021X_IDENTITY<span class="emphasis"><em>(+)</em></span>
+</td>
+<td align="left"> </td>
+<td align="left">Login name for LEAP.</td>
+</tr>
+<tr>
+<td align="left">wep-key0</td>
+<td align="left">KEY1, KEY_PASSPHRASE1<span class="emphasis"><em>(+)</em></span>
+</td>
+<td align="left"> </td>
+<td align="left">The first WEP key (used in most networks). See also DEFAULTKEY for key index.</td>
+</tr>
+<tr>
+<td align="left">wep-key1</td>
+<td align="left">KEY2, KEY_PASSPHRASE2<span class="emphasis"><em>(+)</em></span>
+</td>
+<td align="left"> </td>
+<td align="left">WEP key with index 1. See also DEFAULTKEY for key index.</td>
+</tr>
+<tr>
+<td align="left">wep-key2</td>
+<td align="left">KEY3, KEY_PASSPHRASE3<span class="emphasis"><em>(+)</em></span>
+</td>
+<td align="left"> </td>
+<td align="left">WEP key with index 2. See also DEFAULTKEY for key index.</td>
+</tr>
+<tr>
+<td align="left">wep-key3</td>
+<td align="left">KEY4, KEY_PASSPHRASE4<span class="emphasis"><em>(+)</em></span>
+</td>
+<td align="left"> </td>
+<td align="left">WEP key with index 3. See also DEFAULTKEY for key index.</td>
+</tr>
+<tr>
+<td align="left">wep-key-flags</td>
+<td align="left">WEP_KEY_FLAGS<span class="emphasis"><em>(+)</em></span>
+</td>
+<td align="left"> </td>
+<td align="left">Password flags for KEY&lt;i&gt;, KEY_PASSPHRASE&lt;i&gt; password. (see <a class="xref" href="nm-settings-dbus.html#secrets-flags" title="Secret flag types:">the section called “Secret flag types:”</a> for _FLAGS values)</td>
+</tr>
+<tr>
+<td align="left">psk</td>
+<td align="left">WPA_PSK</td>
+<td align="left"> </td>
+<td align="left">Pre-Shared-Key for WPA networks.</td>
+</tr>
+<tr>
+<td align="left">psk-flags</td>
+<td align="left">WPA_PSK_FLAGS<span class="emphasis"><em>(+)</em></span>
+</td>
+<td align="left"> </td>
+<td align="left">Password flags for WPA_PSK_FLAGS. (see <a class="xref" href="nm-settings-dbus.html#secrets-flags" title="Secret flag types:">the section called “Secret flag types:”</a> for _FLAGS values)<span class="bold"><strong>
+
+Example: </strong></span>WPA_PSK_FLAGS=user</td>
+</tr>
+<tr>
+<td align="left">leap-password</td>
+<td align="left">IEEE_8021X_PASSWORD<span class="emphasis"><em>(+)</em></span>
+</td>
+<td align="left"> </td>
+<td align="left">Password for LEAP. It can also go to "key-" lookaside file, or it can be owned by a secret agent.</td>
+</tr>
+<tr>
+<td align="left">leap-password-flags</td>
+<td align="left">IEEE_8021X_PASSWORD_FLAGS<span class="emphasis"><em>(+)</em></span>
+</td>
+<td align="left"> </td>
+<td align="left">Password flags for IEEE_8021X_PASSWORD_FLAGS. (see <a class="xref" href="nm-settings-dbus.html#secrets-flags" title="Secret flag types:">the section called “Secret flag types:”</a> for _FLAGS values)</td>
+</tr>
+<tr>
+<td align="left">wep-key-type</td>
+<td align="left">KEY&lt;i&gt; or KEY_PASSPHRASE&lt;i&gt;<span class="emphasis"><em>(+)</em></span>; KEY_TYPE<span class="emphasis"><em>(+)</em></span>
+</td>
+<td align="left"> </td>
+<td align="left">KEY is used for "key" type (10 or 26 hexadecimal characters, or 5 or 13 character string prefixed with "s:"). KEY_PASSPHRASE is used for WEP passphrases. KEY_TYPE specifies the key type and can be either 'key' or 'passphrase'. KEY_TYPE is redundant and can be omitted.<span class="bold"><strong>
+
+Example: </strong></span>KEY1=s:ahoj, KEY1=0a1c45bc02, KEY_PASSPHRASE1=mysupersecretkey</td>
+</tr>
+<tr>
+<td align="left">wps-method</td>
+<td align="left">WPS_METHOD</td>
+<td align="left"> </td>
+<td align="left">Used to control the WPS methods to be used Valid values are "default", "auto", "disabled", "pin" and "pbc". If omitted, whatver the AP announces is used.<span class="bold"><strong>
+
+Example: </strong></span>WPS_METHOD=disabled, WPS_METHOD="pin pbc"</td>
+</tr>
+<tr>
+<td align="left">fils</td>
+<td align="left">FILS<span class="emphasis"><em>(+)</em></span>
+</td>
+<td align="left"> </td>
+<td align="left">Enables or disables FILS (802.11ai)<span class="bold"><strong>
+
+Example: </strong></span>FILS=required<span class="bold"><strong>
+
+Allowed values: </strong></span>default, disable, optional, required</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<br class="table-break"><div class="table">
+<a name="id-1.2.12.7.6"></a><p class="title"><b>Table 14. 802-1x setting</b></p>
 <div class="table-contents"><table class="table" summary="802-1x setting" border="1">
 <colgroup>
 <col>
@@ -602,8 +941,8 @@ Example: </strong></span>IEEE_8021X_PRIVATE_KEY=/home/joe/mykey.p12</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.12.7.5"></a><p class="title"><b>Table 13. bond-port setting</b></p>
-<div class="table-contents"><table class="table" summary="bond-port setting" border="1">
+<a name="id-1.2.12.7.7"></a><p class="title"><b>Table 15. 802-3-ethernet setting</b></p>
+<div class="table-contents"><table class="table" summary="802-3-ethernet setting" border="1">
 <colgroup>
 <col>
 <col>
@@ -616,18 +955,114 @@ Example: </strong></span>IEEE_8021X_PRIVATE_KEY=/home/joe/mykey.p12</td>
 <th>Default</th>
 <th>Description</th>
 </tr></thead>
-<tbody><tr>
-<td align="left">queue-id</td>
-<td align="left">BONDING_OPTS: queue-id=</td>
-<td align="left">0</td>
-<td align="left">Queue ID.<span class="bold"><strong>
+<tbody>
+<tr>
+<td align="left">port</td>
+<td align="left">(none)</td>
+<td align="left"> </td>
+<td align="left">The property is not saved by the plugin.</td>
+</tr>
+<tr>
+<td align="left">speed</td>
+<td align="left">ETHTOOL_OPTS</td>
+<td align="left"> </td>
+<td align="left">Fixed speed for the ethernet link. It is added as "speed" parameter in the ETHTOOL_OPTS variable.</td>
+</tr>
+<tr>
+<td align="left">duplex</td>
+<td align="left">ETHTOOL_OPTS</td>
+<td align="left"> </td>
+<td align="left">Fixed duplex mode for the ethernet link. It is added as "duplex" parameter in the ETHOOL_OPTS variable.</td>
+</tr>
+<tr>
+<td align="left">auto-negotiate</td>
+<td align="left">ETHTOOL_OPTS</td>
+<td align="left"> </td>
+<td align="left">Whether link speed and duplex autonegotiation is enabled. It is not saved only if disabled and no values are provided for the "speed" and "duplex" parameters (skips link configuration).</td>
+</tr>
+<tr>
+<td align="left">mac-address</td>
+<td align="left">HWADDR</td>
+<td align="left"> </td>
+<td align="left">Hardware address of the device in traditional hex-digits-and-colons notation (e.g. 00:22:68:14:5A:05). Note that for initscripts this is the current MAC address of the device as found during ifup. For NetworkManager this is the permanent MAC address. Or in case no permanent MAC address exists, the MAC address initially configured on the device.</td>
+</tr>
+<tr>
+<td align="left">cloned-mac-address</td>
+<td align="left">MACADDR</td>
+<td align="left"> </td>
+<td align="left">Cloned (spoofed) MAC address in traditional hex-digits-and-colons notation (e.g. 00:22:68:14:5A:99).</td>
+</tr>
+<tr>
+<td align="left">generate-mac-address-mask</td>
+<td align="left">GENERATE_MAC_ADDRESS_MASK<span class="emphasis"><em>(+)</em></span>
+</td>
+<td align="left"> </td>
+<td align="left">the MAC address mask for generating randomized and stable cloned-mac-address.</td>
+</tr>
+<tr>
+<td align="left">mac-address-blacklist</td>
+<td align="left">HWADDR_BLACKLIST<span class="emphasis"><em>(+)</em></span>
+</td>
+<td align="left"> </td>
+<td align="left">It denies usage of the connection for any device whose address is listed.<span class="bold"><strong>
 
-Allowed values: </strong></span>0 - 65535</td>
-</tr></tbody>
+Example: </strong></span>HWADDR_BLACKLIST="00:22:68:11:69:08 00:11:22:11:44:55"</td>
+</tr>
+<tr>
+<td align="left">mtu</td>
+<td align="left">MTU</td>
+<td align="left"> </td>
+<td align="left">MTU of the interface.</td>
+</tr>
+<tr>
+<td align="left">s390-subchannels</td>
+<td align="left">SUBCHANNELS</td>
+<td align="left"> </td>
+<td align="left">Subchannels for IBM S390 hosts.<span class="bold"><strong>
+
+Example: </strong></span>SUBCHANNELS=0.0.b00a,0.0.b00b,0.0.b00c</td>
+</tr>
+<tr>
+<td align="left">s390-nettype</td>
+<td align="left">NETTYPE</td>
+<td align="left"> </td>
+<td align="left">Network type of the S390 host.<span class="bold"><strong>
+
+Example: </strong></span>NETTYPE=qeth<span class="bold"><strong>
+
+Allowed values: </strong></span>"qeth", "lcs" or "ctc"</td>
+</tr>
+<tr>
+<td align="left">s390-options</td>
+<td align="left">OPTIONS and PORTNAME, CTCPROTO,</td>
+<td align="left"> </td>
+<td align="left">S390 device options. All options go to OPTIONS, except for "portname" and "ctcprot" that have their own variables.</td>
+</tr>
+<tr>
+<td align="left">wake-on-lan</td>
+<td align="left">ETHTOOL_OPTS, ETHTOOL_WAKE_ON_LAN</td>
+<td align="left"> </td>
+<td align="left">Wake on Lan mode for ethernet. The setting "ignore" is expressed with "ETHTOOL_WAKE_ON_LAN=ignore". Otherwise, the "ETHTOOL_OPTS" variable is set with the value "wol" and several of the characters "p|u|m|b|a|g|s|f|d" as explained in the ethtool manual page.</td>
+</tr>
+<tr>
+<td align="left">wake-on-lan-password</td>
+<td align="left">ETHTOOL_OPTS</td>
+<td align="left"> </td>
+<td align="left">Password for secure-on based Wake-on-Lan. It is added as "sopass" parameter in the ETHTOOL_OPTS variable.<span class="bold"><strong>
+
+Example: </strong></span>ETHTOOL_OPTS="wol gs sopass 00:11:22:33:44:55"</td>
+</tr>
+<tr>
+<td align="left">accept-all-mac-addresses</td>
+<td align="left">ACCEPT_ALL_MAC_ADDRESSES</td>
+<td align="left"> </td>
+<td align="left">Enforce the interface to accept all the packets.</td>
+</tr>
+</tbody>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.12.7.6"></a><p class="title"><b>Table 14. bond setting</b></p>
+<a name="id-1.2.12.7.8"></a><p class="title"><b>Table 16. bond setting</b></p>
 <div class="table-contents"><table class="table" summary="bond setting" border="1">
 <colgroup>
 <col>
@@ -652,8 +1087,8 @@ Example: </strong></span>BONDING_OPTS="miimon=100 mode=broadcast"</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.12.7.7"></a><p class="title"><b>Table 15. bridge-port setting</b></p>
-<div class="table-contents"><table class="table" summary="bridge-port setting" border="1">
+<a name="id-1.2.12.7.9"></a><p class="title"><b>Table 17. bond-port setting</b></p>
+<div class="table-contents"><table class="table" summary="bond-port setting" border="1">
 <colgroup>
 <col>
 <col>
@@ -666,42 +1101,18 @@ Example: </strong></span>BONDING_OPTS="miimon=100 mode=broadcast"</td>
 <th>Default</th>
 <th>Description</th>
 </tr></thead>
-<tbody>
-<tr>
-<td align="left">priority</td>
-<td align="left">BRIDGING_OPTS: priority=</td>
-<td align="left">32</td>
-<td align="left">STP priority.<span class="bold"><strong>
+<tbody><tr>
+<td align="left">queue-id</td>
+<td align="left">BONDING_OPTS: queue-id=</td>
+<td align="left">0</td>
+<td align="left">Queue ID.<span class="bold"><strong>
 
-Allowed values: </strong></span>0 - 63</td>
-</tr>
-<tr>
-<td align="left">path-cost</td>
-<td align="left">BRIDGING_OPTS: path_cost=</td>
-<td align="left">100</td>
-<td align="left">STP cost.<span class="bold"><strong>
-
-Allowed values: </strong></span>1 - 65535</td>
-</tr>
-<tr>
-<td align="left">hairpin-mode</td>
-<td align="left">BRIDGING_OPTS: hairpin_mode=</td>
-<td align="left">yes</td>
-<td align="left">Hairpin mode of the bridge port.</td>
-</tr>
-<tr>
-<td align="left">vlans</td>
-<td align="left">BRIDGE_PORT_VLANS</td>
-<td align="left"> </td>
-<td align="left">List of VLANs on the bridge port<span class="bold"><strong>
-
-Example: </strong></span>BRIDGE_PORT_VLANS="1 pvid untagged,20,300-400 untagged"</td>
-</tr>
-</tbody>
+Allowed values: </strong></span>0 - 65535</td>
+</tr></tbody>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.12.7.8"></a><p class="title"><b>Table 16. bridge setting</b></p>
+<a name="id-1.2.12.7.10"></a><p class="title"><b>Table 18. bridge setting</b></p>
 <div class="table-contents"><table class="table" summary="bridge setting" border="1">
 <colgroup>
 <col>
@@ -940,7 +1351,56 @@ Example: </strong></span>BRIDGING_OPTS="multicast_startup_query_interval=4000"</
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.12.7.9"></a><p class="title"><b>Table 17. connection setting</b></p>
+<a name="id-1.2.12.7.11"></a><p class="title"><b>Table 19. bridge-port setting</b></p>
+<div class="table-contents"><table class="table" summary="bridge-port setting" border="1">
+<colgroup>
+<col>
+<col>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>Property</th>
+<th>Ifcfg-rh Variable</th>
+<th>Default</th>
+<th>Description</th>
+</tr></thead>
+<tbody>
+<tr>
+<td align="left">priority</td>
+<td align="left">BRIDGING_OPTS: priority=</td>
+<td align="left">32</td>
+<td align="left">STP priority.<span class="bold"><strong>
+
+Allowed values: </strong></span>0 - 63</td>
+</tr>
+<tr>
+<td align="left">path-cost</td>
+<td align="left">BRIDGING_OPTS: path_cost=</td>
+<td align="left">100</td>
+<td align="left">STP cost.<span class="bold"><strong>
+
+Allowed values: </strong></span>1 - 65535</td>
+</tr>
+<tr>
+<td align="left">hairpin-mode</td>
+<td align="left">BRIDGING_OPTS: hairpin_mode=</td>
+<td align="left">yes</td>
+<td align="left">Hairpin mode of the bridge port.</td>
+</tr>
+<tr>
+<td align="left">vlans</td>
+<td align="left">BRIDGE_PORT_VLANS</td>
+<td align="left"> </td>
+<td align="left">List of VLANs on the bridge port<span class="bold"><strong>
+
+Example: </strong></span>BRIDGE_PORT_VLANS="1 pvid untagged,20,300-400 untagged"</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<br class="table-break"><div class="table">
+<a name="id-1.2.12.7.12"></a><p class="title"><b>Table 20. connection setting</b></p>
 <div class="table-contents"><table class="table" summary="connection setting" border="1">
 <colgroup>
 <col>
@@ -1187,7 +1647,7 @@ Allowed values: </strong></span>delay in milliseconds.</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.12.7.10"></a><p class="title"><b>Table 18. dcb setting</b></p>
+<a name="id-1.2.12.7.13"></a><p class="title"><b>Table 21. dcb setting</b></p>
 <div class="table-contents"><table class="table" summary="dcb setting" border="1">
 <colgroup>
 <col>
@@ -1322,7 +1782,7 @@ Example: </strong></span>DCB_PG_UP2TC=01623701</td>
           used explicitly to enable DCB so that the rest of the DCB_* variables can apply.
         </p>
 <div class="table">
-<a name="id-1.2.12.7.12"></a><p class="title"><b>Table 19. ethtool setting</b></p>
+<a name="id-1.2.12.7.15"></a><p class="title"><b>Table 22. ethtool setting</b></p>
 <div class="table-contents"><table class="table" summary="ethtool setting" border="1">
 <colgroup>
 <col>
@@ -1340,7 +1800,7 @@ Example: </strong></span>DCB_PG_UP2TC=01623701</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.12.7.13"></a><p class="title"><b>Table 20. hostname setting</b></p>
+<a name="id-1.2.12.7.16"></a><p class="title"><b>Table 23. hostname setting</b></p>
 <div class="table-contents"><table class="table" summary="hostname setting" border="1">
 <colgroup>
 <col>
@@ -1374,7 +1834,7 @@ Example: </strong></span>HOSTNAME_PRIORITY=50</td>
 Example: </strong></span>HOSTNAME_FROM_DHCP=0,1</td>
 </tr>
 <tr>
-<td align="left">from-dhcp</td>
+<td align="left">from-dns-lookup</td>
 <td align="left">HOSTNAME_FROM_DNS_LOOKUP<span class="emphasis"><em>(+)</em></span>
 </td>
 <td align="left">missing variable means global default or 1</td>
@@ -1395,7 +1855,7 @@ Example: </strong></span>HOSTNAME_ONLY_FROM_DEFAULT=0,1</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.12.7.14"></a><p class="title"><b>Table 21. infiniband setting</b></p>
+<a name="id-1.2.12.7.17"></a><p class="title"><b>Table 24. infiniband setting</b></p>
 <div class="table-contents"><table class="table" summary="infiniband setting" border="1">
 <colgroup>
 <col>
@@ -1450,7 +1910,7 @@ Example: </strong></span>PHYSDEV=ib0</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.12.7.15"></a><p class="title"><b>Table 22. ipv4 setting</b></p>
+<a name="id-1.2.12.7.18"></a><p class="title"><b>Table 25. ipv4 setting</b></p>
 <div class="table-contents"><table class="table" summary="ipv4 setting" border="1">
 <colgroup>
 <col>
@@ -1581,6 +2041,13 @@ Example: </strong></span>RES_OPTIONS=ndots:2 timeout:3</td>
 Example: </strong></span>IPV4_DNS_PRIORITY=20</td>
 </tr>
 <tr>
+<td align="left">auto-route-ext-gw</td>
+<td align="left">IPV4_AUTO_ROUTE_EXT_GW<span class="emphasis"><em>(+)</em></span>
+</td>
+<td align="left">yes</td>
+<td align="left">VPN connections will default to add the route automatically unless this setting is set to %FALSE. For other connection types, adding such an automatic route is currently not supported and setting this to %TRUE has no effect.</td>
+</tr>
+<tr>
 <td align="left">dhcp-client-id</td>
 <td align="left">DHCP_CLIENT_ID<span class="emphasis"><em>(+)</em></span>
 </td>
@@ -1605,6 +2072,14 @@ Example: </strong></span>ACD_TIMEOUT=2000 or ARPING_WAIT=2</td>
 <td align="left">A timeout after which the DHCP transaction fails in case of no response.<span class="bold"><strong>
 
 Example: </strong></span>IPV4_DHCP_TIMEOUT=10</td>
+</tr>
+<tr>
+<td align="left">dhcp-hostname-flags</td>
+<td align="left">DHCP_HOSTNAME_FLAGS</td>
+<td align="left"> </td>
+<td align="left">flags for the DHCP hostname and FQDN properties<span class="bold"><strong>
+
+Example: </strong></span>DHCP_HOSTNAME_FLAGS=5</td>
 </tr>
 <tr>
 <td align="left">dhcp-fqdn</td>
@@ -1636,7 +2111,7 @@ Example: </strong></span>IPV4_LINK_LOCAL=auto</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.12.7.16"></a><p class="title"><b>Table 23. ipv6 setting</b></p>
+<a name="id-1.2.12.7.19"></a><p class="title"><b>Table 26. ipv6 setting</b></p>
 <div class="table-contents"><table class="table" summary="ipv6 setting" border="1">
 <colgroup>
 <col>
@@ -1775,6 +2250,13 @@ Example: </strong></span>IPV6_DNS_PRIORITY=20</td>
 Example: </strong></span>IPV6_RES_OPTIONS=ndots:2 timeout:3</td>
 </tr>
 <tr>
+<td align="left">auto-route-ext-gw</td>
+<td align="left">IPV6_AUTO_ROUTE_EXT_GW<span class="emphasis"><em>(+)</em></span>
+</td>
+<td align="left">yes</td>
+<td align="left">VPN connections will default to add the route automatically unless this setting is set to %FALSE. For other connection types, adding such an automatic route is currently not supported and setting this to %TRUE has no effect.</td>
+</tr>
+<tr>
 <td align="left">ip6-privacy</td>
 <td align="left">IPV6_PRIVACY, IPV6_PRIVACY_PREFER_PUBLIC_IP<span class="emphasis"><em>(+)</em></span>
 </td>
@@ -1804,7 +2286,7 @@ Allowed values: </strong></span>IPV6_ADDR_GEN_MODE: default, default-or-eui64, e
 Example: </strong></span>IPV6_TOKEN=::53</td>
 </tr>
 <tr>
-<td align="left">dhcp-timeout</td>
+<td align="left">ra-timeout</td>
 <td align="left">IPV6_RA_TIMEOUT<span class="emphasis"><em>(+)</em></span>
 </td>
 <td align="left"> </td>
@@ -1825,7 +2307,30 @@ Example: </strong></span>DHCPV6_DUID=LL; DHCPV6_DUID=0301deadbeef0001; DHCPV6_DU
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.12.7.17"></a><p class="title"><b>Table 24. match setting</b></p>
+<a name="id-1.2.12.7.20"></a><p class="title"><b>Table 27. loopback setting</b></p>
+<div class="table-contents"><table class="table" summary="loopback setting" border="1">
+<colgroup>
+<col>
+<col>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>Property</th>
+<th>Ifcfg-rh Variable</th>
+<th>Default</th>
+<th>Description</th>
+</tr></thead>
+<tbody><tr>
+<td align="left">mtu</td>
+<td align="left">MTU</td>
+<td align="left"> </td>
+<td align="left">MTU of the interface.</td>
+</tr></tbody>
+</table></div>
+</div>
+<br class="table-break"><div class="table">
+<a name="id-1.2.12.7.21"></a><p class="title"><b>Table 28. match setting</b></p>
 <div class="table-contents"><table class="table" summary="match setting" border="1">
 <colgroup>
 <col>
@@ -1850,7 +2355,7 @@ Example: </strong></span>MATCH_PATH="pci-0000:01:00.0 pci-0000:0c:00.0"</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.12.7.18"></a><p class="title"><b>Table 25. ovs-bridge setting</b></p>
+<a name="id-1.2.12.7.22"></a><p class="title"><b>Table 29. ovs-bridge setting</b></p>
 <div class="table-contents"><table class="table" summary="ovs-bridge setting" border="1">
 <colgroup>
 <col>
@@ -1868,7 +2373,7 @@ Example: </strong></span>MATCH_PATH="pci-0000:01:00.0 pci-0000:0c:00.0"</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.12.7.19"></a><p class="title"><b>Table 26. ovs-dpdk setting</b></p>
+<a name="id-1.2.12.7.23"></a><p class="title"><b>Table 30. ovs-dpdk setting</b></p>
 <div class="table-contents"><table class="table" summary="ovs-dpdk setting" border="1">
 <colgroup>
 <col>
@@ -1886,7 +2391,7 @@ Example: </strong></span>MATCH_PATH="pci-0000:01:00.0 pci-0000:0c:00.0"</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.12.7.20"></a><p class="title"><b>Table 27. ovs-external-ids setting</b></p>
+<a name="id-1.2.12.7.24"></a><p class="title"><b>Table 31. ovs-external-ids setting</b></p>
 <div class="table-contents"><table class="table" summary="ovs-external-ids setting" border="1">
 <colgroup>
 <col>
@@ -1904,7 +2409,7 @@ Example: </strong></span>MATCH_PATH="pci-0000:01:00.0 pci-0000:0c:00.0"</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.12.7.21"></a><p class="title"><b>Table 28. ovs-interface setting</b></p>
+<a name="id-1.2.12.7.25"></a><p class="title"><b>Table 32. ovs-interface setting</b></p>
 <div class="table-contents"><table class="table" summary="ovs-interface setting" border="1">
 <colgroup>
 <col>
@@ -1922,7 +2427,25 @@ Example: </strong></span>MATCH_PATH="pci-0000:01:00.0 pci-0000:0c:00.0"</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.12.7.22"></a><p class="title"><b>Table 29. ovs-patch setting</b></p>
+<a name="id-1.2.12.7.26"></a><p class="title"><b>Table 33. ovs-other-config setting</b></p>
+<div class="table-contents"><table class="table" summary="ovs-other-config setting" border="1">
+<colgroup>
+<col>
+<col>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>Property</th>
+<th>Ifcfg-rh Variable</th>
+<th>Default</th>
+<th>Description</th>
+</tr></thead>
+<tbody></tbody>
+</table></div>
+</div>
+<br class="table-break"><div class="table">
+<a name="id-1.2.12.7.27"></a><p class="title"><b>Table 34. ovs-patch setting</b></p>
 <div class="table-contents"><table class="table" summary="ovs-patch setting" border="1">
 <colgroup>
 <col>
@@ -1940,7 +2463,7 @@ Example: </strong></span>MATCH_PATH="pci-0000:01:00.0 pci-0000:0c:00.0"</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.12.7.23"></a><p class="title"><b>Table 30. ovs-port setting</b></p>
+<a name="id-1.2.12.7.28"></a><p class="title"><b>Table 35. ovs-port setting</b></p>
 <div class="table-contents"><table class="table" summary="ovs-port setting" border="1">
 <colgroup>
 <col>
@@ -1958,7 +2481,7 @@ Example: </strong></span>MATCH_PATH="pci-0000:01:00.0 pci-0000:0c:00.0"</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.12.7.24"></a><p class="title"><b>Table 31. proxy setting</b></p>
+<a name="id-1.2.12.7.29"></a><p class="title"><b>Table 36. proxy setting</b></p>
 <div class="table-contents"><table class="table" summary="proxy setting" border="1">
 <colgroup>
 <col>
@@ -2011,7 +2534,7 @@ Example: </strong></span>PAC_SCRIPT="function FindProxyForURL (url, host) { retu
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.12.7.25"></a><p class="title"><b>Table 32. sriov setting</b></p>
+<a name="id-1.2.12.7.30"></a><p class="title"><b>Table 37. sriov setting</b></p>
 <div class="table-contents"><table class="table" summary="sriov setting" border="1">
 <colgroup>
 <col>
@@ -2056,7 +2579,7 @@ Example: </strong></span>SRIOV_AUTOPROBE_DRIVERS=0,1</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.12.7.26"></a><p class="title"><b>Table 33. tc setting</b></p>
+<a name="id-1.2.12.7.31"></a><p class="title"><b>Table 38. tc setting</b></p>
 <div class="table-contents"><table class="table" summary="tc setting" border="1">
 <colgroup>
 <col>
@@ -2081,7 +2604,7 @@ Example: </strong></span>SRIOV_AUTOPROBE_DRIVERS=0,1</td>
 Example: </strong></span>QDISC1=ingress, QDISC2="root handle 1234: fq_codel"</td>
 </tr>
 <tr>
-<td align="left">qdiscs</td>
+<td align="left">tfilters</td>
 <td align="left">FILTER1<span class="emphasis"><em>(+)</em></span>, FILTER2<span class="emphasis"><em>(+)</em></span>, ..., TC_COMMIT<span class="emphasis"><em>(+)</em></span>
 </td>
 <td align="left"> </td>
@@ -2093,30 +2616,7 @@ Example: </strong></span>FILTER1="parent ffff: matchall action simple sdata Inpu
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.12.7.27"></a><p class="title"><b>Table 34. team-port setting</b></p>
-<div class="table-contents"><table class="table" summary="team-port setting" border="1">
-<colgroup>
-<col>
-<col>
-<col>
-<col>
-</colgroup>
-<thead><tr>
-<th>Property</th>
-<th>Ifcfg-rh Variable</th>
-<th>Default</th>
-<th>Description</th>
-</tr></thead>
-<tbody><tr>
-<td align="left">config</td>
-<td align="left">TEAM_PORT_CONFIG</td>
-<td align="left"> </td>
-<td align="left">Team port configuration in JSON. See man teamd.conf for details.</td>
-</tr></tbody>
-</table></div>
-</div>
-<br class="table-break"><div class="table">
-<a name="id-1.2.12.7.28"></a><p class="title"><b>Table 35. team setting</b></p>
+<a name="id-1.2.12.7.32"></a><p class="title"><b>Table 39. team setting</b></p>
 <div class="table-contents"><table class="table" summary="team setting" border="1">
 <colgroup>
 <col>
@@ -2139,7 +2639,30 @@ Example: </strong></span>FILTER1="parent ffff: matchall action simple sdata Inpu
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.12.7.29"></a><p class="title"><b>Table 36. user setting</b></p>
+<a name="id-1.2.12.7.33"></a><p class="title"><b>Table 40. team-port setting</b></p>
+<div class="table-contents"><table class="table" summary="team-port setting" border="1">
+<colgroup>
+<col>
+<col>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>Property</th>
+<th>Ifcfg-rh Variable</th>
+<th>Default</th>
+<th>Description</th>
+</tr></thead>
+<tbody><tr>
+<td align="left">config</td>
+<td align="left">TEAM_PORT_CONFIG</td>
+<td align="left"> </td>
+<td align="left">Team port configuration in JSON. See man teamd.conf for details.</td>
+</tr></tbody>
+</table></div>
+</div>
+<br class="table-break"><div class="table">
+<a name="id-1.2.12.7.34"></a><p class="title"><b>Table 41. user setting</b></p>
 <div class="table-contents"><table class="table" summary="user setting" border="1">
 <colgroup>
 <col>
@@ -2164,7 +2687,7 @@ Example: </strong></span>NM_USER_FOO__BAR=something</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.12.7.30"></a><p class="title"><b>Table 37. veth setting</b></p>
+<a name="id-1.2.12.7.35"></a><p class="title"><b>Table 42. veth setting</b></p>
 <div class="table-contents"><table class="table" summary="veth setting" border="1">
 <colgroup>
 <col>
@@ -2182,7 +2705,7 @@ Example: </strong></span>NM_USER_FOO__BAR=something</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.12.7.31"></a><p class="title"><b>Table 38. vlan setting</b></p>
+<a name="id-1.2.12.7.36"></a><p class="title"><b>Table 43. vlan setting</b></p>
 <div class="table-contents"><table class="table" summary="vlan setting" border="1">
 <colgroup>
 <col>
@@ -2218,6 +2741,14 @@ Example: </strong></span>NM_USER_FOO__BAR=something</td>
 Allowed values: </strong></span>"yes or "no" for GVRP and MVRP; "LOOSE_BINDING" and "NO_REORDER_HDR" for VLAN_FLAGS</td>
 </tr>
 <tr>
+<td align="left">protocol</td>
+<td align="left">VLAN_PROTOCOL</td>
+<td align="left"> </td>
+<td align="left">VLAN protocol.<span class="bold"><strong>
+
+Example: </strong></span>VLAN_PROTOCOL="802.1ad"</td>
+</tr>
+<tr>
 <td align="left">ingress-priority-map</td>
 <td align="left">VLAN_INGRESS_PRIORITY_MAP</td>
 <td align="left"> </td>
@@ -2245,7 +2776,7 @@ Example: </strong></span>PHYSDEV=eth0, VLAN_ID=12; or DEVICE=eth0.12</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.12.7.32"></a><p class="title"><b>Table 39. vrf setting</b></p>
+<a name="id-1.2.12.7.37"></a><p class="title"><b>Table 44. vrf setting</b></p>
 <div class="table-contents"><table class="table" summary="vrf setting" border="1">
 <colgroup>
 <col>
@@ -2263,7 +2794,7 @@ Example: </strong></span>PHYSDEV=eth0, VLAN_ID=12; or DEVICE=eth0.12</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.12.7.33"></a><p class="title"><b>Table 40. wifi-p2p setting</b></p>
+<a name="id-1.2.12.7.38"></a><p class="title"><b>Table 45. wifi-p2p setting</b></p>
 <div class="table-contents"><table class="table" summary="wifi-p2p setting" border="1">
 <colgroup>
 <col>
@@ -2281,128 +2812,7 @@ Example: </strong></span>PHYSDEV=eth0, VLAN_ID=12; or DEVICE=eth0.12</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.12.7.34"></a><p class="title"><b>Table 41. 802-3-ethernet setting</b></p>
-<div class="table-contents"><table class="table" summary="802-3-ethernet setting" border="1">
-<colgroup>
-<col>
-<col>
-<col>
-<col>
-</colgroup>
-<thead><tr>
-<th>Property</th>
-<th>Ifcfg-rh Variable</th>
-<th>Default</th>
-<th>Description</th>
-</tr></thead>
-<tbody>
-<tr>
-<td align="left">port</td>
-<td align="left">(none)</td>
-<td align="left"> </td>
-<td align="left">The property is not saved by the plugin.</td>
-</tr>
-<tr>
-<td align="left">speed</td>
-<td align="left">ETHTOOL_OPTS</td>
-<td align="left"> </td>
-<td align="left">Fixed speed for the ethernet link. It is added as "speed" parameter in the ETHTOOL_OPTS variable.</td>
-</tr>
-<tr>
-<td align="left">duplex</td>
-<td align="left">ETHTOOL_OPTS</td>
-<td align="left"> </td>
-<td align="left">Fixed duplex mode for the ethernet link. It is added as "duplex" parameter in the ETHOOL_OPTS variable.</td>
-</tr>
-<tr>
-<td align="left">auto-negotiate</td>
-<td align="left">ETHTOOL_OPTS</td>
-<td align="left"> </td>
-<td align="left">Whether link speed and duplex autonegotiation is enabled. It is not saved only if disabled and no values are provided for the "speed" and "duplex" parameters (skips link configuration).</td>
-</tr>
-<tr>
-<td align="left">mac-address</td>
-<td align="left">HWADDR</td>
-<td align="left"> </td>
-<td align="left">Hardware address of the device in traditional hex-digits-and-colons notation (e.g. 00:22:68:14:5A:05). Note that for initscripts this is the current MAC address of the device as found during ifup. For NetworkManager this is the permanent MAC address. Or in case no permanent MAC address exists, the MAC address initially configured on the device.</td>
-</tr>
-<tr>
-<td align="left">cloned-mac-address</td>
-<td align="left">MACADDR</td>
-<td align="left"> </td>
-<td align="left">Cloned (spoofed) MAC address in traditional hex-digits-and-colons notation (e.g. 00:22:68:14:5A:99).</td>
-</tr>
-<tr>
-<td align="left">generate-mac-address-mask</td>
-<td align="left">GENERATE_MAC_ADDRESS_MASK<span class="emphasis"><em>(+)</em></span>
-</td>
-<td align="left"> </td>
-<td align="left">the MAC address mask for generating randomized and stable cloned-mac-address.</td>
-</tr>
-<tr>
-<td align="left">mac-address-blacklist</td>
-<td align="left">HWADDR_BLACKLIST<span class="emphasis"><em>(+)</em></span>
-</td>
-<td align="left"> </td>
-<td align="left">It denies usage of the connection for any device whose address is listed.<span class="bold"><strong>
-
-Example: </strong></span>HWADDR_BLACKLIST="00:22:68:11:69:08 00:11:22:11:44:55"</td>
-</tr>
-<tr>
-<td align="left">mtu</td>
-<td align="left">MTU</td>
-<td align="left"> </td>
-<td align="left">MTU of the interface.</td>
-</tr>
-<tr>
-<td align="left">s390-subchannels</td>
-<td align="left">SUBCHANNELS</td>
-<td align="left"> </td>
-<td align="left">Subchannels for IBM S390 hosts.<span class="bold"><strong>
-
-Example: </strong></span>SUBCHANNELS=0.0.b00a,0.0.b00b,0.0.b00c</td>
-</tr>
-<tr>
-<td align="left">s390-nettype</td>
-<td align="left">NETTYPE</td>
-<td align="left"> </td>
-<td align="left">Network type of the S390 host.<span class="bold"><strong>
-
-Example: </strong></span>NETTYPE=qeth<span class="bold"><strong>
-
-Allowed values: </strong></span>"qeth", "lcs" or "ctc"</td>
-</tr>
-<tr>
-<td align="left">s390-options</td>
-<td align="left">OPTIONS and PORTNAME, CTCPROTO,</td>
-<td align="left"> </td>
-<td align="left">S390 device options. All options go to OPTIONS, except for "portname" and "ctcprot" that have their own variables.</td>
-</tr>
-<tr>
-<td align="left">wake-on-lan</td>
-<td align="left">ETHTOOL_OPTS, ETHTOOL_WAKE_ON_LAN</td>
-<td align="left"> </td>
-<td align="left">Wake on Lan mode for ethernet. The setting "ignore" is expressed with "ETHTOOL_WAKE_ON_LAN=ignore". Otherwise, the "ETHTOOL_OPTS" variable is set with the value "wol" and several of the characters "p|u|m|b|a|g|s|f|d" as explained in the ethtool manual page.</td>
-</tr>
-<tr>
-<td align="left">wake-on-lan-password</td>
-<td align="left">ETHTOOL_OPTS</td>
-<td align="left"> </td>
-<td align="left">Password for secure-on based Wake-on-Lan. It is added as "sopass" parameter in the ETHTOOL_OPTS variable.<span class="bold"><strong>
-
-Example: </strong></span>ETHTOOL_OPTS="wol gs sopass 00:11:22:33:44:55"</td>
-</tr>
-<tr>
-<td align="left">accept-all-mac-addresses</td>
-<td align="left">ACCEPT_ALL_MAC_ADDRESSES</td>
-<td align="left"> </td>
-<td align="left">Enforce the interface to accept all the packets.</td>
-</tr>
-</tbody>
-</table></div>
-</div>
-<br class="table-break"><div class="table">
-<a name="id-1.2.12.7.35"></a><p class="title"><b>Table 42. wireguard setting</b></p>
+<a name="id-1.2.12.7.39"></a><p class="title"><b>Table 46. wireguard setting</b></p>
 <div class="table-contents"><table class="table" summary="wireguard setting" border="1">
 <colgroup>
 <col>
@@ -2420,346 +2830,7 @@ Example: </strong></span>ETHTOOL_OPTS="wol gs sopass 00:11:22:33:44:55"</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.12.7.36"></a><p class="title"><b>Table 43. 802-11-wireless-security setting</b></p>
-<div class="table-contents"><table class="table" summary="802-11-wireless-security setting" border="1">
-<colgroup>
-<col>
-<col>
-<col>
-<col>
-</colgroup>
-<thead><tr>
-<th>Property</th>
-<th>Ifcfg-rh Variable</th>
-<th>Default</th>
-<th>Description</th>
-</tr></thead>
-<tbody>
-<tr>
-<td align="left">key-mgmt</td>
-<td align="left">KEY_MGMT<span class="emphasis"><em>(+)</em></span>
-</td>
-<td align="left"> </td>
-<td align="left">Key management method.<span class="bold"><strong>
-
-Allowed values: </strong></span>none, ieee8021x, owe, wpa-psk, sae, wpa-eap, wpa-eap-suite-b-192</td>
-</tr>
-<tr>
-<td align="left">wep-tx-keyidx</td>
-<td align="left">DEFAULTKEY</td>
-<td align="left">1</td>
-<td align="left">Index of active WEP key. Note that in ifcfg format the index starts counting at 1, while NetworkManager API otherwise is zero based.<span class="bold"><strong>
-
-Allowed values: </strong></span>1, 2, 3, 4</td>
-</tr>
-<tr>
-<td align="left">auth-alg</td>
-<td align="left">SECURITYMODE<span class="emphasis"><em>(+)</em></span>
-</td>
-<td align="left"> </td>
-<td align="left">Authentication algorithm for WEP.<span class="bold"><strong>
-
-Allowed values: </strong></span>restricted, open, leap</td>
-</tr>
-<tr>
-<td align="left">proto</td>
-<td align="left">WPA_ALLOW_WPA<span class="emphasis"><em>(+)</em></span>, WPA_ALLOW_WPA2<span class="emphasis"><em>(+)</em></span>
-</td>
-<td align="left">no</td>
-<td align="left">Allowed WPA protocols, WPA and WPA2 (RSN).<span class="bold"><strong>
-
-Allowed values: </strong></span>yes, no</td>
-</tr>
-<tr>
-<td align="left">pairwise</td>
-<td align="left">CIPHER_PAIRWISE<span class="emphasis"><em>(+)</em></span>
-</td>
-<td align="left"> </td>
-<td align="left">Restrict pairwise encryption algorithms, specified as a space separated list.<span class="bold"><strong>
-
-Allowed values: </strong></span>CCMP, TKIP</td>
-</tr>
-<tr>
-<td align="left">group</td>
-<td align="left">CIPHER_GROUP<span class="emphasis"><em>(+)</em></span>
-</td>
-<td align="left"> </td>
-<td align="left">Restrict group/broadcast encryption algorithms, specified as a space separated list.<span class="bold"><strong>
-
-Allowed values: </strong></span>CCMP, TKIP, WEP40, WEP104</td>
-</tr>
-<tr>
-<td align="left">pmf</td>
-<td align="left">PMF<span class="emphasis"><em>(+)</em></span>
-</td>
-<td align="left"> </td>
-<td align="left">Enables or disables PMF (802.11w)<span class="bold"><strong>
-
-Example: </strong></span>PMF=required<span class="bold"><strong>
-
-Allowed values: </strong></span>default, disable, optional, required</td>
-</tr>
-<tr>
-<td align="left">leap-username</td>
-<td align="left">IEEE_8021X_IDENTITY<span class="emphasis"><em>(+)</em></span>
-</td>
-<td align="left"> </td>
-<td align="left">Login name for LEAP.</td>
-</tr>
-<tr>
-<td align="left">wep-key0</td>
-<td align="left">KEY1, KEY_PASSPHRASE1<span class="emphasis"><em>(+)</em></span>
-</td>
-<td align="left"> </td>
-<td align="left">The first WEP key (used in most networks). See also DEFAULTKEY for key index.</td>
-</tr>
-<tr>
-<td align="left">wep-key1</td>
-<td align="left">KEY2, KEY_PASSPHRASE2<span class="emphasis"><em>(+)</em></span>
-</td>
-<td align="left"> </td>
-<td align="left">WEP key with index 1. See also DEFAULTKEY for key index.</td>
-</tr>
-<tr>
-<td align="left">wep-key2</td>
-<td align="left">KEY3, KEY_PASSPHRASE3<span class="emphasis"><em>(+)</em></span>
-</td>
-<td align="left"> </td>
-<td align="left">WEP key with index 2. See also DEFAULTKEY for key index.</td>
-</tr>
-<tr>
-<td align="left">wep-key3</td>
-<td align="left">KEY4, KEY_PASSPHRASE4<span class="emphasis"><em>(+)</em></span>
-</td>
-<td align="left"> </td>
-<td align="left">WEP key with index 3. See also DEFAULTKEY for key index.</td>
-</tr>
-<tr>
-<td align="left">wep-key-flags</td>
-<td align="left">WEP_KEY_FLAGS<span class="emphasis"><em>(+)</em></span>
-</td>
-<td align="left"> </td>
-<td align="left">Password flags for KEY&lt;i&gt;, KEY_PASSPHRASE&lt;i&gt; password. (see <a class="xref" href="nm-settings-dbus.html#secrets-flags" title="Secret flag types:">the section called “Secret flag types:”</a> for _FLAGS values)</td>
-</tr>
-<tr>
-<td align="left">psk</td>
-<td align="left">WPA_PSK</td>
-<td align="left"> </td>
-<td align="left">Pre-Shared-Key for WPA networks.</td>
-</tr>
-<tr>
-<td align="left">psk-flags</td>
-<td align="left">WPA_PSK_FLAGS<span class="emphasis"><em>(+)</em></span>
-</td>
-<td align="left"> </td>
-<td align="left">Password flags for WPA_PSK_FLAGS. (see <a class="xref" href="nm-settings-dbus.html#secrets-flags" title="Secret flag types:">the section called “Secret flag types:”</a> for _FLAGS values)<span class="bold"><strong>
-
-Example: </strong></span>WPA_PSK_FLAGS=user</td>
-</tr>
-<tr>
-<td align="left">leap-password</td>
-<td align="left">IEEE_8021X_PASSWORD<span class="emphasis"><em>(+)</em></span>
-</td>
-<td align="left"> </td>
-<td align="left">Password for LEAP. It can also go to "key-" lookaside file, or it can be owned by a secret agent.</td>
-</tr>
-<tr>
-<td align="left">leap-password-flags</td>
-<td align="left">IEEE_8021X_PASSWORD_FLAGS<span class="emphasis"><em>(+)</em></span>
-</td>
-<td align="left"> </td>
-<td align="left">Password flags for IEEE_8021X_PASSWORD_FLAGS. (see <a class="xref" href="nm-settings-dbus.html#secrets-flags" title="Secret flag types:">the section called “Secret flag types:”</a> for _FLAGS values)</td>
-</tr>
-<tr>
-<td align="left">wep-key-type</td>
-<td align="left">KEY&lt;i&gt; or KEY_PASSPHRASE&lt;i&gt;<span class="emphasis"><em>(+)</em></span>; KEY_TYPE<span class="emphasis"><em>(+)</em></span>
-</td>
-<td align="left"> </td>
-<td align="left">KEY is used for "key" type (10 or 26 hexadecimal characters, or 5 or 13 character string prefixed with "s:"). KEY_PASSPHRASE is used for WEP passphrases. KEY_TYPE specifies the key type and can be either 'key' or 'passphrase'. KEY_TYPE is redundant and can be omitted.<span class="bold"><strong>
-
-Example: </strong></span>KEY1=s:ahoj, KEY1=0a1c45bc02, KEY_PASSPHRASE1=mysupersecretkey</td>
-</tr>
-<tr>
-<td align="left">wps-method</td>
-<td align="left">WPS_METHOD</td>
-<td align="left"> </td>
-<td align="left">Used to control the WPS methods to be used Valid values are "default", "auto", "disabled", "pin" and "pbc". If omitted, whatver the AP announces is used.<span class="bold"><strong>
-
-Example: </strong></span>WPS_METHOD=disabled, WPS_METHOD="pin pbc"</td>
-</tr>
-<tr>
-<td align="left">fils</td>
-<td align="left">FILS<span class="emphasis"><em>(+)</em></span>
-</td>
-<td align="left"> </td>
-<td align="left">Enables or disables FILS (802.11ai)<span class="bold"><strong>
-
-Example: </strong></span>FILS=required<span class="bold"><strong>
-
-Allowed values: </strong></span>default, disable, optional, required</td>
-</tr>
-</tbody>
-</table></div>
-</div>
-<br class="table-break"><div class="table">
-<a name="id-1.2.12.7.37"></a><p class="title"><b>Table 44. 802-11-wireless setting</b></p>
-<div class="table-contents"><table class="table" summary="802-11-wireless setting" border="1">
-<colgroup>
-<col>
-<col>
-<col>
-<col>
-</colgroup>
-<thead><tr>
-<th>Property</th>
-<th>Ifcfg-rh Variable</th>
-<th>Default</th>
-<th>Description</th>
-</tr></thead>
-<tbody>
-<tr>
-<td align="left">ssid</td>
-<td align="left">ESSID</td>
-<td align="left"> </td>
-<td align="left">SSID of Wi-Fi network.<span class="bold"><strong>
-
-Example: </strong></span>ESSID="Quick Net"</td>
-</tr>
-<tr>
-<td align="left">mode</td>
-<td align="left">MODE</td>
-<td align="left"> </td>
-<td align="left">Wi-Fi network mode.<span class="bold"><strong>
-
-Allowed values: </strong></span>Ad-Hoc, Managed (Auto)  [case insensitive]</td>
-</tr>
-<tr>
-<td align="left">band</td>
-<td align="left">BAND<span class="emphasis"><em>(+)</em></span>
-</td>
-<td align="left"> </td>
-<td align="left">BAND alone is honored, but CHANNEL overrides BAND since it implies a band.<span class="bold"><strong>
-
-Example: </strong></span>BAND=bg<span class="bold"><strong>
-
-Allowed values: </strong></span>a, bg</td>
-</tr>
-<tr>
-<td align="left">channel</td>
-<td align="left">CHANNEL</td>
-<td align="left"> </td>
-<td align="left">Channel used for the Wi-Fi communication. Channels greater than 14 mean "a" band, otherwise the band is "bg".<span class="bold"><strong>
-
-Example: </strong></span>CHANNEL=6</td>
-</tr>
-<tr>
-<td align="left">bssid</td>
-<td align="left">BSSID<span class="emphasis"><em>(+)</em></span>
-</td>
-<td align="left"> </td>
-<td align="left">Restricts association only to a single AP.<span class="bold"><strong>
-
-Example: </strong></span>BSSID=00:1E:BD:64:83:21</td>
-</tr>
-<tr>
-<td align="left">rate</td>
-<td align="left">(none)</td>
-<td align="left"> </td>
-<td align="left">This property is not handled by ifcfg-rh plugin.</td>
-</tr>
-<tr>
-<td align="left">tx-power</td>
-<td align="left">(none)</td>
-<td align="left"> </td>
-<td align="left">This property is not handled by ifcfg-rh plugin.</td>
-</tr>
-<tr>
-<td align="left">mac-address</td>
-<td align="left">HWADDR</td>
-<td align="left"> </td>
-<td align="left">Hardware address of the device in traditional hex-digits-and-colons notation (e.g. 00:22:68:14:5A:05). Note that for initscripts this is the current MAC address of the device as found during ifup. For NetworkManager this is the permanent MAC address. Or in case no permanent MAC address exists, the MAC address initially configured on the device.</td>
-</tr>
-<tr>
-<td align="left">cloned-mac-address</td>
-<td align="left">MACADDR</td>
-<td align="left"> </td>
-<td align="left">Cloned (spoofed) MAC address in traditional hex-digits-and-colons notation (e.g. 00:22:68:14:5A:99).</td>
-</tr>
-<tr>
-<td align="left">generate-mac-address-mask</td>
-<td align="left">GENERATE_MAC_ADDRESS_MASK<span class="emphasis"><em>(+)</em></span>
-</td>
-<td align="left"> </td>
-<td align="left">the MAC address mask for generating randomized and stable cloned-mac-address.</td>
-</tr>
-<tr>
-<td align="left">mac-address-blacklist</td>
-<td align="left">HWADDR_BLACKLIST<span class="emphasis"><em>(+)</em></span>
-</td>
-<td align="left"> </td>
-<td align="left">It denies usage of the connection for any device whose address is listed.</td>
-</tr>
-<tr>
-<td align="left">seen-bssids</td>
-<td align="left">(none)</td>
-<td align="left"> </td>
-<td align="left">This property is not handled by ifcfg-rh plugin.</td>
-</tr>
-<tr>
-<td align="left">mtu</td>
-<td align="left">MTU</td>
-<td align="left"> </td>
-<td align="left">MTU of the wireless interface.</td>
-</tr>
-<tr>
-<td align="left">hidden</td>
-<td align="left">SSID_HIDDEN<span class="emphasis"><em>(+)</em></span>
-</td>
-<td align="left"> </td>
-<td align="left">Whether the network hides the SSID.</td>
-</tr>
-<tr>
-<td align="left">powersave</td>
-<td align="left">POWERSAVE<span class="emphasis"><em>(+)</em></span>
-</td>
-<td align="left"> </td>
-<td align="left">Enables or disables Wi-Fi power saving.<span class="bold"><strong>
-
-Example: </strong></span>POWERSAVE=enable<span class="bold"><strong>
-
-Allowed values: </strong></span>default, ignore, enable, disable</td>
-</tr>
-<tr>
-<td align="left">mac-address-randomization</td>
-<td align="left">MAC_ADDRESS_RANDOMIZATION<span class="emphasis"><em>(+)</em></span>
-</td>
-<td align="left"> </td>
-<td align="left">Enables or disables Wi-Fi MAC address randomization.<span class="bold"><strong>
-
-Example: </strong></span>MAC_ADDRESS_RANDOMIZATION=always<span class="bold"><strong>
-
-Allowed values: </strong></span>default, never, always</td>
-</tr>
-<tr>
-<td align="left">security</td>
-<td align="left">(none)</td>
-<td align="left"> </td>
-<td align="left">This property is deprecated and not handled by ifcfg-rh-plugin.</td>
-</tr>
-<tr>
-<td align="left">ap-isolation</td>
-<td align="left">AP_ISOLATION<span class="emphasis"><em>(+)</em></span>
-</td>
-<td align="left">missing variable means global default</td>
-<td align="left">Whether AP isolation is enabled<span class="bold"><strong>
-
-Allowed values: </strong></span>"yes", "no"</td>
-</tr>
-</tbody>
-</table></div>
-</div>
-<br class="table-break"><div class="table">
-<a name="id-1.2.12.7.38"></a><p class="title"><b>Table 45. wpan setting</b></p>
+<a name="id-1.2.12.7.40"></a><p class="title"><b>Table 47. wpan setting</b></p>
 <div class="table-contents"><table class="table" summary="wpan setting" border="1">
 <colgroup>
 <col>

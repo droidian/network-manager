@@ -148,7 +148,7 @@ nm_setting_vpn_get_user_name(NMSettingVpn *setting)
  *
  * Returns: the #NMSettingVpn:persistent property of the setting
  *
- * Since: 1.42, 1.40.4
+ * Since: 1.42
  **/
 gboolean
 nm_setting_vpn_get_persistent(NMSettingVpn *setting)
@@ -803,7 +803,7 @@ set_secret_flags(NMSetting           *setting,
 }
 
 static GPtrArray *
-need_secrets(NMSetting *setting)
+need_secrets(NMSetting *setting, gboolean check_rerequest)
 {
     /* Assume that VPN connections need secrets since they almost always will */
     return g_ptr_array_sized_new(1);
@@ -1132,7 +1132,7 @@ nm_setting_vpn_class_init(NMSettingVpnClass *klass)
                                                persistent);
 
     /**
-     * NMSettingVpn:data: (type GHashTable(utf8,utf8)):
+     * NMSettingVpn:data: (type GHashTable(utf8,utf8))
      *
      * Dictionary of key/value pairs of VPN plugin specific data.  Both keys and
      * values must be strings.
@@ -1155,7 +1155,7 @@ nm_setting_vpn_class_init(NMSettingVpnClass *klass)
                                  &nm_sett_info_propert_type_strdict);
 
     /**
-     * NMSettingVpn:secrets: (type GHashTable(utf8,utf8)):
+     * NMSettingVpn:secrets: (type GHashTable(utf8,utf8))
      *
      * Dictionary of key/value pairs of VPN plugin specific secrets like
      * passwords or private keys.  Both keys and values must be strings.

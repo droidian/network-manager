@@ -88,7 +88,6 @@ test_generic_options(void)
     const char                              *expected_route2_dest = "100.99.88.56";
     const char                              *expected_route2_gw   = "10.1.1.1";
     const char *const                       *strarr;
-    const in_addr_t                         *ia_arr;
     guint                                    u;
 
     options = fill_table(generic_options, NULL);
@@ -115,10 +114,10 @@ test_generic_options(void)
     g_assert_cmpstr(strarr[0], ==, expected_search1);
     g_assert_cmpstr(strarr[1], ==, expected_search2);
 
-    ia_arr = nm_l3_config_data_get_nameservers(l3cd, AF_INET, &u);
+    strarr = nm_l3_config_data_get_nameservers(l3cd, AF_INET, &u);
     g_assert_cmpint(u, ==, 2);
-    nmtst_assert_ip4_address(ia_arr[0], expected_dns1);
-    nmtst_assert_ip4_address(ia_arr[1], expected_dns2);
+    g_assert_cmpstr(strarr[0], ==, expected_dns1);
+    g_assert_cmpstr(strarr[1], ==, expected_dns2);
 
     g_assert_cmpint(nm_l3_config_data_get_num_routes(l3cd, AF_INET), ==, 3);
 
@@ -285,7 +284,7 @@ test_classless_static_routes_1(void)
     const char                              *expected_route2_dest = "10.0.0.0";
     const char                              *expected_route2_gw   = "10.17.66.41";
     static const Option                      data[]               = {
-                                           /* dhclient custom format */
+        /* dhclient custom format */
         {"rfc3442_classless_static_routes", "24 192 168 10 192 168 1 1 8 10 10 17 66 41"},
         {NULL, NULL}};
 
@@ -310,7 +309,7 @@ test_classless_static_routes_2(void)
     const char                              *expected_route2_dest = "10.0.0.0";
     const char                              *expected_route2_gw   = "10.17.66.41";
     static const Option                      data[]               = {
-                                           /* dhcpcd format */
+        /* dhcpcd format */
         {"classless_static_routes", "192.168.10.0/24 192.168.1.1 10.0.0.0/8 10.17.66.41"},
         {NULL, NULL}};
 
@@ -336,7 +335,7 @@ test_fedora_dhclient_classless_static_routes(void)
     const char                              *expected_route2_gw   = "10.34.255.6";
     const char                              *expected_gateway     = "192.168.0.113";
     static const Option                      data[]               = {
-                                           /* Fedora dhclient format */
+        /* Fedora dhclient format */
         {"classless_static_routes",
                                             "0 192.168.0.113 25.129.210.177.132 192.168.0.113 7.2 10.34.255.6"},
         {NULL, NULL}};
@@ -362,7 +361,7 @@ test_dhclient_invalid_classless_routes_1(void)
     const char                              *expected_route1_dest = "192.168.10.0";
     const char                              *expected_route1_gw   = "192.168.1.1";
     static const Option                      data[]               = {
-                                           /* dhclient format */
+        /* dhclient format */
         {"rfc3442_classless_static_routes", "24 192 168 10 192 168 1 1 45 10 17 66 41"},
         {NULL, NULL}};
 
@@ -389,7 +388,7 @@ test_dhcpcd_invalid_classless_routes_1(void)
     const char                              *expected_route2_dest = "100.99.88.56";
     const char                              *expected_route2_gw   = "10.1.1.1";
     static const Option                      data[]               = {
-                                           /* dhcpcd format */
+        /* dhcpcd format */
         {"classless_static_routes", "192.168.10.0/24 192.168.1.1 10.0.adfadf/44 10.17.66.41"},
         {NULL, NULL}};
 
@@ -419,8 +418,8 @@ test_dhclient_invalid_classless_routes_2(void)
     const char                              *expected_route2_dest = "100.99.88.56";
     const char                              *expected_route2_gw   = "10.1.1.1";
     static const Option                      data[]               = {
-                                           {"rfc3442_classless_static_routes", "45 10 17 66 41 24 192 168 10 192 168 1 1"},
-                                           {NULL, NULL}};
+        {"rfc3442_classless_static_routes", "45 10 17 66 41 24 192 168 10 192 168 1 1"},
+        {NULL, NULL}};
 
     options = fill_table(generic_options, NULL);
     options = fill_table(data, options);
@@ -448,8 +447,8 @@ test_dhcpcd_invalid_classless_routes_2(void)
     const char                              *expected_route2_dest = "100.99.88.56";
     const char                              *expected_route2_gw   = "10.1.1.1";
     static const Option                      data[]               = {
-                                           {"classless_static_routes", "10.0.adfadf/44 10.17.66.41 192.168.10.0/24 192.168.1.1"},
-                                           {NULL, NULL}};
+        {"classless_static_routes", "10.0.adfadf/44 10.17.66.41 192.168.10.0/24 192.168.1.1"},
+        {NULL, NULL}};
 
     options = fill_table(generic_options, NULL);
     options = fill_table(data, options);
@@ -477,8 +476,8 @@ test_dhclient_invalid_classless_routes_3(void)
     const char                              *expected_route1_dest = "192.168.10.0";
     const char                              *expected_route1_gw   = "192.168.1.1";
     static const Option                      data[]               = {
-                                           {"rfc3442_classless_static_routes", "24 192 168 10 192 168 1 1 32 128 10 17 66 41"},
-                                           {NULL, NULL}};
+        {"rfc3442_classless_static_routes", "24 192 168 10 192 168 1 1 32 128 10 17 66 41"},
+        {NULL, NULL}};
 
     options = fill_table(generic_options, NULL);
     options = fill_table(data, options);
@@ -501,8 +500,8 @@ test_dhcpcd_invalid_classless_routes_3(void)
     const char                              *expected_route1_dest = "192.168.10.0";
     const char                              *expected_route1_gw   = "192.168.1.1";
     static Option                            data[]               = {
-                                                 {"classless_static_routes", "192.168.10.0/24 192.168.1.1 128/32 10.17.66.41"},
-                                                 {NULL, NULL}};
+        {"classless_static_routes", "192.168.10.0/24 192.168.1.1 128/32 10.17.66.41"},
+        {NULL, NULL}};
 
     options = fill_table(generic_options, NULL);
     options = fill_table(data, options);
@@ -526,8 +525,8 @@ test_dhclient_gw_in_classless_routes(void)
     const char                              *expected_route1_gw   = "192.168.1.1";
     const char                              *expected_gateway     = "192.2.3.4";
     static Option                            data[]               = {
-                                                 {"rfc3442_classless_static_routes", "24 192 168 10 192 168 1 1 0 192 2 3 4"},
-                                                 {NULL, NULL}};
+        {"rfc3442_classless_static_routes", "24 192 168 10 192 168 1 1 0 192 2 3 4"},
+        {NULL, NULL}};
 
     options = fill_table(generic_options, NULL);
     options = fill_table(data, options);
@@ -550,8 +549,8 @@ test_dhcpcd_gw_in_classless_routes(void)
     const char                              *expected_route1_gw   = "192.168.1.1";
     const char                              *expected_gateway     = "192.2.3.4";
     static Option                            data[]               = {
-                                                 {"classless_static_routes", "192.168.10.0/24 192.168.1.1 0.0.0.0/0 192.2.3.4"},
-                                                 {NULL, NULL}};
+        {"classless_static_routes", "192.168.10.0/24 192.168.1.1 0.0.0.0/0 192.2.3.4"},
+        {NULL, NULL}};
 
     options = fill_table(generic_options, NULL);
     options = fill_table(data, options);

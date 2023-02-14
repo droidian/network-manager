@@ -2,12 +2,12 @@
 .\"     Title: nm-settings-keyfile
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 01/26/2023
+.\"      Date: 02/10/2023
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.40.12
+.\"    Source: NetworkManager 1.42.0
 .\"  Language: English
 .\"
-.TH "NM\-SETTINGS\-KEYFILE" "5" "" "NetworkManager 1\&.40\&.12" "Configuration"
+.TH "NM\-SETTINGS\-KEYFILE" "5" "" "NetworkManager 1\&.42\&.0" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -230,7 +230,125 @@ introduces aliases that can be used instead of the names\&.
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&1.\ \&bridge setting (section)
+.B Table\ \&1.\ \&802\-11\-wireless setting (section)
+.TS
+allbox tab(:);
+lB lB lB lB.
+T{
+Property
+T}:T{
+Keyfile Variable
+T}:T{
+Format
+T}:T{
+Description
+T}
+.T&
+l l l l
+l l l l
+l l l l
+l l l l.
+T{
+ssid
+T}:T{
+\ \&
+T}:T{
+string (or decimal\-byte list \- obsolete)
+T}:T{
+SSID of Wi\-Fi network\&.\fB
+
+Example: \fRssid=Quick Net
+T}
+T{
+mac\-address
+T}:T{
+\ \&
+T}:T{
+usual hex\-digits\-and\-colons notation
+T}:T{
+MAC address in traditional hex\-digits\-and\-colons notation (e\&.g\&. 00:22:68:12:79:A2), or semicolon separated list of 6 bytes (obsolete) (e\&.g\&. 0;34;104;18;121;162)\&.
+T}
+T{
+cloned\-mac\-address
+T}:T{
+\ \&
+T}:T{
+usual hex\-digits\-and\-colons notation
+T}:T{
+Cloned MAC address in traditional hex\-digits\-and\-colons notation (e\&.g\&. 00:22:68:12:79:B2), or semicolon separated list of 6 bytes (obsolete) (e\&.g\&. 0;34;104;18;121;178)\&.
+T}
+T{
+mac\-address\-blacklist
+T}:T{
+\ \&
+T}:T{
+list of MACs (separated with semicolons)
+T}:T{
+MAC address blacklist\&.\fB
+
+Example: \fRmac\-address\-blacklist= 00:22:68:12:79:A6;00:22:68:12:79:78
+T}
+.TE
+.sp 1
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.B Table\ \&2.\ \&802\-3\-ethernet setting (section)
+.TS
+allbox tab(:);
+lB lB lB lB.
+T{
+Property
+T}:T{
+Keyfile Variable
+T}:T{
+Format
+T}:T{
+Description
+T}
+.T&
+l l l l
+l l l l
+l l l l.
+T{
+mac\-address
+T}:T{
+\ \&
+T}:T{
+usual hex\-digits\-and\-colons notation
+T}:T{
+MAC address in traditional hex\-digits\-and\-colons notation (e\&.g\&. 00:22:68:12:79:A2), or semicolon separated list of 6 bytes (obsolete) (e\&.g\&. 0;34;104;18;121;162)
+T}
+T{
+cloned\-mac\-address
+T}:T{
+\ \&
+T}:T{
+usual hex\-digits\-and\-colons notation
+T}:T{
+Cloned MAC address in traditional hex\-digits\-and\-colons notation (e\&.g\&. 00:22:68:12:79:B2), or semicolon separated list of 6 bytes (obsolete) (e\&.g\&. 0;34;104;18;121;178)\&.
+T}
+T{
+mac\-address\-blacklist
+T}:T{
+\ \&
+T}:T{
+list of MACs (separated with semicolons)
+T}:T{
+MAC address blacklist\&.\fB
+
+Example: \fRmac\-address\-blacklist= 00:22:68:12:79:A6;00:22:68:12:79:78
+T}
+.TE
+.sp 1
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.B Table\ \&3.\ \&bridge setting (section)
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -248,7 +366,7 @@ l l l l.
 T{
 mac\-address
 T}:T{
-mac\-address
+\ \&
 T}:T{
 usual hex\-digits\-and\-colons notation
 T}:T{
@@ -263,7 +381,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&2.\ \&infiniband setting (section)
+.B Table\ \&4.\ \&infiniband setting (section)
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -281,7 +399,7 @@ l l l l.
 T{
 mac\-address
 T}:T{
-mac\-address
+\ \&
 T}:T{
 usual hex\-digits\-and\-colons notation
 T}:T{
@@ -296,7 +414,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&3.\ \&ipv4 setting (section)
+.B Table\ \&5.\ \&ipv4 setting (section)
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -317,7 +435,7 @@ l l l l.
 T{
 dns
 T}:T{
-dns
+\ \&
 T}:T{
 list of DNS IP addresses
 T}:T{
@@ -365,7 +483,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&4.\ \&ipv6 setting (section)
+.B Table\ \&6.\ \&ipv6 setting (section)
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -386,7 +504,7 @@ l l l l.
 T{
 dns
 T}:T{
-dns
+\ \&
 T}:T{
 list of DNS IP addresses
 T}:T{
@@ -434,7 +552,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&5.\ \&serial setting (section)
+.B Table\ \&7.\ \&serial setting (section)
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -452,7 +570,7 @@ l l l l.
 T{
 parity
 T}:T{
-parity
+\ \&
 T}:T{
 \*(Aqe\*(Aq, \*(Aqo\*(Aq, or \*(Aqn\*(Aq
 T}:T{
@@ -467,7 +585,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&6.\ \&vpn setting (section)
+.B Table\ \&8.\ \&vpn setting (section)
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -512,7 +630,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&7.\ \&wifi\-p2p setting (section)
+.B Table\ \&9.\ \&wifi\-p2p setting (section)
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -530,129 +648,11 @@ l l l l.
 T{
 peer
 T}:T{
-peer
+\ \&
 T}:T{
 usual hex\-digits\-and\-colons notation
 T}:T{
 MAC address in traditional hex\-digits\-and\-colons notation (e\&.g\&. 00:22:68:12:79:A2), or semicolon separated list of 6 bytes (obsolete) (e\&.g\&. 0;34;104;18;121;162)\&.
-T}
-.TE
-.sp 1
-.sp
-.it 1 an-trap
-.nr an-no-space-flag 1
-.nr an-break-flag 1
-.br
-.B Table\ \&8.\ \&802\-3\-ethernet setting (section)
-.TS
-allbox tab(:);
-lB lB lB lB.
-T{
-Property
-T}:T{
-Keyfile Variable
-T}:T{
-Format
-T}:T{
-Description
-T}
-.T&
-l l l l
-l l l l
-l l l l.
-T{
-mac\-address
-T}:T{
-mac\-address
-T}:T{
-usual hex\-digits\-and\-colons notation
-T}:T{
-MAC address in traditional hex\-digits\-and\-colons notation (e\&.g\&. 00:22:68:12:79:A2), or semicolon separated list of 6 bytes (obsolete) (e\&.g\&. 0;34;104;18;121;162)
-T}
-T{
-cloned\-mac\-address
-T}:T{
-cloned\-mac\-address
-T}:T{
-usual hex\-digits\-and\-colons notation
-T}:T{
-Cloned MAC address in traditional hex\-digits\-and\-colons notation (e\&.g\&. 00:22:68:12:79:B2), or semicolon separated list of 6 bytes (obsolete) (e\&.g\&. 0;34;104;18;121;178)\&.
-T}
-T{
-mac\-address\-blacklist
-T}:T{
-mac\-address\-blacklist
-T}:T{
-list of MACs (separated with semicolons)
-T}:T{
-MAC address blacklist\&.\fB
-
-Example: \fRmac\-address\-blacklist= 00:22:68:12:79:A6;00:22:68:12:79:78
-T}
-.TE
-.sp 1
-.sp
-.it 1 an-trap
-.nr an-no-space-flag 1
-.nr an-break-flag 1
-.br
-.B Table\ \&9.\ \&802\-11\-wireless setting (section)
-.TS
-allbox tab(:);
-lB lB lB lB.
-T{
-Property
-T}:T{
-Keyfile Variable
-T}:T{
-Format
-T}:T{
-Description
-T}
-.T&
-l l l l
-l l l l
-l l l l
-l l l l.
-T{
-ssid
-T}:T{
-ssid
-T}:T{
-string (or decimal\-byte list \- obsolete)
-T}:T{
-SSID of Wi\-Fi network\&.\fB
-
-Example: \fRssid=Quick Net
-T}
-T{
-mac\-address
-T}:T{
-mac\-address
-T}:T{
-usual hex\-digits\-and\-colons notation
-T}:T{
-MAC address in traditional hex\-digits\-and\-colons notation (e\&.g\&. 00:22:68:12:79:A2), or semicolon separated list of 6 bytes (obsolete) (e\&.g\&. 0;34;104;18;121;162)\&.
-T}
-T{
-cloned\-mac\-address
-T}:T{
-cloned\-mac\-address
-T}:T{
-usual hex\-digits\-and\-colons notation
-T}:T{
-Cloned MAC address in traditional hex\-digits\-and\-colons notation (e\&.g\&. 00:22:68:12:79:B2), or semicolon separated list of 6 bytes (obsolete) (e\&.g\&. 0;34;104;18;121;178)\&.
-T}
-T{
-mac\-address\-blacklist
-T}:T{
-mac\-address\-blacklist
-T}:T{
-list of MACs (separated with semicolons)
-T}:T{
-MAC address blacklist\&.\fB
-
-Example: \fRmac\-address\-blacklist= 00:22:68:12:79:A6;00:22:68:12:79:78
 T}
 .TE
 .sp 1
@@ -679,7 +679,7 @@ l l l l.
 T{
 mac\-address
 T}:T{
-mac\-address
+\ \&
 T}:T{
 usual hex\-digits\-and\-colons notation
 T}:T{

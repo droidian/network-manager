@@ -63,7 +63,7 @@ test_cleanup_internal(void)
             nm_platform_process_events(NM_PLATFORM_GET);
         }
         addrs = nmtstp_platform_ip6_address_get_all(NM_PLATFORM_GET, ifindex);
-        if (addrs->len == 1 && (a = &g_array_index(addrs, NMPlatformIP6Address, 0))
+        if (addrs->len == 1 && (a = &nm_g_array_first(addrs, NMPlatformIP6Address))
             && IN6_IS_ADDR_LINKLOCAL(&a->address))
             break;
     });
@@ -73,7 +73,7 @@ test_cleanup_internal(void)
                                          addr4,
                                          plen4,
                                          addr4,
-                                         nm_platform_ip4_broadcast_address_create(addr4, plen4),
+                                         nm_ip4_addr_get_broadcast_address(addr4, plen4),
                                          lifetime,
                                          preferred,
                                          0,

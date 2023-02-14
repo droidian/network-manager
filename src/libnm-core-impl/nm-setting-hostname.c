@@ -134,7 +134,7 @@ nm_setting_hostname_init(NMSettingHostname *setting)
  *
  * Returns: (transfer full): the new empty #NMSettingHostname object
  *
- * Since: 1.42, 1.40.4
+ * Since: 1.42
  **/
 NMSetting *
 nm_setting_hostname_new(void)
@@ -233,7 +233,7 @@ nm_setting_hostname_class_init(NMSettingHostnameClass *klass)
      * Since: 1.30
      **/
     /* ---ifcfg-rh---
-     * property: from-dhcp
+     * property: from-dns-lookup
      * variable: HOSTNAME_FROM_DNS_LOOKUP(+)
      * default: missing variable means global default or 1
      * description: whether the system hostname can be determined from reverse

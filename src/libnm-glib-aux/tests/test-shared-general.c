@@ -11,6 +11,7 @@
 #include "libnm-glib-aux/nm-time-utils.h"
 #include "libnm-glib-aux/nm-ref-string.h"
 #include "libnm-glib-aux/nm-io-utils.h"
+#include "libnm-glib-aux/nm-prioq.h"
 
 #include "libnm-glib-aux/nm-test-utils.h"
 
@@ -77,6 +78,9 @@ test_gpid(void)
      * the case. */
     int_ptr = &pid;
     g_assert_cmpint(*int_ptr, ==, 42);
+
+    /* also check how assert() works. */
+    assert(*int_ptr == 42);
 }
 
 /*****************************************************************************/
@@ -85,6 +89,38 @@ static void
 test_monotonic_timestamp(void)
 {
     g_assert(nm_utils_get_monotonic_timestamp_sec() > 0);
+}
+
+/*****************************************************************************/
+
+static void
+test_timespect_to(void)
+{
+    struct timespec ts;
+    int             i;
+
+    for (i = 0; i < 1000; i++) {
+        gint64 t_msec;
+        gint64 t_usec;
+        gint64 t_nsec;
+
+        nmtst_rand_buf(NULL, &ts, sizeof(ts));
+        ts.tv_sec  = llabs(ts.tv_sec % 100000);
+        ts.tv_nsec = llabs(ts.tv_nsec % NM_UTILS_NSEC_PER_SEC);
+
+        t_msec = nm_utils_timespec_to_msec(&ts);
+        t_usec = nm_utils_timespec_to_usec(&ts);
+        t_nsec = nm_utils_timespec_to_nsec(&ts);
+
+        g_assert_cmpint(t_msec, <=, t_usec / 1000);
+        g_assert_cmpint(t_msec + 1, >=, t_usec / 1000);
+
+        g_assert_cmpint(t_msec, <=, t_nsec / 1000000);
+        g_assert_cmpint(t_msec + 1, >=, t_nsec / 1000000);
+
+        g_assert_cmpint(t_usec, <=, t_nsec / 1000);
+        g_assert_cmpint(t_usec + 1, >=, t_nsec / 1000);
+    }
 }
 
 /*****************************************************************************/
@@ -117,8 +153,8 @@ test_make_strv(void)
     const char *const *v2a  = NM_MAKE_STRV("a", "b");
     const char *const *v2b  = NM_MAKE_STRV("a", "b", );
     const char *const  v3[] = {
-         "a",
-         "b",
+        "a",
+        "b",
     };
     const char *const *v4b = NM_MAKE_STRV("a", _make_strv_foo(), );
 
@@ -251,37 +287,41 @@ test_nm_strndup_a(void)
 /*****************************************************************************/
 
 static void
-test_nm_utils_ip4_address_is_loopback(void)
+test_nm_ip4_addr_is_loopback(void)
 {
-    g_assert(nm_utils_ip4_address_is_loopback(nmtst_inet4_from_string("127.0.0.0")));
-    g_assert(nm_utils_ip4_address_is_loopback(nmtst_inet4_from_string("127.0.0.1")));
-    g_assert(nm_utils_ip4_address_is_loopback(nmtst_inet4_from_string("127.5.0.1")));
-    g_assert(!nm_utils_ip4_address_is_loopback(nmtst_inet4_from_string("126.5.0.1")));
-    g_assert(!nm_utils_ip4_address_is_loopback(nmtst_inet4_from_string("128.5.0.1")));
-    g_assert(!nm_utils_ip4_address_is_loopback(nmtst_inet4_from_string("129.5.0.1")));
+    g_assert(nm_ip4_addr_is_loopback(nmtst_inet4_from_string("127.0.0.0")));
+    g_assert(nm_ip4_addr_is_loopback(nmtst_inet4_from_string("127.0.0.1")));
+    g_assert(nm_ip4_addr_is_loopback(nmtst_inet4_from_string("127.5.0.1")));
+    g_assert(!nm_ip4_addr_is_loopback(nmtst_inet4_from_string("126.5.0.1")));
+    g_assert(!nm_ip4_addr_is_loopback(nmtst_inet4_from_string("128.5.0.1")));
+    g_assert(!nm_ip4_addr_is_loopback(nmtst_inet4_from_string("129.5.0.1")));
+    g_assert_cmpint(nmtst_inet4_from_string("127.0.0.0"), ==, NM_IPV4LO_NETWORK);
+    g_assert_cmpint(nmtst_inet4_from_string("127.0.0.1"), ==, NM_IPV4LO_ADDR1);
+    g_assert_cmpint(nmtst_inet4_from_string("255.0.0.0"), ==, NM_IPV4LO_NETMASK);
+    g_assert_cmpint(nm_ip4_addr_netmask_to_prefix(NM_IPV4LO_NETMASK), ==, NM_IPV4LO_PREFIXLEN);
 }
 
 /*****************************************************************************/
 
 static void
-test_nm_utils_ip4_prefix_to_netmask(void)
+test_nm_ip4_addr_netmask_from_prefix(void)
 {
-    g_assert_cmpint(_nm_utils_ip4_prefix_to_netmask(0), ==, nmtst_inet4_from_string("0.0.0.0"));
-    g_assert_cmpint(_nm_utils_ip4_prefix_to_netmask(1), ==, nmtst_inet4_from_string("128.0.0.0"));
-    g_assert_cmpint(_nm_utils_ip4_prefix_to_netmask(2), ==, nmtst_inet4_from_string("192.0.0.0"));
-    g_assert_cmpint(_nm_utils_ip4_prefix_to_netmask(16),
+    g_assert_cmpint(nm_ip4_addr_netmask_from_prefix(0), ==, nmtst_inet4_from_string("0.0.0.0"));
+    g_assert_cmpint(nm_ip4_addr_netmask_from_prefix(1), ==, nmtst_inet4_from_string("128.0.0.0"));
+    g_assert_cmpint(nm_ip4_addr_netmask_from_prefix(2), ==, nmtst_inet4_from_string("192.0.0.0"));
+    g_assert_cmpint(nm_ip4_addr_netmask_from_prefix(16),
                     ==,
                     nmtst_inet4_from_string("255.255.0.0"));
-    g_assert_cmpint(_nm_utils_ip4_prefix_to_netmask(24),
+    g_assert_cmpint(nm_ip4_addr_netmask_from_prefix(24),
                     ==,
                     nmtst_inet4_from_string("255.255.255.0"));
-    g_assert_cmpint(_nm_utils_ip4_prefix_to_netmask(30),
+    g_assert_cmpint(nm_ip4_addr_netmask_from_prefix(30),
                     ==,
                     nmtst_inet4_from_string("255.255.255.252"));
-    g_assert_cmpint(_nm_utils_ip4_prefix_to_netmask(31),
+    g_assert_cmpint(nm_ip4_addr_netmask_from_prefix(31),
                     ==,
                     nmtst_inet4_from_string("255.255.255.254"));
-    g_assert_cmpint(_nm_utils_ip4_prefix_to_netmask(32),
+    g_assert_cmpint(nm_ip4_addr_netmask_from_prefix(32),
                     ==,
                     nmtst_inet4_from_string("255.255.255.255"));
 }
@@ -1294,7 +1334,7 @@ test_utils_hashtable_cmp(void)
     for (test_run = 0; test_run < 30; test_run++) {
         for (is_num_key = 0; is_num_key < 2; is_num_key++) {
             GHashFunc        func_key_hash  = is_num_key ? nm_direct_hash : nm_str_hash;
-            GEqualFunc       func_key_equal = is_num_key ? g_direct_equal : g_str_equal;
+            GEqualFunc       func_key_equal = is_num_key ? NULL : g_str_equal;
             GCompareDataFunc func_key_cmp =
                 is_num_key ? _hash_func_cmp_direct : (GCompareDataFunc) nm_strcmp_with_data;
             GCompareDataFunc func_val_cmp =
@@ -2211,6 +2251,124 @@ test_hostname_is_valid(void)
 
 /*****************************************************************************/
 
+static void
+test_inet_utils(void)
+{
+    g_assert(nm_ip_addr_is_site_local(AF_INET, nmtst_inet_from_string(AF_INET, "172.16.0.1")));
+    g_assert(nm_ip_addr_is_site_local(AF_INET, nmtst_inet_from_string(AF_INET, "172.17.0.1")));
+    g_assert(nm_ip_addr_is_site_local(AF_INET, nmtst_inet_from_string(AF_INET, "192.168.7.5")));
+    g_assert(!nm_ip_addr_is_site_local(AF_INET, nmtst_inet_from_string(AF_INET, "192.0.7.5")));
+    g_assert(nm_ip_addr_is_site_local(AF_INET6, nmtst_inet_from_string(AF_INET6, "fec0::")));
+    g_assert(!nm_ip_addr_is_site_local(AF_INET6, nmtst_inet_from_string(AF_INET6, "fc00::")));
+}
+
+/*****************************************************************************/
+
+static void
+test_garray(void)
+{
+    gs_unref_array GArray *arr = NULL;
+    int                    v;
+
+    arr = g_array_new(FALSE, FALSE, sizeof(int));
+    g_assert(nm_g_array_index_p(arr, int, 0) == (gpointer) arr->data);
+
+    v = 1;
+    g_array_append_val(arr, v);
+    g_assert(nm_g_array_index_p(arr, int, 0) == (gpointer) arr->data);
+    g_assert(nm_g_array_index_p(arr, int, 1) == ((int *) ((gpointer) arr->data)) + 1);
+    g_assert(&nm_g_array_index(arr, int, 0) == (gpointer) arr->data);
+    g_assert(&nm_g_array_first(arr, int) == (gpointer) arr->data);
+    g_assert(&nm_g_array_last(arr, int) == (gpointer) arr->data);
+    g_assert(nm_g_array_index(arr, int, 0) == 1);
+
+    v = 2;
+    g_array_append_val(arr, v);
+    g_assert(nm_g_array_index_p(arr, int, 0) == (gpointer) arr->data);
+    g_assert(nm_g_array_index_p(arr, int, 1) == ((int *) ((gpointer) arr->data)) + 1);
+    g_assert(nm_g_array_index_p(arr, int, 2) == ((int *) ((gpointer) arr->data)) + 2);
+    g_assert(&nm_g_array_index(arr, int, 0) == (gpointer) arr->data);
+    g_assert(&nm_g_array_first(arr, int) == (gpointer) arr->data);
+    g_assert(&nm_g_array_last(arr, int) == ((int *) ((gpointer) arr->data)) + 1);
+    g_assert(nm_g_array_index(arr, int, 0) == 1);
+    g_assert(nm_g_array_index(arr, int, 1) == 2);
+}
+
+/*****************************************************************************/
+
+static int
+_prioq_cmp(gconstpointer a, gconstpointer b)
+{
+    NM_CMP_DIRECT(GPOINTER_TO_UINT(a), GPOINTER_TO_UINT(b));
+    return 0;
+}
+
+static int
+_prioq_cmp_with_data(gconstpointer a, gconstpointer b, gpointer user_data)
+{
+    return _prioq_cmp(a, b);
+}
+
+static void
+test_nm_prioq(void)
+{
+    nm_auto_prioq NMPrioq q = NM_PRIOQ_ZERO;
+    gpointer              data[200];
+    gpointer              data_pop[200];
+    guint                 data_idx[G_N_ELEMENTS(data)];
+    guint                 i;
+    guint                 n;
+    gpointer              p;
+
+    if (nmtst_get_rand_one_case_in(10))
+        return;
+
+    if (nmtst_get_rand_bool())
+        nm_prioq_init(&q, _prioq_cmp);
+    else
+        nm_prioq_init_with_data(&q, _prioq_cmp_with_data, NULL);
+
+    g_assert(nm_prioq_size(&q) == 0);
+
+    if (nmtst_get_rand_one_case_in(10))
+        return;
+
+    for (i = 0; i < G_N_ELEMENTS(data); i++) {
+        data[i]     = GUINT_TO_POINTER((nmtst_get_rand_uint32() % G_N_ELEMENTS(data)) + 1u);
+        data_idx[i] = NM_PRIOQ_IDX_NULL;
+    }
+
+    nm_prioq_put(&q, data[0], NULL);
+    g_assert(nm_prioq_size(&q) == 1);
+
+    p = nm_prioq_pop(&q);
+    g_assert(p == data[0]);
+    g_assert(nm_prioq_size(&q) == 0);
+
+    g_assert(!nm_prioq_pop(&q));
+
+    n = nmtst_get_rand_uint32() % G_N_ELEMENTS(data);
+    for (i = 0; i < n; i++)
+        nm_prioq_put(&q, data[i], &data_idx[i]);
+
+    g_assert_cmpint(nm_prioq_size(&q), ==, n);
+
+    if (nmtst_get_rand_one_case_in(10))
+        return;
+
+    for (i = 0; i < n; i++) {
+        data_pop[i] = nm_prioq_pop(&q);
+        g_assert(data_pop[i]);
+        if (i > 0)
+            g_assert(_prioq_cmp(data_pop[i - 1], data_pop[i]) <= 0);
+    }
+
+    g_assert(!nm_prioq_pop(&q));
+    g_assert(nm_prioq_size(&q) == 0);
+}
+
+/*****************************************************************************/
+
 NMTST_DEFINE();
 
 int
@@ -2221,14 +2379,14 @@ main(int argc, char **argv)
     g_test_add_func("/general/test_nm_static_assert", test_nm_static_assert);
     g_test_add_func("/general/test_gpid", test_gpid);
     g_test_add_func("/general/test_monotonic_timestamp", test_monotonic_timestamp);
+    g_test_add_func("/general/test_timespect_to", test_timespect_to);
     g_test_add_func("/general/test_nmhash", test_nmhash);
     g_test_add_func("/general/test_nm_make_strv", test_make_strv);
     g_test_add_func("/general/test_nm_strdup_int", test_nm_strdup_int);
     g_test_add_func("/general/test_nm_strndup_a", test_nm_strndup_a);
-    g_test_add_func("/general/test_nm_utils_ip4_address_is_loopback",
-                    test_nm_utils_ip4_address_is_loopback);
-    g_test_add_func("/general/test_nm_utils_ip4_prefix_to_netmask",
-                    test_nm_utils_ip4_prefix_to_netmask);
+    g_test_add_func("/general/test_nm_ip4_addr_is_loopback", test_nm_ip4_addr_is_loopback);
+    g_test_add_func("/general/test_nm_ip4_addr_netmask_from_prefix",
+                    test_nm_ip4_addr_netmask_from_prefix);
     g_test_add_func("/general/test_unaligned", test_unaligned);
     g_test_add_func("/general/test_strv_cmp", test_strv_cmp);
     g_test_add_func("/general/test_strstrip_avoid_copy", test_strstrip_avoid_copy);
@@ -2256,6 +2414,9 @@ main(int argc, char **argv)
     g_test_add_func("/general/test_path_startswith", test_path_startswith);
     g_test_add_func("/general/test_path_simplify", test_path_simplify);
     g_test_add_func("/general/test_hostname_is_valid", test_hostname_is_valid);
+    g_test_add_func("/general/test_inet_utils", test_inet_utils);
+    g_test_add_func("/general/test_garray", test_garray);
+    g_test_add_func("/general/test_nm_prioq", test_nm_prioq);
 
     return g_test_run();
 }

@@ -30,8 +30,11 @@
 #define NM_IWD_P2P_SERVICE_MANAGER_INTERFACE "net.connman.iwd.p2p.ServiceManager"
 #define NM_IWD_P2P_WFD_INTERFACE             "net.connman.iwd.p2p.Display"
 
+#define NM_IWD_AGENT_PATH NM_DBUS_PATH "/iwd/agent"
+
 #define NM_TYPE_IWD_MANAGER (nm_iwd_manager_get_type())
-#define NM_IWD_MANAGER(obj) (G_TYPE_CHECK_INSTANCE_CAST((obj), NM_TYPE_IWD_MANAGER, NMIwdManager))
+#define NM_IWD_MANAGER(obj) \
+    (_NM_G_TYPE_CHECK_INSTANCE_CAST((obj), NM_TYPE_IWD_MANAGER, NMIwdManager))
 #define NM_IWD_MANAGER_CLASS(klass) \
     (G_TYPE_CHECK_CLASS_CAST((klass), NM_TYPE_IWD_MANAGER, NMIwdManagerClass))
 #define NM_IS_IWD_MANAGER(obj)         (G_TYPE_CHECK_INSTANCE_TYPE((obj), NM_TYPE_IWD_MANAGER))
@@ -62,5 +65,7 @@ gboolean nm_iwd_manager_get_netconfig_enabled(NMIwdManager *self);
 gboolean nm_iwd_manager_check_wfd_info_compatible(NMIwdManager *self, const NMIwdWfdInfo *wfd_info);
 gboolean nm_iwd_manager_register_wfd(NMIwdManager *self, const NMIwdWfdInfo *wfd_info);
 void     nm_iwd_manager_unregister_wfd(NMIwdManager *self);
+
+bool nm_iwd_manager_is_recently_mirrored(NMIwdManager *self, const GBytes *ssid);
 
 #endif /* __NETWORKMANAGER_IWD_MANAGER_H__ */

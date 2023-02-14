@@ -240,6 +240,9 @@ DISTCLEANFILES += $(polkit_policy_DATA)
 ###############################################################################
 
 EXTRA_DIST += \
+	src/c-stdaux/src/c-stdaux-generic.h \
+	src/c-stdaux/src/c-stdaux-gnuc.h \
+	src/c-stdaux/src/c-stdaux-unix.h \
 	src/c-stdaux/src/c-stdaux.h \
 	$(NULL)
 
@@ -440,6 +443,8 @@ src_libnm_glib_aux_libnm_glib_aux_la_SOURCES = \
 	src/libnm-glib-aux/nm-glib.h \
 	src/libnm-glib-aux/nm-hash-utils.c \
 	src/libnm-glib-aux/nm-hash-utils.h \
+	src/libnm-glib-aux/nm-inet-utils.c \
+	src/libnm-glib-aux/nm-inet-utils.h \
 	src/libnm-glib-aux/nm-io-utils.c \
 	src/libnm-glib-aux/nm-io-utils.h \
 	src/libnm-glib-aux/nm-jansson.h \
@@ -453,6 +458,8 @@ src_libnm_glib_aux_libnm_glib_aux_la_SOURCES = \
 	src/libnm-glib-aux/nm-logging-syslog.h \
 	src/libnm-glib-aux/nm-macros-internal.h \
 	src/libnm-glib-aux/nm-obj.h \
+	src/libnm-glib-aux/nm-prioq.c \
+	src/libnm-glib-aux/nm-prioq.h \
 	src/libnm-glib-aux/nm-random-utils.c \
 	src/libnm-glib-aux/nm-random-utils.h \
 	src/libnm-glib-aux/nm-ref-string.c \
@@ -506,6 +513,38 @@ src_libnm_udev_aux_libnm_udev_aux_la_LIBADD = \
 	$(NULL)
 
 EXTRA_DIST += src/libnm-udev-aux/meson.build
+
+###############################################################################
+
+noinst_LTLIBRARIES += src/libnm-lldp/libnm-lldp.la
+
+src_libnm_lldp_libnm_lldp_la_CFLAGS = \
+	$(src_libnm_glib_aux_cppflags) \
+	-I$(srcdir)/src \
+	-I$(builddir)/src \
+	$(NULL)
+
+src_libnm_lldp_libnm_lldp_la_CPPFLAGS = \
+	$(CODE_COVERAGE_CFLAGS) \
+	$(SANITIZER_LIB_CFLAGS) \
+	$(NULL)
+
+src_libnm_lldp_libnm_lldp_la_LDFLAGS = \
+	$(SANITIZER_LIB_LDFLAGS) \
+	$(NULL)
+
+src_libnm_lldp_libnm_lldp_la_SOURCES = \
+	src/libnm-lldp/nm-lldp-neighbor.c \
+	src/libnm-lldp/nm-lldp-neighbor.h \
+	src/libnm-lldp/nm-lldp-network.c \
+	src/libnm-lldp/nm-lldp-network.h \
+	src/libnm-lldp/nm-lldp-rx-internal.h \
+	src/libnm-lldp/nm-lldp-rx.c \
+	src/libnm-lldp/nm-lldp-rx.h \
+	src/libnm-lldp/nm-lldp.h \
+	$(NULL)
+
+EXTRA_DIST += src/libnm-lldp/meson.build
 
 ###############################################################################
 
@@ -611,6 +650,8 @@ src_libnm_platform_libnm_platform_la_SOURCES = \
 	src/linux-headers/nl80211-vnd-intel.h \
 	src/linux-headers/nl802154.h \
 	\
+	src/nm-compat-headers/linux/if_addr.h \
+	\
 	src/libnm-platform/nm-linux-platform.c \
 	src/libnm-platform/nm-linux-platform.h \
 	src/libnm-platform/nm-netlink.c \
@@ -620,6 +661,7 @@ src_libnm_platform_libnm_platform_la_SOURCES = \
 	src/libnm-platform/nm-platform-utils.h \
 	src/libnm-platform/nm-platform.c \
 	src/libnm-platform/nm-platform.h \
+	src/libnm-platform/nmp-base.c \
 	src/libnm-platform/nmp-base.h \
 	src/libnm-platform/nmp-global-tracker.c \
 	src/libnm-platform/nmp-global-tracker.h \
@@ -627,6 +669,8 @@ src_libnm_platform_libnm_platform_la_SOURCES = \
 	src/libnm-platform/nmp-netns.h \
 	src/libnm-platform/nmp-object.c \
 	src/libnm-platform/nmp-object.h \
+	src/libnm-platform/nmp-plobj.c \
+	src/libnm-platform/nmp-plobj.h \
 	src/libnm-platform/wifi/nm-wifi-utils-nl80211.c \
 	src/libnm-platform/wifi/nm-wifi-utils-nl80211.h \
 	src/libnm-platform/wifi/nm-wifi-utils-private.h \
@@ -980,6 +1024,8 @@ introspection_sources = \
 	introspection/org.freedesktop.NetworkManager.Device.IPTunnel.h \
 	introspection/org.freedesktop.NetworkManager.Device.Infiniband.c \
 	introspection/org.freedesktop.NetworkManager.Device.Infiniband.h \
+	introspection/org.freedesktop.NetworkManager.Device.Loopback.c \
+	introspection/org.freedesktop.NetworkManager.Device.Loopback.h \
 	introspection/org.freedesktop.NetworkManager.Device.Lowpan.c \
 	introspection/org.freedesktop.NetworkManager.Device.Lowpan.h \
 	introspection/org.freedesktop.NetworkManager.Device.Macsec.c \
@@ -1067,6 +1113,7 @@ DBUS_INTERFACE_DOCS = \
 	docs/api/dbus-org.freedesktop.NetworkManager.Device.Generic.xml \
 	docs/api/dbus-org.freedesktop.NetworkManager.Device.IPTunnel.xml \
 	docs/api/dbus-org.freedesktop.NetworkManager.Device.Infiniband.xml \
+	docs/api/dbus-org.freedesktop.NetworkManager.Device.Loopback.xml \
 	docs/api/dbus-org.freedesktop.NetworkManager.Device.Lowpan.xml \
 	docs/api/dbus-org.freedesktop.NetworkManager.Device.Macsec.xml \
 	docs/api/dbus-org.freedesktop.NetworkManager.Device.Macvlan.xml \
@@ -1135,6 +1182,7 @@ dbusinterfaces_DATA = \
 	introspection/org.freedesktop.NetworkManager.Device.Generic.xml \
 	introspection/org.freedesktop.NetworkManager.Device.IPTunnel.xml \
 	introspection/org.freedesktop.NetworkManager.Device.Infiniband.xml \
+	introspection/org.freedesktop.NetworkManager.Device.Loopback.xml \
 	introspection/org.freedesktop.NetworkManager.Device.Lowpan.xml \
 	introspection/org.freedesktop.NetworkManager.Device.Macsec.xml \
 	introspection/org.freedesktop.NetworkManager.Device.Macvlan.xml \
@@ -1216,6 +1264,7 @@ src_libnm_core_impl_lib_h_pub_real = \
 	src/libnm-core-public/nm-setting-ip-tunnel.h \
 	src/libnm-core-public/nm-setting-ip4-config.h \
 	src/libnm-core-public/nm-setting-ip6-config.h \
+	src/libnm-core-public/nm-setting-loopback.h \
 	src/libnm-core-public/nm-setting-macsec.h \
 	src/libnm-core-public/nm-setting-macvlan.h \
 	src/libnm-core-public/nm-setting-match.h \
@@ -1224,6 +1273,7 @@ src_libnm_core_impl_lib_h_pub_real = \
 	src/libnm-core-public/nm-setting-ovs-dpdk.h \
 	src/libnm-core-public/nm-setting-ovs-external-ids.h \
 	src/libnm-core-public/nm-setting-ovs-interface.h \
+	src/libnm-core-public/nm-setting-ovs-other-config.h \
 	src/libnm-core-public/nm-setting-ovs-patch.h \
 	src/libnm-core-public/nm-setting-ovs-port.h \
 	src/libnm-core-public/nm-setting-ppp.h \
@@ -1295,6 +1345,7 @@ src_libnm_core_impl_lib_c_settings_real = \
 	src/libnm-core-impl/nm-setting-ip-tunnel.c \
 	src/libnm-core-impl/nm-setting-ip4-config.c \
 	src/libnm-core-impl/nm-setting-ip6-config.c \
+	src/libnm-core-impl/nm-setting-loopback.c \
 	src/libnm-core-impl/nm-setting-macsec.c \
 	src/libnm-core-impl/nm-setting-macvlan.c \
 	src/libnm-core-impl/nm-setting-match.c \
@@ -1303,6 +1354,7 @@ src_libnm_core_impl_lib_c_settings_real = \
 	src/libnm-core-impl/nm-setting-ovs-dpdk.c \
 	src/libnm-core-impl/nm-setting-ovs-external-ids.c \
 	src/libnm-core-impl/nm-setting-ovs-interface.c \
+	src/libnm-core-impl/nm-setting-ovs-other-config.c \
 	src/libnm-core-impl/nm-setting-ovs-patch.c \
 	src/libnm-core-impl/nm-setting-ovs-port.c \
 	src/libnm-core-impl/nm-setting-ppp.c \
@@ -1331,7 +1383,6 @@ src_libnm_core_impl_lib_c_settings_real = \
 src_libnm_core_impl_lib_c_real = \
 	$(src_libnm_core_impl_lib_c_settings_real) \
 	src/libnm-core-impl/nm-connection.c \
-	src/libnm-core-impl/nm-dbus-utils.c \
 	src/libnm-core-impl/nm-errors.c \
 	src/libnm-core-impl/nm-keyfile-utils.c \
 	src/libnm-core-impl/nm-keyfile.c \
@@ -1689,6 +1740,7 @@ libnm_lib_h_pub_real = \
 	src/libnm-client-public/nm-device-generic.h \
 	src/libnm-client-public/nm-device-infiniband.h \
 	src/libnm-client-public/nm-device-ip-tunnel.h \
+	src/libnm-client-public/nm-device-loopback.h \
 	src/libnm-client-public/nm-device-macsec.h \
 	src/libnm-client-public/nm-device-macvlan.h \
 	src/libnm-client-public/nm-device-modem.h \
@@ -1759,6 +1811,7 @@ libnm_lib_c_real = \
 	src/libnm-client-impl/nm-device-generic.c \
 	src/libnm-client-impl/nm-device-infiniband.c \
 	src/libnm-client-impl/nm-device-ip-tunnel.c \
+	src/libnm-client-impl/nm-device-loopback.c \
 	src/libnm-client-impl/nm-device-macsec.c \
 	src/libnm-client-impl/nm-device-macvlan.c \
 	src/libnm-client-impl/nm-device-modem.c \
@@ -1806,6 +1859,39 @@ nodist_libnminclude_HEADERS += \
 	$(src_libnm_client_public_mkenums_h)
 
 EXTRA_DIST += src/libnm-client-public/meson.build
+
+###############################################################################
+
+noinst_PROGRAMS += src/libnm-core-impl/gen-metadata-nm-settings-libnm-core
+
+src_libnm_core_impl_gen_metadata_nm_settings_libnm_core_SOURCES = \
+	src/libnm-core-impl/gen-metadata-nm-settings-libnm-core.c \
+	$(NULL)
+
+src_libnm_core_impl_gen_metadata_nm_settings_libnm_core_CPPFLAGS = \
+	$(clients_cppflags) \
+	$(NULL)
+
+src_libnm_core_impl_gen_metadata_nm_settings_libnm_core_LDADD = \
+	src/libnm-core-impl/libnm-core-impl.la \
+	src/libnm-crypto/libnm-crypto.la \
+	$(libnm_crypto_lib) \
+	src/libnm-core-aux-intern/libnm-core-aux-intern.la \
+	src/libnm-base/libnm-base.la \
+	src/libnm-systemd-shared/libnm-systemd-shared.la \
+	src/libnm-log-null/libnm-log-null.la \
+	src/libnm-glib-aux/libnm-glib-aux.la \
+	src/libnm-std-aux/libnm-std-aux.la \
+	src/c-siphash/libc-siphash.la \
+	$(GLIB_LIBS) \
+	$(NULL)
+
+src_libnm_core_impl_gen_metadata_nm_settings_libnm_core_LDFLAGS = \
+	-Wl,--version-script="$(srcdir)/linker-script-binary.ver" \
+	$(SANITIZER_EXEC_LDFLAGS) \
+	$(NULL)
+
+$(src_libnm_core_impl_gen_metadata_nm_settings_libnm_core_OBJECTS): $(src_libnm_core_public_mkenums_h)
 
 ###############################################################################
 
@@ -1912,10 +1998,7 @@ EXTRA_DIST += \
 	src/libnm-client-impl/libnm.pc.in \
 	src/libnm-client-impl/libnm.ver
 
-src_libnm_client_impl_NM_1_0_typelib =
-
-if HAVE_INTROSPECTION
-src_libnm_client_impl_NM_1_0_typelib += src/libnm-client-impl/NM-1.0.typelib
+###############################################################################
 
 src/libnm-client-impl/NM-1.0.gir: src/libnm-client-impl/libnm.la
 src_libnm_client_impl_NM_1_0_gir_INCLUDES = Gio-2.0
@@ -1940,10 +2023,10 @@ src_libnm_client_impl_NM_1_0_gir_SCANNERFLAGS = --warn-all --identifier-prefix=N
 src/libnm-client-impl/libnm.typelib: src/libnm-client-impl/libnm.gir
 	$(INTROSPECTION_COMPILER) --includedir=$(srcdir)/src/libnm-core-public --includedir=$(builddir)/src/libnm-core-public --includedir=$(srcdir)/libnm-client-public --includedir=$(builddir)/libnm-client-public $< -o $@
 
-INTROSPECTION_GIRS += src/libnm-client-impl/NM-1.0.gir
 
 libnm_noinst_data = \
-	src/nmcli/generate-docs-nm-settings-nmcli.xml \
+	src/libnm-core-impl/gen-metadata-nm-settings-libnm-core.xml \
+	src/nmcli/gen-metadata-nm-settings-nmcli.xml \
 	man/nm-settings-docs-dbus.xml \
 	man/nm-settings-docs-nmcli.xml \
 	src/libnm-client-impl/nm-property-infos-dbus.xml \
@@ -1954,27 +2037,55 @@ libnm_noinst_data = \
 	src/libnmc-setting/settings-docs-input.xml \
 	$(NULL)
 
+if HAVE_INTROSPECTION
+INTROSPECTION_GIRS += src/libnm-client-impl/NM-1.0.gir
 noinst_DATA += $(libnm_noinst_data)
+DISTCLEANFILES += $(libnm_noinst_data)
 
-EXTRA_DIST += src/nmcli/generate-docs-nm-settings-nmcli.xml.in
+EXTRA_DIST += \
+	src/nmcli/gen-metadata-nm-settings-nmcli.xml.in \
+	src/libnm-core-impl/gen-metadata-nm-settings-libnm-core.xml.in
+
+src_libnm_client_impl_NM_1_0_typelib = src/libnm-client-impl/NM-1.0.typelib
+else
+src_libnm_client_impl_NM_1_0_typelib =
+endif
+
+###############################################################################
 
 if BUILD_DOCS
-src/nmcli/generate-docs-nm-settings-nmcli.xml: src/nmcli/generate-docs-nm-settings-nmcli
-	$(AM_V_GEN) src/nmcli/generate-docs-nm-settings-nmcli > "$@"
-check-local-generate-docs-nm-settings-nmcli: src/nmcli/generate-docs-nm-settings-nmcli.xml
-	$(srcdir)/tools/check-compare-generated.sh "$(srcdir)" "$(builddir)" "$<"
-check_local += check-local-generate-docs-nm-settings-nmcli
-DISTCLEANFILES += src/nmcli/generate-docs-nm-settings-nmcli.xml
+src/nmcli/gen-metadata-nm-settings-nmcli.xml: src/nmcli/gen-metadata-nm-settings-nmcli
+	$(AM_V_GEN) src/nmcli/gen-metadata-nm-settings-nmcli > "$@"
+check-local-gen-metadata-nm-settings-nmcli: src/nmcli/gen-metadata-nm-settings-nmcli.xml
+	$(srcdir)/tools/check-compare-generated.sh "$(srcdir)/src/nmcli/gen-metadata-nm-settings-nmcli.xml.in" "$(builddir)/src/nmcli/gen-metadata-nm-settings-nmcli.xml"
+check_local += check-local-gen-metadata-nm-settings-nmcli
+DISTCLEANFILES += src/nmcli/gen-metadata-nm-settings-nmcli.xml
+
+src/libnm-core-impl/gen-metadata-nm-settings-libnm-core.xml: src/libnm-core-impl/gen-metadata-nm-settings-libnm-core
+	$(AM_V_GEN) src/libnm-core-impl/gen-metadata-nm-settings-libnm-core > "$@"
+check-local-gen-metadata-nm-settings-libnm-core: src/libnm-core-impl/gen-metadata-nm-settings-libnm-core.xml
+	$(srcdir)/tools/check-compare-generated.sh "$(srcdir)/src/libnm-core-impl/gen-metadata-nm-settings-libnm-core.xml.in" "$(builddir)/src/libnm-core-impl/gen-metadata-nm-settings-libnm-core.xml"
+check_local += check-local-gen-metadata-nm-settings-libnm-core
+DISTCLEANFILES += src/libnm-core-impl/gen-metadata-nm-settings-libnm-core.xml
 else
-src/nmcli/generate-docs-nm-settings-nmcli.xml: src/nmcli/generate-docs-nm-settings-nmcli.xml.in
+src/nmcli/gen-metadata-nm-settings-nmcli.xml: src/nmcli/gen-metadata-nm-settings-nmcli.xml.in
 	$(AM_V_GEN) cp $^ $@
-check-local-generate-docs-nm-settings-nmcli:
+check-local-gen-metadata-nm-settings-nmcli:
+
+src/libnm-core-impl/gen-metadata-nm-settings-libnm-core.xml: src/libnm-core-impl/gen-metadata-nm-settings-libnm-core.xml.in
+	$(AM_V_GEN) cp $^ $@
+check-local-gen-metadata-nm-settings-libnm-core:
 endif
 
 libnm_docs_sources = $(src_libnm_core_impl_lib_c_settings_real)
 
-src/libnm-client-impl/nm-property-infos-%.xml: tools/generate-docs-nm-property-infos.py $(libnm_docs_sources)
-	$(AM_V_GEN) "$(PYTHON)" $(srcdir)/tools/generate-docs-nm-property-infos.py $(patsubst nm-property-infos-%.xml,%,$(notdir $@)) $@ $(filter-out $<,$^)
+src/libnm-client-impl/nm-property-infos-%.xml: tools/generate-docs-nm-property-infos.py src/libnm-core-impl/libnm-core-impl.la $(libnm_docs_sources)
+	$(AM_V_GEN) \
+		"$(PYTHON)" \
+		$(srcdir)/tools/generate-docs-nm-property-infos.py \
+		$(patsubst nm-property-infos-%.xml,%,$(notdir $@)) \
+		$@ \
+		$(wordlist 3,1000,$^)
 
 src/libnm-client-impl/nm-settings-docs-gir.xml: tools/generate-docs-nm-settings-docs-gir.py src/libnm-client-impl/NM-1.0.gir src/libnm-client-impl/NM-1.0.typelib src/libnm-client-impl/libnm.la $(libnm_docs_sources)
 	$(AM_V_GEN) \
@@ -1986,7 +2097,7 @@ src/libnm-client-impl/nm-settings-docs-gir.xml: tools/generate-docs-nm-settings-
 		--gir $(builddir)/src/libnm-client-impl/NM-1.0.gir \
 		--output $@
 
-man/nm-settings-docs-nmcli.xml: src/nmcli/generate-docs-nm-settings-nmcli.xml src/libnm-client-impl/nm-property-infos-nmcli.xml src/libnm-client-impl/nm-settings-docs-gir.xml tools/generate-docs-nm-settings-docs-merge.py man/common.ent
+man/nm-settings-docs-nmcli.xml: src/nmcli/gen-metadata-nm-settings-nmcli.xml src/libnm-client-impl/nm-property-infos-nmcli.xml src/libnm-client-impl/nm-settings-docs-gir.xml tools/generate-docs-nm-settings-docs-merge.py man/common.ent
 	$(AM_V_GEN) "$(PYTHON)" $(srcdir)/tools/generate-docs-nm-settings-docs-merge.py --only-from-first $@ $(wordlist 1,3,$^)
 
 src/libnmc-setting/settings-docs-input.xml: src/libnm-client-impl/nm-property-infos-nmcli.xml src/libnm-client-impl/nm-settings-docs-gir.xml tools/generate-docs-nm-settings-docs-merge.py
@@ -1995,10 +2106,6 @@ src/libnmc-setting/settings-docs-input.xml: src/libnm-client-impl/nm-property-in
 man/nm-settings-docs-%.xml: src/libnm-client-impl/nm-property-infos-%.xml src/libnm-client-impl/nm-settings-docs-gir.xml tools/generate-docs-nm-settings-docs-merge.py man/common.ent
 	$(AM_V_GEN) "$(PYTHON)" $(srcdir)/tools/generate-docs-nm-settings-docs-merge.py $@ $(wordlist 1,2,$^)
 
-EXTRA_DIST += $(libnm_noinst_data)
-DISTCLEANFILES += $(libnm_noinst_data)
-
-endif
 
 EXTRA_DIST += \
 	tools/generate-docs-nm-property-infos.py \
@@ -2231,7 +2338,6 @@ src_libnm_systemd_shared_libnm_systemd_shared_la_SOURCES = \
 	src/libnm-systemd-shared/sd-adapt-shared/sysctl-util.h \
 	src/libnm-systemd-shared/sd-adapt-shared/terminal-util.h \
 	src/libnm-systemd-shared/sd-adapt-shared/unaligned.h \
-	src/libnm-systemd-shared/sd-adapt-shared/user-util.h \
 	src/libnm-systemd-shared/sd-adapt-shared/virt.h \
 	src/libnm-systemd-shared/src/basic/alloc-util.c \
 	src/libnm-systemd-shared/src/basic/alloc-util.h \
@@ -2326,6 +2432,7 @@ src_libnm_systemd_shared_libnm_systemd_shared_la_SOURCES = \
 	src/libnm-systemd-shared/src/basic/tmpfile-util.c \
 	src/libnm-systemd-shared/src/basic/tmpfile-util.h \
 	src/libnm-systemd-shared/src/basic/umask-util.h \
+	src/libnm-systemd-shared/src/basic/user-util.h \
 	src/libnm-systemd-shared/src/basic/utf8.c \
 	src/libnm-systemd-shared/src/basic/utf8.h \
 	src/libnm-systemd-shared/src/basic/util.c \
@@ -2387,16 +2494,10 @@ src_libnm_systemd_core_libnm_systemd_core_la_SOURCES = \
 	src/libnm-systemd-core/src/libsystemd-network/dhcp6-option.h \
 	src/libnm-systemd-core/src/libsystemd-network/dhcp6-protocol.c \
 	src/libnm-systemd-core/src/libsystemd-network/dhcp6-protocol.h \
-	src/libnm-systemd-core/src/libsystemd-network/lldp-neighbor.c \
-	src/libnm-systemd-core/src/libsystemd-network/lldp-neighbor.h \
-	src/libnm-systemd-core/src/libsystemd-network/lldp-network.c \
-	src/libnm-systemd-core/src/libsystemd-network/lldp-network.h \
-	src/libnm-systemd-core/src/libsystemd-network/lldp-rx-internal.h \
 	src/libnm-systemd-core/src/libsystemd-network/network-common.c \
 	src/libnm-systemd-core/src/libsystemd-network/network-common.h \
 	src/libnm-systemd-core/src/libsystemd-network/sd-dhcp6-client.c \
 	src/libnm-systemd-core/src/libsystemd-network/sd-dhcp6-lease.c \
-	src/libnm-systemd-core/src/libsystemd-network/sd-lldp-rx.c \
 	src/libnm-systemd-core/src/libsystemd/sd-event/event-source.h \
 	src/libnm-systemd-core/src/libsystemd/sd-event/event-util.c \
 	src/libnm-systemd-core/src/libsystemd/sd-event/event-util.h \
@@ -2410,8 +2511,6 @@ src_libnm_systemd_core_libnm_systemd_core_la_SOURCES = \
 	src/libnm-systemd-core/src/systemd/sd-dhcp6-option.h \
 	src/libnm-systemd-core/src/systemd/sd-event.h \
 	src/libnm-systemd-core/src/systemd/sd-id128.h \
-	src/libnm-systemd-core/src/systemd/sd-lldp-rx.h \
-	src/libnm-systemd-core/src/systemd/sd-lldp.h \
 	src/libnm-systemd-core/src/systemd/sd-ndisc.h \
 	$(NULL)
 
@@ -2460,6 +2559,8 @@ src_core_libNetworkManagerBase_la_SOURCES = \
 	src/core/nm-l3cfg.h \
 	src/core/nm-ip-config.c \
 	src/core/nm-ip-config.h \
+	src/core/nm-bond-manager.c \
+	src/core/nm-bond-manager.h \
 	\
 	src/core/dhcp/nm-dhcp-client.c \
 	src/core/dhcp/nm-dhcp-client.h \
@@ -2527,6 +2628,8 @@ src_core_libNetworkManager_la_SOURCES = \
 	src/core/devices/nm-device-infiniband.h \
 	src/core/devices/nm-device-ip-tunnel.c \
 	src/core/devices/nm-device-ip-tunnel.h \
+	src/core/devices/nm-device-loopback.c \
+	src/core/devices/nm-device-loopback.h \
 	src/core/devices/nm-device-macsec.c \
 	src/core/devices/nm-device-macsec.h \
 	src/core/devices/nm-device-macvlan.c \
@@ -2680,6 +2783,7 @@ src_core_libNetworkManager_la_LIBADD = \
 	src/libnm-platform/libnm-platform.la \
 	src/libnm-base/libnm-base.la \
 	src/libnm-log-core/libnm-log-core.la \
+	src/libnm-lldp/libnm-lldp.la \
 	src/libnm-udev-aux/libnm-udev-aux.la \
 	src/libnm-glib-aux/libnm-glib-aux.la \
 	src/libnm-std-aux/libnm-std-aux.la \
@@ -4393,7 +4497,9 @@ EXTRA_DIST += \
 	src/core/tests/config/NetworkManager-warn.conf \
 	src/core/tests/config/NetworkManager.state \
 	src/core/tests/config/bad.conf \
+	src/core/tests/config/global-dns-good.conf \
 	src/core/tests/config/global-dns-invalid.conf \
+	src/core/tests/config/global-dns-options.conf \
 	src/core/tests/config/conf.d/00-overrides.conf \
 	src/core/tests/config/conf.d/10-more.conf \
 	src/core/tests/config/conf.d/20-config-enable-1.conf \
@@ -4806,7 +4912,7 @@ $(libnmc_setting_settings_doc_h): src/libnmc-setting/settings-docs-input.xml src
 	$(AM_V_GEN) "$(PYTHON)" $(srcdir)/tools/generate-docs-settings-docs.py --output $@ --xml $<
 DISTCLEANFILES += $(libnmc_setting_settings_doc_h)
 check-local-settings-docs: $(libnmc_setting_settings_doc_h)
-	$(srcdir)/tools/check-compare-generated.sh "$(srcdir)" "$(builddir)" "$(libnmc_setting_settings_doc_h)"
+	$(srcdir)/tools/check-compare-generated.sh "$(srcdir)/$(libnmc_setting_settings_doc_h).in" "$(builddir)/$(libnmc_setting_settings_doc_h)"
 check_local += check-local-settings-docs
 else
 $(libnmc_setting_settings_doc_h): $(libnmc_setting_settings_doc_h).in src/libnmc-setting/.dirstamp
@@ -4947,17 +5053,17 @@ endif
 
 ###############################################################################
 
-noinst_PROGRAMS += src/nmcli/generate-docs-nm-settings-nmcli
+noinst_PROGRAMS += src/nmcli/gen-metadata-nm-settings-nmcli
 
-src_nmcli_generate_docs_nm_settings_nmcli_SOURCES = \
-	src/nmcli/generate-docs-nm-settings-nmcli.c \
+src_nmcli_gen_metadata_nm_settings_nmcli_SOURCES = \
+	src/nmcli/gen-metadata-nm-settings-nmcli.c \
 	$(NULL)
 
-src_nmcli_generate_docs_nm_settings_nmcli_CPPFLAGS = \
+src_nmcli_gen_metadata_nm_settings_nmcli_CPPFLAGS = \
 	$(clients_cppflags) \
 	$(NULL)
 
-src_nmcli_generate_docs_nm_settings_nmcli_LDADD = \
+src_nmcli_gen_metadata_nm_settings_nmcli_LDADD = \
 	src/libnmc-setting/libnmc-setting.la \
 	src/libnmc-base/libnmc-base.la \
 	src/libnm-client-aux-extern/libnm-client-aux-extern.la \
@@ -4972,13 +5078,13 @@ src_nmcli_generate_docs_nm_settings_nmcli_LDADD = \
 	$(GLIB_LIBS) \
 	$(NULL)
 
-src_nmcli_generate_docs_nm_settings_nmcli_LDFLAGS = \
+src_nmcli_gen_metadata_nm_settings_nmcli_LDFLAGS = \
 	-Wl,--version-script="$(srcdir)/linker-script-binary.ver" \
 	$(SANITIZER_EXEC_LDFLAGS) \
 	$(NULL)
 
-$(src_nmcli_generate_docs_nm_settings_nmcli_OBJECTS): $(src_libnm_core_public_mkenums_h)
-$(src_nmcli_generate_docs_nm_settings_nmcli_OBJECTS): $(src_libnm_client_public_mkenums_h)
+$(src_nmcli_gen_metadata_nm_settings_nmcli_OBJECTS): $(src_libnm_core_public_mkenums_h)
+$(src_nmcli_gen_metadata_nm_settings_nmcli_OBJECTS): $(src_libnm_client_public_mkenums_h)
 
 ###############################################################################
 
@@ -5076,6 +5182,8 @@ src_nmtui_nmtui_SOURCES = \
 	src/nmtui/nm-editor-utils.c \
 	src/nmtui/nm-editor-utils.h \
 	\
+	src/nmtui/nmt-8021x-fields.c \
+	src/nmtui/nmt-8021x-fields.h \
 	src/nmtui/nmt-address-list.c \
 	src/nmtui/nmt-address-list.h \
 	src/nmtui/nmt-connect-connection-list.c \
@@ -5086,10 +5194,10 @@ src_nmtui_nmtui_SOURCES = \
 	src/nmtui/nmt-edit-connection-list.h \
 	src/nmtui/nmt-editor-grid.c \
 	src/nmtui/nmt-editor-grid.h \
-	src/nmtui/nmt-editor-page.c \
-	src/nmtui/nmt-editor-page.h \
 	src/nmtui/nmt-editor-page-device.c \
 	src/nmtui/nmt-editor-page-device.h \
+	src/nmtui/nmt-editor-page.c \
+	src/nmtui/nmt-editor-page.h \
 	src/nmtui/nmt-editor-section.c \
 	src/nmtui/nmt-editor-section.h \
 	src/nmtui/nmt-editor.c \
@@ -5120,6 +5228,8 @@ src_nmtui_nmtui_SOURCES = \
 	src/nmtui/nmt-page-ip4.h \
 	src/nmtui/nmt-page-ip6.c \
 	src/nmtui/nmt-page-ip6.h \
+	src/nmtui/nmt-page-macsec.c \
+	src/nmtui/nmt-page-macsec.h \
 	src/nmtui/nmt-page-ppp.c \
 	src/nmtui/nmt-page-ppp.h \
 	src/nmtui/nmt-page-team-port.c \
@@ -5146,12 +5256,12 @@ src_nmtui_nmtui_SOURCES = \
 	src/nmtui/nmt-slave-list.h \
 	src/nmtui/nmt-utils.c \
 	src/nmtui/nmt-utils.h \
+	src/nmtui/nmt-widget-list.c \
+	src/nmtui/nmt-widget-list.h \
 	src/nmtui/nmt-wireguard-peer-editor.c \
 	src/nmtui/nmt-wireguard-peer-editor.h \
 	src/nmtui/nmt-wireguard-peer-list.c \
 	src/nmtui/nmt-wireguard-peer-list.h \
-	src/nmtui/nmt-widget-list.c \
-	src/nmtui/nmt-widget-list.h \
 	$(NULL)
 
 src_nmtui_nmtui_CPPFLAGS = \
@@ -5346,7 +5456,7 @@ endif
 ###############################################################################
 
 check-local-tests-client: src/nmcli/nmcli src/tests/client/test-client.py
-	"$(srcdir)/src/tests/client/test-client.sh" "$(builddir)" "$(srcdir)" "$(PYTHON)"
+	LIBTOOL="$(LIBTOOL)" "$(srcdir)/src/tests/client/test-client.sh" "$(builddir)" "$(srcdir)" "$(PYTHON)" --
 
 check_local += check-local-tests-client
 
@@ -5741,7 +5851,7 @@ uninstall-hook: $(uninstall_hook)
 ###############################################################################
 
 cscope:
-	cscope -b -q -R -sshared -ssrc -slibnm -sclients;
+	cscope -b -q -R -ssrc
 
 ###############################################################################
 

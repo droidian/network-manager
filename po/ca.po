@@ -1,7 +1,6 @@
 # Catalan translation for NetworkManager
 # Copyright © 2005, 2006, The Free Software Foundation, Inc.
-# This file is distributed under the same license as the
-#   NetworkManager package.
+# This file is distributed under the same license as the NetworkManager package.
 # Josep Puigdemont Casamajó <josep.puigdemont@gmail.com>, 2005, 2006.
 # David Planella <david.planella@gmail.com>, 2009.
 # Joan Duran <jodufi@gmail.com>, 2010.
@@ -14,7 +13,7 @@ msgstr ""
 "Project-Id-Version: NetworkManager\n"
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/NetworkManager/"
 "NetworkManager/issues\n"
-"POT-Creation-Date: 2022-08-11 16:06-0300\n"
+"POT-Creation-Date: 2022-08-15 18:14-0300\n"
 "PO-Revision-Date: 2017-04-21 05:12-0400\n"
 "Last-Translator: Copied by Zanata <copied-by-zanata@zanata.org>\n"
 "Language-Team: Catalan <tradgnome@softcatala.org>\n"

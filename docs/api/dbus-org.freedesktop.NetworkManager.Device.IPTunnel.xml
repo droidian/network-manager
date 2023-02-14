@@ -19,6 +19,7 @@
 <link linkend="gdbus-property-org-freedesktop-NetworkManager-Device-IPTunnel.OutputKey">OutputKey</link>           readable   s
 <link linkend="gdbus-property-org-freedesktop-NetworkManager-Device-IPTunnel.EncapsulationLimit">EncapsulationLimit</link>  readable   y
 <link linkend="gdbus-property-org-freedesktop-NetworkManager-Device-IPTunnel.FlowLabel">FlowLabel</link>           readable   u
+<link linkend="gdbus-property-org-freedesktop-NetworkManager-Device-IPTunnel.FwMark">FwMark</link>              readable   u
 <link linkend="gdbus-property-org-freedesktop-NetworkManager-Device-IPTunnel.Flags">Flags</link>               readable   u
 </synopsis>
   </refsect1>
@@ -142,6 +143,17 @@ FlowLabel  readable   u
 <para>
 The flow label to assign to tunnel packets. This property applies only to
 IPv6 tunnels.
+</para>
+</refsect2>
+<refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-IPTunnel.FwMark">
+  <title>The "FwMark" property</title>
+  <indexterm zone="gdbus-property-org-freedesktop-NetworkManager-Device-IPTunnel.FwMark"><primary sortas=".Device.IPTunnel:FwMark">org.freedesktop.NetworkManager.Device.IPTunnel:FwMark</primary></indexterm>
+<programlisting>
+FwMark  readable   u
+</programlisting>
+<para>
+The fwmark value to assign to tunnel packets. This property applies only to
+VTI tunnels.
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-IPTunnel.Flags">

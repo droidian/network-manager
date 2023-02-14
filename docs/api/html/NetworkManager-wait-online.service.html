@@ -24,132 +24,102 @@
 <div class="refnamediv"><table width="100%"><tr>
 <td valign="top">
 <h2><span class="refentrytitle">NetworkManager-wait-online.service</span></h2>
-<p>NetworkManager-wait-online.service — Wait for network to come online</p>
+<p>NetworkManager-wait-online.service — Wait for the network to come online</p>
 </td>
 <td class="gallery_image" valign="top" align="right"></td>
 </tr></table></div>
 <div class="refsect1">
 <a name="id-1.2.5.4"></a><h2>Description</h2>
 <p>
-      NetworkManager-wait-online.service delays network-online.target until network
-      is ready.
+      The <code class="literal">NetworkManager-wait-online</code> service is a <code class="literal">oneshot</code>
+      systemd service that delays reaching the <code class="literal">network-online</code> target until
+      NetworkManager reports that the startup is completed on the D-Bus.
     </p>
 <p>
-      The systemd target <code class="literal">network-online.target</code> acts as a synchronization point
-      for services to start after network is configured. Such services should
-      order themselves <code class="literal">After=network-online.target</code>
-      (and never <code class="literal">After=NetworkManager-wait-online.service</code>).
-      <code class="literal">NetworkManager-wait-online.service</code> is a one-shot service
-      that itself is ordered <code class="literal">Before=network-online.target</code>
-      and this way delays the target until the network is configured.
+      When the system boots, for example, remote mounts defined in <code class="literal">/etc/fstab</code>,
+      require that the network is up. For this, these systemd units contain the
+      <code class="literal">After=network-online.target</code> setting to order themselves after this
+      target. <code class="literal">NetworkManager-wait-online</code> ensures that the
+      <code class="literal">network-online</code> target is reached only after the network is available.
     </p>
 <p>
-      <code class="literal">NetworkManager-wait-online.service</code> itself is almost not configurable
-      itself. Instead the connection profiles and configuration in NetworkManager affects
-      the behavior.
+      Optimally, all services on the host react dynamically to network changes and systemd
+      services do not need to be configured to start after reaching the
+      <code class="literal">network-online</code> target. In this case,
+      <code class="literal">NetworkManager-wait-online.service</code> has no effect and does not delay
+      the boot time. On the other hand, if you encounter a long boot time due to the delay
+      of <code class="literal">NetworkManager-wait-online</code>, investigate the services that require
+      network access and fix them.
     </p>
 <p>
-      In the best case, all services on the system can react to networking changes dynamically and
-      no service orders itself after <code class="literal">network-online.target</code>. That way,
-      <code class="literal">NetworkManager-wait-online.service</code> has no effect and, for example,
-      does not delay the boot. That means, if the problem is a long boot time related to
-      <code class="literal">NetworkManager-wait-online.service</code>, a possible solution is to
-      investigate the services that claim to require network and fix those.
+      Except for the time out value in the <code class="literal">NetworkManager-wait-online.service</code>
+      unit, you cannot configure this service. Instead, settings in NetworkManager and the
+      connection profiles affect the behavior:
     </p>
-<p>
-      For services that require network configured,
-      <code class="literal">NetworkManager-wait-online.service</code> is the default implementation
-      provided by NetworkManager to delay the target. But it does nothing magical. With
-      special requirements, it may be sensible to disable <code class="literal">NetworkManager-wait-online.service</code>
-      and replace it with a similar service that better implements the requirement.
-    </p>
-<p>
-      <code class="literal">NetworkManager-wait-online.service</code> blocks until
-      NetworkManager logs "startup complete" and announces startup complete
-      on D-Bus. How long that takes depends on the network
-      and the NetworkManager configuration. If it takes longer than expected, then
-      the reasons need to be investigated in NetworkManager.
-    </p>
-<p>
-      There are various reasons what affects NetworkManager reaching "startup complete"
-      and how long <code class="literal">NetworkManager-wait-online.service</code> blocks.
-      </p>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem">
 <p>
-            In general, startup complete is not reached as long as NetworkManager is busy
-            activating a device and as long as there are profiles in activating state.
-            During boot, NetworkManager starts autoactivating
-            suitable profiles that are configured to autoconnect. If activation fails,
-            NetworkManager might retry right away (depending on <code class="literal">connection.autoconnect-retries</code>
-            setting). While trying and retrying, NetworkManager is busy until all
-            profiles and devices either reached an activated or disconnected state
-            and no further events are expected.
-          </p>
+          Startup is not complete as long as NetworkManager profiles are in an activating
+	  state. During boot, NetworkManager starts profiles with the
+	  <code class="literal">connection.autoconnect=yes</code> setting. If activation fails,
+	  NetworkManager retries the activation depending on the value of the
+	  <code class="literal">connection.autoconnect-retries</code> setting.
+        </p>
 <p>
-          </p>
+          NetworkManager reports startup complete when all profiles and devices are either
+	  activated or in a disconnect state and no further events are expected.
+        </p>
+</li>
+<li class="listitem">
 <p>
-            Basically, as long as there are devices and connections in <code class="literal">activating</code>
-            state visible with <span class="command"><strong>nmcli device</strong></span> and <span class="command"><strong>nmcli connection</strong></span>,
-            startup is still pending.
-          </p>
+          When a device reaches the activate state depends on its configuration. For example,
+	  with a profile that has both IPv4 and IPv6 enabled, by default, NetworkManager
+	  considers the device as fully activated already when only one of the address
+	  families is ready.
+        </p>
+<p>
+          The <code class="literal">ipv4.may-fail</code> and <code class="literal">ipv6.may-fail</code> settings
+	  control this behavior. Additionally, the following settings influence when the
+	  two address families complete: <code class="literal">ipv4.required-timeout</code>,
+	  <code class="literal">ipv6.required-timeout</code>, <code class="literal">ipv4.dhcp-timeout</code>,
+	  and <code class="literal">ipv6.ra-timeout</code>. For details, see
+	  <a class="link" href="nm-settings-nmcli.html" title="nm-settings-nmcli"><span class="citerefentry"><span class="refentrytitle">nm-settings-nmcli</span>(5)</span></a>.
+        </p>
 </li>
 <li class="listitem"><p>
-            When a device reaches activated state, depends on its configuration.
-            For example, with a profile with both IPv4 and IPv6 addressing
-            enabled, the device is possibly considered fully activated when
-            either of the address families is ready. This can be controlled with the
-            <code class="literal">ipv4.may-fail</code> and <code class="literal">ipv6.may-fail</code>
-            settings, to indicate that the address family is required.
-            There are also <code class="literal">ipv4.required-timeout</code> and <code class="literal">ipv6.required-timeout</code>
-            settings which affect how long to wait for an address family.
-            Likewise, properties like <code class="literal">ipv4.dhcp-timeout</code> and
-            <code class="literal">ipv6.ra-timeout</code> affect how long NetworkManager
-            will try the IP configuration before giving up.
-          </p></li>
+          NetworkManager cannot set IP addresses on bridge and bond devices that have ports
+	  that do not auto-activate. Because of this configuration error,
+	  <code class="literal">NetworkManager-wait-online</code> blocks until the service reaches
+	  its timeout value.
+        </p></li>
 <li class="listitem"><p>
-            For example, a bridge or bond profile cannot do IP configuration
-            without ports. When booting with such profiles that autoactivate
-            without ports, <code class="literal">NetworkManager-wait-online.service</code> blocks until timeout.
-            This is a configuration error.
-          </p></li>
+          Dispatcher scripts for the <code class="literal">pre-up</code> event run at a late stage
+	  during activation of a profile. These scripts block the activation for when
+	  NetworkManager considers the profile fully activated. For details, see
+	  <a class="link" href="NetworkManager-dispatcher.html" title="NetworkManager-dispatcher"><span class="citerefentry"><span class="refentrytitle">NetworkManager-dispatcher</span>(8)</span></a>.
+        </p></li>
 <li class="listitem"><p>
-            Dispatcher scripts for the "pre-up" event run at a late stage during activation
-            of a profile. These scripts block the activation for when NetworkManager considers
-            the profile fully activated.
-            See also <a class="link" href="NetworkManager-dispatcher.html" title="NetworkManager-dispatcher"><span class="citerefentry"><span class="refentrytitle">NetworkManager-dispatcher</span>(8)</span></a>
-            for details.
-          </p></li>
+          The property <code class="literal">connection.wait-activation-delay</code> adds an additional
+	  delay during activation and delays startup complete. This setting works around
+	  certain cases where a device is known to not be ready for a certain amount of time.
+        </p></li>
 <li class="listitem"><p>
-            The connection property <code class="literal">connection.wait-activation-delay</code> also
-            adds an additional delay during activation and delays startup complete. This is to
-            workaround certain cases where a device is known to not be ready for a certain
-            amount of time.
-          </p></li>
+          The property <code class="literal">connection.wait-device-timeout</code> in the connection
+	  profiles cause a delay until the waiting devices appear. This is useful if the
+	  driver takes a longer time to detect the networking interfaces. This setting is
+	  similar to the <code class="literal">connection.gateway-ping-timeout</code> property.
+        </p></li>
 <li class="listitem"><p>
-            The property <code class="literal">connection.wait-device-timeout</code> of the connection
-            profiles waits until the waited devices appear. This is useful if the driver
-            takes a longer time to detect the networking interfaces. Similar with the
-            <code class="literal">connection.gateway-ping-timeout</code> property.
-          </p></li>
+          With Wi-Fi devices, NetworkManager needs to wait for the first scan result to
+	  know which networks are available. That adds a delay.
+        </p></li>
 <li class="listitem"><p>
-            With Wi-Fi devices, NetworkManager needs to wait for the first scan
-            result to know which networks might be available. That always adds a delay.
-          </p></li>
-<li class="listitem"><p>
-            With ethernet devices, NetworkManager waits for carrier until the
-            configurable <code class="literal">[device*].carrier-timeout</code> is reached.
-            This is because some devices take a long time to detect carrier
-            and it means to boot with cable unplugged, will unnecessarily delay
-            <code class="literal">NetworkManager-wait-online.service</code>.
-          </p></li>
+         With Ethernet devices, NetworkManager waits for the carrier until the value in
+	 <code class="literal">[device*].carrier-timeout</code> is reached. This is because some
+	 devices take a long time to detect the carrier. Consequently, booting with cable
+	 unplugged, unnecessarily delays <code class="literal">NetworkManager-wait-online.service</code>.
+       </p></li>
 </ul></div>
-<p>
-    </p>
-<p>
-      <code class="literal">NetworkManager-wait-online.service</code> internally uses
-      <code class="literal">nm-online</code>.
-    </p>
 </div>
 <div class="refsect1">
 <a name="id-1.2.5.5"></a><h2>Bugs</h2>
@@ -164,6 +134,7 @@
       <a class="ulink" href="https://networkmanager.dev" target="_top">NetworkManager home page</a>,
       <a class="link" href="NetworkManager.html" title="NetworkManager"><span class="citerefentry"><span class="refentrytitle">NetworkManager</span>(8)</span></a>,
       <a class="link" href="nm-online.html" title="nm-online"><span class="citerefentry"><span class="refentrytitle">nm-online</span>(1)</span></a>,
+      the <code class="literal">network-online.target</code> description in <span class="citerefentry"><span class="refentrytitle">systemd.special</span>(7)</span>
     </p>
 </div>
 </div>

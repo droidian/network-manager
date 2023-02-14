@@ -2,12 +2,12 @@
 .\"     Title: nmcli
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 01/26/2023
+.\"      Date: 02/10/2023
 .\"    Manual: General Commands Manual
-.\"    Source: NetworkManager 1.40.12
+.\"    Source: NetworkManager 1.42.0
 .\"  Language: English
 .\"
-.TH "NMCLI" "1" "" "NetworkManager 1\&.40\&.12" "General Commands Manual"
+.TH "NMCLI" "1" "" "NetworkManager 1\&.42\&.0" "General Commands Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -1821,6 +1821,47 @@ Determines the locale to be used for internationalized messages\&.
 \fBLANG\fR
 .RS 4
 Provides a default value for the internationalization variables that are unset or null\&.
+.RE
+.PP
+\fBNO_COLOR\fR
+.RS 4
+Default to not producing colored and paged output\&. The
+\fB\-\-colors\fR
+option, if used, takes precedence\&.
+.RE
+.PP
+\fBPAGER\fR
+.RS 4
+Filter to pipe the output through if it doesn\*(Aqt fit on a screen\&. Can be a file name of an executable or a shell command\&. Empty string to disable the functionality\&.
+.sp
+Note that the pager command is expected to handle wide characters and ANSI escape sequences for changing colors (unless they\*(Aqre disabled)\&.
+\fBnmcli\fR
+sets up the environment variables
+\fBLESS\fR
+and
+\fBLESSCHARSET\fR
+appropriately for the
+\fBless\fR(1)
+pager, other pagers may or may not need extra configuration\&.
+.sp
+If unspecified,
+\fBpager\fR(1),
+\fBless\fR(1)
+and
+\fBmore\fR(1)
+will be tried (in that order)\&.
+.RE
+.PP
+\fBTERM\fR
+.RS 4
+Terminal type\&. If
+dumb,
+\fBnmcli\fR
+will not use a pager or produce ANSI escape sequences for coloring\&.
+.sp
+Terminal types other than
+dumb
+are assumed to support ASCII escape sequences for setting the output color\&.
 .RE
 .SH "INTERNATIONALIZATION NOTES"
 .PP

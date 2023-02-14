@@ -91,14 +91,7 @@ nmt_edit_main_connection_list(gboolean is_top)
 
     newtGetScreenSize(&screen_width, &screen_height);
 
-    form = g_object_new(NMT_TYPE_NEWT_FORM,
-                        "y",
-                        2,
-                        "height",
-                        screen_height - 4,
-                        "escape-exits",
-                        TRUE,
-                        NULL);
+    form = g_object_new(NMT_TYPE_NEWT_FORM, "y", 2, "height", screen_height - 4, NULL);
 
     quit = nmt_newt_button_new(is_top ? _("Quit") : _("Back"));
     nmt_newt_widget_set_exit_on_activate(quit, TRUE);
@@ -120,7 +113,7 @@ nmt_edit_main_connection_list(gboolean is_top)
 
 #define NMT_TYPE_ADD_CONNECTION (nmt_add_connection_get_type())
 #define NMT_ADD_CONNECTION(obj) \
-    (G_TYPE_CHECK_INSTANCE_CAST((obj), NMT_TYPE_ADD_CONNECTION, NmtAddConnection))
+    (_NM_G_TYPE_CHECK_INSTANCE_CAST((obj), NMT_TYPE_ADD_CONNECTION, NmtAddConnection))
 #define NMT_IS_ADD_CONNECTION(obj) (G_TYPE_CHECK_INSTANCE_TYPE((obj), NMT_TYPE_ADD_CONNECTION))
 
 typedef NmtNewtForm      NmtAddConnection;

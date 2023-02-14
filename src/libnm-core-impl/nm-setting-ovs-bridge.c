@@ -120,7 +120,7 @@ nm_setting_ovs_bridge_get_stp_enable(NMSettingOvsBridge *self)
  *
  * Returns: the #NMSettingOvsBridge:datapath_type property of the setting
  *
- * Since: 1.42, 1.40.4
+ * Since: 1.42
  **/
 const char *
 nm_setting_ovs_bridge_get_datapath_type(NMSettingOvsBridge *self)

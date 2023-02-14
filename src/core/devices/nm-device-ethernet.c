@@ -1735,11 +1735,10 @@ new_default_connection(NMDevice *self)
 
     /* Create a stable UUID. The UUID is also the Network_ID for stable-privacy addr-gen-mode,
      * thus when it changes we will also generate different IPv6 addresses. */
-    uuid = nm_uuid_generate_from_strings("default-wired",
-                                         nm_utils_machine_id_str(),
-                                         defname,
-                                         perm_hw_addr ?: iface,
-                                         NULL);
+    uuid = nm_uuid_generate_from_strings_old("default-wired",
+                                             nm_utils_machine_id_str(),
+                                             defname,
+                                             perm_hw_addr ?: iface);
 
     g_object_set(setting,
                  NM_SETTING_CONNECTION_ID,
@@ -2114,8 +2113,10 @@ nm_device_ethernet_class_init(NMDeviceEthernetClass *klass)
 /*****************************************************************************/
 
 #define NM_TYPE_ETHERNET_DEVICE_FACTORY (nm_ethernet_device_factory_get_type())
-#define NM_ETHERNET_DEVICE_FACTORY(obj) \
-    (G_TYPE_CHECK_INSTANCE_CAST((obj), NM_TYPE_ETHERNET_DEVICE_FACTORY, NMEthernetDeviceFactory))
+#define NM_ETHERNET_DEVICE_FACTORY(obj)                              \
+    (_NM_G_TYPE_CHECK_INSTANCE_CAST((obj),                           \
+                                    NM_TYPE_ETHERNET_DEVICE_FACTORY, \
+                                    NMEthernetDeviceFactory))
 
 static NMDevice *
 create_device(NMDeviceFactory      *factory,

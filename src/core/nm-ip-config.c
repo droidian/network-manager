@@ -10,6 +10,7 @@
 
 #include <linux/rtnetlink.h>
 
+#include "libnm-core-aux-intern/nm-libnm-core-utils.h"
 #include "nm-l3cfg.h"
 #include "NetworkManagerUtils.h"
 
@@ -90,7 +91,7 @@ get_property_ip(GObject *object, guint prop_id, GValue *value, GParamSpec *pspec
     NMIPConfig        *self        = NM_IP_CONFIG(object);
     NMIPConfigPrivate *priv        = NM_IP_CONFIG_GET_PRIVATE(self);
     const int          addr_family = nm_ip_config_get_addr_family(self);
-    char               sbuf_addr[NM_UTILS_INET_ADDRSTRLEN];
+    char               sbuf_addr[NM_INET_ADDRSTRLEN];
     const char *const *strv;
     guint              len;
     int                v_i;
@@ -108,7 +109,7 @@ get_property_ip(GObject *object, guint prop_id, GValue *value, GParamSpec *pspec
                 NMP_OBJECT_CAST_IP_ROUTE(priv->v_gateway.best_default_route));
             g_value_set_variant(
                 value,
-                g_variant_new_string(nm_utils_inet_ntop(addr_family, gateway, sbuf_addr)));
+                g_variant_new_string(nm_inet_ntop(addr_family, gateway, sbuf_addr)));
         } else
             g_value_set_variant(value, nm_g_variant_singleton_s_empty());
         break;
@@ -333,9 +334,10 @@ get_property_ip4(GObject *object, guint prop_id, GValue *value, GParamSpec *pspe
 {
     NMIPConfig        *self = NM_IP_CONFIG(object);
     NMIPConfigPrivate *priv = NM_IP_CONFIG_GET_PRIVATE(self);
-    char               addr_str[NM_UTILS_INET_ADDRSTRLEN];
+    char               addr_str[NM_INET_ADDRSTRLEN];
     GVariantBuilder    builder;
     const in_addr_t   *addrs;
+    const char *const *strarr;
     guint              len;
     guint              i;
 
@@ -347,28 +349,37 @@ get_property_ip4(GObject *object, guint prop_id, GValue *value, GParamSpec *pspe
         g_value_set_variant(value, priv->v_routes);
         break;
     case PROP_IP4_NAMESERVERS:
-        addrs = nm_l3_config_data_get_nameservers(priv->l3cd, AF_INET, &len);
-        g_value_set_variant(value,
-                            (len == 0) ? nm_g_variant_singleton_au()
-                                       : nm_g_variant_new_au(addrs, len));
-        break;
     case PROP_IP4_NAMESERVER_DATA:
-        addrs = nm_l3_config_data_get_nameservers(priv->l3cd, AF_INET, &len);
-        if (len == 0)
-            g_value_set_variant(value, nm_g_variant_singleton_aaLsvI());
-        else {
-            g_variant_builder_init(&builder, G_VARIANT_TYPE("aa{sv}"));
+        strarr = nm_l3_config_data_get_nameservers(priv->l3cd, AF_INET, &len);
+        if (len == 0) {
+            g_value_set_variant(value,
+                                (prop_id == PROP_IP4_NAMESERVERS)
+                                    ? nm_g_variant_singleton_au()
+                                    : nm_g_variant_singleton_aaLsvI());
+        } else {
+            if (prop_id == PROP_IP4_NAMESERVERS)
+                g_variant_builder_init(&builder, G_VARIANT_TYPE("au"));
+            else
+                g_variant_builder_init(&builder, G_VARIANT_TYPE("aa{sv}"));
             for (i = 0; i < len; i++) {
-                GVariantBuilder nested_builder;
+                in_addr_t a;
 
-                _nm_utils_inet4_ntop(addrs[i], addr_str);
+                if (!nm_utils_dnsname_parse_assert(AF_INET, strarr[i], NULL, &a, NULL))
+                    continue;
 
-                g_variant_builder_init(&nested_builder, G_VARIANT_TYPE("a{sv}"));
-                g_variant_builder_add(&nested_builder,
-                                      "{sv}",
-                                      "address",
-                                      g_variant_new_string(addr_str));
-                g_variant_builder_add(&builder, "a{sv}", &nested_builder);
+                if (prop_id == PROP_IP4_NAMESERVERS)
+                    g_variant_builder_add(&builder, "u", &a);
+                else {
+                    GVariantBuilder nested_builder;
+
+                    nm_inet4_ntop(a, addr_str);
+                    g_variant_builder_init(&nested_builder, G_VARIANT_TYPE("a{sv}"));
+                    g_variant_builder_add(&nested_builder,
+                                          "{sv}",
+                                          "address",
+                                          g_variant_new_string(addr_str));
+                    g_variant_builder_add(&builder, "a{sv}", &nested_builder);
+                }
             }
 
             g_value_take_variant(value, g_variant_builder_end(&builder));
@@ -387,7 +398,7 @@ get_property_ip4(GObject *object, guint prop_id, GValue *value, GParamSpec *pspe
         else {
             g_variant_builder_init(&builder, G_VARIANT_TYPE("as"));
             for (i = 0; i < len; i++)
-                g_variant_builder_add(&builder, "s", _nm_utils_inet4_ntop(addrs[i], addr_str));
+                g_variant_builder_add(&builder, "s", nm_inet4_ntop(addrs[i], addr_str));
             g_value_take_variant(value, g_variant_builder_end(&builder));
         }
         break;
@@ -498,77 +509,6 @@ nm_ip4_config_class_init(NMIP4ConfigClass *klass)
     g_object_class_install_properties(object_class, _PROPERTY_ENUMS_LAST_ip4, obj_properties_ip4);
 }
 
-void
-nm_ip_config_dns_hash(const NML3ConfigData *l3cd, GChecksum *sum, int addr_family)
-{
-    guint              i;
-    int                val;
-    const char *const *nameservers;
-    const in_addr_t   *wins;
-    const char *const *domains;
-    const char *const *searches;
-    const char *const *options;
-    guint              num_nameservers;
-    guint              num_wins;
-    guint              num_domains;
-    guint              num_searches;
-    guint              num_options;
-
-    g_return_if_fail(l3cd);
-    g_return_if_fail(sum);
-
-    nameservers = nm_l3_config_data_get_nameservers(l3cd, addr_family, &num_nameservers);
-    for (i = 0; i < num_nameservers; i++) {
-        g_checksum_update(sum,
-                          nm_ip_addr_from_packed_array(addr_family, nameservers, i),
-                          nm_utils_addr_family_to_size(addr_family));
-    }
-
-    if (addr_family == AF_INET) {
-        wins = nm_l3_config_data_get_wins(l3cd, &num_wins);
-        for (i = 0; i < num_wins; i++)
-            g_checksum_update(sum, (guint8 *) &wins[i], 4);
-    }
-
-    domains = nm_l3_config_data_get_domains(l3cd, addr_family, &num_domains);
-    for (i = 0; i < num_domains; i++) {
-        g_checksum_update(sum, (const guint8 *) domains[i], strlen(domains[i]));
-    }
-
-    searches = nm_l3_config_data_get_searches(l3cd, addr_family, &num_searches);
-    for (i = 0; i < num_searches; i++) {
-        g_checksum_update(sum, (const guint8 *) searches[i], strlen(searches[i]));
-    }
-
-    options = nm_l3_config_data_get_dns_options(l3cd, addr_family, &num_options);
-    for (i = 0; i < num_options; i++) {
-        g_checksum_update(sum, (const guint8 *) options[i], strlen(options[i]));
-    }
-
-    val = nm_l3_config_data_get_mdns(l3cd);
-    if (val != NM_SETTING_CONNECTION_MDNS_DEFAULT)
-        g_checksum_update(sum, (const guint8 *) &val, sizeof(val));
-
-    val = nm_l3_config_data_get_llmnr(l3cd);
-    if (val != NM_SETTING_CONNECTION_LLMNR_DEFAULT)
-        g_checksum_update(sum, (const guint8 *) &val, sizeof(val));
-
-    val = nm_l3_config_data_get_dns_over_tls(l3cd);
-    if (val != NM_SETTING_CONNECTION_DNS_OVER_TLS_DEFAULT)
-        g_checksum_update(sum, (const guint8 *) &val, sizeof(val));
-
-    /* FIXME(ip-config-checksum): the DNS priority should be considered relevant
-     * and added into the checksum as well, but this can't be done right now
-     * because in the DNS manager we rely on the fact that an empty
-     * configuration (i.e. just created) has a zero checksum. This is needed to
-     * avoid rewriting resolv.conf when there is no change.
-     *
-     * The DNS priority initial value depends on the connection type (VPN or
-     * not), so it's a bit difficult to add it to checksum maintaining the
-     * assumption of checksum(empty)=0
-     */
-}
-
 /*****************************************************************************/
 
 /* public */
@@ -630,12 +570,12 @@ static const NMDBusInterfaceInfoExtended interface_info_ip6_config = {
 static void
 get_property_ip6(GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
 {
-    NMIPConfig            *self = NM_IP_CONFIG(object);
-    NMIPConfigPrivate     *priv = NM_IP_CONFIG_GET_PRIVATE(self);
-    GVariantBuilder        builder;
-    guint                  len;
-    guint                  i;
-    const struct in6_addr *addrs;
+    NMIPConfig        *self = NM_IP_CONFIG(object);
+    NMIPConfigPrivate *priv = NM_IP_CONFIG_GET_PRIVATE(self);
+    GVariantBuilder    builder;
+    guint              len;
+    guint              i;
+    const char *const *strarr;
 
     switch (prop_id) {
     case PROP_IP6_ADDRESSES:
@@ -645,13 +585,19 @@ get_property_ip6(GObject *object, guint prop_id, GValue *value, GParamSpec *pspe
         g_value_set_variant(value, priv->v_routes);
         break;
     case PROP_IP6_NAMESERVERS:
-        addrs = nm_l3_config_data_get_nameservers(priv->l3cd, AF_INET6, &len);
+        strarr = nm_l3_config_data_get_nameservers(priv->l3cd, AF_INET6, &len);
         if (len == 0)
             g_value_set_variant(value, nm_g_variant_singleton_aay());
         else {
             g_variant_builder_init(&builder, G_VARIANT_TYPE("aay"));
-            for (i = 0; i < len; i++)
-                g_variant_builder_add(&builder, "@ay", nm_g_variant_new_ay_in6addr(&addrs[i]));
+            for (i = 0; i < len; i++) {
+                struct in6_addr a;
+
+                if (!nm_utils_dnsname_parse_assert(AF_INET6, strarr[i], NULL, &a, NULL))
+                    continue;
+
+                g_variant_builder_add(&builder, "@ay", nm_g_variant_new_ay_in6addr(&a));
+            }
             g_value_take_variant(value, g_variant_builder_end(&builder));
         }
         break;
@@ -736,8 +682,8 @@ _handle_l3cd_changed(NMIPConfig *self, const NML3ConfigData *l3cd)
     nm_auto_unref_l3cd const NML3ConfigData *l3cd_old    = NULL;
     GParamSpec                              *changed_params[8];
     guint                                    n_changed_params = 0;
-    const char *const                       *strv;
-    const char *const                       *strv_old;
+    const char *const                       *strarr;
+    const char *const                       *strarr_old;
     gconstpointer                            addrs;
     gconstpointer                            addrs_old;
     guint                                    len;
@@ -748,9 +694,9 @@ _handle_l3cd_changed(NMIPConfig *self, const NML3ConfigData *l3cd)
     l3cd_old   = g_steal_pointer(&priv->l3cd);
     priv->l3cd = nm_l3_config_data_ref(l3cd);
 
-    addrs_old = nm_l3_config_data_get_nameservers(l3cd_old, addr_family, &len_old);
-    addrs     = nm_l3_config_data_get_nameservers(priv->l3cd, addr_family, &len);
-    if (!nm_memeq_n(addrs_old, len_old, addrs, len, nm_utils_addr_family_to_size(addr_family))) {
+    strarr_old = nm_l3_config_data_get_nameservers(l3cd_old, addr_family, &len_old);
+    strarr     = nm_l3_config_data_get_nameservers(priv->l3cd, addr_family, &len);
+    if (!nm_strv_equal_n(strarr_old, len_old, strarr, len)) {
         if (IS_IPv4) {
             changed_params[n_changed_params++] = obj_properties_ip4[PROP_IP4_NAMESERVER_DATA];
             changed_params[n_changed_params++] = obj_properties_ip4[PROP_IP4_NAMESERVERS];
@@ -758,14 +704,14 @@ _handle_l3cd_changed(NMIPConfig *self, const NML3ConfigData *l3cd)
             changed_params[n_changed_params++] = obj_properties_ip6[PROP_IP6_NAMESERVERS];
     }
 
-    strv_old = nm_l3_config_data_get_domains(l3cd_old, addr_family, &len_old);
-    strv     = nm_l3_config_data_get_domains(priv->l3cd, addr_family, &len);
-    if (!nm_strv_equal_n(strv, len, strv_old, len_old))
+    strarr_old = nm_l3_config_data_get_domains(l3cd_old, addr_family, &len_old);
+    strarr     = nm_l3_config_data_get_domains(priv->l3cd, addr_family, &len);
+    if (!nm_strv_equal_n(strarr, len, strarr_old, len_old))
         changed_params[n_changed_params++] = obj_properties_ip[PROP_IP_DOMAINS];
 
-    strv_old = nm_l3_config_data_get_searches(l3cd_old, addr_family, &len_old);
-    strv     = nm_l3_config_data_get_searches(priv->l3cd, addr_family, &len);
-    if (!nm_strv_equal_n(strv, len, strv_old, len_old))
+    strarr_old = nm_l3_config_data_get_searches(l3cd_old, addr_family, &len_old);
+    strarr     = nm_l3_config_data_get_searches(priv->l3cd, addr_family, &len);
+    if (!nm_strv_equal_n(strarr, len, strarr_old, len_old))
         changed_params[n_changed_params++] = obj_properties_ip[PROP_IP_SEARCHES];
 
     v_i_old = nm_l3_config_data_get_dns_priority_or_default(l3cd_old, addr_family);
@@ -773,9 +719,9 @@ _handle_l3cd_changed(NMIPConfig *self, const NML3ConfigData *l3cd)
     if (v_i != v_i_old)
         changed_params[n_changed_params++] = obj_properties_ip[PROP_IP_DNS_PRIORITY];
 
-    strv_old = nm_l3_config_data_get_dns_options(l3cd_old, addr_family, &len);
-    strv     = nm_l3_config_data_get_dns_options(priv->l3cd, addr_family, &len);
-    if (!nm_strv_equal_n(strv, len, strv_old, len_old))
+    strarr_old = nm_l3_config_data_get_dns_options(l3cd_old, addr_family, &len);
+    strarr     = nm_l3_config_data_get_dns_options(priv->l3cd, addr_family, &len);
+    if (!nm_strv_equal_n(strarr, len, strarr_old, len_old))
         changed_params[n_changed_params++] = obj_properties_ip[PROP_IP_DNS_OPTIONS];
 
     if (IS_IPv4) {

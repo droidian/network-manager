@@ -50,7 +50,7 @@ struct _NMWireGuardPeer {
     char                *public_key;
     char                *preshared_key;
     GPtrArray           *allowed_ips;
-    guint                refcount;
+    int                  refcount;
     NMSettingSecretFlags preshared_key_flags;
     guint16              persistent_keepalive;
     bool                 public_key_valid : 1;
@@ -127,10 +127,10 @@ nm_wireguard_peer_new_clone(const NMWireGuardPeer *self, gboolean with_secrets)
  * nm_wireguard_peer_ref:
  * @self: (allow-none): the #NMWireGuardPeer instance
  *
- * This is not thread-safe.
- *
  * Returns: returns the input argument @self after incrementing
  *   the reference count.
+ *
+ * Since 1.42, ref-counting of #NMWireGuardPeer is thread-safe.
  *
  * Since: 1.16
  */
@@ -142,9 +142,9 @@ nm_wireguard_peer_ref(NMWireGuardPeer *self)
 
     g_return_val_if_fail(NM_IS_WIREGUARD_PEER(self, TRUE), NULL);
 
-    nm_assert(self->refcount < G_MAXUINT);
+    nm_assert(self->refcount < G_MAXINT);
 
-    self->refcount++;
+    g_atomic_int_inc(&self->refcount);
     return self;
 }
 
@@ -155,7 +155,7 @@ nm_wireguard_peer_ref(NMWireGuardPeer *self)
  * Drop a reference to @self. If the last reference is dropped,
  * the instance is freed and all associate data released.
  *
- * This is not thread-safe.
+ * Since 1.42, ref-counting of #NMWireGuardPeer is thread-safe.
  *
  * Since: 1.16
  */
@@ -167,7 +167,7 @@ nm_wireguard_peer_unref(NMWireGuardPeer *self)
 
     g_return_if_fail(NM_IS_WIREGUARD_PEER(self, TRUE));
 
-    if (--self->refcount > 0)
+    if (!g_atomic_int_dec_and_test(&self->refcount))
         return;
 
     nm_sock_addr_endpoint_unref(self->endpoint);
@@ -628,18 +628,18 @@ _peer_append_allowed_ip(NMWireGuardPeer *self, const char *allowed_ip, gboolean 
 
     /* normalize the address (if it is valid. Otherwise, take it
      * as-is (it will render the instance invalid). */
-    if (!nm_utils_parse_inaddr_prefix_bin(AF_UNSPEC, allowed_ip, &addr_family, &addrbin, &prefix)) {
+    if (!nm_inet_parse_with_prefix_bin(AF_UNSPEC, allowed_ip, &addr_family, &addrbin, &prefix)) {
         if (!accept_invalid)
             return FALSE;
         /* mark the entry as invalid by having a "X" prefix. */
         str      = g_strconcat(ALLOWED_IP_INVALID_X_STR, allowed_ip, NULL);
         is_valid = FALSE;
     } else {
-        char addrstr[NM_UTILS_INET_ADDRSTRLEN];
+        char addrstr[NM_INET_ADDRSTRLEN];
 
         nm_assert_addr_family(addr_family);
 
-        nm_utils_inet_ntop(addr_family, &addrbin, addrstr);
+        nm_inet_ntop(addr_family, &addrbin, addrstr);
         if (prefix >= 0)
             str = g_strdup_printf("%s/%d", addrstr, prefix);
         else
@@ -1460,7 +1460,7 @@ nm_setting_wireguard_clear_peers(NMSettingWireGuard *self)
 /*****************************************************************************/
 
 static GVariant *
-_peers_dbus_only_synth(_NM_SETT_INFO_PROP_TO_DBUS_FCN_ARGS _nm_nil)
+peers_to_dbus(_NM_SETT_INFO_PROP_TO_DBUS_FCN_ARGS _nm_nil)
 {
     NMSettingWireGuard        *self = NM_SETTING_WIREGUARD(setting);
     NMSettingWireGuardPrivate *priv;
@@ -1558,7 +1558,7 @@ _peers_dbus_only_synth(_NM_SETT_INFO_PROP_TO_DBUS_FCN_ARGS _nm_nil)
 }
 
 static gboolean
-_peers_dbus_only_set(_NM_SETT_INFO_PROP_FROM_DBUS_FCN_ARGS _nm_nil)
+peers_from_dbus(_NM_SETT_INFO_PROP_FROM_DBUS_FCN_ARGS _nm_nil)
 {
     GVariantIter iter_peers;
     GVariant    *peer_var;
@@ -1800,13 +1800,13 @@ verify_secrets(NMSetting *setting, NMConnection *connection, GError **error)
 }
 
 static GPtrArray *
-need_secrets(NMSetting *setting)
+need_secrets(NMSetting *setting, gboolean check_rerequest)
 {
     NMSettingWireGuardPrivate *priv    = NM_SETTING_WIREGUARD_GET_PRIVATE(setting);
     GPtrArray                 *secrets = NULL;
     guint                      i;
 
-    if (!priv->private_key_valid) {
+    if (check_rerequest || !priv->private_key_valid) {
         secrets = g_ptr_array_new_full(1, g_free);
         g_ptr_array_add(secrets, g_strdup(NM_SETTING_WIREGUARD_PRIVATE_KEY));
     }
@@ -1857,9 +1857,7 @@ clear_secrets(const NMSettInfoSetting         *sett_info,
                 if (j++ < 5) {
                     /* we use alloca() inside a loop here, but it is guarded to happen at most
                      * a few times. */
-                    name = peers_psk_get_secret_name_a(/* lgtm [cpp/alloca-in-loop] */
-                                                       peer->public_key,
-                                                       &name_free);
+                    name = peers_psk_get_secret_name_a(peer->public_key, &name_free);
                 } else {
                     name_free = peers_psk_get_secret_name_dup(peer->public_key);
                     name      = name_free;
@@ -2528,9 +2526,9 @@ nm_setting_wireguard_class_init(NMSettingWireGuardClass *klass)
         properties_override,
         NM_SETTING_WIREGUARD_PEERS,
         NM_SETT_INFO_PROPERT_TYPE_DBUS(NM_G_VARIANT_TYPE("aa{sv}"),
-                                       .to_dbus_fcn   = _peers_dbus_only_synth,
+                                       .to_dbus_fcn   = peers_to_dbus,
                                        .compare_fcn   = compare_fcn_peers,
-                                       .from_dbus_fcn = _peers_dbus_only_set, ));
+                                       .from_dbus_fcn = peers_from_dbus, ));
 
     g_object_class_install_properties(object_class, _PROPERTY_ENUMS_LAST, obj_properties);
 

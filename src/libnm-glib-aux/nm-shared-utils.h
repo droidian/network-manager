@@ -139,6 +139,8 @@ typedef enum {
     NM_LINK_TYPE_VETH,
     NM_LINK_TYPE_VLAN,
     NM_LINK_TYPE_VRF,
+    NM_LINK_TYPE_VTI,
+    NM_LINK_TYPE_VTI6,
     NM_LINK_TYPE_VXLAN,
     NM_LINK_TYPE_WIREGUARD,
 #define _NM_LINK_TYPE_SW_LAST NM_LINK_TYPE_WIREGUARD
@@ -198,6 +200,13 @@ typedef struct {
 
 #define NM_ETHER_ADDR_INIT(...) ((NMEtherAddr) _NM_ETHER_ADDR_INIT(__VA_ARGS__))
 
+struct _NMIPAddr;
+extern const struct _NMIPAddr nm_ip_addr_zero;
+
+/* Let's reuse nm_ip_addr_zero also for nm_ether_addr_zero. It's a union that
+ * also contains a NMEtherAddr field. */
+#define nm_ether_addr_zero (*((const NMEtherAddr *) ((gconstpointer) &nm_ip_addr_zero)))
+
 static inline int
 nm_ether_addr_cmp(const NMEtherAddr *a, const NMEtherAddr *b)
 {
@@ -212,126 +221,10 @@ nm_ether_addr_equal(const NMEtherAddr *a, const NMEtherAddr *b)
     return nm_ether_addr_cmp(a, b) == 0;
 }
 
-/*****************************************************************************/
-
-typedef struct {
-    union {
-        guint8          addr_ptr[sizeof(struct in6_addr)];
-        in_addr_t       addr4;
-        struct in_addr  addr4_struct;
-        struct in6_addr addr6;
-
-        /* NMIPAddr is really a union for IP addresses.
-         * However, as ethernet addresses fit in here nicely, use
-         * it also for an ethernet MAC address. */
-        guint8      ether_addr_octet[6 /*ETH_ALEN*/];
-        NMEtherAddr ether_addr;
-
-        guint8 array[sizeof(struct in6_addr)];
-    };
-} NMIPAddr;
-
-#define NM_IP_ADDR_INIT \
-    {                   \
-        .array = { 0 }  \
-    }
-
-extern const NMIPAddr nm_ip_addr_zero;
-
-#define nm_ether_addr_zero (nm_ip_addr_zero.ether_addr)
-
-static inline int
-nm_ip_addr_cmp(int addr_family, gconstpointer a, gconstpointer b)
-{
-    /* Note that @a and @b are not required to be full NMIPAddr unions.
-     * Depending on @addr_family, they can also be only in_addr_t or
-     * struct in6_addr. */
-    NM_CMP_SELF(a, b);
-    NM_CMP_DIRECT_MEMCMP(a, b, nm_utils_addr_family_to_size(addr_family));
-    return 0;
-}
-
-int nm_ip_addr_cmp_for_sort(gconstpointer a, gconstpointer b, gpointer user_data);
-
 static inline gboolean
-nm_ip_addr_equal(int addr_family, gconstpointer a, gconstpointer b)
+nm_ether_addr_is_zero(const NMEtherAddr *a)
 {
-    return nm_ip_addr_cmp(addr_family, a, b) == 0;
-}
-
-static inline gboolean
-nm_ip_addr_is_null(int addr_family, gconstpointer addr)
-{
-    nm_assert(addr);
-
-    if (NM_IS_IPv4(addr_family)) {
-        in_addr_t t;
-
-        /* also for in_addr_t type (AF_INET), we accept that the pointer might
-         * be unaligned. */
-        memcpy(&t, addr, sizeof(t));
-        return t == 0;
-    }
-
-    return IN6_IS_ADDR_UNSPECIFIED((const struct in6_addr *) addr);
-}
-
-static inline void
-nm_ip_addr_set(int addr_family, gpointer dst, gconstpointer src)
-{
-    nm_assert(dst);
-    nm_assert(src);
-
-    /* this MUST use memcpy() to support unaligned src/dst pointers. */
-    memcpy(dst, src, nm_utils_addr_family_to_size(addr_family));
-
-    /* Note that @dst is not necessarily a NMIPAddr, it could also be just
-     * an in_addr_t/struct in6_addr. We thus can only set the bytes that
-     * we know are present based on the address family.
-     *
-     * Using this function to initialize an NMIPAddr union (for IPv4) leaves
-     * uninitalized bytes. Avoid that by using nm_ip_addr_init() instead. */
-}
-
-static inline NMIPAddr
-nm_ip_addr_init(int addr_family, gconstpointer src)
-{
-    NMIPAddr a;
-
-    nm_assert_addr_family(addr_family);
-    nm_assert(src);
-
-    G_STATIC_ASSERT_EXPR(sizeof(NMIPAddr) == sizeof(struct in6_addr));
-
-    /* this MUST use memcpy() to support unaligned src/dst pointers. */
-
-    if (NM_IS_IPv4(addr_family)) {
-        memcpy(&a, src, sizeof(in_addr_t));
-
-        /* ensure all bytes of the union are initialized. If only to make
-         * valgrind happy. */
-        memset(&a.array[sizeof(in_addr_t)], 0, sizeof(a) - sizeof(in_addr_t));
-    } else
-        memcpy(&a, src, sizeof(struct in6_addr));
-
-    return a;
-}
-
-gboolean nm_ip_addr_set_from_untrusted(int           addr_family,
-                                       gpointer      dst,
-                                       gconstpointer src,
-                                       gsize         src_len,
-                                       int          *out_addr_family);
-
-gboolean
-nm_ip_addr_set_from_variant(int addr_family, gpointer dst, GVariant *variant, int *out_addr_family);
-
-static inline gconstpointer
-nm_ip_addr_from_packed_array(int addr_family, gconstpointer ipaddr_arr, gsize idx)
-{
-    return NM_IS_IPv4(addr_family)
-               ? ((gconstpointer) & (((const struct in_addr *) ipaddr_arr)[idx]))
-               : ((gconstpointer) & (((const struct in6_addr *) ipaddr_arr)[idx]));
+    return nm_memeq(a, &nm_ether_addr_zero, sizeof(NMEtherAddr));
 }
 
 /*****************************************************************************/
@@ -343,6 +236,7 @@ nm_utils_ether_addr_cmp(const struct ether_addr *a1, const struct ether_addr *a2
 {
     nm_assert(a1);
     nm_assert(a2);
+
     return memcmp(a1, a2, 6 /*ETH_ALEN*/);
 }
 
@@ -377,11 +271,36 @@ typedef struct _NMUtilsIPv6IfaceId {
         }                           \
     }
 
-void nm_utils_ipv6_addr_set_interface_identifier(struct in6_addr          *addr,
-                                                 const NMUtilsIPv6IfaceId *iid);
+/**
+ * nm_utils_ipv6_addr_set_interface_identifier:
+ * @addr: output token encoded as %in6_addr
+ * @iid: %NMUtilsIPv6IfaceId interface identifier
+ *
+ * Converts the %NMUtilsIPv6IfaceId to an %in6_addr (suitable for use
+ * with Linux platform). This only copies the lower 8 bytes, ignoring
+ * the /64 network prefix which is expected to be all-zero for a valid
+ * token.
+ */
+static inline void
+nm_utils_ipv6_addr_set_interface_identifier(struct in6_addr *addr, const NMUtilsIPv6IfaceId *iid)
+{
+    memcpy(addr->s6_addr + 8, &iid->id_u8, 8);
+}
 
-void nm_utils_ipv6_interface_identifier_get_from_addr(NMUtilsIPv6IfaceId    *iid,
-                                                      const struct in6_addr *addr);
+/**
+ * nm_utils_ipv6_interface_identifier_get_from_addr:
+ * @iid: output %NMUtilsIPv6IfaceId interface identifier set from the token
+ * @addr: token encoded as %in6_addr
+ *
+ * Converts the %in6_addr encoded token (as used by Linux platform) to
+ * the interface identifier.
+ */
+static inline void
+nm_utils_ipv6_interface_identifier_get_from_addr(NMUtilsIPv6IfaceId    *iid,
+                                                 const struct in6_addr *addr)
+{
+    memcpy(iid, addr->s6_addr + 8, 8);
+}
 
 gboolean nm_utils_ipv6_interface_identifier_get_from_token(NMUtilsIPv6IfaceId *iid,
                                                            const char         *token);
@@ -394,219 +313,6 @@ gboolean nm_utils_get_ipv6_interface_identifier(NMLinkType          link_type,
                                                 guint               len,
                                                 guint               dev_id,
                                                 NMUtilsIPv6IfaceId *out_iid);
-
-/*****************************************************************************/
-
-static inline guint32
-_nm_utils_ip4_netmask_to_prefix(in_addr_t subnetmask)
-{
-    G_STATIC_ASSERT_EXPR(__SIZEOF_INT__ == 4);
-    G_STATIC_ASSERT_EXPR(sizeof(int) == 4);
-    G_STATIC_ASSERT_EXPR(sizeof(guint) == 4);
-    G_STATIC_ASSERT_EXPR(sizeof(subnetmask) == 4);
-
-    return ((subnetmask != 0u) ? (guint32) (32 - __builtin_ctz(ntohl(subnetmask))) : 0u);
-}
-
-/**
- * _nm_utils_ip4_prefix_to_netmask:
- * @prefix: a CIDR prefix
- *
- * Returns: the netmask represented by the prefix, in network byte order
- **/
-static inline in_addr_t
-_nm_utils_ip4_prefix_to_netmask(guint32 prefix)
-{
-    nm_assert(prefix <= 32);
-    return prefix < 32 ? ~htonl(0xFFFFFFFFu >> prefix) : 0xFFFFFFFFu;
-}
-
-guint32 _nm_utils_ip4_get_default_prefix0(in_addr_t ip);
-guint32 _nm_utils_ip4_get_default_prefix(in_addr_t ip);
-
-gconstpointer
-nm_utils_ipx_address_clear_host_address(int family, gpointer dst, gconstpointer src, guint32 plen);
-
-/* nm_utils_ip4_address_clear_host_address:
- * @addr: source ip6 address
- * @plen: prefix length of network
- *
- * returns: the input address, with the host address set to 0.
- */
-static inline in_addr_t
-nm_utils_ip4_address_clear_host_address(in_addr_t addr, guint32 plen)
-{
-    return addr & _nm_utils_ip4_prefix_to_netmask(plen);
-}
-
-const struct in6_addr *nm_utils_ip6_address_clear_host_address(struct in6_addr       *dst,
-                                                               const struct in6_addr *src,
-                                                               guint32                plen);
-
-static inline int
-nm_utils_ip4_address_same_prefix_cmp(in_addr_t addr_a, in_addr_t addr_b, guint32 plen)
-{
-    NM_CMP_DIRECT(htonl(nm_utils_ip4_address_clear_host_address(addr_a, plen)),
-                  htonl(nm_utils_ip4_address_clear_host_address(addr_b, plen)));
-    return 0;
-}
-
-int nm_utils_ip6_address_same_prefix_cmp(const struct in6_addr *addr_a,
-                                         const struct in6_addr *addr_b,
-                                         guint32                plen);
-
-static inline gboolean
-nm_utils_ip4_address_same_prefix(in_addr_t addr_a, in_addr_t addr_b, guint32 plen)
-{
-    return nm_utils_ip4_address_same_prefix_cmp(addr_a, addr_b, plen) == 0;
-}
-
-static inline gboolean
-nm_utils_ip6_address_same_prefix(const struct in6_addr *addr_a,
-                                 const struct in6_addr *addr_b,
-                                 guint8                 plen)
-{
-    return nm_utils_ip6_address_same_prefix_cmp(addr_a, addr_b, plen) == 0;
-}
-
-static inline int
-nm_utils_ip_address_same_prefix_cmp(int           addr_family,
-                                    gconstpointer addr_a,
-                                    gconstpointer addr_b,
-                                    guint8        plen)
-{
-    NM_CMP_SELF(addr_a, addr_b);
-
-    if (NM_IS_IPv4(addr_family)) {
-        return nm_utils_ip4_address_same_prefix_cmp(*((const in_addr_t *) addr_a),
-                                                    *((const in_addr_t *) addr_b),
-                                                    plen);
-    }
-
-    return nm_utils_ip6_address_same_prefix_cmp(addr_a, addr_b, plen);
-}
-
-static inline gboolean
-nm_utils_ip_address_same_prefix(int           addr_family,
-                                gconstpointer addr_a,
-                                gconstpointer addr_b,
-                                guint8        plen)
-{
-    return nm_utils_ip_address_same_prefix_cmp(addr_family, addr_a, addr_b, plen) == 0;
-}
-
-#define NM_CMP_DIRECT_IN4ADDR_SAME_PREFIX(a, b, plen) \
-    NM_CMP_RETURN(nm_utils_ip4_address_same_prefix_cmp((a), (b), (plen)))
-
-#define NM_CMP_DIRECT_IN6ADDR_SAME_PREFIX(a, b, plen) \
-    NM_CMP_RETURN(nm_utils_ip6_address_same_prefix_cmp((a), (b), (plen)))
-
-/*****************************************************************************/
-
-gboolean nm_utils_ip_is_site_local(int addr_family, const void *address);
-gboolean nm_utils_ip6_is_ula(const struct in6_addr *address);
-
-/*****************************************************************************/
-
-#define NM_IPV4LL_NETWORK ((in_addr_t) htonl(0xA9FE0000lu))
-#define NM_IPV4LL_NETMASK ((in_addr_t) htonl(0xFFFF0000lu))
-
-static inline gboolean
-nm_utils_ip4_address_is_loopback(in_addr_t addr)
-{
-    /* There is also IN_LOOPBACK() in <linux/in.h>, but there the
-     * argument is in host order not `in_addr_t`. */
-    return (addr & htonl(0xFF000000u)) == htonl(0x7F000000u);
-}
-
-static inline gboolean
-nm_utils_ip4_address_is_link_local(in_addr_t addr)
-{
-    return (addr & NM_IPV4LL_NETMASK) == NM_IPV4LL_NETWORK;
-}
-
-static inline gboolean
-nm_utils_ip4_address_is_zeronet(in_addr_t network)
-{
-    /* Same as ipv4_is_zeronet() from kernel's include/linux/in.h. */
-    return (network & htonl(0xFF000000u)) == htonl(0x00000000u);
-}
-
-/*****************************************************************************/
-
-#define NM_UTILS_INET_ADDRSTRLEN INET6_ADDRSTRLEN
-
-/* Forward declare function so we don't have to drag in <arpa/inet.h>. */
-const char *inet_ntop(int af, const void *src, char *dst, socklen_t size);
-
-static inline const char *
-nm_utils_inet_ntop(int addr_family, gconstpointer addr, char *dst)
-{
-    const char *s;
-
-    nm_assert_addr_family(addr_family);
-    nm_assert(addr);
-    nm_assert(dst);
-
-    s = inet_ntop(addr_family,
-                  addr,
-                  dst,
-                  addr_family == AF_INET6 ? INET6_ADDRSTRLEN : INET_ADDRSTRLEN);
-    nm_assert(s);
-    return s;
-}
-
-static inline const char *
-_nm_utils_inet4_ntop(in_addr_t addr, char dst[static INET_ADDRSTRLEN])
-{
-    return nm_utils_inet_ntop(AF_INET, &addr, dst);
-}
-
-static inline const char *
-_nm_utils_inet6_ntop(const struct in6_addr *addr, char dst[static INET6_ADDRSTRLEN])
-{
-    return nm_utils_inet_ntop(AF_INET6, addr, dst);
-}
-
-static inline char *
-nm_utils_inet_ntop_dup(int addr_family, gconstpointer addr)
-{
-    char buf[NM_UTILS_INET_ADDRSTRLEN];
-
-    return g_strdup(nm_utils_inet_ntop(addr_family, addr, buf));
-}
-
-static inline char *
-nm_utils_inet4_ntop_dup(in_addr_t addr)
-{
-    return nm_utils_inet_ntop_dup(AF_INET, &addr);
-}
-
-static inline char *
-nm_utils_inet6_ntop_dup(const struct in6_addr *addr)
-{
-    return nm_utils_inet_ntop_dup(AF_INET6, addr);
-}
-
-/*****************************************************************************/
-
-gboolean nm_utils_ipaddr_is_valid(int addr_family, const char *str_addr);
-
-gboolean nm_utils_ipaddr_is_normalized(int addr_family, const char *str_addr);
-
-/*****************************************************************************/
-
-/* this enum is compatible with ICMPV6_ROUTER_PREF_* (from <linux/icmpv6.h>,
- * the values for netlink attribute RTA_PREF) and "enum ndp_route_preference"
- * from <ndp.h>. */
-typedef enum _nm_packed {
-    NM_ICMPV6_ROUTER_PREF_MEDIUM  = 0x0, /* ICMPV6_ROUTER_PREF_MEDIUM */
-    NM_ICMPV6_ROUTER_PREF_LOW     = 0x3, /* ICMPV6_ROUTER_PREF_LOW */
-    NM_ICMPV6_ROUTER_PREF_HIGH    = 0x1, /* ICMPV6_ROUTER_PREF_HIGH */
-    NM_ICMPV6_ROUTER_PREF_INVALID = 0x2, /* ICMPV6_ROUTER_PREF_INVALID */
-} NMIcmpv6RouterPref;
-
-const char *nm_icmpv6_router_pref_to_string(NMIcmpv6RouterPref pref, char *buf, gsize len);
 
 /*****************************************************************************/
 
@@ -1044,31 +750,6 @@ nm_utils_escaped_tokens_options_escape_val(const char *val, char **out_to_free)
 
 /*****************************************************************************/
 
-gboolean nm_utils_parse_inaddr_bin_full(int         addr_family,
-                                        gboolean    accept_legacy,
-                                        const char *text,
-                                        int        *out_addr_family,
-                                        gpointer    out_addr);
-static inline gboolean
-nm_utils_parse_inaddr_bin(int         addr_family,
-                          const char *text,
-                          int        *out_addr_family,
-                          gpointer    out_addr)
-{
-    return nm_utils_parse_inaddr_bin_full(addr_family, FALSE, text, out_addr_family, out_addr);
-}
-
-gboolean nm_utils_parse_inaddr(int addr_family, const char *text, char **out_addr);
-
-gboolean nm_utils_parse_inaddr_prefix_bin(int         addr_family,
-                                          const char *text,
-                                          int        *out_addr_family,
-                                          gpointer    out_addr,
-                                          int        *out_prefix);
-
-gboolean
-nm_utils_parse_inaddr_prefix(int addr_family, const char *text, char **out_addr, int *out_prefix);
-
 gboolean nm_utils_parse_next_line(const char **inout_ptr,
                                   gsize       *inout_len,
                                   const char **out_line,
@@ -1335,6 +1016,7 @@ typedef enum {
      * message from the device that returned the *highest* error code,
      * in the hope that this message makes the most sense for the caller.
      * */
+    NM_UTILS_ERROR_CONNECTION_AVAILABLE_STRICTLY_UNMANAGED_DEVICE,
     NM_UTILS_ERROR_CONNECTION_AVAILABLE_INCOMPATIBLE,
     NM_UTILS_ERROR_CONNECTION_AVAILABLE_UNMANAGED_DEVICE,
     NM_UTILS_ERROR_CONNECTION_AVAILABLE_TEMPORARY,
@@ -1661,6 +1343,10 @@ nm_g_variant_new_au(const guint32 *data, gsize len)
 {
     return g_variant_new_fixed_array(G_VARIANT_TYPE_UINT32, data, len, sizeof(guint32));
 }
+
+struct _NMIPAddr;
+
+extern const struct _NMIPAddr nm_ip_addr_zero;
 
 static inline GVariant *
 nm_g_variant_new_ay_inaddr(int addr_family, gconstpointer addr)
@@ -2210,6 +1896,8 @@ char *nm_utils_g_slist_strlist_join(const GSList *a, const char *separator);
 static inline gpointer
 nm_g_array_data(const GArray *arr)
 {
+    /* You may want to use nm_g_array_first_p() instead, which can assert
+     * for the expected type. */
     return arr ? arr->data : NULL;
 }
 
@@ -2226,42 +1914,66 @@ nm_g_array_unref(GArray *arr)
         g_array_unref(arr);
 }
 
-#define nm_g_array_first(arr, Type)                                \
-    ({                                                             \
-        GArray *const _arr = (arr);                                \
-                                                                   \
-        nm_assert(_arr);                                           \
-        nm_assert(sizeof(Type) == g_array_get_element_size(_arr)); \
-        nm_assert(_arr->len > 0);                                  \
-                                                                   \
-        &g_array_index(arr, Type, 0);                              \
-    })
-
-#define nm_g_array_last(arr, Type)                                 \
-    ({                                                             \
-        GArray *const _arr = (arr);                                \
-                                                                   \
-        nm_assert(_arr);                                           \
-        nm_assert(sizeof(Type) == g_array_get_element_size(_arr)); \
-        nm_assert(_arr->len > 0);                                  \
-                                                                   \
-        &g_array_index(arr, Type, _arr->len - 1u);                 \
-    })
-
 /* Similar to g_array_index(). The differences are
  * - this does nm_assert() checks that the arguments are valid.
- * - returns a pointer to the element. */
-#define nm_g_array_index_p(arr, Type, idx)                            \
-    ({                                                                \
-        GArray *const _arr_55 = (arr);                                \
-        const guint   _idx_55 = (idx);                                \
-                                                                      \
-        nm_assert(_arr_55);                                           \
-        nm_assert(sizeof(Type) == g_array_get_element_size(_arr_55)); \
-        nm_assert(_idx_55 < _arr_55->len);                            \
-                                                                      \
-        &g_array_index(_arr_55, Type, _idx_55);                       \
+ * - returns a pointer to the element.
+ * - it asserts that @idx is <= arr->len. That is, it allows
+ *   to get a pointer after the data, of course, you are not
+ *   allowed to dereference in that case.
+ * - in particular, unlike nm_g_array_index(), you are allowed to call this
+ *   with "arr" NULL (for index zero) or with "arr->data" NULL
+ *   (for index zero). In that case, NULL is returned.
+ *
+ * When accessing index zero, then this returns NULL if-and-only-if
+ * "arr" is NULL or "arr->data" is NULL. In all other cases, this
+ * returns the pointer &((Type*) arr->data)[idx]. Note that the pointer
+ * may not be followed, if "idx" is equal to "arr->len". */
+#define nm_g_array_index_p(arr, Type, idx)                                                       \
+    ({                                                                                           \
+        const GArray *const _arr_55 = (arr);                                                     \
+        const guint         _idx_55 = (idx);                                                     \
+                                                                                                 \
+        nm_assert(_arr_55 || _idx_55 == 0);                                                      \
+        nm_assert(_idx_55 <= (_arr_55 ? _arr_55->len : 0u));                                     \
+        nm_assert(!_arr_55 || sizeof(Type) == g_array_get_element_size((GArray *) _arr_55));     \
+                                                                                                 \
+        ((_arr_55 && _arr_55->data) ? &(((Type *) ((gpointer) _arr_55->data))[_idx_55]) : NULL); \
     })
+
+/* Very similar to g_array_index().
+ * - nm_assert() that arguments are valid.
+ * - returns an lvalue to the element.
+ * - similar to nm_g_array_index_p(), but dereferences the pointer.
+ * - one difference to nm_g_array_index_p() is that it @idx MUST be
+ *   smaller than arr->len (unlike nm_g_array_index_p() which allows
+ *   access one element past the buffer. */
+#define nm_g_array_index(arr, Type, idx)                                         \
+    (*({                                                                         \
+        const GArray *const _arr_55 = (arr);                                     \
+        const guint         _idx_55 = (idx);                                     \
+                                                                                 \
+        nm_assert(_arr_55);                                                      \
+        nm_assert(sizeof(Type) == g_array_get_element_size((GArray *) _arr_55)); \
+        nm_assert(_idx_55 < _arr_55->len);                                       \
+                                                                                 \
+        &g_array_index((GArray *) _arr_55, Type, _idx_55);                       \
+    }))
+
+#define nm_g_array_first(arr, Type) nm_g_array_index(arr, Type, 0)
+
+#define nm_g_array_first_p(arr, Type) nm_g_array_index_p(arr, Type, 0)
+
+/* Same as g_array_index(arr, Type, arr->len-1). */
+#define nm_g_array_last(arr, Type)                                            \
+    (*({                                                                      \
+        const GArray *const _arr = (arr);                                     \
+                                                                              \
+        nm_assert(_arr);                                                      \
+        nm_assert(sizeof(Type) == g_array_get_element_size((GArray *) _arr)); \
+        nm_assert(_arr->len > 0);                                             \
+                                                                              \
+        &g_array_index((GArray *) arr, Type, _arr->len - 1u);                 \
+    }))
 
 #define nm_g_array_append_new(arr, Type)                           \
     ({                                                             \
@@ -2278,6 +1990,20 @@ nm_g_array_unref(GArray *arr)
         g_array_set_size(_arr, _len + 1u);                         \
         &g_array_index(arr, Type, _len);                           \
     })
+
+#define nm_g_array_append_simple(arr, val)                               \
+    G_STMT_START                                                         \
+    {                                                                    \
+        /* Similar to `g_array_append_val()`, but `g_array_append_val()`
+         * only works with lvalues. That makes sense if the value is a larger
+         * struct and you anyway have a pointer to it. It doesn't make sense
+         * if you have a list of int and want to append a number literal.
+         *
+         * nm_g_array_append_simple() is different. It depends on typeof(val)
+         * to be compatible. */ \
+        (*nm_g_array_append_new((arr), typeof(val))) = (val);            \
+    }                                                                    \
+    G_STMT_END
 
 /*****************************************************************************/
 
@@ -2342,40 +2068,29 @@ nm_g_ptr_array_pdata(const GPtrArray *arr)
     return arr ? arr->pdata : NULL;
 }
 
-GPtrArray *_nm_g_ptr_array_copy(GPtrArray     *array,
-                                GCopyFunc      func,
-                                gpointer       user_data,
-                                GDestroyNotify element_free_func);
-
 /**
- * nm_g_ptr_array_copy:
+ * nm_g_ptr_array_new_clone:
  * @array: the #GPtrArray to clone.
  * @func: the copy function.
  * @user_data: the user data for the copy function
- * @element_free_func: the free function of the elements. @array MUST have
- *   the same element_free_func. This argument is only used on older
- *   glib, that doesn't support g_ptr_array_copy().
+ * @element_free_func: the free function of the elements. This function
+ *   must agree with the owner-ship semantics of @func.
  *
  * This is a replacement for g_ptr_array_copy(), which is not available
  * before glib 2.62. Since GPtrArray does not allow to access the internal
  * element_free_func, we cannot add a compatibility implementation of g_ptr_array_copy()
- * and the user must provide a suitable destroy function.
+ * as the caller must provide the correct element_free_func.
  *
- * Note that the @element_free_func MUST correspond to free function set in @array.
+ * So this is not the same as g_ptr_array_copy() (hence the different name) because
+ * g_ptr_array_copy() uses the free func of the source array, which we cannot access.
+ * With g_ptr_array_copy() the copy func must agree with the array's free func.
+ * Here, it must agree with the provided @element_free_func. This allows for example
+ * to do a shallow-copy without cloning the elements (which you cannot do with g_ptr_array_copy()).
  */
-#if GLIB_CHECK_VERSION(2, 62, 0)
-#define nm_g_ptr_array_copy(array, func, user_data, element_free_func)            \
-    ({                                                                            \
-        _nm_unused GDestroyNotify const _element_free_func = (element_free_func); \
-                                                                                  \
-        G_GNUC_BEGIN_IGNORE_DEPRECATIONS;                                         \
-        g_ptr_array_copy((array), (func), (user_data));                           \
-        G_GNUC_END_IGNORE_DEPRECATIONS;                                           \
-    })
-#else
-#define nm_g_ptr_array_copy(array, func, user_data, element_free_func) \
-    _nm_g_ptr_array_copy((array), (func), (user_data), (element_free_func))
-#endif
+GPtrArray *nm_g_ptr_array_new_clone(GPtrArray     *array,
+                                    GCopyFunc      func,
+                                    gpointer       user_data,
+                                    GDestroyNotify element_free_func);
 
 /*****************************************************************************/
 
@@ -2443,42 +2158,95 @@ gboolean nm_utils_ptrarray_is_sorted(gconstpointer   *list,
                                      GCompareDataFunc cmpfcn,
                                      gpointer         user_data);
 
-gssize nm_utils_ptrarray_find_binary_search(gconstpointer   *list,
-                                            gsize            len,
-                                            gconstpointer    needle,
-                                            GCompareDataFunc cmpfcn,
-                                            gpointer         user_data);
+gssize nm_ptrarray_find_bsearch(gconstpointer   *list,
+                                gsize            len,
+                                gconstpointer    needle,
+                                GCompareDataFunc cmpfcn,
+                                gpointer         user_data);
 
-gssize nm_utils_ptrarray_find_binary_search_range(gconstpointer   *list,
-                                                  gsize            len,
-                                                  gconstpointer    needle,
-                                                  GCompareDataFunc cmpfcn,
-                                                  gpointer         user_data,
-                                                  gssize          *out_idx_first,
-                                                  gssize          *out_idx_last);
+gssize nm_ptrarray_find_bsearch_range(gconstpointer   *list,
+                                      gsize            len,
+                                      gconstpointer    needle,
+                                      GCompareDataFunc cmpfcn,
+                                      gpointer         user_data,
+                                      gssize          *out_idx_first,
+                                      gssize          *out_idx_last);
 
-#define nm_strv_find_binary_search(strv, len, needle)                 \
-    ({                                                                \
-        const char *const *const _strv   = NM_CAST_STRV_CC(strv);     \
-        const gsize              _len    = (len);                     \
-        const char *const        _needle = (needle);                  \
-                                                                      \
-        nm_assert(_len == 0 || _strv);                                \
-        nm_assert(_needle);                                           \
-                                                                      \
-        nm_utils_ptrarray_find_binary_search((gconstpointer *) _strv, \
-                                             _len,                    \
-                                             _needle,                 \
-                                             nm_strcmp_with_data,     \
-                                             NULL);                   \
+#define nm_strv_find_binary_search(strv, len, needle)             \
+    ({                                                            \
+        const char *const *const _strv   = NM_CAST_STRV_CC(strv); \
+        const gsize              _len    = (len);                 \
+        const char *const        _needle = (needle);              \
+                                                                  \
+        nm_assert(_len == 0 || _strv);                            \
+        nm_assert(_needle);                                       \
+                                                                  \
+        nm_ptrarray_find_bsearch((gconstpointer *) _strv,         \
+                                 _len,                            \
+                                 _needle,                         \
+                                 nm_strcmp_with_data,             \
+                                 NULL);                           \
     })
 
-gssize nm_utils_array_find_binary_search(gconstpointer    list,
-                                         gsize            elem_size,
-                                         gsize            len,
-                                         gconstpointer    needle,
-                                         GCompareDataFunc cmpfcn,
-                                         gpointer         user_data);
+/*****************************************************************************/
+
+#ifdef NM_WANT_NM_ARRAY_FIND_BSEARCH_INLINE
+/**
+ * nm_array_find_bsearch_inline:
+ *
+ * An inlined version of nm_array_find_bsearch(). See there.
+ * Define NM_WANT_NM_ARRAY_FIND_BSEARCH_INLINE to get it.
+ */
+_nm_always_inline static inline gssize
+nm_array_find_bsearch_inline(gconstpointer    list,
+                             gsize            len,
+                             gsize            elem_size,
+                             gconstpointer    needle,
+                             GCompareDataFunc cmpfcn,
+                             gpointer         user_data)
+{
+    gssize imax;
+    gssize imid;
+    gssize imin;
+    int    cmp;
+
+    nm_assert(list || len == 0);
+    nm_assert(cmpfcn);
+    nm_assert(elem_size > 0);
+
+    imin = 0;
+    if (len == 0)
+        return ~imin;
+
+    imax = len - 1;
+
+    while (imin <= imax) {
+        imid = imin + (imax - imin) / 2;
+
+        cmp = cmpfcn(&((const char *) list)[elem_size * imid], needle, user_data);
+        if (cmp == 0)
+            return imid;
+
+        if (cmp < 0)
+            imin = imid + 1;
+        else
+            imax = imid - 1;
+    }
+
+    /* return the inverse of @imin. This is a negative number, but
+     * also is ~imin the position where the value should be inserted. */
+    return ~imin;
+}
+#endif
+
+gssize nm_array_find_bsearch(gconstpointer    list,
+                             gsize            len,
+                             gsize            elem_size,
+                             gconstpointer    needle,
+                             GCompareDataFunc cmpfcn,
+                             gpointer         user_data);
+
+/*****************************************************************************/
 
 gssize nm_utils_ptrarray_find_first(gconstpointer *list, gssize len, gconstpointer needle);
 
@@ -2731,7 +2499,7 @@ nm_strv_ptrarray_clone(const GPtrArray *src, gboolean null_if_empty)
 {
     if (!src || (null_if_empty && src->len == 0))
         return NULL;
-    return nm_g_ptr_array_copy((GPtrArray *) src, nm_copy_func_g_strdup, NULL, g_free);
+    return nm_g_ptr_array_new_clone((GPtrArray *) src, nm_copy_func_g_strdup, NULL, g_free);
 }
 
 static inline void
@@ -2893,6 +2661,9 @@ nm_ether_addr_to_string(const NMEtherAddr *ether_addr, char sbuf[static(sizeof(N
 
 #define nm_ether_addr_to_string_a(ether_addr) \
     nm_ether_addr_to_string((ether_addr), g_alloca(sizeof(NMEtherAddr) * 3))
+
+#define nm_ether_addr_to_string_dup(ether_addr) \
+    ((char *) nm_ether_addr_to_string((ether_addr), g_malloc(sizeof(NMEtherAddr) * 3)))
 
 NMEtherAddr *nm_ether_addr_from_string(NMEtherAddr *addr, const char *str);
 
@@ -3211,7 +2982,7 @@ nm_strvarray_add(GArray *array, const char *str)
 static inline const char *
 nm_strvarray_get_idx(GArray *array, guint idx)
 {
-    return *nm_g_array_index_p(array, const char *, idx);
+    return nm_g_array_index(array, const char *, idx);
 }
 
 static inline const char *const *
@@ -3310,12 +3081,12 @@ nm_strvarray_remove_first(GArray *strv, const char *needle)
 static inline int
 nm_strvarray_cmp(const GArray *a, const GArray *b)
 {
+    nm_assert(!a || sizeof(const char *const *) == g_array_get_element_size((GArray *) a));
+    nm_assert(!b || sizeof(const char *const *) == g_array_get_element_size((GArray *) b));
+
     NM_CMP_SELF(a, b);
 
-    return nm_strv_cmp_n((const char *const *) a->data,
-                         a->len,
-                         (const char *const *) b->data,
-                         b->len);
+    return nm_strv_cmp_n(nm_g_array_data(a), a->len, nm_g_array_data(b), b->len);
 }
 
 #define nm_strvarray_equal(a, b) (nm_strvarray_cmp((a), (b)) == 0)
@@ -3323,10 +3094,9 @@ nm_strvarray_cmp(const GArray *a, const GArray *b)
 static inline int
 _nm_strvarray_cmp_strv(const GArray *strv, const char *const *ss, gsize ss_len)
 {
-    return nm_strv_cmp_n(strv ? (const char *const *) strv->data : NULL,
-                         strv ? ((gssize) strv->len) : -1,
-                         ss,
-                         ss_len);
+    nm_assert(!strv || sizeof(const char *const *) == g_array_get_element_size((GArray *) strv));
+
+    return nm_strv_cmp_n(nm_g_array_data(strv), strv ? ((gssize) strv->len) : -1, ss, ss_len);
 }
 #define nm_strvarray_cmp_strv(strv, ss, ss_len) \
     _nm_strvarray_cmp_strv((strv), NM_CAST_STRV_CC(ss), (ss_len))

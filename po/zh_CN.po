@@ -20,7 +20,7 @@ msgstr ""
 "Project-Id-Version: NetworkManager\n"
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/NetworkManager/"
 "NetworkManager/issues\n"
-"POT-Creation-Date: 2022-08-11 16:06-0300\n"
+"POT-Creation-Date: 2022-08-15 18:14-0300\n"
 "PO-Revision-Date: 2021-11-09 20:06+0800\n"
 "Last-Translator: Dingzhong Chen <wsxy162@gmail.com>\n"
 "Language-Team: Chinese - China <i18n-zh@googlegroups.com>\n"
@@ -10039,7 +10039,7 @@ msgstr "访问遭到拒绝"
 
 #: src/nmcli/common.c:1617
 msgid "NetworkManager is not running"
-msgstr "NetworkManaer 未运行"
+msgstr "NetworkManager 未运行"
 
 #: src/nmcli/common.c:1627
 msgid "none"
@@ -13387,7 +13387,7 @@ msgstr "错误：只允许使用这些字段：%s"
 #. NetworkManager quit while we were waiting.
 #: src/nmcli/general.c:554 src/nmtui/nmtui.c:246
 msgid "NetworkManager is not running."
-msgstr "NetworkManaer 未运行。"
+msgstr "NetworkManager 未运行。"
 
 #: src/nmcli/general.c:576
 msgid "NetworkManager permissions"

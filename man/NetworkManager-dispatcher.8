@@ -2,9 +2,9 @@
 .\"     Title: NetworkManager-dispatcher
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 01/26/2023
+.\"      Date: 02/10/2023
 .\"    Manual: Network management daemons
-.\"    Source: NetworkManager-dispatcher 1.40.12
+.\"    Source: NetworkManager-dispatcher 1.42.0
 .\"  Language: English
 .\"
 .TH "NETWORKMANAGER\-DISPATCHER" "8" "" "NetworkManager\-dispatcher 1\&" "Network management daemons"
@@ -116,6 +116,11 @@ The DHCPv6 lease has changed (renewed, rebound, etc)\&.
 \fIconnectivity\-change\fR
 .RS 4
 The network connectivity state has changed (no connectivity, went online, etc)\&.
+.RE
+.PP
+\fIreapply\fR
+.RS 4
+The connection was reapplied on the device\&.
 .RE
 .PP
 The environment contains more information about the interface and the connection\&. The following variables are available for the use in the dispatcher scripts:

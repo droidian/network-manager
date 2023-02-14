@@ -346,7 +346,7 @@ ssid_to_hex(const char *str, gsize len)
 void
 nmc_terminal_erase_line(void)
 {
-    /* We intentionally use printf(), not g_print() here, to ensure that
+    /* We intentionally use printf(), not nmc_print() here, to ensure that
      * GLib doesn't mistakenly try to convert the string.
      */
     printf("\33[2K\r");
@@ -365,7 +365,7 @@ nmc_terminal_show_progress(const char *str)
     const char slashes[4] = {'|', '/', '-', '\\'};
 
     nmc_terminal_erase_line();
-    g_print("%c %s", slashes[idx++], str ?: "");
+    nmc_print("%c %s", slashes[idx++], str ?: "");
     fflush(stdout);
     if (idx == 4)
         idx = 0;
@@ -467,7 +467,7 @@ nmc_get_user_input(const char *ask_str)
     size_t  line_ln = 0;
     ssize_t num;
 
-    g_print("%s", ask_str);
+    nmc_print("%s", ask_str);
     num = getline(&line, &line_ln, stdin);
 
     /* Remove newline from the string */
@@ -691,7 +691,7 @@ _output_selection_append(GArray                    *cols,
             if (parent_idx != PRINT_DATA_COL_PARENT_NIL) {
                 const NMMetaSelectionItem *si;
 
-                si = g_array_index(cols, PrintDataCol, parent_idx).selection_item;
+                si = nm_g_array_index(cols, PrintDataCol, parent_idx).selection_item;
                 allowed_fields =
                     nm_meta_abstract_info_get_nested_names_str(si->info, si->self_selection);
             }
@@ -741,7 +741,7 @@ _output_selection_append(GArray                    *cols,
         if (!NM_IN_SET(selection_item->info->meta_type,
                        &nm_meta_type_setting_info_editor,
                        &nmc_meta_type_generic_info))
-            g_array_index(cols, PrintDataCol, col_idx).is_leaf = FALSE;
+            nm_g_array_index(cols, PrintDataCol, col_idx).is_leaf = FALSE;
     }
 
     return TRUE;
@@ -756,13 +756,13 @@ _output_selection_complete(GArray *cols)
     nm_assert(g_array_get_element_size(cols) == sizeof(PrintDataCol));
 
     for (i = 0; i < cols->len; i++) {
-        PrintDataCol *col = &g_array_index(cols, PrintDataCol, i);
+        PrintDataCol *col = &nm_g_array_index(cols, PrintDataCol, i);
 
         if (col->_parent_idx == PRINT_DATA_COL_PARENT_NIL)
             col->parent_col = NULL;
         else {
             nm_assert(col->_parent_idx < i);
-            col->parent_col = &g_array_index(cols, PrintDataCol, col->_parent_idx);
+            col->parent_col = &nm_g_array_index(cols, PrintDataCol, col->_parent_idx);
         }
     }
 }
@@ -825,7 +825,7 @@ _output_selection_parse(const NMMetaAbstractInfo *const *fields,
     _output_selection_complete(cols);
 
     *out_cols_len     = cols->len;
-    *out_cols_data    = (PrintDataCol *) g_array_free(g_steal_pointer(&cols), FALSE);
+    *out_cols_data    = (PrintDataCol *) ((gpointer) g_array_free(g_steal_pointer(&cols), FALSE));
     *out_gfree_keeper = g_steal_pointer(&gfree_keeper);
     return TRUE;
 }
@@ -1026,7 +1026,7 @@ _print_fill(const NmcConfig    *nmc_config,
         col_idx = header_row->len;
         g_array_set_size(header_row, col_idx + 1);
 
-        header_cell = &g_array_index(header_row, PrintDataHeaderCell, col_idx);
+        header_cell = &nm_g_array_index(header_row, PrintDataHeaderCell, col_idx);
 
         header_cell->col_idx = col_idx;
         header_cell->col     = col;
@@ -1060,8 +1060,9 @@ _print_fill(const NmcConfig    *nmc_config,
         text_get_flags |= NM_META_ACCESSOR_GET_FLAGS_SHOW_SECRETS;
 
     for (i_row = 0; i_row < targets_len; i_row++) {
-        gpointer       target     = targets[i_row];
-        PrintDataCell *cells_line = &g_array_index(cells, PrintDataCell, i_row * header_row->len);
+        gpointer       target = targets[i_row];
+        PrintDataCell *cells_line =
+            &nm_g_array_index(cells, PrintDataCell, i_row * header_row->len);
 
         for (i_col = 0; i_col < header_row->len; i_col++) {
             char                     *to_free = NULL;
@@ -1072,7 +1073,7 @@ _print_fill(const NmcConfig    *nmc_config,
             gconstpointer             value;
             gboolean                  is_default;
 
-            header_cell = &g_array_index(header_row, PrintDataHeaderCell, i_col);
+            header_cell = &nm_g_array_index(header_row, PrintDataHeaderCell, i_col);
             info        = header_cell->col->selection_item->info;
 
             cell->row_idx     = i_row;
@@ -1115,7 +1116,7 @@ _print_fill(const NmcConfig    *nmc_config,
                         cell->text_to_free = TRUE;
                     }
                     if (to_free)
-                        g_strfreev((char **) to_free);
+                        g_strfreev(NM_CAST_ALIGN(char *, to_free));
                 }
             } else {
                 cell->text.plain   = value;
@@ -1147,13 +1148,14 @@ _print_fill(const NmcConfig    *nmc_config,
     }
 
     for (i_col = 0; i_col < header_row->len; i_col++) {
-        PrintDataHeaderCell *header_cell = &g_array_index(header_row, PrintDataHeaderCell, i_col);
+        PrintDataHeaderCell *header_cell =
+            &nm_g_array_index(header_row, PrintDataHeaderCell, i_col);
 
         header_cell->width = nmc_string_screen_width(header_cell->title, NULL);
 
         for (i_row = 0; i_row < targets_len; i_row++) {
             const PrintDataCell *cells_line =
-                &g_array_index(cells, PrintDataCell, i_row * header_row->len);
+                &nm_g_array_index(cells, PrintDataCell, i_row * header_row->len);
             const PrintDataCell *cell = &cells_line[i_col];
             const char *const   *i_strv;
 
@@ -1249,9 +1251,9 @@ _print_do(const NmcConfig           *nmc_config,
 
         width1 = strlen(header_name);
         width2 = nmc_string_screen_width(header_name, NULL);
-        g_print("%s\n", line);
-        g_print("%*s\n", (table_width + width2) / 2 + width1 - width2, header_name);
-        g_print("%s\n", line);
+        nmc_print("%s\n", line);
+        nmc_print("%*s\n", (table_width + width2) / 2 + width1 - width2, header_name);
+        nmc_print("%s\n", line);
     }
 
     str = !nmc_config->multiline_output ? g_string_sized_new(100) : NULL;
@@ -1281,14 +1283,14 @@ _print_do(const NmcConfig           *nmc_config,
 
         if (str->len)
             g_string_truncate(str, str->len - 1); /* Chop off last column separator */
-        g_print("%s\n", str->str);
+        nmc_print("%s\n", str->str);
         g_string_truncate(str, 0);
 
         /* Print horizontal separator */
         if (nmc_config->print_output == NMC_PRINT_PRETTY) {
             gs_free char *line = NULL;
 
-            g_print("%s\n", (line = g_strnfill(table_width, '-')));
+            nmc_print("%s\n", (line = g_strnfill(table_width, '-')));
         }
     }
 
@@ -1330,12 +1332,12 @@ _print_do(const NmcConfig           *nmc_config,
                         prefix = g_strdup_printf("%s:", cell->header_cell->title);
                     width1 = strlen(prefix);
                     width2 = nmc_string_screen_width(prefix, NULL);
-                    g_print("%-*s%s\n",
-                            (int) (nmc_config->print_output == NMC_PRINT_TERSE
-                                       ? 0
-                                       : ML_VALUE_INDENT + width1 - width2),
-                            prefix,
-                            text);
+                    nmc_print("%-*s%s\n",
+                              (int) (nmc_config->print_output == NMC_PRINT_TERSE
+                                         ? 0
+                                         : ML_VALUE_INDENT + width1 - width2),
+                              prefix,
+                              text);
                 } else {
                     nm_assert(str);
                     if (nmc_config->print_output == NMC_PRINT_TERSE) {
@@ -1371,7 +1373,7 @@ _print_do(const NmcConfig           *nmc_config,
         if (!nmc_config->multiline_output) {
             if (str->len)
                 g_string_truncate(str, str->len - 1); /* Chop off last column separator */
-            g_print("%s\n", str->str);
+            nmc_print("%s\n", str->str);
 
             g_string_truncate(str, 0);
         }
@@ -1379,19 +1381,19 @@ _print_do(const NmcConfig           *nmc_config,
         if (nmc_config->print_output == NMC_PRINT_PRETTY && nmc_config->multiline_output) {
             gs_free char *line = NULL;
 
-            g_print("%s\n", (line = g_strnfill(ML_HEADER_WIDTH, '-')));
+            nmc_print("%s\n", (line = g_strnfill(ML_HEADER_WIDTH, '-')));
         }
     }
 }
 
 gboolean
-nmc_print(const NmcConfig                 *nmc_config,
-          gpointer const                  *targets,
-          gpointer                         targets_data,
-          const char                      *header_name_no_l10n,
-          const NMMetaAbstractInfo *const *fields,
-          const char                      *fields_str,
-          GError                         **error)
+nmc_print_table(const NmcConfig                 *nmc_config,
+                gpointer const                  *targets,
+                gpointer                         targets_data,
+                const char                      *header_name_no_l10n,
+                const NMMetaAbstractInfo *const *fields,
+                const char                      *fields_str,
+                GError                         **error)
 {
     gs_unref_ptrarray GPtrArray *gfree_keeper = NULL;
     gs_free PrintDataCol        *cols_data    = NULL;
@@ -1408,8 +1410,8 @@ nmc_print(const NmcConfig                 *nmc_config,
               header_name_no_l10n,
               header_row->len,
               cells->len / header_row->len,
-              &g_array_index(header_row, PrintDataHeaderCell, 0),
-              &g_array_index(cells, PrintDataCell, 0));
+              nm_g_array_first_p(header_row, PrintDataHeaderCell),
+              nm_g_array_first_p(cells, PrintDataCell));
 
     return TRUE;
 }
@@ -1419,22 +1421,20 @@ nmc_print(const NmcConfig                 *nmc_config,
 static void
 pager_fallback(void)
 {
-    char buf[64];
+    char buf[1024];
     int  rb;
-    int  errsv;
+
+    /* We are still in the child process (after fork() and before exec()).
+     * We must only used functions listed in `man signal-safety`. */
 
     do {
         rb = read(STDIN_FILENO, buf, sizeof(buf));
         if (rb == -1) {
-            errsv = errno;
-            if (errsv == EINTR)
+            if (errno == EINTR)
                 continue;
-            g_printerr(_("Error reading nmcli output: %s\n"), nm_strerror_native(errsv));
             _exit(EXIT_FAILURE);
         }
         if (write(STDOUT_FILENO, buf, rb) == -1) {
-            errsv = errno;
-            g_printerr(_("Error writing nmcli output: %s\n"), nm_strerror_native(errsv));
             _exit(EXIT_FAILURE);
         }
     } while (rb > 0);
@@ -1445,11 +1445,12 @@ pager_fallback(void)
 pid_t
 nmc_terminal_spawn_pager(const NmcConfig *nmc_config)
 {
-    const char *pager = getenv("PAGER");
-    pid_t       pager_pid;
-    pid_t       parent_pid;
-    int         fd[2];
-    int         errsv;
+    const char        *pager = getenv("PAGER");
+    pid_t              pager_pid;
+    pid_t              parent_pid;
+    int                fd[2];
+    int                errsv;
+    gs_strfreev char **ev = NULL;
 
     if (nmc_config->in_editor || nmc_config->print_output == NMC_PRINT_TERSE
         || !nmc_config->use_colors || g_strcmp0(pager, "") == 0 || getauxval(AT_SECURE))
@@ -1457,16 +1458,20 @@ nmc_terminal_spawn_pager(const NmcConfig *nmc_config)
 
     if (pipe(fd) == -1) {
         errsv = errno;
-        g_printerr(_("Failed to create pager pipe: %s\n"), nm_strerror_native(errsv));
+        nmc_printerr(_("Failed to create pager pipe: %s\n"), nm_strerror_native(errsv));
         return 0;
     }
 
     parent_pid = getpid();
 
+    ev = g_get_environ();
+    ev = g_environ_setenv(ev, "LESS", "FRSXMK", TRUE);
+    ev = g_environ_setenv(ev, "LESSCHARSET", "utf-8", TRUE);
+
     pager_pid = fork();
     if (pager_pid == -1) {
         errsv = errno;
-        g_printerr(_("Failed to fork pager: %s\n"), nm_strerror_native(errsv));
+        nmc_printerr(_("Failed to fork pager: %s\n"), nm_strerror_native(errsv));
         nm_close(fd[0]);
         nm_close(fd[1]);
         return 0;
@@ -1478,9 +1483,6 @@ nmc_terminal_spawn_pager(const NmcConfig *nmc_config)
         nm_close(fd[0]);
         nm_close(fd[1]);
 
-        setenv("LESS", "FRSXMK", 1);
-        setenv("LESSCHARSET", "utf-8", 1);
-
         /* Make sure the pager goes away when the parent dies */
         if (prctl(PR_SET_PDEATHSIG, SIGTERM) < 0)
             _exit(EXIT_FAILURE);
@@ -1491,8 +1493,8 @@ nmc_terminal_spawn_pager(const NmcConfig *nmc_config)
             _exit(EXIT_SUCCESS);
 
         if (pager) {
-            execlp(pager, pager, NULL);
-            execl("/bin/sh", "sh", "-c", pager, NULL);
+            execvpe(pager, (char **) NM_MAKE_STRV(pager), ev);
+            execvpe("/bin/sh", (char **) NM_MAKE_STRV("sh", "-c", pager), ev);
         }
 
         /* Debian's alternatives command for pagers is
@@ -1501,10 +1503,10 @@ nmc_terminal_spawn_pager(const NmcConfig *nmc_config)
          * shell script that implements a logic that
          * is similar to this one anyway, but is
          * Debian-specific. */
-        execlp("pager", "pager", NULL);
+        execvpe("pager", (char **) NM_MAKE_STRV("pager"), ev);
 
-        execlp("less", "less", NULL);
-        execlp("more", "more", NULL);
+        execvpe("less", (char **) NM_MAKE_STRV("less"), ev);
+        execvpe("more", (char **) NM_MAKE_STRV("more"), ev);
 
         pager_fallback();
         /* not reached */
@@ -1513,11 +1515,11 @@ nmc_terminal_spawn_pager(const NmcConfig *nmc_config)
     /* Return in the parent */
     if (dup2(fd[1], STDOUT_FILENO) < 0) {
         errsv = errno;
-        g_printerr(_("Failed to duplicate pager pipe: %s\n"), nm_strerror_native(errsv));
+        nmc_printerr(_("Failed to duplicate pager pipe: %s\n"), nm_strerror_native(errsv));
     }
     if (dup2(fd[1], STDERR_FILENO) < 0) {
         errsv = errno;
-        g_printerr(_("Failed to duplicate pager pipe: %s\n"), nm_strerror_native(errsv));
+        nmc_printerr(_("Failed to duplicate pager pipe: %s\n"), nm_strerror_native(errsv));
     }
 
     nm_close(fd[0]);
@@ -1606,9 +1608,9 @@ print_required_fields(const NmcConfig      *nmc_config,
 
         width1 = strlen(header_name);
         width2 = nmc_string_screen_width(header_name, NULL);
-        g_print("%s\n", line);
-        g_print("%*s\n", (table_width + width2) / 2 + width1 - width2, header_name);
-        g_print("%s\n", line);
+        nmc_print("%s\n", line);
+        nmc_print("%*s\n", (table_width + width2) / 2 + width1 - width2, header_name);
+        nmc_print("%s\n", line);
     }
 
     if (main_header_only)
@@ -1624,7 +1626,7 @@ print_required_fields(const NmcConfig      *nmc_config,
 
     if (nmc_config->multiline_output) {
         for (i = 0; i < indices->len; i++) {
-            int      idx      = g_array_index(indices, int, i);
+            int      idx      = nm_g_array_index(indices, int, i);
             gboolean is_array = field_values[idx].value_is_array;
 
             /* section prefix can't be an array */
@@ -1654,12 +1656,12 @@ print_required_fields(const NmcConfig      *nmc_config,
                         j);
                     width1 = strlen(tmp);
                     width2 = nmc_string_screen_width(tmp, NULL);
-                    g_print("%-*s%s\n",
-                            (int) (nmc_config->print_output == NMC_PRINT_TERSE
-                                       ? 0
-                                       : ML_VALUE_INDENT + width1 - width2),
-                            tmp,
-                            print_val);
+                    nmc_print("%-*s%s\n",
+                              (int) (nmc_config->print_output == NMC_PRINT_TERSE
+                                         ? 0
+                                         : ML_VALUE_INDENT + width1 - width2),
+                              tmp,
+                              print_val);
                 }
             } else {
                 gs_free char *val_to_free = NULL;
@@ -1679,18 +1681,18 @@ print_required_fields(const NmcConfig      *nmc_config,
                                     nm_meta_abstract_info_get_name(field_values[idx].info, FALSE));
                 width1 = strlen(tmp);
                 width2 = nmc_string_screen_width(tmp, NULL);
-                g_print("%-*s%s\n",
-                        (int) (nmc_config->print_output == NMC_PRINT_TERSE
-                                   ? 0
-                                   : ML_VALUE_INDENT + width1 - width2),
-                        tmp,
-                        print_val);
+                nmc_print("%-*s%s\n",
+                          (int) (nmc_config->print_output == NMC_PRINT_TERSE
+                                     ? 0
+                                     : ML_VALUE_INDENT + width1 - width2),
+                          tmp,
+                          print_val);
             }
         }
         if (nmc_config->print_output == NMC_PRINT_PRETTY) {
             gs_free char *line = NULL;
 
-            g_print("%s\n", (line = g_strnfill(ML_HEADER_WIDTH, '-')));
+            nmc_print("%s\n", (line = g_strnfill(ML_HEADER_WIDTH, '-')));
         }
 
         return;
@@ -1705,7 +1707,7 @@ print_required_fields(const NmcConfig      *nmc_config,
         int           idx;
         const char   *value;
 
-        idx = g_array_index(indices, int, i);
+        idx = nm_g_array_index(indices, int, i);
 
         value = get_value_to_print(nmc_config,
                                    (NmcOutputField *) field_values + idx,
@@ -1747,13 +1749,13 @@ print_required_fields(const NmcConfig      *nmc_config,
             g_string_prepend(str, (indent_str = g_strnfill(indent, ' ')));
         }
 
-        g_print("%s\n", str->str);
+        nmc_print("%s\n", str->str);
 
         /* Print horizontal separator */
         if (nmc_config->print_output == NMC_PRINT_PRETTY && field_names) {
             gs_free char *line = NULL;
 
-            g_print("%s\n", (line = g_strnfill(table_width, '-')));
+            nmc_print("%s\n", (line = g_strnfill(table_width, '-')));
         }
     }
 }

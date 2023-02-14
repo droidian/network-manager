@@ -9,7 +9,7 @@
 #include "libnm-platform/nmp-base.h"
 
 #define NM_TYPE_NETNS            (nm_netns_get_type())
-#define NM_NETNS(obj)            (G_TYPE_CHECK_INSTANCE_CAST((obj), NM_TYPE_NETNS, NMNetns))
+#define NM_NETNS(obj)            (_NM_G_TYPE_CHECK_INSTANCE_CAST((obj), NM_TYPE_NETNS, NMNetns))
 #define NM_NETNS_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST((klass), NM_TYPE_NETNS, NMNetnsClass))
 #define NM_IS_NETNS(obj)         (G_TYPE_CHECK_INSTANCE_TYPE((obj), NM_TYPE_NETNS))
 #define NM_IS_NETNS_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE((klass), NM_TYPE_NETNS))
@@ -50,5 +50,13 @@ typedef struct {
 NMNetnsSharedIPHandle *nm_netns_shared_ip_reserve(NMNetns *self);
 
 void nm_netns_shared_ip_release(NMNetnsSharedIPHandle *handle);
+
+/*****************************************************************************/
+
+void nm_netns_ip_route_ecmp_register(NMNetns *self, NML3Cfg *l3cfg, const NMPObject *obj);
+void nm_netns_ip_route_ecmp_commit(NMNetns    *self,
+                                   NML3Cfg    *l3cfg,
+                                   GPtrArray **routes,
+                                   gboolean    is_reapply);
 
 #endif /* __NM_NETNS_H__ */

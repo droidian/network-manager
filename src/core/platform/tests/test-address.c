@@ -118,7 +118,7 @@ test_ip4_address_general(void)
     addresses = nmtstp_platform_ip4_address_get_all(NM_PLATFORM_GET, ifindex);
     g_assert(addresses);
     g_assert_cmpint(addresses->len, ==, 1);
-    address = &g_array_index(addresses, NMPlatformIP4Address, 0);
+    address = &nm_g_array_first(addresses, NMPlatformIP4Address);
     g_assert_cmpint(address->ifindex, ==, ifindex);
     g_assert_cmphex(address->address, ==, addr);
     g_assert_cmphex(address->peer_address, ==, addr);
@@ -193,7 +193,7 @@ test_ip6_address_general(void)
     addresses = nmtstp_platform_ip6_address_get_all(NM_PLATFORM_GET, ifindex);
     g_assert(addresses);
     g_assert_cmpint(addresses->len, ==, 1);
-    address = &g_array_index(addresses, NMPlatformIP6Address, 0);
+    address = &nm_g_array_first(addresses, NMPlatformIP6Address);
     g_assert_cmpint(address->ifindex, ==, ifindex);
     g_assert(!memcmp(&address->address, &addr, sizeof(addr)));
     g_assert_cmpint(address->plen, ==, IP6_PLEN);
@@ -453,7 +453,7 @@ _nmtstp_init_tests(int *argc, char ***argv)
 void
 _nmtstp_setup_tests(void)
 {
-#define add_test_func(testpath, test_func) nmtstp_env1_add_test_func(testpath, test_func, FALSE)
+#define add_test_func(testpath, test_func) nmtstp_env1_add_test_func(testpath, test_func, 1, FALSE)
     add_test_func("/address/ipv4/general", test_ip4_address_general);
     add_test_func("/address/ipv6/general", test_ip6_address_general);
 

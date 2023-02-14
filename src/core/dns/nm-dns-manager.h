@@ -12,16 +12,6 @@
 #include "nm-setting-connection.h"
 #include "nm-dns-plugin.h"
 
-typedef enum {
-    NM_DNS_IP_CONFIG_TYPE_REMOVED = -1,
-
-    NM_DNS_IP_CONFIG_TYPE_DEFAULT = 0,
-    NM_DNS_IP_CONFIG_TYPE_BEST_DEVICE,
-    NM_DNS_IP_CONFIG_TYPE_VPN,
-} NMDnsIPConfigType;
-
-/*****************************************************************************/
-
 struct _NMDnsConfigData;
 struct _NMDnsManager;
 
@@ -71,7 +61,7 @@ typedef struct _NMDnsConfigData {
 /*****************************************************************************/
 
 #define NM_TYPE_DNS_MANAGER (nm_dns_manager_get_type())
-#define NM_DNS_MANAGER(o)   (G_TYPE_CHECK_INSTANCE_CAST((o), NM_TYPE_DNS_MANAGER, NMDnsManager))
+#define NM_DNS_MANAGER(o)   (_NM_G_TYPE_CHECK_INSTANCE_CAST((o), NM_TYPE_DNS_MANAGER, NMDnsManager))
 #define NM_DNS_MANAGER_CLASS(k) \
     (G_TYPE_CHECK_CLASS_CAST((k), NM_TYPE_DNS_MANAGER, NMDnsManagerClass))
 #define NM_IS_DNS_MANAGER(o)       (G_TYPE_CHECK_INSTANCE_TYPE((o), NM_TYPE_DNS_MANAGER))

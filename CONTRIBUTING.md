@@ -9,7 +9,8 @@ Check out website https://networkmanager.dev and our [GNOME page](https://wiki.g
 
 The release tarballs can be found at [download.gnome.org](https://download.gnome.org/sources/NetworkManager/).
 
-Our mailing list is networkmanager-list@gnome.org ([archive](https://mail.gnome.org/archives/networkmanager-list/)).
+Our mailing list is networkmanager@lists.freedesktop.org ([archive](https://lists.freedesktop.org/archives/networkmanager/),
+[old-archive](https://mail.gnome.org/archives/networkmanager-list/)).
 
 Find us on IRC channel `#nm` on Libera.Chat.
 
@@ -153,7 +154,7 @@ and for meson it's
 ```
 meson build $CONFIGURE_OPTIONS
 ninja -C build
-# optional: sudo meson install
+# optional: sudo meson install -C build
 ```
 
 Beware to set the correct `$CONFIGURE_OPTIONS`. In particular, you may
@@ -176,7 +177,7 @@ Unit Tests
 ----------
 
 We have plenty of unit tests. Run them with `make check` or
-`meson -C "$BUILD_DIR" test`.
+`meson test -C build`.
 
 Note that some files in the source tree are both generated and commited
 to git. That means, certain changes to the code also affect these generated
@@ -219,6 +220,13 @@ source code and navigate it. These tools can integrate with editors like `Vim` a
 
 - http://cscope.sourceforge.net/cscope_vim_tutorial.html
 - https://www.emacswiki.org/emacs/CScopeAndEmacs
+
+For cscope, you can also set `$SOURCEDIRS` to include other source trees and navigate
+those sources. For example,
+```
+export SOURCEDIRS=/path/to/glib:/path/to/libndp
+cscope -b -q -R -ssrc
+```
 
 
 Miscellaneous
@@ -317,7 +325,10 @@ The second include is the header that belongs to the C source file. This
 is so that header files are self-contained (aside what default dependencies that
 they get and everybody can rely on).
 
-The next includes are system headers with `<>`.
+The next includes are system headers with `<>`. Exceptions are headers like
+"libnm-std-aux/nm-linux-compat.h" and "nm-compat-headers/\*" which are our small
+wrappers around system headers. These are also to be included together with system
+headers.
 
 Finally, all other headers from our source tree. Note that all build targets
 have `-I. -I./src/` in their build arguments. So to include a header like

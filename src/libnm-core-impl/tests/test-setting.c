@@ -121,7 +121,7 @@ test_nm_meta_setting_types_by_priority(void)
     G_STATIC_ASSERT_EXPR(_NM_META_SETTING_TYPE_NUM
                          == G_N_ELEMENTS(nm_meta_setting_types_by_priority));
 
-    G_STATIC_ASSERT_EXPR(_NM_META_SETTING_TYPE_NUM == 52);
+    G_STATIC_ASSERT_EXPR(_NM_META_SETTING_TYPE_NUM == 54);
 
     arr = g_ptr_array_new_with_free_func(g_object_unref);
 
@@ -3755,7 +3755,7 @@ test_roundtrip_conversion(gconstpointer test_data)
         for (is_ipv4 = 0; is_ipv4 < 2; is_ipv4++) {
             g_assert(NM_IS_SETTING_IP_CONFIG(s_ip.s_x[is_ipv4]));
             for (i = 0; i < 3; i++) {
-                char addrstr[NM_UTILS_INET_ADDRSTRLEN];
+                char addrstr[NM_INET_ADDRSTRLEN];
 
                 nm_auto_unref_ip_routing_rule NMIPRoutingRule *rr = NULL;
 
@@ -4166,6 +4166,88 @@ test_routing_rule(gconstpointer test_data)
 /*****************************************************************************/
 
 static void
+test_ranges(void)
+{
+    GError  *error = NULL;
+    NMRange *r1;
+    NMRange *r2;
+    guint64  start;
+    guint64  end;
+    char    *str  = NULL;
+    char    *str2 = NULL;
+
+    r1 = nm_range_from_str("99", &error);
+    nmtst_assert_success(r1, error);
+    nm_range_get_range(r1, &start, &end);
+    g_assert_cmpint(start, ==, 99);
+    g_assert_cmpint(end, ==, 99);
+    str = nm_range_to_str(r1);
+    g_assert_cmpstr(str, ==, "99");
+    nm_clear_g_free(&str);
+    nm_range_unref(r1);
+
+    r1 = nm_range_from_str("1000-2000", &error);
+    nmtst_assert_success(r1, error);
+    nm_range_get_range(r1, &start, &end);
+    g_assert_cmpint(start, ==, 1000);
+    g_assert_cmpint(end, ==, 2000);
+    str = nm_range_to_str(r1);
+    g_assert_cmpstr(str, ==, "1000-2000");
+    nm_clear_g_free(&str);
+    nm_range_unref(r1);
+
+    r1 = nm_range_from_str("0", &error);
+    nmtst_assert_success(r1, error);
+    nm_range_unref(r1);
+
+    r1 = nm_range_from_str("-1", &error);
+    nmtst_assert_no_success(r1, error);
+    g_clear_error(&error);
+
+    r1 = nm_range_from_str("foobar", &error);
+    nmtst_assert_no_success(r1, error);
+    g_clear_error(&error);
+
+    r1 = nm_range_from_str("200-100", &error);
+    nmtst_assert_no_success(r1, error);
+    g_clear_error(&error);
+
+    r1 = nm_range_from_str("100-200", &error);
+    nmtst_assert_success(r1, error);
+    r2 = nm_range_from_str("100-200", &error);
+    nmtst_assert_success(r2, error);
+    g_assert_cmpint(nm_range_cmp(r1, r2), ==, 0);
+    nm_range_unref(r1);
+    nm_range_unref(r2);
+
+    r1 = nm_range_from_str("100-200", &error);
+    nmtst_assert_success(r1, error);
+    r2 = nm_range_from_str("1", &error);
+    nmtst_assert_success(r2, error);
+    g_assert_cmpint(nm_range_cmp(r1, r2), ==, 1);
+    nm_range_ref(r1);
+    nm_range_unref(r1);
+    nm_range_unref(r1);
+    nm_range_unref(r2);
+
+    r1 = nm_range_new(G_MAXUINT64 - 1, G_MAXUINT64);
+    g_assert(r1);
+    str = nm_range_to_str(r1);
+    g_assert_cmpstr(str, ==, "18446744073709551614-18446744073709551615");
+    r2 = nm_range_from_str(str, &error);
+    nmtst_assert_success(r2, error);
+    str2 = nm_range_to_str(r2);
+    g_assert_cmpstr(str, ==, str2);
+    g_assert_cmpint(nm_range_cmp(r1, r2), ==, 0);
+    nm_range_unref(r1);
+    nm_range_unref(r2);
+    nm_clear_g_free(&str);
+    nm_clear_g_free(&str2);
+}
+
+/*****************************************************************************/
+
+static void
 test_parse_tc_handle(void)
 {
 #define _parse_tc_handle(str, exp)                                              \
@@ -4303,7 +4385,7 @@ _PROP_IDX_OWNER(GHashTable *h_property_types, const NMSettInfoPropertType *prope
     g_assert(arr);
     g_assert(arr->len > 0);
 
-    idx = g_array_index(arr, guint, 0);
+    idx = nm_g_array_first(arr, guint);
 
     meta_type = (idx & 0xFFu);
     prop_idx  = idx >> 8;
@@ -5069,6 +5151,84 @@ test_6lowpan_1(void)
 /*****************************************************************************/
 
 static void
+test_settings_dns(void)
+{
+    int i_run;
+
+    for (i_run = 0; i_run < 10; i_run++) {
+        gs_unref_object NMConnection *con1 = NULL;
+        gs_unref_object NMConnection *con2 = NULL;
+        int                           IS_IPv4;
+        guint                         n_dns;
+        guint                         i;
+        gboolean                      same = TRUE;
+
+        con1 =
+            nmtst_create_minimal_connection("test-dns", NULL, NM_SETTING_WIRED_SETTING_NAME, NULL);
+        nmtst_connection_normalize(con1);
+
+        con2 = nmtst_connection_duplicate_and_normalize(con1);
+
+        nmtst_assert_connection_equals(con1, nmtst_get_rand_bool(), con2, nmtst_get_rand_bool());
+
+        for (IS_IPv4 = 1; IS_IPv4 >= 0; IS_IPv4--) {
+            const char *nameservers[2][7] = {
+                [0] =
+                    {
+                        "11:22::b:0",
+                        "11:22::b:1#hello1",
+                        "11:22::b:2",
+                        "11:22::b:3#hello2",
+                        "11:22::b:4",
+                        "11:22::b:5",
+                        "bogus6",
+                    },
+                [1] =
+                    {
+                        "1.1.1.0",
+                        "1.1.1.1#foo1",
+                        "1.1.1.2",
+                        "1.1.1.3#foo2",
+                        "1.1.1.4",
+                        "1.1.1.5",
+                        "bogus4",
+                    },
+            };
+            GType gtype = IS_IPv4 ? NM_TYPE_SETTING_IP4_CONFIG : NM_TYPE_SETTING_IP6_CONFIG;
+            NMSettingIPConfig *s_ip1 = _nm_connection_get_setting(con1, gtype);
+            NMSettingIPConfig *s_ip2 = _nm_connection_get_setting(con2, gtype);
+
+            n_dns = nmtst_get_rand_uint32() % G_N_ELEMENTS(nameservers[0]);
+            for (i = 0; i < n_dns; i++) {
+                const char *d =
+                    nameservers[IS_IPv4][nmtst_get_rand_uint32() % G_N_ELEMENTS(nameservers[0])];
+
+                if (!nmtst_get_rand_one_case_in(4))
+                    nm_setting_ip_config_add_dns(s_ip1, d);
+                if (!nmtst_get_rand_one_case_in(4))
+                    nm_setting_ip_config_add_dns(s_ip2, d);
+            }
+
+            if (nm_strv_ptrarray_cmp(_nm_setting_ip_config_get_dns_array(s_ip1),
+                                     _nm_setting_ip_config_get_dns_array(s_ip2))
+                != 0)
+                same = FALSE;
+        }
+
+        _nm_utils_is_manager_process = nmtst_get_rand_bool();
+        if (same) {
+            nmtst_assert_connection_equals(con1, FALSE, con2, FALSE);
+            g_assert(nm_connection_compare(con1, con2, NM_SETTING_COMPARE_FLAG_EXACT));
+        } else {
+            g_assert(!nm_connection_compare(con1, con2, NM_SETTING_COMPARE_FLAG_EXACT));
+        }
+        _nm_utils_is_manager_process = FALSE;
+    }
+}
+
+/*****************************************************************************/
+
+static void
 test_bond_meta(void)
 {
     gs_unref_object NMConnection *con = NULL;
@@ -5170,6 +5330,8 @@ main(int argc, char **argv)
 
     g_test_add_func("/libnm/settings/6lowpan/1", test_6lowpan_1);
 
+    g_test_add_func("/libnm/settings/dns", test_settings_dns);
+
     g_test_add_func("/libnm/settings/sriov/vf", test_sriov_vf);
     g_test_add_func("/libnm/settings/sriov/vf-dup", test_sriov_vf_dup);
     g_test_add_func("/libnm/settings/sriov/vf-vlan", test_sriov_vf_vlan);
@@ -5235,6 +5397,8 @@ main(int argc, char **argv)
                          test_roundtrip_conversion);
 
     g_test_add_data_func("/libnm/settings/routing-rule/1", GINT_TO_POINTER(0), test_routing_rule);
+
+    g_test_add_func("/libnm/settings/ranges", test_ranges);
 
     g_test_add_func("/libnm/parse-tc-handle", test_parse_tc_handle);
 

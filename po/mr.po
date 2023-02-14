@@ -1,6 +1,6 @@
 # translation of NetworkManager.master.po to Marathi
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the PACKAGE package.
+# This file is distributed under the same license as the NetworkManager package.
 # Sandeep Shedmake <sshedmak@redhat.com>, 2009, 2013.
 # Sandeep Shedmake <sshedmak@redhat.com>, 2010, 2011, 2012, 2013, 2014.
 # Lubomir Rintel <lkundrak@v3.sk>, 2016. #zanata
@@ -10,7 +10,7 @@ msgstr ""
 "Project-Id-Version: NetworkManager\n"
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/NetworkManager/"
 "NetworkManager/issues\n"
-"POT-Creation-Date: 2022-08-11 16:06-0300\n"
+"POT-Creation-Date: 2022-08-15 18:14-0300\n"
 "PO-Revision-Date: 2017-04-21 05:43-0400\n"
 "Last-Translator: Copied by Zanata <copied-by-zanata@zanata.org>\n"
 "Language-Team: Marathi <kde-i18n-doc@kde.org>\n"

@@ -161,8 +161,14 @@ software_add(NMLinkType link_type, const char *name)
                 accept_signals(parent_changed, 1, 2);
             free_signal(parent_changed);
 
-            return NMTST_NM_ERR_SUCCESS(
-                nm_platform_link_vlan_add(NM_PLATFORM_GET, name, parent_ifindex, VLAN_ID, 0, NULL));
+            return NMTST_NM_ERR_SUCCESS(nm_platform_link_vlan_add(NM_PLATFORM_GET,
+                                                                  name,
+                                                                  parent_ifindex,
+                                                                  &((NMPlatformLnkVlan){
+                                                                      .id       = VLAN_ID,
+                                                                      .protocol = ETH_P_8021Q,
+                                                                  }),
+                                                                  NULL));
         }
     }
     default:
@@ -1183,7 +1189,7 @@ _test_wireguard_change(NMPlatform *platform, int ifindex, int test_mode)
 
         for (i = 0; i < num_peers; i++) {
             NMPWireGuardPeer       peer;
-            char                   s_addr[NM_UTILS_INET_ADDRSTRLEN];
+            char                   s_addr[NM_INET_ADDRSTRLEN];
             NMSockAddrUnion        endpoint;
             guint                  i_allowed_ips, n_allowed_ips;
             NMPWireGuardAllowedIP *allowed_ips;
@@ -1203,8 +1209,8 @@ _test_wireguard_change(NMPlatform *platform, int ifindex, int test_mode)
                     .in6 =
                         {
                             .sin6_family = AF_INET6,
-                            .sin6_addr   = *nmtst_inet6_from_string(
-                                nm_sprintf_buf(s_addr, "a:b:c:e::1:%d", i)),
+                            .sin6_addr =
+                                nmtst_inet6_from_string(nm_sprintf_buf(s_addr, "a:b:c:e::1:%d", i)),
                             .sin6_port = htons(16000 + i),
                         },
                 };
@@ -1225,7 +1231,7 @@ _test_wireguard_change(NMPlatform *platform, int ifindex, int test_mode)
                         nm_sprintf_buf(s_addr, "10.%u.%u.0", i, i_allowed_ips));
                     aip->mask = 32 - (i_allowed_ips % 8);
                 } else {
-                    aip->addr.addr6 = *nmtst_inet6_from_string(
+                    aip->addr.addr6 = nmtst_inet6_from_string(
                         nm_sprintf_buf(s_addr, "a:d:f:%02x:%02x::", i, i_allowed_ips));
                     aip->mask = 128 - (i_allowed_ips % 10);
                 }
@@ -1250,7 +1256,7 @@ _test_wireguard_change(NMPlatform *platform, int ifindex, int test_mode)
     r = nm_platform_link_wireguard_change(platform,
                                           ifindex,
                                           &lnk_wireguard,
-                                          (const NMPWireGuardPeer *) peers->data,
+                                          nm_g_array_first_p(peers, const NMPWireGuardPeer),
                                           NULL,
                                           peers->len,
                                           NM_PLATFORM_WIREGUARD_CHANGE_FLAG_HAS_PRIVATE_KEY
@@ -1280,8 +1286,11 @@ test_software_detect(gconstpointer user_data)
     const gboolean                   ext        = test_data->external_command;
     NMPlatformLnkBridge              lnk_bridge = {};
     NMPlatformLnkTun                 lnk_tun;
-    NMPlatformLnkGre                 lnk_gre = {};
-    nm_auto_close int                tun_fd  = -1;
+    NMPlatformLnkGre                 lnk_gre  = {};
+    NMPlatformLnkVti                 lnk_vti  = {};
+    NMPlatformLnkVti6                lnk_vti6 = {};
+    nm_auto_close int                tun_fd   = -1;
+    gboolean                         module_loaded;
 
     nmtstp_run_command_check("ip link add %s type dummy", PARENT_NAME);
     ifindex_parent =
@@ -1296,24 +1305,24 @@ test_software_detect(gconstpointer user_data)
         lnk_bridge.ageing_time   = 2200;
         lnk_bridge.stp_state     = TRUE;
         lnk_bridge.priority      = 22;
-        lnk_bridge.vlan_protocol = 0x8100;
+        lnk_bridge.vlan_protocol = ETH_P_8021Q;
         lnk_bridge.vlan_stats_enabled =
             nmtstp_kernel_support_get(NM_PLATFORM_KERNEL_SUPPORT_TYPE_IFLA_BR_VLAN_STATS_ENABLED)
                 ? TRUE
                 : FALSE;
-        lnk_bridge.group_fwd_mask             = 8;
-        lnk_bridge.group_addr                 = (NMEtherAddr){{0x01, 0x80, 0xC2, 0x00, 0x00, 0x08}};
-        lnk_bridge.mcast_snooping             = TRUE;
-        lnk_bridge.mcast_router               = 1;
-        lnk_bridge.mcast_query_use_ifaddr     = TRUE;
-        lnk_bridge.mcast_querier              = TRUE;
-        lnk_bridge.mcast_hash_max             = 1024;
-        lnk_bridge.mcast_last_member_count    = 2;
-        lnk_bridge.mcast_startup_query_count  = 3;
-        lnk_bridge.mcast_last_member_interval = 5000;
-        lnk_bridge.mcast_membership_interval  = 25000;
-        lnk_bridge.mcast_querier_interval     = 26000;
-        lnk_bridge.mcast_query_interval       = 12000;
+        lnk_bridge.group_fwd_mask          = 8;
+        lnk_bridge.group_addr              = NM_ETHER_ADDR_INIT(0x01, 0x80, 0xC2, 0x00, 0x00, 0x08);
+        lnk_bridge.mcast_snooping          = TRUE;
+        lnk_bridge.mcast_router            = 1;
+        lnk_bridge.mcast_query_use_ifaddr  = TRUE;
+        lnk_bridge.mcast_querier           = TRUE;
+        lnk_bridge.mcast_hash_max          = 1024;
+        lnk_bridge.mcast_last_member_count = 2;
+        lnk_bridge.mcast_startup_query_count     = 3;
+        lnk_bridge.mcast_last_member_interval    = 5000;
+        lnk_bridge.mcast_membership_interval     = 25000;
+        lnk_bridge.mcast_querier_interval        = 26000;
+        lnk_bridge.mcast_query_interval          = 12000;
         lnk_bridge.mcast_query_response_interval = 5200;
         lnk_bridge.mcast_startup_query_interval  = 3000;
 
@@ -1322,8 +1331,7 @@ test_software_detect(gconstpointer user_data)
         break;
 
     case NM_LINK_TYPE_GRE:
-    {
-        gboolean gracefully_skip = FALSE;
+        module_loaded = nmtstp_ensure_module("ip_gre");
 
         lnk_gre.local              = nmtst_inet4_from_string("192.168.233.204");
         lnk_gre.remote             = nmtst_inet4_from_string("172.168.10.25");
@@ -1332,13 +1340,8 @@ test_software_detect(gconstpointer user_data)
         lnk_gre.tos                = 37;
         lnk_gre.path_mtu_discovery = TRUE;
 
-        if (!nm_platform_link_get_by_ifname(NM_PLATFORM_GET, "gre0")) {
-            /* Seems that the ip_gre module is not loaded... try to load it. */
-            gracefully_skip = nmp_utils_modprobe(NULL, TRUE, "ip_gre", NULL) != 0;
-        }
-
         if (!nmtstp_link_gre_add(NULL, ext, DEVICE_NAME, &lnk_gre)) {
-            if (gracefully_skip) {
+            if (!module_loaded) {
                 g_test_skip(
                     "Cannot create gre tunnel because of missing ip_gre module (modprobe ip_gre)");
                 goto out_delete_parent;
@@ -1346,10 +1349,9 @@ test_software_detect(gconstpointer user_data)
             g_error("Failed adding GRE tunnel");
         }
         break;
-    }
+
     case NM_LINK_TYPE_GRETAP:
-    {
-        gboolean gracefully_skip = FALSE;
+        module_loaded = nmtstp_ensure_module("ip_gre");
 
         lnk_gre.local              = nmtst_inet4_from_string("192.168.1.133");
         lnk_gre.remote             = nmtst_inet4_from_string("172.168.101.2");
@@ -1359,13 +1361,8 @@ test_software_detect(gconstpointer user_data)
         lnk_gre.path_mtu_discovery = FALSE;
         lnk_gre.is_tap             = TRUE;
 
-        if (!nm_platform_link_get_by_ifname(NM_PLATFORM_GET, "gretap0")) {
-            /* Seems that the ip_gre module is not loaded... try to load it. */
-            gracefully_skip = nmp_utils_modprobe(NULL, TRUE, "ip_gre", NULL) != 0;
-        }
-
         if (!nmtstp_link_gre_add(NULL, ext, DEVICE_NAME, &lnk_gre)) {
-            if (gracefully_skip) {
+            if (!module_loaded) {
                 g_test_skip("Cannot create gretap tunnel because of missing ip_gre module "
                             "(modprobe ip_gre)");
                 goto out_delete_parent;
@@ -1373,16 +1370,12 @@ test_software_detect(gconstpointer user_data)
             g_error("Failed adding GRETAP tunnel");
         }
         break;
-    }
+
     case NM_LINK_TYPE_IPIP:
     {
-        NMPlatformLnkIpIp lnk_ipip        = {};
-        gboolean          gracefully_skip = FALSE;
+        NMPlatformLnkIpIp lnk_ipip = {};
 
-        if (!nm_platform_link_get_by_ifname(NM_PLATFORM_GET, "tunl0")) {
-            /* Seems that the ipip module is not loaded... try to load it. */
-            gracefully_skip = nmp_utils_modprobe(NULL, TRUE, "ipip", NULL) != 0;
-        }
+        module_loaded = nmtstp_ensure_module("ipip");
 
         lnk_ipip.local              = nmtst_inet4_from_string("1.2.3.4");
         lnk_ipip.remote             = nmtst_inet4_from_string("5.6.7.8");
@@ -1391,7 +1384,7 @@ test_software_detect(gconstpointer user_data)
         lnk_ipip.path_mtu_discovery = FALSE;
 
         if (!nmtstp_link_ipip_add(NULL, ext, DEVICE_NAME, &lnk_ipip)) {
-            if (gracefully_skip) {
+            if (!module_loaded) {
                 g_test_skip(
                     "Cannot create ipip tunnel because of missing ipip module (modprobe ipip)");
                 goto out_delete_parent;
@@ -1400,20 +1393,17 @@ test_software_detect(gconstpointer user_data)
         }
         break;
     }
+
     case NM_LINK_TYPE_IP6TNL:
     {
-        NMPlatformLnkIp6Tnl lnk_ip6tnl      = {};
-        gboolean            gracefully_skip = FALSE;
+        NMPlatformLnkIp6Tnl lnk_ip6tnl = {};
 
-        if (!nm_platform_link_get_by_ifname(NM_PLATFORM_GET, "ip6tnl0")) {
-            /* Seems that the ip6_tunnel module is not loaded... try to load it. */
-            gracefully_skip = nmp_utils_modprobe(NULL, TRUE, "ip6_tunnel", NULL) != 0;
-        }
+        module_loaded = nmtstp_ensure_module("ip6_tunnel");
 
         switch (test_data->test_mode) {
         case 0:
-            lnk_ip6tnl.local          = *nmtst_inet6_from_string("fd01::15");
-            lnk_ip6tnl.remote         = *nmtst_inet6_from_string("fd01::16");
+            lnk_ip6tnl.local          = nmtst_inet6_from_string("fd01::15");
+            lnk_ip6tnl.remote         = nmtst_inet6_from_string("fd01::16");
             lnk_ip6tnl.parent_ifindex = ifindex_parent;
             lnk_ip6tnl.tclass         = 20;
             lnk_ip6tnl.encap_limit    = 6;
@@ -1421,8 +1411,8 @@ test_software_detect(gconstpointer user_data)
             lnk_ip6tnl.proto          = IPPROTO_IPV6;
             break;
         case 1:
-            lnk_ip6tnl.local          = *nmtst_inet6_from_string("fd01::17");
-            lnk_ip6tnl.remote         = *nmtst_inet6_from_string("fd01::18");
+            lnk_ip6tnl.local          = nmtst_inet6_from_string("fd01::17");
+            lnk_ip6tnl.remote         = nmtst_inet6_from_string("fd01::18");
             lnk_ip6tnl.parent_ifindex = ifindex_parent;
             lnk_ip6tnl.tclass         = 0;
             lnk_ip6tnl.encap_limit    = 0;
@@ -1433,7 +1423,7 @@ test_software_detect(gconstpointer user_data)
         }
 
         if (!nmtstp_link_ip6tnl_add(NULL, ext, DEVICE_NAME, &lnk_ip6tnl)) {
-            if (gracefully_skip) {
+            if (!module_loaded) {
                 g_test_skip("Cannot create ip6tnl tunnel because of missing ip6_tunnel module "
                             "(modprobe ip6_tunnel)");
                 goto out_delete_parent;
@@ -1442,25 +1432,22 @@ test_software_detect(gconstpointer user_data)
         }
         break;
     }
+
     case NM_LINK_TYPE_IP6GRE:
     {
-        NMPlatformLnkIp6Tnl lnk_ip6tnl      = {};
-        gboolean            gracefully_skip = FALSE;
+        NMPlatformLnkIp6Tnl lnk_ip6tnl = {};
 
-        if (!nm_platform_link_get_by_ifname(NM_PLATFORM_GET, "ip6gre0")) {
-            /* Seems that the ip6_tunnel module is not loaded... try to load it. */
-            gracefully_skip = nmp_utils_modprobe(NULL, TRUE, "ip6_gre", NULL) != 0;
-        }
+        module_loaded = nmtstp_ensure_module("ip6_gre");
 
-        lnk_ip6tnl.local          = *nmtst_inet6_from_string("fd01::42");
-        lnk_ip6tnl.remote         = *nmtst_inet6_from_string("fd01::aaaa");
+        lnk_ip6tnl.local          = nmtst_inet6_from_string("fd01::42");
+        lnk_ip6tnl.remote         = nmtst_inet6_from_string("fd01::aaaa");
         lnk_ip6tnl.parent_ifindex = ifindex_parent;
         lnk_ip6tnl.tclass         = 21;
         lnk_ip6tnl.flow_label     = 1338;
         lnk_ip6tnl.is_gre         = TRUE;
 
         if (!nmtstp_link_ip6gre_add(NULL, ext, DEVICE_NAME, &lnk_ip6tnl)) {
-            if (gracefully_skip) {
+            if (!module_loaded) {
                 g_test_skip("Cannot create ip6gre tunnel because of missing ip6_gre module "
                             "(modprobe ip6_gre)");
                 goto out_delete_parent;
@@ -1469,18 +1456,15 @@ test_software_detect(gconstpointer user_data)
         }
         break;
     }
+
     case NM_LINK_TYPE_IP6GRETAP:
     {
-        NMPlatformLnkIp6Tnl lnk_ip6tnl      = {};
-        gboolean            gracefully_skip = FALSE;
+        NMPlatformLnkIp6Tnl lnk_ip6tnl = {};
 
-        if (!nm_platform_link_get_by_ifname(NM_PLATFORM_GET, "ip6gre0")) {
-            /* Seems that the ip6_tunnel module is not loaded... try to load it. */
-            gracefully_skip = nmp_utils_modprobe(NULL, TRUE, "ip6_gre", NULL) != 0;
-        }
+        module_loaded = nmtstp_ensure_module("ip6_gre");
 
-        lnk_ip6tnl.local          = *nmtst_inet6_from_string("fe80::abcd");
-        lnk_ip6tnl.remote         = *nmtst_inet6_from_string("fc01::bbbb");
+        lnk_ip6tnl.local          = nmtst_inet6_from_string("fe80::abcd");
+        lnk_ip6tnl.remote         = nmtst_inet6_from_string("fc01::bbbb");
         lnk_ip6tnl.parent_ifindex = ifindex_parent;
         lnk_ip6tnl.ttl            = 10;
         lnk_ip6tnl.tclass         = 22;
@@ -1489,7 +1473,7 @@ test_software_detect(gconstpointer user_data)
         lnk_ip6tnl.is_tap         = TRUE;
 
         if (!nmtstp_link_ip6gre_add(NULL, ext, DEVICE_NAME, &lnk_ip6tnl)) {
-            if (gracefully_skip) {
+            if (!module_loaded) {
                 g_test_skip("Cannot create ip6gretap tunnel because of missing ip6_gre module "
                             "(modprobe ip6_gre)");
                 goto out_delete_parent;
@@ -1498,6 +1482,7 @@ test_software_detect(gconstpointer user_data)
         }
         break;
     }
+
     case NM_LINK_TYPE_MACVLAN:
     {
         NMPlatformLnkMacvlan  lnk_macvlan = {};
@@ -1531,6 +1516,7 @@ test_software_detect(gconstpointer user_data)
             g_error("Failed adding MACVLAN interface");
         break;
     }
+
     case NM_LINK_TYPE_MACVTAP:
     {
         NMPlatformLnkMacvlan lnk_macvtap = {};
@@ -1543,10 +1529,12 @@ test_software_detect(gconstpointer user_data)
             g_error("Failed adding MACVTAP interface");
         break;
     }
+
     case NM_LINK_TYPE_SIT:
     {
-        NMPlatformLnkSit lnk_sit         = {};
-        gboolean         gracefully_skip = FALSE;
+        NMPlatformLnkSit lnk_sit = {};
+
+        module_loaded = nmtstp_ensure_module("sit");
 
         lnk_sit.local              = nmtst_inet4_from_string("192.168.200.1");
         lnk_sit.remote             = nmtst_inet4_from_string("172.25.100.14");
@@ -1555,13 +1543,8 @@ test_software_detect(gconstpointer user_data)
         lnk_sit.tos                = 31;
         lnk_sit.path_mtu_discovery = FALSE;
 
-        if (!nm_platform_link_get_by_ifname(NM_PLATFORM_GET, "sit0")) {
-            /* Seems that the sit module is not loaded... try to load it. */
-            gracefully_skip = nmp_utils_modprobe(NULL, TRUE, "sit", NULL) != 0;
-        }
-
         if (!nmtstp_link_sit_add(NULL, ext, DEVICE_NAME, &lnk_sit)) {
-            if (gracefully_skip) {
+            if (!module_loaded) {
                 g_test_skip(
                     "Cannot create sit tunnel because of missing sit module (modprobe sit)");
                 goto out_delete_parent;
@@ -1570,11 +1553,31 @@ test_software_detect(gconstpointer user_data)
         }
         break;
     }
+
     case NM_LINK_TYPE_VLAN:
-        nmtstp_run_command_check("ip link add name %s link %s type vlan id 1242",
-                                 DEVICE_NAME,
-                                 PARENT_NAME);
+    {
+        NMPlatformLnkVlan lnk_vlan = {};
+
+        switch (test_data->test_mode) {
+        case 0:
+            lnk_vlan.id       = 1242;
+            lnk_vlan.protocol = ETH_P_8021Q;
+            lnk_vlan.flags    = _NM_VLAN_FLAG_REORDER_HEADERS;
+            break;
+        case 1:
+            lnk_vlan.id       = 4094;
+            lnk_vlan.protocol = ETH_P_8021AD;
+            lnk_vlan.flags    = _NM_VLAN_FLAG_GVRP | _NM_VLAN_FLAG_MVRP;
+            break;
+        default:
+            nm_assert_not_reached();
+        }
+
+        if (!nmtstp_link_vlan_add(NULL, ext, DEVICE_NAME, ifindex_parent, &lnk_vlan))
+            g_error("Failed adding VLAN interface");
         break;
+    }
+
     case NM_LINK_TYPE_VRF:
     {
         NMPlatformLnkVrf lnk_vrf = {};
@@ -1591,6 +1594,45 @@ test_software_detect(gconstpointer user_data)
         }
         break;
     }
+
+    case NM_LINK_TYPE_VTI:
+        module_loaded = nmtstp_ensure_module("ip_vti");
+
+        lnk_vti.local          = nmtst_inet4_from_string("192.168.212.204");
+        lnk_vti.remote         = nmtst_inet4_from_string("172.168.11.25");
+        lnk_vti.parent_ifindex = ifindex_parent;
+        lnk_vti.ikey           = 12;
+        lnk_vti.okey           = 13;
+
+        if (!nmtstp_link_vti_add(NULL, ext, DEVICE_NAME, &lnk_vti)) {
+            if (!module_loaded) {
+                g_test_skip(
+                    "Cannot create vti tunnel because of missing vti module (modprobe ip_vti)");
+                goto out_delete_parent;
+            }
+            g_error("Failed adding VTI tunnel");
+        }
+        break;
+
+    case NM_LINK_TYPE_VTI6:
+        module_loaded = nmtstp_ensure_module("ip6_vti");
+
+        lnk_vti6.local          = nmtst_inet6_from_string("fd01::1");
+        lnk_vti6.remote         = nmtst_inet6_from_string("fd02::2");
+        lnk_vti6.parent_ifindex = ifindex_parent;
+        lnk_vti6.ikey           = 13;
+        lnk_vti6.okey           = 14;
+
+        if (!nmtstp_link_vti6_add(NULL, ext, DEVICE_NAME, &lnk_vti6)) {
+            if (!module_loaded) {
+                g_test_skip(
+                    "Cannot create vti6 tunnel because of missing vti module (modprobe ip_vti)");
+                goto out_delete_parent;
+            }
+            g_error("Failed adding VTI6 tunnel");
+        }
+        break;
+
     case NM_LINK_TYPE_VXLAN:
     {
         NMPlatformLnkVxlan lnk_vxlan = {};
@@ -1608,8 +1650,8 @@ test_software_detect(gconstpointer user_data)
         case 1:
             lnk_vxlan.parent_ifindex = nm_platform_link_get_ifindex(NM_PLATFORM_GET, PARENT_NAME);
             lnk_vxlan.id             = 11214423;
-            lnk_vxlan.local6         = *nmtst_inet6_from_string("1:2:3:4:334:23::23");
-            lnk_vxlan.group6         = *nmtst_inet6_from_string("ff0e::115");
+            lnk_vxlan.local6         = nmtst_inet6_from_string("1:2:3:4:334:23::23");
+            lnk_vxlan.group6         = nmtst_inet6_from_string("ff0e::115");
             lnk_vxlan.ttl            = 32;
             lnk_vxlan.dst_port       = 57412;
             lnk_vxlan.src_port_min   = 1000;
@@ -1622,6 +1664,7 @@ test_software_detect(gconstpointer user_data)
         g_assert(nmtstp_link_vxlan_add(NULL, ext, DEVICE_NAME, &lnk_vxlan));
         break;
     }
+
     case NM_LINK_TYPE_TUN:
     {
         gboolean owner_valid = nmtst_get_rand_bool();
@@ -1656,6 +1699,7 @@ test_software_detect(gconstpointer user_data)
                                      (!lnk_tun.persist || nmtst_get_rand_bool()) ? &tun_fd : NULL));
         break;
     }
+
     case NM_LINK_TYPE_WIREGUARD:
     {
         const NMPlatformLink *link;
@@ -1727,7 +1771,7 @@ test_software_detect(gconstpointer user_data)
             g_assert_cmpint(plnk->ageing_time, ==, lnk_bridge_norm->ageing_time);
             g_assert_cmpint(plnk->stp_state, ==, TRUE);
             g_assert_cmpint(plnk->priority, ==, 22);
-            g_assert_cmpint(plnk->vlan_protocol, ==, 0x8100);
+            g_assert_cmpint(plnk->vlan_protocol, ==, ETH_P_8021Q);
             g_assert_cmpint(plnk->vlan_stats_enabled, ==, lnk_bridge_norm->vlan_stats_enabled);
             g_assert_cmpint(plnk->group_fwd_mask, ==, 8);
             g_assert_cmpint(plnk->mcast_snooping, ==, TRUE);
@@ -1910,7 +1954,19 @@ test_software_detect(gconstpointer user_data)
             const NMPlatformLnkVlan *plnk = &lnk->lnk_vlan;
 
             g_assert(plnk == nm_platform_link_get_lnk_vlan(NM_PLATFORM_GET, ifindex, NULL));
-            g_assert_cmpint(plnk->id, ==, 1242);
+
+            switch (test_data->test_mode) {
+            case 0:
+                g_assert_cmpint(plnk->id, ==, 1242);
+                g_assert_cmpint(plnk->protocol, ==, ETH_P_8021Q);
+                g_assert_cmpint(plnk->flags, ==, _NM_VLAN_FLAG_REORDER_HEADERS);
+                break;
+            case 1:
+                g_assert_cmpint(plnk->id, ==, 4094);
+                g_assert_cmpint(plnk->protocol, ==, ETH_P_8021AD);
+                g_assert_cmpint(plnk->flags, ==, _NM_VLAN_FLAG_GVRP | _NM_VLAN_FLAG_MVRP);
+                break;
+            }
             break;
         }
         case NM_LINK_TYPE_VRF:
@@ -1919,6 +1975,22 @@ test_software_detect(gconstpointer user_data)
 
             g_assert(plnk == nm_platform_link_get_lnk_vrf(NM_PLATFORM_GET, ifindex, NULL));
             g_assert_cmpint(plnk->table, ==, 9876);
+            break;
+        }
+        case NM_LINK_TYPE_VTI:
+        {
+            const NMPlatformLnkVti *plnk = &lnk->lnk_vti;
+
+            g_assert(plnk == nm_platform_link_get_lnk_vti(NM_PLATFORM_GET, ifindex, NULL));
+            g_assert(nm_platform_lnk_vti_cmp(plnk, &lnk_vti) == 0);
+            break;
+        }
+        case NM_LINK_TYPE_VTI6:
+        {
+            const NMPlatformLnkVti6 *plnk = &lnk->lnk_vti6;
+
+            g_assert(plnk == nm_platform_link_get_lnk_vti6(NM_PLATFORM_GET, ifindex, NULL));
+            g_assert(nm_platform_lnk_vti6_cmp(plnk, &lnk_vti6) == 0);
             break;
         }
         case NM_LINK_TYPE_VXLAN:
@@ -2511,7 +2583,7 @@ test_create_many_links_do(guint n_devices)
         if (EX == 2)
             nmtstp_run_command_check("ip link delete %s", name);
         else
-            nmtstp_link_delete(NULL, EX, g_array_index(ifindexes, int, i), name, TRUE);
+            nmtstp_link_delete(NULL, EX, nm_g_array_index(ifindexes, int, i), name, TRUE);
     }
 
     _LOGI(">>> process events after deleting devices...");
@@ -2754,7 +2826,7 @@ _test_netns_create_platform(void)
     netns = nmp_netns_new();
     g_assert(NMP_IS_NETNS(netns));
 
-    platform = nm_linux_platform_new(TRUE, TRUE, TRUE);
+    platform = nm_linux_platform_new(NULL, TRUE, TRUE, TRUE);
     g_assert(NM_IS_LINUX_PLATFORM(platform));
 
     nmp_netns_pop(netns);
@@ -2843,7 +2915,7 @@ test_netns_general(gpointer fixture, gconstpointer test_data)
     if (_check_sysctl_skip())
         return;
 
-    platform_1 = nm_linux_platform_new(TRUE, TRUE, TRUE);
+    platform_1 = nm_linux_platform_new(NULL, TRUE, TRUE, TRUE);
     platform_2 = _test_netns_create_platform();
 
     /* add some dummy devices. The "other-*" devices are there to bump the ifindex */
@@ -2971,7 +3043,7 @@ test_netns_set_netns(gpointer fixture, gconstpointer test_data)
     if (_test_netns_check_skip())
         return;
 
-    platforms[0] = platform_0 = nm_linux_platform_new(TRUE, TRUE, TRUE);
+    platforms[0] = platform_0 = nm_linux_platform_new(NULL, TRUE, TRUE, TRUE);
     platforms[1] = platform_1 = _test_netns_create_platform();
     platforms[2] = platform_2 = _test_netns_create_platform();
 
@@ -3070,7 +3142,7 @@ test_netns_push(gpointer fixture, gconstpointer test_data)
     if (_check_sysctl_skip())
         return;
 
-    pl[0].platform = platform_0 = nm_linux_platform_new(TRUE, TRUE, TRUE);
+    pl[0].platform = platform_0 = nm_linux_platform_new(NULL, TRUE, TRUE, TRUE);
     pl[1].platform = platform_1 = _test_netns_create_platform();
     pl[2].platform = platform_2 = _test_netns_create_platform();
 
@@ -3217,7 +3289,7 @@ test_netns_bind_to_path(gpointer fixture, gconstpointer test_data)
     if (_test_netns_check_skip())
         return;
 
-    platforms[0] = platform_0 = nm_linux_platform_new(TRUE, TRUE, TRUE);
+    platforms[0] = platform_0 = nm_linux_platform_new(NULL, TRUE, TRUE, TRUE);
     platforms[1] = platform_1 = _test_netns_create_platform();
     platforms[2] = platform_2 = _test_netns_create_platform();
 
@@ -3382,7 +3454,7 @@ test_sysctl_netns_switch(void)
     if (_test_netns_check_skip())
         return;
 
-    platforms[0] = platform_0 = nm_linux_platform_new(TRUE, TRUE, TRUE);
+    platforms[0] = platform_0 = nm_linux_platform_new(NULL, TRUE, TRUE, TRUE);
     platforms[1] = platform_1 = _test_netns_create_platform();
     platforms[2] = platform_2 = _test_netns_create_platform();
     PL                        = platforms[nmtst_get_rand_uint32() % 3];
@@ -3823,7 +3895,10 @@ _nmtstp_setup_tests(void)
         test_software_detect_add("/link/software/detect/macvtap", NM_LINK_TYPE_MACVTAP, 0);
         test_software_detect_add("/link/software/detect/sit", NM_LINK_TYPE_SIT, 0);
         test_software_detect_add("/link/software/detect/tun", NM_LINK_TYPE_TUN, 0);
-        test_software_detect_add("/link/software/detect/vlan", NM_LINK_TYPE_VLAN, 0);
+        test_software_detect_add("/link/software/detect/vlan/0", NM_LINK_TYPE_VLAN, 0);
+        test_software_detect_add("/link/software/detect/vlan/1", NM_LINK_TYPE_VLAN, 1);
+        test_software_detect_add("/link/software/detect/vti", NM_LINK_TYPE_VTI, 0);
+        test_software_detect_add("/link/software/detect/vti6", NM_LINK_TYPE_VTI6, 0);
         test_software_detect_add("/link/software/detect/vrf", NM_LINK_TYPE_VRF, 0);
         test_software_detect_add("/link/software/detect/vxlan/0", NM_LINK_TYPE_VXLAN, 0);
         test_software_detect_add("/link/software/detect/vxlan/1", NM_LINK_TYPE_VXLAN, 1);

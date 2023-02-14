@@ -269,7 +269,7 @@ nm_sock_addr_endpoint_get_fixed_sockaddr(NMSockAddrEndpoint *self, gpointer sock
     if (!self->host)
         return FALSE;
 
-    if (nm_utils_parse_inaddr_bin(AF_UNSPEC, self->host, &addr_family, &addrbin))
+    if (nm_inet_parse_bin(AF_UNSPEC, self->host, &addr_family, &addrbin))
         goto good;
 
     /* See if there is an IPv6 scope-id...
@@ -295,7 +295,7 @@ nm_sock_addr_endpoint_get_fixed_sockaddr(NMSockAddrEndpoint *self, gpointer sock
         const char   *host_part;
 
         host_part = nm_strndup_a(200, self->host, s - self->host, &tmp_str);
-        if (nm_utils_parse_inaddr_bin(AF_INET6, host_part, &addr_family, &addrbin))
+        if (nm_inet_parse_bin(AF_INET6, host_part, &addr_family, &addrbin))
             goto good;
     }
 
@@ -1297,12 +1297,30 @@ nm_utils_wpa_psk_valid(const char *psk)
 GVariant *
 nm_utils_ip4_dns_to_variant(char **dns)
 {
-    return _nm_utils_ip4_dns_to_variant(NM_CAST_STRV_CC(dns), -1);
+    return nm_utils_dns_to_variant(AF_INET, NM_CAST_STRV_CC(dns), -1);
+}
+
+/**
+ * nm_utils_ip6_dns_to_variant:
+ * @dns: (type utf8): an array of IP address strings
+ *
+ * Utility function to convert an array of IP address strings int a #GVariant of
+ * type 'aay' representing an array of IPv6 addresses.
+ *
+ * If a string cannot be parsed, it will be silently ignored.
+ *
+ * Returns: (transfer none): a new floating #GVariant representing @dns.
+ **/
+GVariant *
+nm_utils_ip6_dns_to_variant(char **dns)
+{
+    return nm_utils_dns_to_variant(AF_INET6, NM_CAST_STRV_CC(dns), -1);
 }
 
 GVariant *
-_nm_utils_ip4_dns_to_variant(const char *const *dns, gssize len)
+nm_utils_dns_to_variant(int addr_family, const char *const *dns, gssize len)
 {
+    const int       IS_IPv4 = NM_IS_IPv4(addr_family);
     GVariantBuilder builder;
     gsize           l;
     gsize           i;
@@ -1312,13 +1330,20 @@ _nm_utils_ip4_dns_to_variant(const char *const *dns, gssize len)
     else
         l = len;
 
-    g_variant_builder_init(&builder, G_VARIANT_TYPE("au"));
+    g_variant_builder_init(&builder, IS_IPv4 ? G_VARIANT_TYPE("au") : G_VARIANT_TYPE("aay"));
 
     for (i = 0; i < l; i++) {
-        in_addr_t ip;
+        NMIPAddr ip;
 
-        if (inet_pton(AF_INET, dns[i], &ip) == 1)
+        /* We can only represent the IP address on the legacy property "ipv[46].dns".
+         * Expose what we can. */
+        if (!nm_utils_dnsname_parse(addr_family, dns[i], NULL, &ip, NULL))
+            continue;
+
+        if (IS_IPv4)
             g_variant_builder_add(&builder, "u", ip);
+        else
+            g_variant_builder_add(&builder, "@ay", nm_g_variant_new_ay_in6addr(&ip.addr6));
     }
 
     return g_variant_builder_end(&builder);
@@ -1346,7 +1371,7 @@ nm_utils_ip4_dns_from_variant(GVariant *value)
     array = g_variant_get_fixed_array(value, &length, sizeof(guint32));
     dns   = g_new(char *, length + 1u);
     for (i = 0; i < length; i++)
-        dns[i] = nm_utils_inet4_ntop_dup(array[i]);
+        dns[i] = nm_inet4_ntop_dup(array[i]);
     dns[i] = NULL;
 
     return dns;
@@ -1449,7 +1474,7 @@ nm_utils_ip4_addresses_from_variant(GVariant *value, char **out_gateway)
             g_ptr_array_add(addresses, addr);
 
             if (addr_array[2] && out_gateway && !*out_gateway)
-                *out_gateway = nm_utils_inet4_ntop_dup(addr_array[2]);
+                *out_gateway = nm_inet4_ntop_dup(addr_array[2]);
         } else {
             g_warning("Ignoring invalid IP4 address: %s", error->message);
             g_clear_error(&error);
@@ -1571,7 +1596,7 @@ nm_utils_ip4_routes_from_variant(GVariant *value)
 guint32
 nm_utils_ip4_netmask_to_prefix(guint32 netmask)
 {
-    return _nm_utils_ip4_netmask_to_prefix(netmask);
+    return nm_ip4_addr_netmask_to_prefix(netmask);
 }
 
 /**
@@ -1585,7 +1610,7 @@ nm_utils_ip4_prefix_to_netmask(guint32 prefix)
 {
     g_return_val_if_fail(prefix <= 32, 0xffffffffu);
 
-    return _nm_utils_ip4_prefix_to_netmask(prefix);
+    return nm_ip4_addr_netmask_from_prefix(prefix);
 }
 
 /**
@@ -1603,47 +1628,7 @@ nm_utils_ip4_prefix_to_netmask(guint32 prefix)
 guint32
 nm_utils_ip4_get_default_prefix(guint32 ip)
 {
-    return _nm_utils_ip4_get_default_prefix(ip);
-}
-
-/**
- * nm_utils_ip6_dns_to_variant:
- * @dns: (type utf8): an array of IP address strings
- *
- * Utility function to convert an array of IP address strings int a #GVariant of
- * type 'aay' representing an array of IPv6 addresses.
- *
- * If a string cannot be parsed, it will be silently ignored.
- *
- * Returns: (transfer none): a new floating #GVariant representing @dns.
- **/
-GVariant *
-nm_utils_ip6_dns_to_variant(char **dns)
-{
-    return _nm_utils_ip6_dns_to_variant(NM_CAST_STRV_CC(dns), -1);
-}
-
-GVariant *
-_nm_utils_ip6_dns_to_variant(const char *const *dns, gssize len)
-{
-    GVariantBuilder builder;
-    gsize           i;
-    gsize           l;
-
-    if (len < 0)
-        l = NM_PTRARRAY_LEN(dns);
-    else
-        l = len;
-
-    g_variant_builder_init(&builder, G_VARIANT_TYPE("aay"));
-    for (i = 0; i < l; i++) {
-        struct in6_addr ip;
-
-        if (inet_pton(AF_INET6, dns[i], &ip) != 1)
-            continue;
-        g_variant_builder_add(&builder, "@ay", nm_g_variant_new_ay_in6addr(&ip));
-    }
-    return g_variant_builder_end(&builder);
+    return nm_ip4_addr_get_default_prefix(ip);
 }
 
 /**
@@ -1676,7 +1661,7 @@ nm_utils_ip6_dns_from_variant(GVariant *value)
         const struct in6_addr *ip = g_variant_get_fixed_array(ip_var, &length, 1);
 
         if (length == sizeof(struct in6_addr))
-            dns[i++] = nm_utils_inet6_ntop_dup(ip);
+            dns[i++] = nm_inet6_ntop_dup(ip);
 
         g_variant_unref(ip_var);
     }
@@ -1798,7 +1783,7 @@ nm_utils_ip6_addresses_from_variant(GVariant *value, char **out_gateway)
                     goto next;
                 }
                 if (!IN6_IS_ADDR_UNSPECIFIED(gateway_bytes))
-                    *out_gateway = nm_utils_inet6_ntop_dup(gateway_bytes);
+                    *out_gateway = nm_inet6_ntop_dup(gateway_bytes);
             }
         } else {
             g_warning("Ignoring invalid IP6 address: %s", error->message);
@@ -1943,7 +1928,7 @@ next:
  *
  * Returns: (transfer none): a new floating #GVariant representing @addresses.
  *
- * Since: 1.42, 1.40.4
+ * Since: 1.42
  **/
 GVariant *
 nm_utils_ip_addresses_to_variant(GPtrArray *addresses)
@@ -1998,7 +1983,7 @@ nm_utils_ip_addresses_to_variant(GPtrArray *addresses)
  * Returns: (transfer full) (element-type NMIPAddress): a newly allocated
  *   #GPtrArray of #NMIPAddress objects
  *
- * Since: 1.42, 1.40.4
+ * Since: 1.42
  **/
 GPtrArray *
 nm_utils_ip_addresses_from_variant(GVariant *value, int family)
@@ -2059,7 +2044,7 @@ nm_utils_ip_addresses_from_variant(GVariant *value, int family)
  *
  * Returns: (transfer none): a new floating #GVariant representing @routes.
  *
- * Since: 1.42, 1.40.4
+ * Since: 1.42
  **/
 GVariant *
 nm_utils_ip_routes_to_variant(GPtrArray *routes)
@@ -2127,7 +2112,7 @@ nm_utils_ip_routes_to_variant(GPtrArray *routes)
  * Returns: (transfer full) (element-type NMIPRoute): a newly allocated
  *   #GPtrArray of #NMIPRoute objects
  *
- * Since: 1.42, 1.40.4
+ * Since: 1.42
  **/
 GPtrArray *
 nm_utils_ip_routes_from_variant(GVariant *value, int family)
@@ -3833,13 +3818,13 @@ _nm_utils_ipaddr_canonical_or_invalid(int addr_family, const char *ip, gboolean 
     if (!ip)
         return NULL;
 
-    if (!nm_utils_parse_inaddr_bin(addr_family, ip, &addr_family, &addr_bin))
+    if (!nm_inet_parse_bin(addr_family, ip, &addr_family, &addr_bin))
         return g_strdup(ip);
 
     if (map_zero_to_null && nm_ip_addr_is_null(addr_family, &addr_bin))
         return NULL;
 
-    return nm_utils_inet_ntop_dup(addr_family, &addr_bin);
+    return nm_inet_ntop_dup(addr_family, &addr_bin);
 }
 
 /*
@@ -3988,7 +3973,7 @@ nm_utils_hwaddr_to_dbus(const char *str)
 }
 
 GVariant *
-_nm_utils_hwaddr_cloned_get(_NM_SETT_INFO_PROP_TO_DBUS_FCN_ARGS _nm_nil)
+_nm_sett_info_prop_to_dbus_fcn_cloned_mac_address(_NM_SETT_INFO_PROP_TO_DBUS_FCN_ARGS _nm_nil)
 {
     gs_free char *addr = NULL;
 
@@ -3999,7 +3984,7 @@ _nm_utils_hwaddr_cloned_get(_NM_SETT_INFO_PROP_TO_DBUS_FCN_ARGS _nm_nil)
 }
 
 gboolean
-_nm_utils_hwaddr_cloned_set(_NM_SETT_INFO_PROP_FROM_DBUS_FCN_ARGS _nm_nil)
+_nm_sett_info_prop_from_dbus_fcn_cloned_mac_address(_NM_SETT_INFO_PROP_FROM_DBUS_FCN_ARGS _nm_nil)
 {
     gsize         length;
     const guint8 *array;
@@ -4030,14 +4015,15 @@ _nm_utils_hwaddr_cloned_set(_NM_SETT_INFO_PROP_FROM_DBUS_FCN_ARGS _nm_nil)
 }
 
 gboolean
-_nm_utils_hwaddr_cloned_not_set(_NM_SETT_INFO_PROP_MISSING_FROM_DBUS_FCN_ARGS _nm_nil)
+_nm_sett_info_prop_missing_from_dbus_fcn_cloned_mac_address(
+    _NM_SETT_INFO_PROP_MISSING_FROM_DBUS_FCN_ARGS _nm_nil)
 {
     nm_assert(nm_streq0(property, "cloned-mac-address"));
     return TRUE;
 }
 
 static GVariant *
-_nm_utils_hwaddr_cloned_data_synth(_NM_SETT_INFO_PROP_TO_DBUS_FCN_ARGS _nm_nil)
+assigned_mac_address_to_dbus(_NM_SETT_INFO_PROP_TO_DBUS_FCN_ARGS _nm_nil)
 {
     gs_free char *addr = NULL;
 
@@ -4066,7 +4052,7 @@ _nm_utils_hwaddr_cloned_data_synth(_NM_SETT_INFO_PROP_TO_DBUS_FCN_ARGS _nm_nil)
 }
 
 static gboolean
-_nm_utils_hwaddr_cloned_data_set(_NM_SETT_INFO_PROP_FROM_DBUS_FCN_ARGS _nm_nil)
+assigned_mac_address_from_dbus(_NM_SETT_INFO_PROP_FROM_DBUS_FCN_ARGS _nm_nil)
 {
     nm_assert(nm_streq0(property_info->name, "assigned-mac-address"));
 
@@ -4088,8 +4074,8 @@ _nm_utils_hwaddr_cloned_data_set(_NM_SETT_INFO_PROP_FROM_DBUS_FCN_ARGS _nm_nil)
 const NMSettInfoPropertType nm_sett_info_propert_type_assigned_mac_address =
     NM_SETT_INFO_PROPERT_TYPE_DBUS_INIT(G_VARIANT_TYPE_STRING,
                                         .compare_fcn   = _nm_setting_property_compare_fcn_ignore,
-                                        .to_dbus_fcn   = _nm_utils_hwaddr_cloned_data_synth,
-                                        .from_dbus_fcn = _nm_utils_hwaddr_cloned_data_set, );
+                                        .to_dbus_fcn   = assigned_mac_address_to_dbus,
+                                        .from_dbus_fcn = assigned_mac_address_from_dbus, );
 
 /*****************************************************************************/
 
@@ -4255,13 +4241,13 @@ _nm_utils_generate_mac_address_mask_parse(const char         *value,
         ouis = g_array_sized_new(FALSE, FALSE, sizeof(struct ether_addr), 4);
 
         do {
+            struct ether_addr *new;
+
             s      = s_next;
             s_next = _split_word(s);
 
-            g_array_set_size(ouis, ouis->len + 1);
-            if (!nm_utils_hwaddr_aton(s,
-                                      &g_array_index(ouis, struct ether_addr, ouis->len - 1),
-                                      ETH_ALEN)) {
+            new = nm_g_array_append_new(ouis, struct ether_addr);
+            if (!nm_utils_hwaddr_aton(s, new, ETH_ALEN)) {
                 g_set_error(error,
                             NM_UTILS_ERROR,
                             NM_UTILS_ERROR_UNKNOWN,
@@ -4373,13 +4359,13 @@ nm_utils_is_uuid(const char *str)
     return nm_uuid_is_valid_nmlegacy(str);
 }
 
-static _nm_thread_local char _nm_utils_inet_ntop_buffer[NM_UTILS_INET_ADDRSTRLEN];
+static _nm_thread_local char _nm_utils_inet_ntop_buffer[NM_INET_ADDRSTRLEN];
 
 /**
  * nm_utils_inet4_ntop: (skip)
  * @inaddr: the address that should be converted to string.
  * @dst: the destination buffer, it must contain at least
- *  <literal>INET_ADDRSTRLEN</literal> or %NM_UTILS_INET_ADDRSTRLEN
+ *  <literal>INET_ADDRSTRLEN</literal> or %NM_INET_ADDRSTRLEN
  *  characters. If set to %NULL, it will return a pointer to an internal, static
  *  buffer (shared with nm_utils_inet6_ntop()).  Beware, that the internal
  *  buffer will be overwritten with ever new call of nm_utils_inet4_ntop() or
@@ -4401,14 +4387,14 @@ nm_utils_inet4_ntop(in_addr_t inaddr, char *dst)
      *
      * However, still support it to be lenient against mistakes and because
      * this is public API of libnm. */
-    return _nm_utils_inet4_ntop(inaddr, dst ?: _nm_utils_inet_ntop_buffer);
+    return nm_inet4_ntop(inaddr, dst ?: _nm_utils_inet_ntop_buffer);
 }
 
 /**
  * nm_utils_inet6_ntop: (skip)
  * @in6addr: the address that should be converted to string.
  * @dst: the destination buffer, it must contain at least
- *  <literal>INET6_ADDRSTRLEN</literal> or %NM_UTILS_INET_ADDRSTRLEN
+ *  <literal>INET6_ADDRSTRLEN</literal> or %NM_INET_ADDRSTRLEN
  *  characters. If set to %NULL, it will return a pointer to an internal, static
  *  buffer (shared with nm_utils_inet4_ntop()).  Beware, that the internal
  *  buffer will be overwritten with ever new call of nm_utils_inet4_ntop() or
@@ -4432,7 +4418,7 @@ nm_utils_inet6_ntop(const struct in6_addr *in6addr, char *dst)
      * However, still support it to be lenient against mistakes and because
      * this is public API of libnm. */
     g_return_val_if_fail(in6addr, NULL);
-    return _nm_utils_inet6_ntop(in6addr, dst ?: _nm_utils_inet_ntop_buffer);
+    return nm_inet6_ntop(in6addr, dst ?: _nm_utils_inet_ntop_buffer);
 }
 
 /**
@@ -4450,7 +4436,7 @@ nm_utils_ipaddr_valid(int family, const char *ip)
 {
     g_return_val_if_fail(family == AF_INET || family == AF_INET6 || family == AF_UNSPEC, FALSE);
 
-    return nm_utils_ipaddr_is_valid(family, ip);
+    return nm_inet_is_valid(family, ip);
 }
 
 /**
@@ -5030,11 +5016,8 @@ _nm_variant_attribute_spec_find_binary_search(const NMVariantAttributeSpec *cons
 
     G_STATIC_ASSERT_EXPR(G_STRUCT_OFFSET(NMVariantAttributeSpec, name) == 0);
 
-    idx = nm_utils_ptrarray_find_binary_search((gconstpointer *) array,
-                                               len,
-                                               &name,
-                                               nm_strcmp_p_with_data,
-                                               NULL);
+    idx =
+        nm_ptrarray_find_bsearch((gconstpointer *) array, len, &name, nm_strcmp_p_with_data, NULL);
     if (idx < 0)
         return NULL;
     return array[idx];
@@ -5589,6 +5572,97 @@ _nm_utils_bridge_vlan_verify_list(GPtrArray  *vlans,
     return TRUE;
 }
 
+GVariant *
+_nm_utils_ranges_to_dbus(_NM_SETT_INFO_PROP_TO_DBUS_FCN_ARGS _nm_nil)
+{
+    gs_unref_ptrarray GPtrArray *ranges = NULL;
+    GVariantBuilder              builder;
+    const char                  *property_name = property_info->name;
+    guint                        i;
+
+    nm_assert(property_name);
+
+    g_object_get(setting, property_name, &ranges, NULL);
+    g_variant_builder_init(&builder, G_VARIANT_TYPE("aa{sv}"));
+
+    if (ranges) {
+        for (i = 0; i < ranges->len; i++) {
+            NMRange        *range = ranges->pdata[i];
+            GVariantBuilder range_builder;
+
+            g_variant_builder_init(&range_builder, G_VARIANT_TYPE_VARDICT);
+            g_variant_builder_add(&range_builder,
+                                  "{sv}",
+                                  "start",
+                                  g_variant_new_uint64(range->start));
+            g_variant_builder_add(&range_builder, "{sv}", "end", g_variant_new_uint64(range->end));
+
+            g_variant_builder_add(&builder, "a{sv}", &range_builder);
+        }
+    }
+
+    return g_variant_builder_end(&builder);
+}
+
+gboolean
+_nm_utils_ranges_from_dbus(_NM_SETT_INFO_PROP_FROM_DBUS_FCN_ARGS _nm_nil)
+{
+    gs_unref_ptrarray GPtrArray *ranges = NULL;
+    GVariantIter                 iter;
+    GVariant                    *range_var;
+
+    g_return_val_if_fail(g_variant_is_of_type(value, G_VARIANT_TYPE("aa{sv}")), FALSE);
+
+    ranges = g_ptr_array_new_with_free_func((GDestroyNotify) nm_range_unref);
+    g_variant_iter_init(&iter, value);
+    while (g_variant_iter_next(&iter, "@a{sv}", &range_var)) {
+        _nm_unused gs_unref_variant GVariant *var_unref = range_var;
+        gint64                                start;
+        gint64                                end;
+
+        if (!g_variant_lookup(range_var, "start", "t", &start))
+            continue;
+        if (!g_variant_lookup(range_var, "end", "t", &end))
+            continue;
+        if (start > end)
+            continue;
+
+        g_ptr_array_add(ranges, nm_range_new(start, end));
+    }
+
+    g_object_set(setting, property_info->name, ranges, NULL);
+
+    return TRUE;
+}
+
+NMTernary
+_nm_utils_ranges_cmp(_NM_SETT_INFO_PROP_COMPARE_FCN_ARGS _nm_nil)
+{
+    const GPtrArray *ranges_a = NULL;
+    const GPtrArray *ranges_b = NULL;
+    guint            len;
+    guint            i;
+
+    if (nm_streq0(nm_setting_get_name(set_a), NM_SETTING_OVS_PORT_SETTING_NAME)
+        && nm_streq0(property_info->name, NM_SETTING_OVS_PORT_TRUNKS)) {
+        ranges_a = _nm_setting_ovs_port_get_trunks_arr(NM_SETTING_OVS_PORT(set_a));
+        if (set_b)
+            ranges_b = _nm_setting_ovs_port_get_trunks_arr(NM_SETTING_OVS_PORT(set_b));
+    } else {
+        nm_assert_not_reached();
+    }
+
+    len = nm_g_ptr_array_len(ranges_a);
+    if (len != nm_g_ptr_array_len(ranges_b))
+        return FALSE;
+    for (i = 0; i < len; i++) {
+        if (nm_range_cmp(ranges_a->pdata[i], ranges_b->pdata[i]))
+            return FALSE;
+    }
+
+    return TRUE;
+}
+
 gboolean
 _nm_utils_iaid_verify(const char *str, gint64 *out_value)
 {
@@ -5659,4 +5733,25 @@ _nm_utils_validate_dhcp_hostname_flags(NMDhcpHostnameFlags flags, int addr_famil
     }
 
     return TRUE;
+}
+
+/*****************************************************************************/
+
+/**
+ * nm_utils_ensure_gtypes:
+ *
+ * This ensures that all NMSetting GTypes are created. For example,
+ * after this call, g_type_from_name("NMSettingConnection") will work.
+ *
+ * This cannot fail and does nothing if the type already exists.
+ *
+ * Since: 1.42
+ */
+void
+nm_utils_ensure_gtypes(void)
+{
+    NMMetaSettingType meta_type;
+
+    for (meta_type = 0; meta_type < _NM_META_SETTING_TYPE_NUM; meta_type++)
+        nm_meta_setting_infos[meta_type].get_setting_gtype();
 }

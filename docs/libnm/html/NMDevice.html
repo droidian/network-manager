@@ -357,7 +357,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<a class="link" href="NMConnection.html" title="NMConnection"><span class="returnvalue">NMConnection</span></a> *
+<a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html#NMConnection-struct"><span class="returnvalue">NMConnection</span></a> *
 </td>
 <td class="function_name">
 <a class="link" href="NMDevice.html#nm-device-get-applied-connection" title="nm_device_get_applied_connection ()">nm_device_get_applied_connection</a> <span class="c_punctuation">()</span>
@@ -373,7 +373,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<a class="link" href="NMConnection.html" title="NMConnection"><span class="returnvalue">NMConnection</span></a> *
+<a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html#NMConnection-struct"><span class="returnvalue">NMConnection</span></a> *
 </td>
 <td class="function_name">
 <a class="link" href="NMDevice.html#nm-device-get-applied-connection-finish" title="nm_device_get_applied_connection_finish ()">nm_device_get_applied_connection_finish</a> <span class="c_punctuation">()</span>
@@ -904,6 +904,7 @@
             <span class="lineart">├──</span> <a class="link" href="NMDeviceGeneric.html" title="NMDeviceGeneric">NMDeviceGeneric</a>
             <span class="lineart">├──</span> <a class="link" href="NMDeviceInfiniband.html" title="NMDeviceInfiniband">NMDeviceInfiniband</a>
             <span class="lineart">├──</span> <a class="link" href="NMDeviceIPTunnel.html" title="NMDeviceIPTunnel">NMDeviceIPTunnel</a>
+            <span class="lineart">├──</span> <a class="link" href="NMDeviceLoopback.html" title="NMDeviceLoopback">NMDeviceLoopback</a>
             <span class="lineart">├──</span> <a class="link" href="NMDeviceMacsec.html" title="NMDeviceMacsec">NMDeviceMacsec</a>
             <span class="lineart">├──</span> <a class="link" href="NMDeviceMacvlan.html" title="NMDeviceMacvlan">NMDeviceMacvlan</a>
             <span class="lineart">├──</span> <a class="link" href="NMDeviceModem.html" title="NMDeviceModem">NMDeviceModem</a>
@@ -2040,7 +2041,7 @@ devices in <em class="parameter"><code>devices</code></em>
 <a name="nm-device-reapply"></a><h3>nm_device_reapply ()</h3>
 <pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 nm_device_reapply (<em class="parameter"><code><a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a> *device</code></em>,
-                   <em class="parameter"><code><a class="link" href="NMConnection.html" title="NMConnection"><span class="type">NMConnection</span></a> *connection</code></em>,
+                   <em class="parameter"><code><a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html#NMConnection-struct"><span class="type">NMConnection</span></a> *connection</code></em>,
                    <em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint64"><span class="type">guint64</span></a> version_id</code></em>,
                    <em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint32"><span class="type">guint32</span></a> flags</code></em>,
                    <em class="parameter"><code><a href="https://developer.gnome.org/gio/unstable/GCancellable.html#GCancellable-struct"><span class="type">GCancellable</span></a> *cancellable</code></em>,
@@ -2067,7 +2068,7 @@ made since it was last applied.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>connection</p></td>
-<td class="parameter_description"><p>the <a class="link" href="NMConnection.html" title="NMConnection"><span class="type">NMConnection</span></a> to replace the applied
+<td class="parameter_description"><p>the <a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html#NMConnection-struct"><span class="type">NMConnection</span></a> to replace the applied
 settings with or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to reuse existing. </p></td>
 <td class="parameter_annotations"><span class="annotation">[<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
 </tr>
@@ -2108,7 +2109,7 @@ will be set.</p>
 <a name="nm-device-reapply-async"></a><h3>nm_device_reapply_async ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>
 nm_device_reapply_async (<em class="parameter"><code><a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a> *device</code></em>,
-                         <em class="parameter"><code><a class="link" href="NMConnection.html" title="NMConnection"><span class="type">NMConnection</span></a> *connection</code></em>,
+                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html#NMConnection-struct"><span class="type">NMConnection</span></a> *connection</code></em>,
                          <em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint64"><span class="type">guint64</span></a> version_id</code></em>,
                          <em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint32"><span class="type">guint32</span></a> flags</code></em>,
                          <em class="parameter"><code><a href="https://developer.gnome.org/gio/unstable/GCancellable.html#GCancellable-struct"><span class="type">GCancellable</span></a> *cancellable</code></em>,
@@ -2132,7 +2133,7 @@ currently active connection made since it was last applied.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>connection</p></td>
-<td class="parameter_description"><p>the <a class="link" href="NMConnection.html" title="NMConnection"><span class="type">NMConnection</span></a> to replace the applied
+<td class="parameter_description"><p>the <a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html#NMConnection-struct"><span class="type">NMConnection</span></a> to replace the applied
 settings with or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to reuse existing. </p></td>
 <td class="parameter_annotations"><span class="annotation">[<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
 </tr>
@@ -2215,7 +2216,7 @@ will be set.</p>
 <hr>
 <div class="refsect2">
 <a name="nm-device-get-applied-connection"></a><h3>nm_device_get_applied_connection ()</h3>
-<pre class="programlisting"><a class="link" href="NMConnection.html" title="NMConnection"><span class="returnvalue">NMConnection</span></a> *
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html#NMConnection-struct"><span class="returnvalue">NMConnection</span></a> *
 nm_device_get_applied_connection (<em class="parameter"><code><a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a> *device</code></em>,
                                   <em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint32"><span class="type">guint32</span></a> flags</code></em>,
                                   <em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint64"><span class="type">guint64</span></a> *version_id</code></em>,
@@ -2266,10 +2267,10 @@ the applied connection. </p></td>
 </div>
 <div class="refsect3">
 <a name="nm-device-get-applied-connection.returns"></a><h4>Returns</h4>
-<p>a <a class="link" href="NMConnection.html" title="NMConnection"><code class="literal">NMConnection</code></a> with the currently applied settings
+<p>a <a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html#NMConnection-struct"><code class="literal">NMConnection</code></a> with the currently applied settings
 or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> on error.</p>
 <p>The connection is as received from D-Bus and might not validate according
-to <a class="link" href="NMConnection.html#nm-connection-verify" title="nm_connection_verify ()"><code class="function">nm_connection_verify()</code></a>. </p>
+to <a class="link" href="libnm-NMConnection.html#nm-connection-verify" title="nm_connection_verify ()"><code class="function">nm_connection_verify()</code></a>. </p>
 <p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.2</p>
@@ -2328,7 +2329,7 @@ nm_device_get_applied_connection_async
 <hr>
 <div class="refsect2">
 <a name="nm-device-get-applied-connection-finish"></a><h3>nm_device_get_applied_connection_finish ()</h3>
-<pre class="programlisting"><a class="link" href="NMConnection.html" title="NMConnection"><span class="returnvalue">NMConnection</span></a> *
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html#NMConnection-struct"><span class="returnvalue">NMConnection</span></a> *
 nm_device_get_applied_connection_finish
                                (<em class="parameter"><code><a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a> *device</code></em>,
                                 <em class="parameter"><code><a href="https://developer.gnome.org/gio/unstable/GAsyncResult.html#GAsyncResult-struct"><span class="type">GAsyncResult</span></a> *result</code></em>,
@@ -2370,10 +2371,10 @@ connection. </p></td>
 </div>
 <div class="refsect3">
 <a name="nm-device-get-applied-connection-finish.returns"></a><h4>Returns</h4>
-<p>a currently applied <a class="link" href="NMConnection.html" title="NMConnection"><code class="literal">NMConnection</code></a> or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> in case
+<p>a currently applied <a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html#NMConnection-struct"><code class="literal">NMConnection</code></a> or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> in case
 of error.</p>
 <p>The connection is as received from D-Bus and might not validate according
-to <a class="link" href="NMConnection.html#nm-connection-verify" title="nm_connection_verify ()"><code class="function">nm_connection_verify()</code></a>. </p>
+to <a class="link" href="libnm-NMConnection.html#nm-connection-verify" title="nm_connection_verify ()"><code class="function">nm_connection_verify()</code></a>. </p>
 <p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.2</p>
@@ -2673,7 +2674,7 @@ incompatible with the device. To get the full list of connections see
 </tr>
 <tr>
 <td class="parameter_name"><p>connections</p></td>
-<td class="parameter_description"><p>an array of <span class="type">NMConnections</span> to filter. </p></td>
+<td class="parameter_description"><p>an array of <a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html#NMConnection-struct"><span class="type">NMConnections</span></a> to filter. </p></td>
 <td class="parameter_annotations"><span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMConnection]</span></td>
 </tr>
 </tbody>
@@ -2682,7 +2683,7 @@ incompatible with the device. To get the full list of connections see
 <div class="refsect3">
 <a name="nm-device-filter-connections.returns"></a><h4>Returns</h4>
 <p>an array of
-<span class="type">NMConnections</span> that could be activated with the given <em class="parameter"><code>device</code></em>
+<a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html#NMConnection-struct"><span class="type">NMConnections</span></a> that could be activated with the given <em class="parameter"><code>device</code></em>
 .  The array
 should be freed with <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#g-ptr-array-unref"><code class="function">g_ptr_array_unref()</code></a> when it is no longer required.</p>
 <p>WARNING: the transfer annotation for this function may not work correctly
@@ -2696,7 +2697,7 @@ You can filter the list yourself with <a class="link" href="NMDevice.html#nm-dev
 <a name="nm-device-connection-valid"></a><h3>nm_device_connection_valid ()</h3>
 <pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 nm_device_connection_valid (<em class="parameter"><code><a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a> *device</code></em>,
-                            <em class="parameter"><code><a class="link" href="NMConnection.html" title="NMConnection"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
+                            <em class="parameter"><code><a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html#NMConnection-struct"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
 <p>Validates a given connection for a given <a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a> object and returns
 whether the connection may be activated with the device. For example if
 <em class="parameter"><code>device</code></em>
@@ -2722,7 +2723,7 @@ against</p></td>
 </tr>
 <tr>
 <td class="parameter_name"><p>connection</p></td>
-<td class="parameter_description"><p>an <a class="link" href="NMConnection.html" title="NMConnection"><span class="type">NMConnection</span></a> to validate against <em class="parameter"><code>device</code></em>
+<td class="parameter_description"><p>an <a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html#NMConnection-struct"><span class="type">NMConnection</span></a> to validate against <em class="parameter"><code>device</code></em>
 </p></td>
 <td class="parameter_annotations"> </td>
 </tr>
@@ -2740,7 +2741,7 @@ if is incompatible with the device's capabilities and characteristics.</p>
 <a name="nm-device-connection-compatible"></a><h3>nm_device_connection_compatible ()</h3>
 <pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 nm_device_connection_compatible (<em class="parameter"><code><a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a> *device</code></em>,
-                                 <em class="parameter"><code><a class="link" href="NMConnection.html" title="NMConnection"><span class="type">NMConnection</span></a> *connection</code></em>,
+                                 <em class="parameter"><code><a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html#NMConnection-struct"><span class="type">NMConnection</span></a> *connection</code></em>,
                                  <em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
 <p>Validates a given connection for a given <a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a> object and returns
 whether the connection may be activated with the device. For example if
@@ -2770,7 +2771,7 @@ against</p></td>
 </tr>
 <tr>
 <td class="parameter_name"><p>connection</p></td>
-<td class="parameter_description"><p>an <a class="link" href="NMConnection.html" title="NMConnection"><span class="type">NMConnection</span></a> to validate against <em class="parameter"><code>device</code></em>
+<td class="parameter_description"><p>an <a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html#NMConnection-struct"><span class="type">NMConnection</span></a> to validate against <em class="parameter"><code>device</code></em>
 </p></td>
 <td class="parameter_annotations"> </td>
 </tr>
@@ -2793,7 +2794,7 @@ if is incompatible with the device's capabilities and characteristics.</p>
 <a name="nm-device-get-setting-type"></a><h3>nm_device_get_setting_type ()</h3>
 <pre class="programlisting"><a href="https://developer.gnome.org/gobject/unstable/gobject-Type-Information.html#GType"><span class="returnvalue">GType</span></a>
 nm_device_get_setting_type (<em class="parameter"><code><a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a> *device</code></em>);</pre>
-<p>Gets the (primary) <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> subtype associated with connections
+<p>Gets the (primary) <a href="/usr/share/gtk-doc/html/libnm-util/NMSetting.html#NMSetting-struct"><span class="type">NMSetting</span></a> subtype associated with connections
 that can be used on <em class="parameter"><code>device</code></em>
 .</p>
 <div class="refsect3">
@@ -2814,7 +2815,7 @@ that can be used on <em class="parameter"><code>device</code></em>
 <div class="refsect3">
 <a name="nm-device-get-setting-type.returns"></a><h4>Returns</h4>
 <p> <em class="parameter"><code>device</code></em>
-'s associated <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> type</p>
+'s associated <a href="/usr/share/gtk-doc/html/libnm-util/NMSetting.html#NMSetting-struct"><span class="type">NMSetting</span></a> type</p>
 </div>
 </div>
 <hr>
@@ -2943,8 +2944,8 @@ nm_lldp_neighbor_new (<em class="parameter"><code><span class="type">void</span>
 <p>Creates a new <a class="link" href="NMDevice.html#NMLldpNeighbor"><span class="type">NMLldpNeighbor</span></a> object.</p>
 <p>Note that <a class="link" href="NMDevice.html#NMLldpNeighbor"><span class="type">NMLldpNeighbor</span></a> has no public API for mutating
 an instance. Also, libnm will not internally mutate a
-once exposed object. They are guaranteed to be immutable.
-Since 1.32, ref-counting is thread-safe.</p>
+once exposed object. They are guaranteed to be immutable.</p>
+<p>Since 1.32, ref-counting of <a class="link" href="NMDevice.html#NMLldpNeighbor"><span class="type">NMLldpNeighbor</span></a> is thread-safe.</p>
 <p>This function is not useful, as there is no public API to
 actually modify the (empty) instance.</p>
 <div class="refsect3">

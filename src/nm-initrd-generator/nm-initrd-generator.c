@@ -103,50 +103,50 @@ main(int argc, char *argv[])
     gboolean           dump_to_stdout      = FALSE;
     gs_strfreev char **remaining           = NULL;
     GOptionEntry       option_entries[]    = {
-                 {"connections-dir",
+        {"connections-dir",
                   'c',
                   0,
                   G_OPTION_ARG_FILENAME,
                   &connections_dir,
                   "Output connection directory",
                   NM_KEYFILE_PATH_NAME_RUN},
-                 {"persistent-connections-dir",
+        {"persistent-connections-dir",
                   'p',
                   0,
                   G_OPTION_ARG_FILENAME,
                   &etc_connections_dir,
                   "Persistent connection directory",
                   NM_KEYFILE_PATH_NAME_ETC_DEFAULT},
-                 {"initrd-data-dir",
+        {"initrd-data-dir",
                   'i',
                   0,
                   G_OPTION_ARG_FILENAME,
                   &initrd_dir,
                   "Output initrd data directory",
                   DEFAULT_INITRD_DATA_DIR},
-                 {"sysfs-dir",
+        {"sysfs-dir",
                   'd',
                   0,
                   G_OPTION_ARG_FILENAME,
                   &sysfs_dir,
                   "The sysfs mount point",
                   DEFAULT_SYSFS_DIR},
-                 {"run-config-dir",
+        {"run-config-dir",
                   'r',
                   0,
                   G_OPTION_ARG_FILENAME,
                   &run_config_dir,
                   "Output config directory",
                   DEFAULT_RUN_CONFIG_DIR},
-                 {"stdout",
+        {"stdout",
                   's',
                   0,
                   G_OPTION_ARG_NONE,
                   &dump_to_stdout,
                   "Dump connections to standard output",
                   NULL},
-                 {G_OPTION_REMAINING, '\0', 0, G_OPTION_ARG_STRING_ARRAY, &remaining, NULL, NULL},
-                 {NULL}};
+        {G_OPTION_REMAINING, '\0', 0, G_OPTION_ARG_STRING_ARRAY, &remaining, NULL, NULL},
+        {NULL}};
     nm_auto_free_option_context GOptionContext *option_context = NULL;
     gs_free_error GError                       *error          = NULL;
     gs_free char                               *hostname       = NULL;
@@ -241,7 +241,7 @@ main(int argc, char *argv[])
             g_print("\n*** Hostname '%s' ***\n", hostname);
 
         for (i = 0; i < confs->len; i++) {
-            NMUtilsNamedValue *v    = &g_array_index(confs, NMUtilsNamedValue, i);
+            NMUtilsNamedValue *v    = &nm_g_array_index(confs, NMUtilsNamedValue, i);
             gs_free char      *name = g_path_get_basename(v->name);
 
             g_print("\n*** Configuration '%s' ***\n\n%s\n", name, v->value_str);
@@ -277,7 +277,7 @@ main(int argc, char *argv[])
         }
 
         for (i = 0; i < confs->len; i++) {
-            NMUtilsNamedValue *v = &g_array_index(confs, NMUtilsNamedValue, i);
+            NMUtilsNamedValue *v = &nm_g_array_index(confs, NMUtilsNamedValue, i);
 
             if (!g_file_set_contents(v->name, v->value_str, strlen(v->value_str), &error)) {
                 _LOGW(LOGD_CORE, "%s: %s", v->name, error->message);

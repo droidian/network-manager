@@ -91,7 +91,7 @@
 #define NM_DEVICE_INTERFACE_FLAGS  "interface-flags"
 
 #define NM_TYPE_DEVICE            (nm_device_get_type())
-#define NM_DEVICE(obj)            (G_TYPE_CHECK_INSTANCE_CAST((obj), NM_TYPE_DEVICE, NMDevice))
+#define NM_DEVICE(obj)            (_NM_G_TYPE_CHECK_INSTANCE_CAST((obj), NM_TYPE_DEVICE, NMDevice))
 #define NM_DEVICE_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST((klass), NM_TYPE_DEVICE, NMDeviceClass))
 #define NM_IS_DEVICE(obj)         (G_TYPE_CHECK_INSTANCE_TYPE((obj), NM_TYPE_DEVICE))
 #define NM_IS_DEVICE_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE((klass), NM_TYPE_DEVICE))
@@ -207,6 +207,8 @@ typedef struct _NMDeviceClass {
     bool act_stage1_prepare_set_hwaddr_ethernet : 1;
 
     bool can_reapply_change_ovs_external_ids : 1;
+
+    bool allow_autoconnect_on_external : 1;
 
     NMRfkillType rfkill_type : 4;
 
@@ -561,8 +563,6 @@ void nm_device_copy_ip6_dns_config(NMDevice *self, NMDevice *from_device);
  * @NM_UNMANAGED_NONE: placeholder value
  * @NM_UNMANAGED_SLEEPING: %TRUE when unmanaged because NM is sleeping.
  * @NM_UNMANAGED_QUITTING: %TRUE when unmanaged because NM is shutting down.
- * @NM_UNMANAGED_PARENT: %TRUE when unmanaged due to parent device being unmanaged
- * @NM_UNMANAGED_BY_TYPE: %TRUE for unmanaging device by type, like loopback.
  * @NM_UNMANAGED_PLATFORM_INIT: %TRUE when unmanaged because platform link not
  *   yet initialized. Unrealized device are also unmanaged for this reason.
  * @NM_UNMANAGED_USER_EXPLICIT: %TRUE when unmanaged by explicit user decision
@@ -592,21 +592,19 @@ typedef enum {
      * the device cannot be managed. */
     NM_UNMANAGED_SLEEPING      = (1LL << 0),
     NM_UNMANAGED_QUITTING      = (1LL << 1),
-    NM_UNMANAGED_PARENT        = (1LL << 2),
-    NM_UNMANAGED_BY_TYPE       = (1LL << 3),
-    NM_UNMANAGED_PLATFORM_INIT = (1LL << 4),
-    NM_UNMANAGED_USER_EXPLICIT = (1LL << 5),
-    NM_UNMANAGED_USER_SETTINGS = (1LL << 6),
+    NM_UNMANAGED_PLATFORM_INIT = (1LL << 2),
+    NM_UNMANAGED_USER_EXPLICIT = (1LL << 3),
+    NM_UNMANAGED_USER_SETTINGS = (1LL << 4),
 
     /* These flags can be non-effective and be overwritten
      * by other flags. */
-    NM_UNMANAGED_BY_DEFAULT    = (1LL << 7),
-    NM_UNMANAGED_USER_CONF     = (1LL << 8),
-    NM_UNMANAGED_USER_UDEV     = (1LL << 9),
-    NM_UNMANAGED_EXTERNAL_DOWN = (1LL << 10),
-    NM_UNMANAGED_IS_SLAVE      = (1LL << 11),
+    NM_UNMANAGED_BY_DEFAULT    = (1LL << 5),
+    NM_UNMANAGED_USER_CONF     = (1LL << 6),
+    NM_UNMANAGED_USER_UDEV     = (1LL << 7),
+    NM_UNMANAGED_EXTERNAL_DOWN = (1LL << 8),
+    NM_UNMANAGED_IS_SLAVE      = (1LL << 9),
 
-    NM_UNMANAGED_ALL = ((1LL << 12) - 1),
+    NM_UNMANAGED_ALL = ((1LL << 10) - 1),
 } NMUnmanagedFlags;
 
 typedef enum {
@@ -820,5 +818,7 @@ const char *
 nm_device_get_hostname_from_dns_lookup(NMDevice *self, int addr_family, gboolean *out_pending);
 
 void nm_device_clear_dns_lookup_data(NMDevice *self);
+
+gboolean nm_device_get_allow_autoconnect_on_external(NMDevice *self);
 
 #endif /* __NETWORKMANAGER_DEVICE_H__ */

@@ -37,6 +37,7 @@ nm_device_get_type
 nm_device_infiniband_get_type
 nm_device_interface_flags_get_type
 nm_device_ip_tunnel_get_type
+nm_device_loopback_get_type
 nm_device_macsec_get_type
 nm_device_macvlan_get_type
 nm_device_modem_capabilities_get_type
@@ -46,6 +47,7 @@ nm_device_ovs_bridge_get_type
 nm_device_ovs_interface_get_type
 nm_device_ovs_port_get_type
 nm_device_ppp_get_type
+nm_device_reapply_flags_get_type
 nm_device_state_get_type
 nm_device_state_reason_get_type
 nm_device_team_get_type
@@ -82,6 +84,7 @@ nm_metered_get_type
 nm_mptcp_flags_get_type
 nm_object_get_type
 nm_radio_flags_get_type
+nm_range_get_type
 nm_remote_connection_get_type
 nm_secret_agent_capabilities_get_type
 nm_secret_agent_error_get_type
@@ -123,6 +126,7 @@ nm_setting_ip6_config_get_type
 nm_setting_ip6_config_privacy_get_type
 nm_setting_ip_config_get_type
 nm_setting_ip_tunnel_get_type
+nm_setting_loopback_get_type
 nm_setting_mac_randomization_get_type
 nm_setting_macsec_get_type
 nm_setting_macsec_mode_get_type
@@ -135,6 +139,7 @@ nm_setting_ovs_bridge_get_type
 nm_setting_ovs_dpdk_get_type
 nm_setting_ovs_external_ids_get_type
 nm_setting_ovs_interface_get_type
+nm_setting_ovs_other_config_get_type
 nm_setting_ovs_patch_get_type
 nm_setting_ovs_port_get_type
 nm_setting_ppp_get_type
@@ -184,6 +189,7 @@ nm_team_link_watcher_arp_ping_flags_get_type
 nm_team_link_watcher_get_type
 nm_ternary_get_type
 nm_utils_security_type_get_type
+nm_version_info_capability_get_type
 nm_vlan_flags_get_type
 nm_vlan_priority_map_get_type
 nm_vpn_connection_get_type

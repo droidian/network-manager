@@ -80,6 +80,7 @@
 <link linkend="gdbus-property-org-freedesktop-NetworkManager.ActivatingConnection">ActivatingConnection</link>        readable   o
 <link linkend="gdbus-property-org-freedesktop-NetworkManager.Startup">Startup</link>                     readable   b
 <link linkend="gdbus-property-org-freedesktop-NetworkManager.Version">Version</link>                     readable   s
+<link linkend="gdbus-property-org-freedesktop-NetworkManager.VersionInfo">VersionInfo</link>                 readable   au
 <link linkend="gdbus-property-org-freedesktop-NetworkManager.Capabilities">Capabilities</link>                readable   au
 <link linkend="gdbus-property-org-freedesktop-NetworkManager.State">State</link>                       readable   u
 <link linkend="gdbus-property-org-freedesktop-NetworkManager.Connectivity">Connectivity</link>                readable   u
@@ -916,6 +917,25 @@ Version  readable   s
 </programlisting>
 <para>
 NetworkManager version.
+</para>
+</refsect2>
+<refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager.VersionInfo">
+  <title>The "VersionInfo" property</title>
+  <indexterm zone="gdbus-property-org-freedesktop-NetworkManager.VersionInfo"><primary sortas="Manager:VersionInfo">org.freedesktop.NetworkManager:VersionInfo</primary></indexterm>
+<programlisting>
+VersionInfo  readable   au
+</programlisting>
+<para>
+NetworkManager version and capabilities.
+</para><para>
+The first element in the array is the NM_VERSION of the daemon. It is a binary representation
+of the "Version" and can be compared numerically. The version is encoded as
+"(major &lt;&lt; 16 | minor &lt;&lt; 8 | micro)".
+</para><para>
+The following elements are a bitfield of static capabilities of the daemon. See
+#NMVersionInfoCapability for the available capability numbers.
+</para><para>
+Since: 1.42
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager.Capabilities">

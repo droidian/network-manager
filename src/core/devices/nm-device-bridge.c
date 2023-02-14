@@ -679,9 +679,10 @@ master_update_slave_connection(NMDevice     *device,
     NMDeviceBridge      *self = NM_DEVICE_BRIDGE(device);
     NMSettingConnection *s_con;
     NMSettingBridgePort *s_port;
-    int                  ifindex_slave = nm_device_get_ifindex(slave);
-    const char          *iface         = nm_device_get_iface(device);
-    const Option        *option;
+    int                  ifindex_slave      = nm_device_get_ifindex(slave);
+    NMConnection        *applied_connection = nm_device_get_applied_connection(device);
+
+    const Option *option;
 
     g_return_val_if_fail(ifindex_slave > 0, FALSE);
 
@@ -717,7 +718,7 @@ master_update_slave_connection(NMDevice     *device,
 
     g_object_set(s_con,
                  NM_SETTING_CONNECTION_MASTER,
-                 iface,
+                 nm_connection_get_uuid(applied_connection),
                  NM_SETTING_CONNECTION_SLAVE_TYPE,
                  NM_SETTING_BRIDGE_SETTING_NAME,
                  NULL);
@@ -1270,7 +1271,7 @@ nm_device_bridge_class_init(NMDeviceBridgeClass *klass)
 
 #define NM_TYPE_BRIDGE_DEVICE_FACTORY (nm_bridge_device_factory_get_type())
 #define NM_BRIDGE_DEVICE_FACTORY(obj) \
-    (G_TYPE_CHECK_INSTANCE_CAST((obj), NM_TYPE_BRIDGE_DEVICE_FACTORY, NMBridgeDeviceFactory))
+    (_NM_G_TYPE_CHECK_INSTANCE_CAST((obj), NM_TYPE_BRIDGE_DEVICE_FACTORY, NMBridgeDeviceFactory))
 
 static NMDevice *
 create_device(NMDeviceFactory      *factory,

@@ -375,6 +375,8 @@ _nm_team_link_watcher_ref(NMTeamLinkWatcher *watcher)
  *
  * Increases the reference count of the object.
  *
+ * Since 1.20, ref-counting of #NMTeamLinkWatcher is thread-safe.
+ *
  * Since: 1.12
  **/
 void
@@ -389,6 +391,8 @@ nm_team_link_watcher_ref(NMTeamLinkWatcher *watcher)
  *
  * Decreases the reference count of the object.  If the reference count
  * reaches zero, the object will be destroyed.
+ *
+ * Since 1.20, ref-counting of #NMTeamLinkWatcher is thread-safe.
  *
  * Since: 1.12
  **/
@@ -1829,7 +1833,8 @@ nm_setting_team_class_init(NMSettingTeamClass *klass)
      */
     _nm_properties_override_dbus(properties_override,
                                  "interface-name",
-                                 &nm_sett_info_propert_type_deprecated_interface_name);
+                                 &nm_sett_info_propert_type_deprecated_interface_name,
+                                 .dbus_deprecated = TRUE);
 
     g_object_class_install_properties(object_class, G_N_ELEMENTS(obj_properties), obj_properties);
 

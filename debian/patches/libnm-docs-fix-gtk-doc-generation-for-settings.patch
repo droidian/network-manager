@@ -1,0 +1,100 @@
+From: Thomas Haller <thaller@redhat.com>
+Date: Fri, 10 Feb 2023 16:31:50 +0100
+Subject: libnm/docs: fix gtk-doc generation for settings
+
+Marking "nm-core-types.h" as to be ignored by gtk-doc, causes many files
+to have the wrong names:
+
+    /docs/libnm/html/{NMConnection.html => libnm-NMConnection.html}
+    /docs/libnm/html/{NMSetting.html => libnm-NMSetting.html}
+    /docs/libnm/html/{NMSetting6Lowpan.html => libnm-NMSetting6Lowpan.html}
+    /docs/libnm/html/{NMSetting8021x.html => libnm-NMSetting8021x.html}
+    /docs/libnm/html/{NMSettingAdsl.html => libnm-NMSettingAdsl.html}
+    /docs/libnm/html/{NMSettingBluetooth.html => libnm-NMSettingBluetooth.html}
+    /docs/libnm/html/{NMSettingBond.html => libnm-NMSettingBond.html}
+    /docs/libnm/html/{NMSettingBondPort.html => libnm-NMSettingBondPort.html}
+    /docs/libnm/html/{NMSettingBridge.html => libnm-NMSettingBridge.html}
+    /docs/libnm/html/{NMSettingBridgePort.html => libnm-NMSettingBridgePort.html}
+    /docs/libnm/html/{NMSettingCdma.html => libnm-NMSettingCdma.html}
+    /docs/libnm/html/{NMSettingConnection.html => libnm-NMSettingConnection.html}
+    /docs/libnm/html/{NMSettingDcb.html => libnm-NMSettingDcb.html}
+    /docs/libnm/html/{NMSettingDummy.html => libnm-NMSettingDummy.html}
+    /docs/libnm/html/{NMSettingEthtool.html => libnm-NMSettingEthtool.html}
+    /docs/libnm/html/{NMSettingGeneric.html => libnm-NMSettingGeneric.html}
+    /docs/libnm/html/{NMSettingGsm.html => libnm-NMSettingGsm.html}
+    /docs/libnm/html/{NMSettingHostname.html => libnm-NMSettingHostname.html}
+    /docs/libnm/html/{NMSettingIP4Config.html => libnm-NMSettingIP4Config.html}
+    /docs/libnm/html/{NMSettingIP6Config.html => libnm-NMSettingIP6Config.html}
+    /docs/libnm/html/{NMSettingIPConfig.html => libnm-NMSettingIPConfig.html}
+    /docs/libnm/html/{NMSettingIPTunnel.html => libnm-NMSettingIPTunnel.html}
+    /docs/libnm/html/{NMSettingInfiniband.html => libnm-NMSettingInfiniband.html}
+    /docs/libnm/html/{NMSettingMacsec.html => libnm-NMSettingMacsec.html}
+    /docs/libnm/html/{NMSettingMacvlan.html => libnm-NMSettingMacvlan.html}
+    /docs/libnm/html/{NMSettingMatch.html => libnm-NMSettingMatch.html}
+    /docs/libnm/html/{NMSettingOlpcMesh.html => libnm-NMSettingOlpcMesh.html}
+    /docs/libnm/html/{NMSettingOvsBridge.html => libnm-NMSettingOvsBridge.html}
+    /docs/libnm/html/{NMSettingOvsDpdk.html => libnm-NMSettingOvsDpdk.html}
+    /docs/libnm/html/{NMSettingOvsExternalIDs.html => libnm-NMSettingOvsExternalIDs.html}
+    /docs/libnm/html/{NMSettingOvsInterface.html => libnm-NMSettingOvsInterface.html}
+    /docs/libnm/html/{NMSettingOvsPatch.html => libnm-NMSettingOvsPatch.html}
+    /docs/libnm/html/{NMSettingOvsPort.html => libnm-NMSettingOvsPort.html}
+    /docs/libnm/html/{NMSettingPpp.html => libnm-NMSettingPpp.html}
+    /docs/libnm/html/{NMSettingPppoe.html => libnm-NMSettingPppoe.html}
+    /docs/libnm/html/{NMSettingProxy.html => libnm-NMSettingProxy.html}
+    /docs/libnm/html/{NMSettingSerial.html => libnm-NMSettingSerial.html}
+    /docs/libnm/html/{NMSettingSriov.html => libnm-NMSettingSriov.html}
+    /docs/libnm/html/{NMSettingTCConfig.html => libnm-NMSettingTCConfig.html}
+    /docs/libnm/html/{NMSettingTeam.html => libnm-NMSettingTeam.html}
+    /docs/libnm/html/{NMSettingTeamPort.html => libnm-NMSettingTeamPort.html}
+    /docs/libnm/html/{NMSettingTun.html => libnm-NMSettingTun.html}
+    /docs/libnm/html/{NMSettingUser.html => libnm-NMSettingUser.html}
+    /docs/libnm/html/{NMSettingVeth.html => libnm-NMSettingVeth.html}
+    /docs/libnm/html/{NMSettingVlan.html => libnm-NMSettingVlan.html}
+    /docs/libnm/html/{NMSettingVpn.html => libnm-NMSettingVpn.html}
+    /docs/libnm/html/{NMSettingVrf.html => libnm-NMSettingVrf.html}
+    /docs/libnm/html/{NMSettingVxlan.html => libnm-NMSettingVxlan.html}
+    /docs/libnm/html/{NMSettingWifiP2P.html => libnm-NMSettingWifiP2P.html}
+    /docs/libnm/html/{NMSettingWimax.html => libnm-NMSettingWimax.html}
+    /docs/libnm/html/{NMSettingWireGuard.html => libnm-NMSettingWireGuard.html}
+    /docs/libnm/html/{NMSettingWired.html => libnm-NMSettingWired.html}
+    /docs/libnm/html/{NMSettingWireless.html => libnm-NMSettingWireless.html}
+    /docs/libnm/html/{NMSettingWirelessSecurity.html => libnm-NMSettingWirelessSecurity.html}
+    /docs/libnm/html/{NMSettingWpan.html => libnm-NMSettingWpan.html}
+    /docs/libnm/html/{NMSimpleConnection.html => libnm-NMSimpleConnection.html}
+
+Revert that part of the change. Even if this regresses other problems.
+
+Fixes: 1330292d057c ('docs/libnm: fix gtkdoc-scan ignore lists')
+(cherry picked from commit f0e3ca09c9d3a3196bee232307e42f008eb4baf2)
+(cherry picked from commit 51b67d43275af5d7ab50d9b293b60d425925ac9b)
+---
+ docs/libnm/Makefile.am | 2 --
+ docs/libnm/meson.build | 2 --
+ 2 files changed, 4 deletions(-)
+
+diff --git a/docs/libnm/Makefile.am b/docs/libnm/Makefile.am
+index 928ea5e..7a10848 100644
+--- a/docs/libnm/Makefile.am
++++ b/docs/libnm/Makefile.am
+@@ -38,8 +38,6 @@ CFILE_GLOB=$(top_srcdir)/src/libnm-core-impl/*.c $(top_srcdir)/src/libnm-client-
+ 
+ # Header files to ignore when scanning.
+ IGNORE_HFILES= \
+-	nm-core-types.h \
+-	\
+ 	nm-dbus-helpers.h \
+ 	nm-default-libnm.h \
+ 	nm-device-private.h \
+diff --git a/docs/libnm/meson.build b/docs/libnm/meson.build
+index 5e742b6..01c9b66 100644
+--- a/docs/libnm/meson.build
++++ b/docs/libnm/meson.build
+@@ -1,8 +1,6 @@
+ # SPDX-License-Identifier: LGPL-2.1-or-later
+ 
+ private_headers = [
+-  'nm-core-types.h',
+-
+   'nm-dbus-helpers.h',
+   'nm-default-libnm.h',
+   'nm-device-private.h',

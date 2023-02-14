@@ -345,8 +345,8 @@
         settings-connection, just like updating the settings-connection can make
         them different.
 
-        Since 1.42, 1.40.10, "preserve-external-ip" flag (0x1) is supported to not
-        remove externally added IP addresses and routes on the device during reapply.
+        Since 1.42, "preserve-external-ip" flag (0x1) is supported to not remove
+        externally added IP addresses and routes on the device during reapply.
     -->
     <method name="Reapply">
       <arg name="connection" type="a{sa{sv}}" direction="in"/>

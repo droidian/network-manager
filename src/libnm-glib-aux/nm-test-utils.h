@@ -39,7 +39,7 @@
  *   depending on the test. See nmtst_is_debug().
  *   Known differences:
  *    - a test might leave the logging level unspecified. In this case, running in
- *      debug mode, will turn on DEBUG logging, otherwise WARN logging only.
+ *      debug mode, will turn on TRACE logging, otherwise WARN logging only.
  *    - if G_MESSAGES_DEBUG is unset, nm-test will set G_MESSAGES_DEBUG=all
  *      for tests that don't do assert-logging.
  *   Debug mode is determined as follows (highest priority first):
@@ -84,6 +84,9 @@
 #undef g_return_if_fail_warning
 #undef g_assertion_message_expr
 #endif
+
+#undef NDEBUG
+#include <assert.h>
 
 #include <arpa/inet.h>
 #include <stdio.h>
@@ -221,17 +224,24 @@
 
 /*****************************************************************************/
 
+struct __nmtst_testdata_track {
+    gpointer       data;
+    GDestroyNotify destroy_notify;
+};
+
 struct __nmtst_internal {
-    GRand   *rand0;
-    guint32  rand_seed;
-    GRand   *rand;
-    gboolean is_debug;
-    gboolean assert_logging;
-    gboolean no_expect_message;
-    gboolean test_quick;
-    gboolean test_tap_log;
-    char    *sudo_cmd;
-    char   **orig_argv;
+    GRand      *rand0;
+    guint32     rand_seed;
+    GRand      *rand;
+    gboolean    is_debug;
+    gboolean    assert_logging;
+    gboolean    no_expect_message;
+    gboolean    test_quick;
+    gboolean    test_tap_log;
+    char       *sudo_cmd;
+    char      **orig_argv;
+    const char *testpath;
+    GArray     *testdata_track_array;
 };
 
 extern struct __nmtst_internal __nmtst_internal;
@@ -250,6 +260,62 @@ static inline gboolean
 nmtst_initialized(void)
 {
     return !!__nmtst_internal.rand0;
+}
+
+/*****************************************************************************/
+
+static inline void
+_nmtst_testdata_track_clear_func(gpointer ptr)
+{
+    struct __nmtst_testdata_track *d = ptr;
+
+    if (d->destroy_notify)
+        d->destroy_notify(d->data);
+    memset(d, 0, sizeof(*d));
+}
+
+static inline void
+_nmtst_testdata_track_add(gpointer data, GDestroyNotify destroy_notify)
+{
+    struct __nmtst_testdata_track d = {
+        .data           = data,
+        .destroy_notify = destroy_notify,
+    };
+
+    g_assert(data);
+    g_assert(destroy_notify);
+    g_assert(__nmtst_internal.testdata_track_array);
+
+    g_array_append_val(__nmtst_internal.testdata_track_array, d);
+}
+
+static inline void
+_nmtst_testdata_track_steal(gpointer data)
+{
+    struct __nmtst_testdata_track *d;
+    guint                          i;
+
+    g_assert(data);
+    g_assert(__nmtst_internal.testdata_track_array);
+
+    for (i = 0; i < __nmtst_internal.testdata_track_array->len; i++) {
+        d = &g_array_index(__nmtst_internal.testdata_track_array, struct __nmtst_testdata_track, i);
+
+        if (d->data != data)
+            continue;
+
+        d->destroy_notify = NULL;
+        g_array_remove_index_fast(__nmtst_internal.testdata_track_array, i);
+        return;
+    }
+    g_assert_not_reached();
+}
+
+static inline void
+_nmtst_testdata_track_steal_and_free(gpointer data)
+{
+    _nmtst_testdata_track_steal(data);
+    g_free(data);
 }
 
 #define __NMTST_LOG(cmd, ...)                                                                  \
@@ -309,7 +375,7 @@ BREAK_INNER_LOOPS:
         str = &str[i];
     }
 
-    return (char **) g_array_free(result, FALSE);
+    return (char **) ((gpointer) g_array_free(result, FALSE));
 }
 
 /* free instances allocated by nmtst (especially nmtst_init()) on shutdown
@@ -319,6 +385,9 @@ nmtst_free(void)
 {
     if (!nmtst_initialized())
         return;
+
+    g_array_set_size(__nmtst_internal.testdata_track_array, 0);
+    g_array_unref(__nmtst_internal.testdata_track_array);
 
     g_rand_free(__nmtst_internal.rand0);
     if (__nmtst_internal.rand)
@@ -576,10 +645,14 @@ __nmtst_init(int        *argc,
     __nmtst_internal.sudo_cmd          = sudo_cmd;
     __nmtst_internal.no_expect_message = no_expect_message;
 
+    __nmtst_internal.testdata_track_array =
+        g_array_new(FALSE, FALSE, sizeof(struct __nmtst_testdata_track));
+    g_array_set_clear_func(__nmtst_internal.testdata_track_array, _nmtst_testdata_track_clear_func);
+
     if (!log_level && log_domains) {
         /* if the log level is not specified (but the domain is), we assume
          * the caller wants to set it depending on is_debug */
-        log_level = is_debug ? "DEBUG" : "WARN";
+        log_level = is_debug ? "TRACE" : "WARN";
     }
 
     if (!__nmtst_internal.assert_logging) {
@@ -661,9 +734,9 @@ __nmtst_init(int        *argc,
 
     /* Delay messages until we setup logging. */
     for (i = 0; i < debug_messages->len; i++)
-        __NMTST_LOG(g_message, "%s", g_array_index(debug_messages, const char *, i));
+        __NMTST_LOG(g_message, "%s", nm_g_array_index(debug_messages, const char *, i));
 
-    g_strfreev((char **) g_array_free(debug_messages, FALSE));
+    g_strfreev((char **) ((gpointer) g_array_free(debug_messages, FALSE)));
     g_free(c_log_level);
     g_free(c_log_domains);
 
@@ -699,6 +772,12 @@ nmtst_init(int *argc, char ***argv, gboolean assert_logging)
 static inline gboolean
 nmtst_is_debug(void)
 {
+    /* This is based on the "debug"/"no-debug" flag in "$NMTST_DEBUG".
+     *
+     * If debugging is enabled, print more information. However, make sure
+     * that the test behaves still in a similar manner and that the same code
+     * path are taken where it matters (it matters for example, if the code path
+     * consumes random numbers). */
     g_assert(nmtst_initialized());
     return __nmtst_internal.is_debug;
 }
@@ -774,15 +853,12 @@ typedef struct _NmtstTestData NmtstTestData;
 typedef void (*NmtstTestHandler)(const NmtstTestData *test_data);
 
 struct _NmtstTestData {
-    union {
-        const char *testpath;
-        char       *_testpath;
-    };
+    const char      *testpath;
     gsize            n_args;
-    gpointer        *args;
     NmtstTestHandler _func_setup;
     GTestDataFunc    _func_test;
     NmtstTestHandler _func_teardown;
+    gpointer         args[];
 };
 
 static inline void
@@ -807,21 +883,33 @@ _nmtst_test_data_unpack(const NmtstTestData *test_data, gsize n_args, ...)
 #define nmtst_test_data_unpack(test_data, ...) \
     _nmtst_test_data_unpack(test_data, NM_NARG(__VA_ARGS__), ##__VA_ARGS__)
 
-static inline void
-_nmtst_test_data_free(gpointer data)
+static inline const char *
+nmtst_test_get_path(void)
 {
-    NmtstTestData *test_data = data;
+    g_assert(nmtst_initialized());
+    g_assert(__nmtst_internal.testpath);
 
-    g_assert(test_data);
+    /* Similar to g_test_get_path() (which only exists since glib 2.68).
+     *
+     * This is the test name while running the test added with
+     * nmtst_add_test_func*().
+     *
+     * You are only allowed to call this from inside such a test. */
 
-    g_free(test_data->_testpath);
-    g_free(test_data);
+    return __nmtst_internal.testpath;
 }
 
 static inline void
 _nmtst_test_run(gconstpointer data)
 {
     const NmtstTestData *test_data = data;
+
+    g_assert(test_data);
+    g_assert(nmtst_initialized());
+    g_assert(test_data->testpath);
+    g_assert(!__nmtst_internal.testpath);
+
+    __nmtst_internal.testpath = test_data->testpath;
 
     if (test_data->_func_setup)
         test_data->_func_setup(test_data);
@@ -830,6 +918,10 @@ _nmtst_test_run(gconstpointer data)
 
     if (test_data->_func_teardown)
         test_data->_func_teardown(test_data);
+
+    g_assert(__nmtst_internal.testpath);
+    g_assert(__nmtst_internal.testpath == test_data->testpath);
+    __nmtst_internal.testpath = NULL;
 }
 
 static inline void
@@ -843,26 +935,41 @@ _nmtst_add_test_func_full(const char      *testpath,
     gsize          i;
     NmtstTestData *data;
     va_list        ap;
+    gsize          testpath_len;
 
     g_assert(testpath && testpath[0]);
     g_assert(func_test);
 
-    data = g_malloc0(sizeof(NmtstTestData) + (sizeof(gpointer) * (n_args + 1)));
+    testpath_len = strlen(testpath) + 1u;
 
-    data->_testpath      = g_strdup(testpath);
-    data->_func_test     = func_test;
-    data->_func_setup    = func_setup;
-    data->_func_teardown = func_teardown;
-    data->n_args         = n_args;
-    data->args           = (gpointer) &data[1];
+    data = g_malloc(G_STRUCT_OFFSET(NmtstTestData, args)
+                    + (sizeof(gpointer) * (n_args + 1u) + testpath_len));
+
+    *data = (NmtstTestData){
+        .testpath       = (gpointer) &data->args[n_args + 1u],
+        ._func_test     = func_test,
+        ._func_setup    = func_setup,
+        ._func_teardown = func_teardown,
+        .n_args         = n_args,
+    };
+
     va_start(ap, n_args);
     for (i = 0; i < n_args; i++)
         data->args[i] = va_arg(ap, gpointer);
     data->args[i] = NULL;
     va_end(ap);
 
-    g_test_add_data_func_full(testpath, data, _nmtst_test_run, _nmtst_test_data_free);
+    g_assert(data->testpath == (gpointer) &data->args[i + 1]);
+
+    memcpy((char *) data->testpath, testpath, testpath_len);
+
+    _nmtst_testdata_track_add(data, g_free);
+    g_test_add_data_func_full(testpath,
+                              data,
+                              _nmtst_test_run,
+                              _nmtst_testdata_track_steal_and_free);
 }
+
 #define nmtst_add_test_func_full(testpath, func_test, func_setup, func_teardown, ...) \
     _nmtst_add_test_func_full(testpath,                                               \
                               func_test,                                              \
@@ -870,6 +977,7 @@ _nmtst_add_test_func_full(const char      *testpath,
                               func_teardown,                                          \
                               NM_NARG(__VA_ARGS__),                                   \
                               ##__VA_ARGS__)
+
 #define nmtst_add_test_func(testpath, func_test, ...) \
     nmtst_add_test_func_full(testpath, func_test, NULL, NULL, ##__VA_ARGS__)
 
@@ -1187,6 +1295,28 @@ nmtst_get_rand_word_length(GRand *rand)
             return n;
         n++;
     }
+}
+
+/*****************************************************************************/
+
+static inline gboolean
+nmtst_true_once(gboolean *state, gboolean new_val)
+{
+    /* Returns only once a TRUE flag. When returning TRUE,
+     * it will be remembered in "state" and future invocations
+     * return FALSE.
+     *
+     * Also, if "new_val" is FALSE, it won't return TRUE.
+     *
+     * The point is to do an action once (depending on "new_val"),
+     * and remember it in "state".
+     */
+    if (!new_val)
+        return FALSE;
+    if (*state)
+        return FALSE;
+    *state = TRUE;
+    return TRUE;
 }
 
 /*****************************************************************************/
@@ -1564,7 +1694,7 @@ nmtst_inet4_from_string(const char *str)
 }
 
 static inline const struct in6_addr *
-nmtst_inet6_from_string(const char *str)
+nmtst_inet6_from_string_p(const char *str)
 {
     static _nm_thread_local struct in6_addr addr;
     int                                     success;
@@ -1579,6 +1709,22 @@ nmtst_inet6_from_string(const char *str)
     return &addr;
 }
 
+static inline struct in6_addr
+nmtst_inet6_from_string(const char *str)
+{
+    struct in6_addr addr;
+    int             success;
+
+    if (!str)
+        addr = in6addr_any;
+    else {
+        success = inet_pton(AF_INET6, str, &addr);
+        g_assert(success == 1);
+    }
+
+    return addr;
+}
+
 static inline gconstpointer
 nmtst_inet_from_string(int addr_family, const char *str)
 {
@@ -1589,7 +1735,7 @@ nmtst_inet_from_string(int addr_family, const char *str)
         return &a;
     }
     if (addr_family == AF_INET6)
-        return nmtst_inet6_from_string(str);
+        return nmtst_inet6_from_string_p(str);
 
     g_assert_not_reached();
     return NULL;
@@ -1648,7 +1794,7 @@ _nmtst_assert_ip6_address(const char            *file,
     if (!addr)
         addr = &any;
 
-    if (memcmp(nmtst_inet6_from_string(str_expected), addr, sizeof(*addr)) != 0) {
+    if (memcmp(nmtst_inet6_from_string_p(str_expected), addr, sizeof(*addr)) != 0) {
         char buf[100];
 
         g_error("%s:%d: Unexpected IPv6 address: expected %s, got %s",
@@ -1917,7 +2063,7 @@ nmtst_logging_disable(gboolean always)
         return NULL;
     }
 
-    p = g_memdup(_nm_logging_enabled_state, sizeof(_nm_logging_enabled_state));
+    p = nm_memdup(_nm_logging_enabled_state, sizeof(_nm_logging_enabled_state));
     memset(_nm_logging_enabled_state, 0, sizeof(_nm_logging_enabled_state));
     return p;
 }
@@ -1944,9 +2090,9 @@ nmtst_setting_ip_config_add_address(NMSettingIPConfig *s_ip, const char *address
 
     g_assert(s_ip);
 
-    if (nm_utils_ipaddr_is_valid(AF_INET, address))
+    if (nm_inet_is_valid(AF_INET, address))
         family = AF_INET;
-    else if (nm_utils_ipaddr_is_valid(AF_INET6, address))
+    else if (nm_inet_is_valid(AF_INET6, address))
         family = AF_INET6;
     else
         g_assert_not_reached();
@@ -1969,9 +2115,9 @@ nmtst_setting_ip_config_add_route(NMSettingIPConfig *s_ip,
 
     g_assert(s_ip);
 
-    if (nm_utils_ipaddr_is_valid(AF_INET, dest))
+    if (nm_inet_is_valid(AF_INET, dest))
         family = AF_INET;
-    else if (nm_utils_ipaddr_is_valid(AF_INET6, dest))
+    else if (nm_inet_is_valid(AF_INET6, dest))
         family = AF_INET6;
     else
         g_assert_not_reached();
@@ -2682,7 +2828,8 @@ _nmtst_variant_new_vardict(int dummy, ...)
     G_STMT_END
 #else
 #define _nmtst_assert_variant_bytestring_cmp_str(_ptr, _ptr2, _len) \
-    G_STMT_START {}                                                 \
+    G_STMT_START                                                    \
+    {}                                                              \
     G_STMT_END
 #endif
 
@@ -2913,7 +3060,7 @@ nmtst_ip_address_new(int addr_family, const char *str)
     GError      *error = NULL;
     NMIPAddress *a;
 
-    if (!nm_utils_parse_inaddr_prefix_bin(addr_family, str, &addr_family, &addr, &plen))
+    if (!nm_inet_parse_with_prefix_bin(addr_family, str, &addr_family, &addr, &plen))
         g_assert_not_reached();
 
     if (plen == -1)
@@ -2925,6 +3072,27 @@ nmtst_ip_address_new(int addr_family, const char *str)
 }
 
 #endif
+
+/*****************************************************************************/
+
+static inline gpointer
+nmtst_keeper_add(GPtrArray **p_arr, gpointer ptr)
+{
+    if (!p_arr) {
+        /* If not GPtrArray in/out argument is given, track the pointer
+         * via _nmtst_testdata_track_add(), which means it stays alive
+         * until the end of the test. */
+        _nmtst_testdata_track_add(ptr, g_free);
+    } else {
+        if (!*p_arr)
+            *p_arr = g_ptr_array_new_with_free_func(g_free);
+
+        g_ptr_array_add(*p_arr, ptr);
+    }
+    return ptr;
+}
+
+#define nmtst_keeper_printf(p_ptr, ...) nmtst_keeper_add((p_ptr), g_strdup_printf(__VA_ARGS__))
 
 /*****************************************************************************/
 

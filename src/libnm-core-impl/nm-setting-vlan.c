@@ -30,6 +30,7 @@ NM_GOBJECT_PROPERTIES_DEFINE(NMSettingVlan,
                              PROP_PARENT,
                              PROP_ID,
                              PROP_FLAGS,
+                             PROP_PROTOCOL,
                              PROP_INGRESS_PRIORITY_MAP,
                              PROP_EGRESS_PRIORITY_MAP, );
 
@@ -37,6 +38,7 @@ typedef struct {
     GSList *ingress_priority_map;
     GSList *egress_priority_map;
     char   *parent;
+    char   *protocol;
     guint32 id;
     guint32 flags;
 } NMSettingVlanPrivate;
@@ -79,6 +81,22 @@ nm_setting_vlan_get_parent(NMSettingVlan *setting)
     g_return_val_if_fail(NM_IS_SETTING_VLAN(setting), NULL);
 
     return NM_SETTING_VLAN_GET_PRIVATE(setting)->parent;
+}
+
+/**
+ * nm_setting_vlan_get_protocol:
+ * @setting: the #NMSettingVlan
+ *
+ * Since: 1.42
+ *
+ * Returns: the #NMSettingVlan:protocol property of the setting
+ **/
+const char *
+nm_setting_vlan_get_protocol(NMSettingVlan *setting)
+{
+    g_return_val_if_fail(NM_IS_SETTING_VLAN(setting), NULL);
+
+    return NM_SETTING_VLAN_GET_PRIVATE(setting)->protocol;
 }
 
 /**
@@ -662,6 +680,16 @@ verify(NMSetting *setting, NMConnection *connection, GError **error)
         return FALSE;
     }
 
+    if (!NM_IN_STRSET(priv->protocol, NULL, "802.1Q", "802.1ad")) {
+        g_set_error(error,
+                    NM_CONNECTION_ERROR,
+                    NM_CONNECTION_ERROR_INVALID_PROPERTY,
+                    _("invalid VLAN protocol %s: must be '802.1Q' or '802.1ad'"),
+                    priv->protocol);
+        g_prefix_error(error, "%s.%s: ", NM_SETTING_VLAN_SETTING_NAME, NM_SETTING_VLAN_PROTOCOL);
+        return FALSE;
+    }
+
     if (connection && !s_wired) {
         /* technically, a VLAN setting does not require an ethernet setting. However,
          * the ifcfg-rh reader always adds a ethernet setting when reading a vlan setting.
@@ -678,13 +706,13 @@ verify(NMSetting *setting, NMConnection *connection, GError **error)
 }
 
 static GVariant *
-_override_flags_get(_NM_SETT_INFO_PROP_TO_DBUS_FCN_ARGS _nm_nil)
+vlan_flags_to_dbus(_NM_SETT_INFO_PROP_TO_DBUS_FCN_ARGS _nm_nil)
 {
     return g_variant_new_uint32(nm_setting_vlan_get_flags((NMSettingVlan *) setting));
 }
 
 static gboolean
-_override_flags_not_set(_NM_SETT_INFO_PROP_MISSING_FROM_DBUS_FCN_ARGS _nm_nil)
+vlan_flags_missing_from_dbus(_NM_SETT_INFO_PROP_MISSING_FROM_DBUS_FCN_ARGS _nm_nil)
 {
     /* we changed the default value for FLAGS. When an older client
      * doesn't serialize the property, we assume it is the old default. */
@@ -909,11 +937,37 @@ nm_setting_vlan_class_init(NMSettingVlanClass *klass)
         properties_override,
         obj_properties[PROP_FLAGS],
         NM_SETT_INFO_PROPERT_TYPE_DBUS(G_VARIANT_TYPE_UINT32,
-                                       .to_dbus_fcn = _override_flags_get,
+                                       .to_dbus_fcn = vlan_flags_to_dbus,
                                        .compare_fcn = _nm_setting_property_compare_fcn_default,
-                                       .missing_from_dbus_fcn = _override_flags_not_set,
+                                       .missing_from_dbus_fcn = vlan_flags_missing_from_dbus,
                                        .from_dbus_fcn = _nm_setting_property_from_dbus_fcn_gprop,
                                        .from_dbus_is_full = TRUE));
+
+    /**
+     * NMSettingVlan:protocol:
+     *
+     * Specifies the VLAN protocol to use for encapsulation.
+     *
+     * Supported values are: '802.1Q', '802.1ad'. If not specified the default
+     * value is '802.1Q'.
+     *
+     * Since: 1.42
+     **/
+    /* ---ifcfg-rh---
+     * property: protocol
+     * variable: VLAN_PROTOCOL
+     * description: VLAN protocol.
+     * example: VLAN_PROTOCOL="802.1ad"
+     * ---end---
+     */
+    _nm_setting_property_define_direct_string(properties_override,
+                                              obj_properties,
+                                              NM_SETTING_VLAN_PROTOCOL,
+                                              PROP_PROTOCOL,
+                                              NM_SETTING_PARAM_INFERRABLE,
+                                              NMSettingVlanPrivate,
+                                              protocol,
+                                              .direct_string_is_refstr = TRUE);
 
     /**
      * NMSettingVlan:ingress-priority-map:
@@ -965,7 +1019,8 @@ nm_setting_vlan_class_init(NMSettingVlanClass *klass)
      *   but VLAN id from DEVICE takes precedence over VLAN_ID.
      * example: PHYSDEV=eth0, VLAN_ID=12; or DEVICE=eth0.12
      * ---end---
-     * ---dbus---
+     */
+    /* ---dbus---
      * property: interface-name
      * format: string
      * description: Deprecated in favor of connection.interface-name, but can
@@ -975,7 +1030,8 @@ nm_setting_vlan_class_init(NMSettingVlanClass *klass)
      */
     _nm_properties_override_dbus(properties_override,
                                  "interface-name",
-                                 &nm_sett_info_propert_type_deprecated_interface_name);
+                                 &nm_sett_info_propert_type_deprecated_interface_name,
+                                 .dbus_deprecated = TRUE, );
 
     g_object_class_install_properties(object_class, _PROPERTY_ENUMS_LAST, obj_properties);
 

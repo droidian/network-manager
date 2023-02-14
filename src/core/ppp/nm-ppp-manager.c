@@ -66,7 +66,8 @@ static NM_CACHED_QUARK_FCN("ppp-manager-secret-tries", ppp_manager_secret_tries_
 /*****************************************************************************/
 
 #define NM_TYPE_PPP_MANAGER (nm_ppp_manager_get_type())
-#define NM_PPP_MANAGER(obj) (G_TYPE_CHECK_INSTANCE_CAST((obj), NM_TYPE_PPP_MANAGER, NMPPPManager))
+#define NM_PPP_MANAGER(obj) \
+    (_NM_G_TYPE_CHECK_INSTANCE_CAST((obj), NM_TYPE_PPP_MANAGER, NMPPPManager))
 #define NM_PPP_MANAGER_CLASS(klass) \
     (G_TYPE_CHECK_CLASS_CAST((klass), NM_TYPE_PPP_MANAGER, NMPPPManagerClass))
 #define NM_IS_PPP_MANAGER(obj)         (G_TYPE_CHECK_INSTANCE_TYPE((obj), NM_TYPE_PPP_MANAGER))
@@ -582,7 +583,7 @@ impl_ppp_manager_set_ip4_config(NMDBusObject                      *obj,
 
     if (g_variant_lookup(config_dict, NM_PPP_IP4_CONFIG_DNS, "au", &iter)) {
         while (g_variant_iter_next(iter, "u", &u32))
-            nm_l3_config_data_add_nameserver(l3cd, AF_INET, &u32);
+            nm_l3_config_data_add_nameserver_detail(l3cd, AF_INET, &u32, NULL);
         g_variant_iter_free(iter);
     }
 

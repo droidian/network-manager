@@ -1,3 +1,12 @@
+network-manager (1.42.0-1) unstable; urgency=medium
+
+  * New upstream version 1.42.0
+  * Rebase patches
+  * Update symbols file for libnm0
+  * Cherry-pick upstream patch to fix regression in gtk-doc generation
+
+ -- Michael Biebl <biebl@debian.org>  Fri, 10 Feb 2023 17:38:16 +0100
+
 network-manager (1.40.12-1ubuntu1) lunar; urgency=medium
 
   * Resynchronize on Debian, remaining changes:

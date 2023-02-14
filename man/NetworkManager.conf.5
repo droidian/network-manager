@@ -2,12 +2,12 @@
 .\"     Title: NetworkManager.conf
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 01/26/2023
+.\"      Date: 02/10/2023
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.40.12
+.\"    Source: NetworkManager 1.42.0
 .\"  Language: English
 .\"
-.TH "NETWORKMANAGER\&.CONF" "5" "" "NetworkManager 1\&.40\&.12" "Configuration"
+.TH "NETWORKMANAGER\&.CONF" "5" "" "NetworkManager 1\&.42\&.0" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -976,6 +976,11 @@ is unset, use the content of "/proc/sys/net/ipv6/conf/default/use_tempaddr" as l
 \fIipv6\&.route\-table\fR
 .RS 4
 If left unspecified, routes are only added to the main table\&. Note that this is different from explicitly selecting the main table 254, because of how NetworkManager removes extraneous routes from the tables\&.
+.RE
+.PP
+\fIloopback\&.mtu\fR
+.RS 4
+If configured explicitly to 0, the MTU is not reconfigured during device activation unless it is required due to IPv6 constraints\&. If left unspecified, a DHCP/IPv6 SLAAC provided value is used or the MTU is left unspecified on activation\&.
 .RE
 .PP
 \fIsriov\&.autoprobe\-drivers\fR

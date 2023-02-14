@@ -2,12 +2,12 @@
 .\"     Title: NetworkManager
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 01/26/2023
+.\"      Date: 02/10/2023
 .\"    Manual: Network management daemons
-.\"    Source: NetworkManager 1.40.12
+.\"    Source: NetworkManager 1.42.0
 .\"  Language: English
 .\"
-.TH "NETWORKMANAGER" "8" "" "NetworkManager 1\&.40\&.12" "Network management daemons"
+.TH "NETWORKMANAGER" "8" "" "NetworkManager 1\&.42\&.0" "Network management daemons"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -121,7 +121,11 @@ for more information\&.
 .PP
 \fB\-\-print\-config\fR
 .RS 4
-Print the NetworkManager configuration to stdout and exit\&.
+Print the NetworkManager configuration to stdout and exit\&. See
+\fBNetworkManager.conf\fR(5)\&. This does not include connection profiles\&. View them with
+\fBnmcli connection\fR\&.
+.sp
+This reads configuration files from disk\&. If NetworkManager is currently running, make sure that it has the same configuration loaded\&.
 .RE
 .SH "UDEV PROPERTIES"
 .PP

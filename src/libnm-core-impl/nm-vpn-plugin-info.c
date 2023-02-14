@@ -198,7 +198,7 @@ _sort_files(LoadDirInfo *a, LoadDirInfo *b)
  *   VPN plugin directory.
  */
 const char *
-_nm_vpn_plugin_info_get_default_dir_etc()
+_nm_vpn_plugin_info_get_default_dir_etc(void)
 {
     return DEFAULT_DIR_ETC;
 }
@@ -210,7 +210,7 @@ _nm_vpn_plugin_info_get_default_dir_etc()
  *   VPN plugin directory.
  */
 const char *
-_nm_vpn_plugin_info_get_default_dir_lib()
+_nm_vpn_plugin_info_get_default_dir_lib(void)
 {
     return DEFAULT_DIR_LIB;
 }
@@ -223,7 +223,7 @@ _nm_vpn_plugin_info_get_default_dir_lib()
  * that directory.
  */
 const char *
-_nm_vpn_plugin_info_get_default_dir_user()
+_nm_vpn_plugin_info_get_default_dir_user(void)
 {
     return nm_str_not_empty(g_getenv("NM_VPN_PLUGIN_DIR"));
 }
@@ -296,7 +296,7 @@ _nm_vpn_plugin_info_list_load_dir(const char               *dirname,
     g_array_sort(array, (GCompareFunc) _sort_files);
 
     for (i = 0; i < array->len; i++)
-        res = g_slist_prepend(res, g_array_index(array, LoadDirInfo, i).plugin_info);
+        res = g_slist_prepend(res, nm_g_array_index(array, LoadDirInfo, i).plugin_info);
 
     g_array_unref(array);
 
@@ -312,7 +312,7 @@ _nm_vpn_plugin_info_list_load_dir(const char               *dirname,
  * Since: 1.2
  */
 GSList *
-nm_vpn_plugin_info_list_load()
+nm_vpn_plugin_info_list_load(void)
 {
     int               i;
     gint64            uid;
@@ -898,7 +898,7 @@ nm_vpn_plugin_info_get_program(NMVpnPluginInfo *self)
  *
  * Returns: %TRUE if the service supports multiple instances with different bus names, otherwise %FALSE
  *
- * Since: 1.42, 1.40.4
+ * Since: 1.42
  */
 gboolean
 nm_vpn_plugin_info_supports_multiple(NMVpnPluginInfo *self)

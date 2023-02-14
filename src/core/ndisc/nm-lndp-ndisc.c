@@ -202,9 +202,7 @@ receive_ra(struct ndp *ndp, struct ndp_msg *msg, gpointer user_data)
         r_plen = ndp_msg_opt_prefix_len(msg, offset);
         if (r_plen == 0 || r_plen > 128)
             continue;
-        nm_utils_ip6_address_clear_host_address(&r_network,
-                                                ndp_msg_opt_prefix(msg, offset),
-                                                r_plen);
+        nm_ip6_addr_clear_host_address(&r_network, ndp_msg_opt_prefix(msg, offset), r_plen);
 
         if (IN6_IS_ADDR_UNSPECIFIED(&r_network) || IN6_IS_ADDR_LINKLOCAL(&r_network))
             continue;
@@ -213,6 +211,7 @@ receive_ra(struct ndp *ndp, struct ndp_msg *msg, gpointer user_data)
             const NMNDiscRoute route = {
                 .network = r_network,
                 .plen    = r_plen,
+                .on_link = TRUE,
                 .expiry_msec =
                     _nm_ndisc_lifetime_to_expiry(now_msec,
                                                  ndp_msg_opt_prefix_valid_time(msg, offset)),
@@ -244,15 +243,14 @@ receive_ra(struct ndp *ndp, struct ndp_msg *msg, gpointer user_data)
         if (plen == 0 || plen > 128)
             continue;
 
-        nm_utils_ip6_address_clear_host_address(&network,
-                                                ndp_msg_opt_route_prefix(msg, offset),
-                                                plen);
+        nm_ip6_addr_clear_host_address(&network, ndp_msg_opt_route_prefix(msg, offset), plen);
 
         {
             const NMNDiscRoute route = {
                 .network = network,
                 .gateway = gateway_addr,
                 .plen    = plen,
+                .on_link = FALSE,
                 .expiry_msec =
                     _nm_ndisc_lifetime_to_expiry(now_msec, ndp_msg_opt_route_lifetime(msg, offset)),
                 .preference = _route_preference_coerce(ndp_msg_opt_route_preference(msg, offset)),
@@ -417,7 +415,7 @@ send_ra(NMNDisc *ndisc, GError **error)
     /* The device let us know about all addresses that the device got
      * whose prefixes are suitable for delegating. Let's announce them. */
     for (i = 0; i < rdata->addresses->len; i++) {
-        const NMNDiscAddress      *address = &g_array_index(rdata->addresses, NMNDiscAddress, i);
+        const NMNDiscAddress      *address = &nm_g_array_index(rdata->addresses, NMNDiscAddress, i);
         struct nd_opt_prefix_info *prefix;
 
         prefix = _ndp_msg_add_option(msg, sizeof(*prefix));
@@ -462,7 +460,7 @@ send_ra(NMNDisc *ndisc, GError **error)
 
         for (i = 0; i < rdata->dns_servers->len; i++) {
             const NMNDiscDNSServer *dns_server =
-                &g_array_index(rdata->dns_servers, NMNDiscDNSServer, i);
+                &nm_g_array_index(rdata->dns_servers, NMNDiscDNSServer, i);
 
             option->addrs[i] = dns_server->address;
         }
@@ -478,7 +476,7 @@ dns_servers_done:
 
         for (i = 0; i < rdata->dns_domains->len; i++) {
             const NMNDiscDNSDomain *dns_domain =
-                &g_array_index(rdata->dns_domains, NMNDiscDNSDomain, i);
+                &nm_g_array_index(rdata->dns_domains, NMNDiscDNSDomain, i);
             const char *domain = dns_domain->domain;
             gsize       domain_l;
             gsize       n_reserved;

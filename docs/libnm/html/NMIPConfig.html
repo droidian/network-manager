@@ -294,7 +294,7 @@ nm_ip_config_get_addresses (<em class="parameter"><code><a class="link" href="NM
 <div class="refsect3">
 <a name="nm-ip-config-get-addresses.returns"></a><h4>Returns</h4>
 <p>the <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a>
-containing <a class="link" href="NMSettingIPConfig.html#NMIPAddress"><span class="type">NMIPAddress</span></a>es.  This is the internal copy used by the
+containing <a class="link" href="libnm-NMSettingIPConfig.html#NMIPAddress"><span class="type">NMIPAddress</span></a>es.  This is the internal copy used by the
 configuration and must not be modified. The library never modifies the
 returned array and thus it is safe for callers to reference and keep using it. </p>
 <p><span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMIPAddress][<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
@@ -324,7 +324,7 @@ nm_ip_config_get_routes (<em class="parameter"><code><a class="link" href="NMIPC
 <div class="refsect3">
 <a name="nm-ip-config-get-routes.returns"></a><h4>Returns</h4>
 <p>the <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> containing
-<a class="link" href="NMSettingIPConfig.html#NMIPRoute"><span class="type">NMIPRoute</span></a>s. This is the internal copy used by the configuration, and must
+<a class="link" href="libnm-NMSettingIPConfig.html#NMIPRoute"><span class="type">NMIPRoute</span></a>s. This is the internal copy used by the configuration, and must
 not be modified. The library never modifies the returned array and thus it is
 safe for callers to reference and keep using it. </p>
 <p><span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMIPRoute][<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
@@ -502,7 +502,7 @@ nm_ip_config_get_wins_servers (<em class="parameter"><code><a class="link" href=
 <div class="refsect2">
 <a name="NMIPConfig--addresses"></a><h3>The <code class="literal">“addresses”</code> property</h3>
 <pre class="programlisting">  “addresses”                <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> *</pre>
-<p>A <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> containing the addresses (<a class="link" href="NMSettingIPConfig.html#NMIPAddress"><span class="type">NMIPAddress</span></a>) of the configuration.</p>
+<p>A <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> containing the addresses (<a class="link" href="libnm-NMSettingIPConfig.html#NMIPAddress"><span class="type">NMIPAddress</span></a>) of the configuration.</p>
 <p>Owner: NMIPConfig</p>
 <p>Flags: Read</p>
 </div>
@@ -546,7 +546,7 @@ nm_ip_config_get_wins_servers (<em class="parameter"><code><a class="link" href=
 <div class="refsect2">
 <a name="NMIPConfig--routes"></a><h3>The <code class="literal">“routes”</code> property</h3>
 <pre class="programlisting">  “routes”                   <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> *</pre>
-<p>A <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> containing the routes (<a class="link" href="NMSettingIPConfig.html#NMIPRoute"><span class="type">NMIPRoute</span></a>) of the configuration.</p>
+<p>A <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> containing the routes (<a class="link" href="libnm-NMSettingIPConfig.html#NMIPRoute"><span class="type">NMIPRoute</span></a>) of the configuration.</p>
 <p><span class="annotation">[<acronym title="Override the parsed C type with given type."><span class="acronym">type</span></acronym> GPtrArray(NMIPRoute)]</span></p>
 <p>Owner: NMIPConfig</p>
 <p>Flags: Read</p>

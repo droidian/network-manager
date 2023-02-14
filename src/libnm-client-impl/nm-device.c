@@ -312,6 +312,7 @@ coerce_type(NMDeviceType type)
     case NM_DEVICE_TYPE_WIREGUARD:
     case NM_DEVICE_TYPE_WIFI_P2P:
     case NM_DEVICE_TYPE_VRF:
+    case NM_DEVICE_TYPE_LOOPBACK:
         return type;
     }
     return NM_DEVICE_TYPE_UNKNOWN;
@@ -1811,6 +1812,8 @@ get_type_name(NMDevice *device)
         return _("Wi-Fi P2P");
     case NM_DEVICE_TYPE_VRF:
         return _("VRF");
+    case NM_DEVICE_TYPE_LOOPBACK:
+        return _("Loopback");
     case NM_DEVICE_TYPE_GENERIC:
     case NM_DEVICE_TYPE_UNUSED1:
     case NM_DEVICE_TYPE_UNUSED2:
@@ -2979,7 +2982,8 @@ NM_IS_LLDP_NEIGHBOR(const NMLldpNeighbor *self)
  * Note that #NMLldpNeighbor has no public API for mutating
  * an instance. Also, libnm will not internally mutate a
  * once exposed object. They are guaranteed to be immutable.
- * Since 1.32, ref-counting is thread-safe.
+ *
+ * Since 1.32, ref-counting of #NMLldpNeighbor is thread-safe.
  *
  * This function is not useful, as there is no public API to
  * actually modify the (empty) instance.

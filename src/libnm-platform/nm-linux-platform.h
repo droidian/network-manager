@@ -10,7 +10,7 @@
 
 #define NM_TYPE_LINUX_PLATFORM (nm_linux_platform_get_type())
 #define NM_LINUX_PLATFORM(obj) \
-    (G_TYPE_CHECK_INSTANCE_CAST((obj), NM_TYPE_LINUX_PLATFORM, NMLinuxPlatform))
+    (_NM_G_TYPE_CHECK_INSTANCE_CAST((obj), NM_TYPE_LINUX_PLATFORM, NMLinuxPlatform))
 #define NM_LINUX_PLATFORM_CLASS(klass) \
     (G_TYPE_CHECK_CLASS_CAST((klass), NM_TYPE_LINUX_PLATFORM, NMLinuxPlatformClass))
 #define NM_IS_LINUX_PLATFORM(obj)         (G_TYPE_CHECK_INSTANCE_TYPE((obj), NM_TYPE_LINUX_PLATFORM))
@@ -23,6 +23,11 @@ typedef struct _NMLinuxPlatformClass NMLinuxPlatformClass;
 
 GType nm_linux_platform_get_type(void);
 
-NMPlatform *nm_linux_platform_new(gboolean log_with_ptr, gboolean netns_support, gboolean cache_tc);
+struct _NMDedupMultiIndex;
+
+NMPlatform *nm_linux_platform_new(struct _NMDedupMultiIndex *multi_idx,
+                                  gboolean                   log_with_ptr,
+                                  gboolean                   netns_support,
+                                  gboolean                   cache_tc);
 
 #endif /* __NETWORKMANAGER_LINUX_PLATFORM_H__ */

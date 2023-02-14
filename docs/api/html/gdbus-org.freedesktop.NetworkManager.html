@@ -108,6 +108,7 @@
 <a class="link" href="gdbus-org.freedesktop.NetworkManager.html#gdbus-property-org-freedesktop-NetworkManager.ActivatingConnection" title='The "ActivatingConnection" property'>ActivatingConnection</a>        readable   o
 <a class="link" href="gdbus-org.freedesktop.NetworkManager.html#gdbus-property-org-freedesktop-NetworkManager.Startup" title='The "Startup" property'>Startup</a>                     readable   b
 <a class="link" href="gdbus-org.freedesktop.NetworkManager.html#gdbus-property-org-freedesktop-NetworkManager.Version" title='The "Version" property'>Version</a>                     readable   s
+<a class="link" href="gdbus-org.freedesktop.NetworkManager.html#gdbus-property-org-freedesktop-NetworkManager.VersionInfo" title='The "VersionInfo" property'>VersionInfo</a>                 readable   au
 <a class="link" href="gdbus-org.freedesktop.NetworkManager.html#gdbus-property-org-freedesktop-NetworkManager.Capabilities" title='The "Capabilities" property'>Capabilities</a>                readable   au
 <a class="link" href="gdbus-org.freedesktop.NetworkManager.html#gdbus-property-org-freedesktop-NetworkManager.State" title='The "State" property'>State</a>                       readable   u
 <a class="link" href="gdbus-org.freedesktop.NetworkManager.html#gdbus-property-org-freedesktop-NetworkManager.Connectivity" title='The "Connectivity" property'>Connectivity</a>                readable   u
@@ -1053,6 +1054,28 @@ Version  readable   s
 </pre>
 <p>
 NetworkManager version.
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gdbus-property-org-freedesktop-NetworkManager.VersionInfo"></a><h3>The "VersionInfo" property</h3>
+<pre class="programlisting">
+VersionInfo  readable   au
+</pre>
+<p>
+NetworkManager version and capabilities.
+</p>
+<p>
+The first element in the array is the NM_VERSION of the daemon. It is a binary representation
+of the "Version" and can be compared numerically. The version is encoded as
+"(major &lt;&lt; 16 | minor &lt;&lt; 8 | micro)".
+</p>
+<p>
+The following elements are a bitfield of static capabilities of the daemon. See
+#NMVersionInfoCapability for the available capability numbers.
+</p>
+<p>
+Since: 1.42
 </p>
 </div>
 <hr>

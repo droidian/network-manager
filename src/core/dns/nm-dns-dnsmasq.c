@@ -801,13 +801,13 @@ add_dnsmasq_nameserver(NMDnsDnsmasq    *self,
     g_variant_builder_close(servers);
 }
 
-#define IP_ADDR_TO_STRING_BUFLEN (NM_UTILS_INET_ADDRSTRLEN + 1 + IFNAMSIZ)
+#define IP_ADDR_TO_STRING_BUFLEN (NM_INET_ADDRSTRLEN + 1 + IFNAMSIZ)
 
 static const char *
 ip_addr_to_string(int addr_family, gconstpointer addr, const char *iface, char *out_buf)
 {
     int         n_written;
-    char        buf2[NM_UTILS_INET_ADDRSTRLEN];
+    char        buf2[NM_INET_ADDRSTRLEN];
     const char *separator;
 
     nm_assert_addr_family(addr_family);
@@ -815,13 +815,13 @@ ip_addr_to_string(int addr_family, gconstpointer addr, const char *iface, char *
     nm_assert(out_buf);
 
     if (addr_family == AF_INET) {
-        nm_utils_inet_ntop(addr_family, addr, buf2);
+        nm_inet_ntop(addr_family, addr, buf2);
         separator = "@";
     } else {
         if (IN6_IS_ADDR_V4MAPPED(addr))
-            _nm_utils_inet4_ntop(((const struct in6_addr *) addr)->s6_addr32[3], buf2);
+            nm_inet4_ntop(((const struct in6_addr *) addr)->s6_addr32[3], buf2);
         else
-            _nm_utils_inet6_ntop(addr, buf2);
+            nm_inet6_ntop(addr, buf2);
         /* Need to scope link-local addresses with %<zone-id>. Before dnsmasq 2.58,
          * only '@' was supported as delimiter. Since 2.58, '@' and '%' are
          * supported. Due to a bug, since 2.73 only '%' works properly as "server"
@@ -868,22 +868,24 @@ add_global_config(NMDnsDnsmasq            *self,
 static void
 add_ip_config(NMDnsDnsmasq *self, GVariantBuilder *servers, const NMDnsConfigIPData *ip_data)
 {
-    const char   *iface;
-    const char   *domain;
-    char          ip_addr_to_string_buf[IP_ADDR_TO_STRING_BUFLEN];
-    gconstpointer nameservers;
-    guint         num;
-    guint         i;
-    guint         j;
+    const char        *iface;
+    const char        *domain;
+    char               ip_addr_to_string_buf[IP_ADDR_TO_STRING_BUFLEN];
+    const char *const *strarr;
+    guint              num;
+    guint              i;
+    guint              j;
 
     iface = nm_platform_link_get_name(NM_PLATFORM_GET, ip_data->data->ifindex);
 
-    nameservers = nm_l3_config_data_get_nameservers(ip_data->l3cd, ip_data->addr_family, &num);
+    strarr = nm_l3_config_data_get_nameservers(ip_data->l3cd, ip_data->addr_family, &num);
     for (i = 0; i < num; i++) {
-        gconstpointer addr;
+        NMIPAddr a;
 
-        addr = nm_ip_addr_from_packed_array(ip_data->addr_family, nameservers, i);
-        ip_addr_to_string(ip_data->addr_family, addr, iface, ip_addr_to_string_buf);
+        if (!nm_utils_dnsname_parse_assert(ip_data->addr_family, strarr[i], NULL, &a, NULL))
+            continue;
+
+        ip_addr_to_string(ip_data->addr_family, &a, iface, ip_addr_to_string_buf);
 
         if (!ip_data->domains.has_default_route_explicit && ip_data->domains.has_default_route)
             add_dnsmasq_nameserver(self, servers, ip_addr_to_string_buf, NULL);

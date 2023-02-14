@@ -29,13 +29,33 @@
 <td class="gallery_image" valign="top" align="right"></td>
 </tr></table></div>
 <div class="refsect2">
+<a name="NMVersionInfoCapability"></a><h3>enum NMVersionInfoCapability</h3>
+<p>%_NM_VERSION_INFO_CAPABILITY_UNUSED: a dummy capability. It has no meaning, don't use it.</p>
+<p>Currently no enum values are defined. These capabilities are exposed on D-Bus in the "VersionInfo" bit field.</p>
+<p>Since: 1.42</p>
+<p></p>
+<div class="refsect3">
+<a name="id-1.4.17.2.3.4"></a><h4>Values</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="300px" class="enum_members_name">
+<col width="100px" class="enum_members_value">
+<col class="enum_members_description">
+<col>
+</colgroup>
+<tbody></tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
 <a name="NMCapability"></a><h3>enum NMCapability</h3>
 <p><a class="link" href="nm-dbus-types.html#NMCapability" title="enum NMCapability">NMCapability</a> names the numbers in the Capabilities property. Capabilities are positive numbers. They are part of stable API and a certain capability number is guaranteed not to change.</p>
 <p>The range 0x7000 - 0x7FFF of capabilities is guaranteed not to be used by upstream NetworkManager. It could thus be used for downstream extensions.</p>
 <p>Since: 1.6</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.17.2.3.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.4.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -84,7 +104,7 @@
 <p><a class="link" href="nm-dbus-types.html#NMState" title="enum NMState">NMState</a> values indicate the current overall networking state.</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.17.2.4.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.5.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -222,7 +242,7 @@
 <a name="NMConnectivityState"></a><h3>enum NMConnectivityState</h3>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.17.2.5.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.6.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -316,7 +336,7 @@
 <p><a class="link" href="nm-dbus-types.html#NMDeviceType" title="enum NMDeviceType">NMDeviceType</a> values indicate the type of hardware represented by a device object.</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.17.2.6.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.7.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -805,6 +825,21 @@
 </td>
 <td class="auto-generated"> </td>
 </tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_DEVICE_TYPE_LOOPBACK</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">32</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>a loopback interface. Since: 1.42.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
 </tbody>
 </table></div>
 </div>
@@ -815,7 +850,7 @@
 <p>General device capability flags.</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.17.2.7.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.8.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -909,7 +944,7 @@
 <p>802.11 specific device encryption and authentication capabilities.</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.17.2.8.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.9.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -1138,7 +1173,7 @@
 <p>802.11 access point flags.</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.17.2.9.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.10.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -1232,7 +1267,7 @@
 <p>802.11 access point security and authentication flags.  These flags describe the current security requirements of an access point as determined from the access point's beacon.</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.17.2.10.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.11.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -1476,7 +1511,7 @@
 <p>Indicates the 802.11 mode an access point or device is currently in.</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.17.2.11.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.12.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -1570,7 +1605,7 @@
 <p><a class="link" href="nm-dbus-types.html#NMBluetoothCapabilities" title="enum NMBluetoothCapabilities">NMBluetoothCapabilities</a> values indicate the usable capabilities of a Bluetooth device.</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.17.2.12.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.13.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -1634,7 +1669,7 @@
 <p><a class="link" href="nm-dbus-types.html#NMDeviceModemCapabilities" title="enum NMDeviceModemCapabilities">NMDeviceModemCapabilities</a> values indicate the generic radio access technology families a modem device supports.  For more information on the specific access technologies the device supports use the ModemManager D-Bus API.</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.17.2.13.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.14.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -1743,7 +1778,7 @@
 <p>WiMAX network type.</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.17.2.14.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.15.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -1821,7 +1856,7 @@
 <a name="NMDeviceState"></a><h3>enum NMDeviceState</h3>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.17.2.15.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.16.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -2035,7 +2070,7 @@
 <p>Device state change reason codes</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.17.2.16.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.17.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -3079,7 +3114,7 @@
 <p>Since: 1.2</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.17.2.17.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.18.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -3173,7 +3208,7 @@
 <p>Since: 1.14</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.17.2.18.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.19.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -3252,7 +3287,7 @@
 <p><a class="link" href="nm-dbus-types.html#NMActiveConnectionState" title="enum NMActiveConnectionState">NMActiveConnectionState</a> values indicate the state of a connection to a specific network while it is starting, connected, or disconnecting from that network.</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.17.2.19.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.20.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -3347,7 +3382,7 @@
 <p>Since: 1.8</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.17.2.20.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.21.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -3591,7 +3626,7 @@
 <p><a class="link" href="nm-dbus-types.html#NMSecretAgentGetSecretsFlags" title="enum NMSecretAgentGetSecretsFlags">NMSecretAgentGetSecretsFlags</a> values modify the behavior of a GetSecrets request.</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.17.2.21.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.22.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -3715,7 +3750,7 @@
 <p><a class="link" href="nm-dbus-types.html#NMSecretAgentCapabilities" title="enum NMSecretAgentCapabilities">NMSecretAgentCapabilities</a> indicate various capabilities of the agent.</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.17.2.22.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.23.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -3765,7 +3800,7 @@
 <p>Since: 1.2</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.17.2.23.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.24.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -3965,7 +4000,7 @@
 <p>Since: 1.12 (public since 1.4, g-ir since 1.12)</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.17.2.24.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.25.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -4075,7 +4110,7 @@
 <p>Since: 1.4</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.17.2.25.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.26.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -4155,7 +4190,7 @@
 <p>Since: 1.12</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.17.2.26.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.27.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -4250,7 +4285,7 @@
 <p>Since: 1.10</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.17.2.27.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.28.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -4405,7 +4440,7 @@
 <p>Since: 1.20</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.17.2.28.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.29.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -4484,7 +4519,7 @@
 <p>Since: 1.12</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.17.2.29.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.30.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -4621,11 +4656,10 @@
 <div class="refsect2">
 <a name="NMDeviceReapplyFlags"></a><h3>enum NMDeviceReapplyFlags</h3>
 <p>Flags for the Reapply() D-Bus call of a device and nm_device_reapply_async().</p>
-<p>Since: 1.42, 1.40.10</p>
-<p>On 1.40.10+, no GFlags type is created.</p>
+<p>Since: 1.42</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.17.2.30.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.31.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -4675,7 +4709,7 @@
 <p>Since: 1.14</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.17.2.31.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.32.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -4740,7 +4774,7 @@
 <p>Since: 1.22</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.17.2.32.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.33.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -4835,7 +4869,7 @@
 <p>Since: 1.22</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.17.2.33.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.34.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -4944,7 +4978,7 @@
 <p><a class="link" href="nm-dbus-types.html#NMClientPermission" title="enum NMClientPermission">NMClientPermission</a> values indicate various permissions that NetworkManager clients can obtain to perform certain tasks on behalf of the current user.</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.17.2.34.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.35.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -5233,7 +5267,7 @@
 <p><a class="link" href="nm-dbus-types.html#NMClientPermissionResult" title="enum NMClientPermissionResult">NMClientPermissionResult</a> values indicate what authorizations and permissions the user requires to obtain a given <a class="link" href="nm-dbus-types.html#NMClientPermission" title="enum NMClientPermission">NMClientPermission</a></p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.17.2.35.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.36.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -5313,7 +5347,7 @@
 <p>Since: 1.38</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.17.2.36.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.37.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -5377,7 +5411,7 @@
 <p>Since: 1.40</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.17.2.37.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.38.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">

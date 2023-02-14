@@ -2647,7 +2647,7 @@ scan_request_cb(GObject *source, GAsyncResult *result, gpointer user_data)
         _LOGD("request-scan: request cancelled");
     else {
         if (error) {
-            if (_nm_dbus_error_has_name(error, "fi.w1.wpa_supplicant1.Interface.ScanError"))
+            if (nm_dbus_error_is(error, "fi.w1.wpa_supplicant1.Interface.ScanError"))
                 _LOGD("request-scan: could not get scan request result: %s", error->message);
             else {
                 g_dbus_error_strip_remote_error(error);
@@ -3174,7 +3174,7 @@ _signal_handle(NMSupplicantInterface *self,
 
                         _set_p2p_assigned_addr(iface,
                                                addr_data,
-                                               _nm_utils_ip4_netmask_to_prefix(netmask));
+                                               nm_ip4_addr_netmask_to_prefix(netmask));
                     } else {
                         _LOGW("P2P: GroupStarted signaled invalid IP Address information");
                     }

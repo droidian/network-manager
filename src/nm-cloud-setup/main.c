@@ -347,13 +347,12 @@ _nmc_mangle_connection(NMDevice                             *device,
          * We don't need to configure policy routing in this case. */
         NM_SET_OUT(out_skipped_single_addr, TRUE);
     } else if (config_data->has_ipv4s && config_data->has_cidr) {
-        gs_unref_hashtable GHashTable *unique_subnets =
-            g_hash_table_new(nm_direct_hash, g_direct_equal);
-        NMIPAddress     *addr_entry;
-        NMIPRoute       *route_entry;
-        NMIPRoutingRule *rule_entry;
-        in_addr_t        gateway;
-        char             sbuf[NM_UTILS_INET_ADDRSTRLEN];
+        gs_unref_hashtable GHashTable *unique_subnets = g_hash_table_new(nm_direct_hash, NULL);
+        NMIPAddress                   *addr_entry;
+        NMIPRoute                     *route_entry;
+        NMIPRoutingRule               *rule_entry;
+        in_addr_t                      gateway;
+        char                           sbuf[NM_INET_ADDRSTRLEN];
 
         for (i = 0; i < config_data->ipv4s_len; i++) {
             addr_entry = nm_ip_address_new_binary(AF_INET,
@@ -367,8 +366,8 @@ _nmc_mangle_connection(NMDevice                             *device,
         if (config_data->has_gateway && config_data->gateway) {
             gateway = config_data->gateway;
         } else {
-            gateway = nm_utils_ip4_address_clear_host_address(config_data->cidr_addr,
-                                                              config_data->cidr_prefix);
+            gateway =
+                nm_ip4_addr_clear_host_address(config_data->cidr_addr, config_data->cidr_prefix);
             if (config_data->cidr_prefix < 32)
                 ((guint8 *) &gateway)[3] += 1;
         }
@@ -376,7 +375,7 @@ _nmc_mangle_connection(NMDevice                             *device,
         for (i = 0; i < config_data->ipv4s_len; i++) {
             in_addr_t a = config_data->ipv4s_arr[i];
 
-            a = nm_utils_ip4_address_clear_host_address(a, config_data->cidr_prefix);
+            a = nm_ip4_addr_clear_host_address(a, config_data->cidr_prefix);
 
             G_STATIC_ASSERT_EXPR(sizeof(gsize) >= sizeof(in_addr_t));
             if (g_hash_table_add(unique_subnets, GSIZE_TO_POINTER(a))) {
@@ -391,7 +390,7 @@ _nmc_mangle_connection(NMDevice                             *device,
             rule_entry = nm_ip_routing_rule_new(AF_INET);
             nm_ip_routing_rule_set_priority(rule_entry, 30200 + config_data->iface_idx);
             nm_ip_routing_rule_set_from(rule_entry,
-                                        _nm_utils_inet4_ntop(config_data->ipv4s_arr[i], sbuf),
+                                        nm_inet4_ntop(config_data->ipv4s_arr[i], sbuf),
                                         32);
             nm_ip_routing_rule_set_table(rule_entry, 30200 + config_data->iface_idx);
             nm_assert(nm_ip_routing_rule_validate(rule_entry, NULL));
@@ -415,7 +414,7 @@ _nmc_mangle_connection(NMDevice                             *device,
             rule_entry = nm_ip_routing_rule_new(AF_INET);
             nm_ip_routing_rule_set_priority(rule_entry, 30400 + config_data->iface_idx);
             nm_ip_routing_rule_set_from(rule_entry,
-                                        _nm_utils_inet4_ntop(config_data->ipv4s_arr[i], sbuf),
+                                        nm_inet4_ntop(config_data->ipv4s_arr[i], sbuf),
                                         32);
             nm_ip_routing_rule_set_table(rule_entry, 30400 + config_data->iface_idx);
             nm_assert(nm_ip_routing_rule_validate(rule_entry, NULL));
@@ -553,12 +552,11 @@ try_again:
     /* we are about to call Reapply(). Even if that fails, it counts as if we changed something. */
     any_changes = TRUE;
 
-    /* "preserve-external-ip" flag was only introduced in 1.41.6 and 1.40.9.
-     * We have no convenient way to check the daemon version (short of parsing the "Version"
-     * string). Hence, we don't know it. Take into account, that the daemon that we
-     * talk to might not support the flag yet. This is to support backward compatibility
-     * during package upgrade. */
-    maybe_no_preserved_external_ip = TRUE;
+    /* "preserve-external-ip" flag was only introduced in 1.41.6 (but maybe backported!).
+     * If we run 1.41.6+, we are sure that it's gonna work. Otherwise, we take into account
+     * that the call might fail due to the invalid flag and we retry. */
+    maybe_no_preserved_external_ip =
+        (nmc_client_has_version_info_v(nmc) < NM_ENCODE_VERSION(1, 41, 6));
 
     if (!nmcs_device_reapply(device,
                              sigterm_cancellable,

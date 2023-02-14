@@ -19,6 +19,7 @@
 #include "NetworkManagerUtils.h"
 #include "devices/nm-device-factory.h"
 #include "devices/nm-device-generic.h"
+#include "devices/nm-device-loopback.h"
 #include "devices/nm-device.h"
 #include "dns/nm-dns-manager.h"
 #include "dhcp/nm-dhcp-manager.h"
@@ -114,6 +115,7 @@ static guint signals[LAST_SIGNAL] = {0};
 
 NM_GOBJECT_PROPERTIES_DEFINE(NMManager,
                              PROP_VERSION,
+                             PROP_VERSION_INFO,
                              PROP_CAPABILITIES,
                              PROP_STATE,
                              PROP_STARTUP,
@@ -419,6 +421,31 @@ static NM_CACHED_QUARK_FCN("autoconnect-root", autoconnect_root_quark);
 
 /*****************************************************************************/
 
+static GVariant *
+_version_info_get(void)
+{
+    const guint32 arr[] = {
+        NM_VERSION,
+    };
+
+    /* The array contains as first element NM_VERSION, which can be
+     * used to numerically compare the version (see also NM_ENCODE_VERSION,
+     * nm_utils_version(), nm_encode_version() and nm_decode_version().
+     *
+     * The following elements of the array are a bitfield of capabilities.
+     * These capabilities should only depend on compile-time abilities
+     * (unlike NM_MANAGER_CAPABILITIES, NMCapability). The supported values
+     * are from NMVersionInfoCapability enum. This way to expose capabilities
+     * is more cumbersome but more efficient compared to NM_MANAGER_CAPABILITIES.
+     * As such, it is cheap to add capabilities for something, where you would
+     * avoid it as NM_MANAGER_CAPABILITIES due to the overhead.
+     */
+
+    return nm_g_variant_new_au(arr, G_N_ELEMENTS(arr));
+}
+
+/*****************************************************************************/
+
 static gboolean
 _connection_is_vpn(NMConnection *connection)
 {
@@ -632,11 +659,8 @@ static guint
 _device_route_metric_data_by_ifindex_hash(gconstpointer p)
 {
     const DeviceRouteMetricData *data = p;
-    NMHashState                  h;
 
-    nm_hash_init(&h, 1030338191);
-    nm_hash_update_vals(&h, data->ifindex);
-    return nm_hash_complete(&h);
+    return nm_hash_val(1030338191, data->ifindex);
 }
 
 static gboolean
@@ -1464,8 +1488,11 @@ find_best_device_state(NMManager *manager)
     NMActiveConnection *ac;
 
     c_list_for_each_entry (ac, &priv->active_connections_lst_head, active_connections_lst) {
-        NMActiveConnectionState ac_state = nm_active_connection_get_state(ac);
+        NMActiveConnectionState ac_state;
 
+        if (NM_IS_DEVICE_LOOPBACK(nm_active_connection_get_device(ac)))
+            continue;
+        ac_state = nm_active_connection_get_state(ac);
         switch (ac_state) {
         case NM_ACTIVE_CONNECTION_STATE_ACTIVATED:
             if (nm_active_connection_get_default(ac, AF_UNSPEC)) {
@@ -1890,8 +1917,11 @@ find_parent_device_for_connection(NMManager       *self,
      * with some known device.
      */
     c_list_for_each_entry (candidate, &priv->devices_lst_head, devices_lst) {
-        /* Unmanaged devices are not compatible with any connection */
-        if (!nm_device_get_managed(candidate, FALSE))
+        /* For a realized device, check that it's managed; otherwise it's not
+         * compatible with any connection. If the device is unrealized then
+         * the managed state is meaningless.
+         */
+        if (nm_device_is_real(candidate) && !nm_device_get_managed(candidate, FALSE))
             continue;
 
         if (nm_device_get_settings_connection(candidate) == parent_connection)
@@ -1949,7 +1979,7 @@ nm_manager_get_connection_iface(NMManager    *self,
 
         g_set_error(error,
                     NM_MANAGER_ERROR,
-                    NM_MANAGER_ERROR_FAILED,
+                    NM_MANAGER_ERROR_MISSING_PLUGIN,
                     "NetworkManager plugin for '%s' unavailable",
                     nm_connection_get_connection_type(connection));
         return NULL;
@@ -3083,12 +3113,11 @@ recheck_assume_connection(NMManager *self, NMDevice *device)
     g_return_val_if_fail(NM_IS_DEVICE(device), FALSE);
 
     if (!nm_device_get_managed(device, FALSE)) {
-        /* If the device is unmanaged by NM_UNMANAGED_PLATFORM_INIT or NM_UNMANAGED_PARENT,
+        /* If the device is unmanaged by NM_UNMANAGED_PLATFORM_INIT,
          * don't reset the state now but wait until it becomes managed. */
-        if (nm_device_get_unmanaged_flags(device, NM_UNMANAGED_ALL)
-            & ~(NM_UNMANAGED_PLATFORM_INIT | NM_UNMANAGED_PARENT))
+        if (nm_device_get_unmanaged_flags(device, NM_UNMANAGED_ALL) & ~NM_UNMANAGED_PLATFORM_INIT)
             nm_device_assume_state_reset(device);
-        _LOG2D(LOGD_DEVICE, device, "assume: don't assume because %s", "not managed");
+        _LOG2D(LOGD_DEVICE, device, "assume: don't assume because device is not managed");
         return FALSE;
     }
 
@@ -3341,6 +3370,9 @@ _get_best_connectivity(NMManager *self, int addr_family)
         NMConnectivityState state;
         gint64              metric;
 
+        if (NM_IS_DEVICE_LOOPBACK(dev))
+            continue;
+
         r = nm_device_get_best_default_route(dev, addr_family);
         if (r)
             metric = NMP_OBJECT_CAST_IP_ROUTE(r)->metric;
@@ -3410,10 +3442,9 @@ _device_realize_finish(NMManager *self, NMDevice *device, const NMPlatformLink *
     nm_device_realize_finish(device, plink);
 
     if (!nm_device_get_managed(device, FALSE)) {
-        /* If the device is unmanaged by NM_UNMANAGED_PLATFORM_INIT or NM_UNMANAGED_PARENT,
+        /* If the device is unmanaged by NM_UNMANAGED_PLATFORM_INIT,
          * don't reset the state now but wait until it becomes managed. */
-        if (nm_device_get_unmanaged_flags(device, NM_UNMANAGED_ALL)
-            & ~(NM_UNMANAGED_PLATFORM_INIT | NM_UNMANAGED_PARENT))
+        if (nm_device_get_unmanaged_flags(device, NM_UNMANAGED_ALL) & ~NM_UNMANAGED_PLATFORM_INIT)
             nm_device_assume_state_reset(device);
         return;
     }
@@ -4608,11 +4639,9 @@ ensure_master_active_connection(NMManager            *self,
                     NULL))
                 continue;
 
-            if (!nm_device_is_software(candidate)) {
-                master_state = nm_device_get_state(candidate);
-                if (nm_device_is_real(candidate) && master_state != NM_DEVICE_STATE_DISCONNECTED)
-                    continue;
-            }
+            if (nm_device_is_real(candidate)
+                && nm_device_get_state(candidate) != NM_DEVICE_STATE_DISCONNECTED)
+                continue;
 
             master_ac = nm_manager_activate_connection(
                 self,
@@ -4715,8 +4744,10 @@ find_slaves(NMManager            *manager,
             }
 
             nm_assert(n_slaves < n_all_connections);
-            slaves[n_slaves].connection = candidate, slaves[n_slaves].device = slave_device,
-            n_slaves++;
+            slaves[n_slaves++] = (SlaveConnectionInfo){
+                .connection = candidate,
+                .device     = slave_device,
+            };
 
             if (slave_device)
                 g_hash_table_add(devices, slave_device);
@@ -6612,7 +6643,7 @@ do_sleep_wake(NMManager *self, gboolean sleeping_changed)
         }
 
         /* Give the connections a chance to recreate the virtual devices.
-	 * We've torn them down on sleep. */
+         * We've torn them down on sleep. */
         connections_changed(self);
     }
 
@@ -7089,10 +7120,6 @@ nm_manager_write_device_state(NMManager *self, NMDevice *device, int *out_ifinde
     ifindex = nm_device_get_ip_ifindex(device);
     if (ifindex <= 0)
         return FALSE;
-    if (ifindex == 1) {
-        /* ignore loopback */
-        return FALSE;
-    }
 
     if (!nm_platform_link_get(priv->platform, ifindex))
         return FALSE;
@@ -7904,12 +7931,12 @@ nm_manager_set_capability(NMManager *self, NMCapability cap)
 
     priv = NM_MANAGER_GET_PRIVATE(self);
 
-    idx = nm_utils_array_find_binary_search(&g_array_index(priv->capabilities, guint32, 0),
-                                            sizeof(guint32),
-                                            priv->capabilities->len,
-                                            &cap_i,
-                                            nm_cmp_uint32_p_with_data,
-                                            NULL);
+    idx = nm_array_find_bsearch(nm_g_array_first_p(priv->capabilities, guint32),
+                                priv->capabilities->len,
+                                sizeof(guint32),
+                                &cap_i,
+                                nm_cmp_uint32_p_with_data,
+                                NULL);
     if (idx >= 0)
         return;
 
@@ -8132,9 +8159,12 @@ get_property(GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
     case PROP_VERSION:
         g_value_set_string(value, VERSION);
         break;
+    case PROP_VERSION_INFO:
+        g_value_set_variant(value, _version_info_get());
+        break;
     case PROP_CAPABILITIES:
         g_value_set_variant(value,
-                            nm_g_variant_new_au((const guint32 *) priv->capabilities->data,
+                            nm_g_variant_new_au(nm_g_array_first_p(priv->capabilities, guint32),
                                                 priv->capabilities->len));
         break;
     case PROP_STATE:
@@ -8645,6 +8675,9 @@ static const NMDBusInterfaceInfoExtended interface_info_manager = {
                                                            NM_MANAGER_ACTIVATING_CONNECTION),
             NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("Startup", "b", NM_MANAGER_STARTUP),
             NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("Version", "s", NM_MANAGER_VERSION),
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("VersionInfo",
+                                                           "au",
+                                                           NM_MANAGER_VERSION_INFO),
             NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("Capabilities",
                                                            "au",
                                                            NM_MANAGER_CAPABILITIES),
@@ -8702,6 +8735,14 @@ nm_manager_class_init(NMManagerClass *manager_class)
                                                        "",
                                                        NULL,
                                                        G_PARAM_READABLE | G_PARAM_STATIC_STRINGS);
+
+    obj_properties[PROP_VERSION_INFO] =
+        g_param_spec_variant(NM_MANAGER_VERSION_INFO,
+                             "",
+                             "",
+                             G_VARIANT_TYPE("au"),
+                             NULL,
+                             G_PARAM_READABLE | G_PARAM_STATIC_STRINGS);
 
     obj_properties[PROP_CAPABILITIES] =
         g_param_spec_variant(NM_MANAGER_CAPABILITIES,

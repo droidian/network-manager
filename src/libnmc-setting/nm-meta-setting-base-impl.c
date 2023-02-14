@@ -3,6 +3,8 @@
  * Copyright (C) 2017 - 2018 Red Hat, Inc.
  */
 
+#define NM_WANT_NM_ARRAY_FIND_BSEARCH_INLINE
+
 #include "libnm-glib-aux/nm-default-glib-i18n-lib.h"
 
 #include "nm-meta-setting-base.h"
@@ -32,14 +34,16 @@
 #include "nm-setting-ip-tunnel.h"
 #include "nm-setting-ip4-config.h"
 #include "nm-setting-ip6-config.h"
+#include "nm-setting-loopback.h"
 #include "nm-setting-macsec.h"
 #include "nm-setting-macvlan.h"
 #include "nm-setting-match.h"
 #include "nm-setting-olpc-mesh.h"
 #include "nm-setting-ovs-bridge.h"
-#include "nm-setting-ovs-interface.h"
 #include "nm-setting-ovs-dpdk.h"
 #include "nm-setting-ovs-external-ids.h"
+#include "nm-setting-ovs-interface.h"
+#include "nm-setting-ovs-other-config.h"
 #include "nm-setting-ovs-patch.h"
 #include "nm-setting-ovs-port.h"
 #include "nm-setting-ppp.h"
@@ -358,6 +362,13 @@ const NMMetaSettingInfo nm_meta_setting_infos[] = {
             .setting_name      = NM_SETTING_IP_TUNNEL_SETTING_NAME,
             .get_setting_gtype = nm_setting_ip_tunnel_get_type,
         },
+    [NM_META_SETTING_TYPE_LOOPBACK] =
+        {
+            .meta_type         = NM_META_SETTING_TYPE_LOOPBACK,
+            .setting_priority  = NM_SETTING_PRIORITY_HW_BASE,
+            .setting_name      = NM_SETTING_LOOPBACK_SETTING_NAME,
+            .get_setting_gtype = nm_setting_loopback_get_type,
+        },
     [NM_META_SETTING_TYPE_MACSEC] =
         {
             .meta_type         = NM_META_SETTING_TYPE_MACSEC,
@@ -399,6 +410,13 @@ const NMMetaSettingInfo nm_meta_setting_infos[] = {
             .setting_priority  = NM_SETTING_PRIORITY_HW_BASE,
             .setting_name      = NM_SETTING_OVS_DPDK_SETTING_NAME,
             .get_setting_gtype = nm_setting_ovs_dpdk_get_type,
+        },
+    [NM_META_SETTING_TYPE_OVS_OTHER_CONFIG] =
+        {
+            .meta_type         = NM_META_SETTING_TYPE_OVS_OTHER_CONFIG,
+            .setting_priority  = NM_SETTING_PRIORITY_AUX,
+            .setting_name      = NM_SETTING_OVS_OTHER_CONFIG_SETTING_NAME,
+            .get_setting_gtype = nm_setting_ovs_other_config_get_type,
         },
     [NM_META_SETTING_TYPE_OVS_EXTERNAL_IDS] =
         {
@@ -608,6 +626,7 @@ const NMMetaSettingType nm_meta_setting_types_by_priority[] = {
     NM_META_SETTING_TYPE_GSM,
     NM_META_SETTING_TYPE_INFINIBAND,
     NM_META_SETTING_TYPE_IP_TUNNEL,
+    NM_META_SETTING_TYPE_LOOPBACK,
     NM_META_SETTING_TYPE_MACSEC,
     NM_META_SETTING_TYPE_MACVLAN,
     NM_META_SETTING_TYPE_OVS_BRIDGE,
@@ -643,6 +662,7 @@ const NMMetaSettingType nm_meta_setting_types_by_priority[] = {
     NM_META_SETTING_TYPE_ETHTOOL,
     NM_META_SETTING_TYPE_MATCH,
     NM_META_SETTING_TYPE_OVS_EXTERNAL_IDS,
+    NM_META_SETTING_TYPE_OVS_OTHER_CONFIG,
     NM_META_SETTING_TYPE_PPP,
     NM_META_SETTING_TYPE_PPPOE,
     NM_META_SETTING_TYPE_TEAM_PORT,
@@ -693,29 +713,31 @@ nm_meta_setting_infos_by_name(const char *name)
     }
 
     G_STATIC_ASSERT_EXPR(G_STRUCT_OFFSET(NMMetaSettingInfo, setting_name) == 0);
-    idx = nm_utils_array_find_binary_search(nm_meta_setting_infos,
-                                            sizeof(NMMetaSettingInfo),
-                                            _NM_META_SETTING_TYPE_NUM,
-                                            &name,
-                                            nm_strcmp_p_with_data,
-                                            NULL);
+    idx = nm_array_find_bsearch(nm_meta_setting_infos,
+                                _NM_META_SETTING_TYPE_NUM,
+                                sizeof(NMMetaSettingInfo),
+                                &name,
+                                nm_strcmp_p_with_data,
+                                NULL);
 
     return idx >= 0 ? &nm_meta_setting_infos[idx] : NULL;
 }
 
-const NMMetaSettingInfo *
-nm_meta_setting_infos_by_gtype(GType gtype)
-{
+/*****************************************************************************/
+
 #if _NM_META_SETTING_BASE_IMPL_LIBNM
+static const NMMetaSettingInfo *
+_infos_by_gtype_from_class(GType gtype)
+{
     nm_auto_unref_gtypeclass GTypeClass *gtypeclass_unref = NULL;
     GTypeClass                          *gtypeclass;
     NMSettingClass                      *klass;
 
     if (!g_type_is_a(gtype, NM_TYPE_SETTING))
-        goto out_none;
+        return NULL;
 
     gtypeclass = g_type_class_peek(gtype);
-    if (!gtypeclass)
+    if (G_UNLIKELY(!gtypeclass))
         gtypeclass = gtypeclass_unref = g_type_class_ref(gtype);
 
     nm_assert(NM_IS_SETTING_CLASS(gtypeclass));
@@ -723,38 +745,112 @@ nm_meta_setting_infos_by_gtype(GType gtype)
     klass = (NMSettingClass *) gtypeclass;
 
     if (!klass->setting_info)
-        goto out_none;
+        return NULL;
 
     nm_assert(klass->setting_info->get_setting_gtype);
     nm_assert(klass->setting_info->get_setting_gtype() == gtype);
-
     return klass->setting_info;
+}
+#endif
 
-out_none:
+static const NMMetaSettingInfo *
+_infos_by_gtype_search(GType gtype)
+{
+    int i;
 
-    if (NM_MORE_ASSERTS > 10) {
-        int i;
-
-        /* this might hint to a bug, but it would be expected for NM_TYPE_SETTING
-         * and NM_TYPE_SETTING_IP_CONFIG.
-         *
-         * Assert that we didn't lookup for a gtype, which we would expect to find.
-         * An assertion failure here, hints to a bug in nm_setting_*_class_init().
-         */
-        for (i = 0; i < _NM_META_SETTING_TYPE_NUM; i++)
-            nm_assert(nm_meta_setting_infos[i].get_setting_gtype() != gtype);
-    }
-
-    return NULL;
-#else
-    guint i;
-
-    for (i = 0; i < _NM_META_SETTING_TYPE_NUM; i++) {
+    for (i = 0; i < (int) _NM_META_SETTING_TYPE_NUM; i++) {
         if (nm_meta_setting_infos[i].get_setting_gtype() == gtype)
             return &nm_meta_setting_infos[i];
     }
     return NULL;
+}
+
+typedef struct {
+    GType                    gtype;
+    const NMMetaSettingInfo *setting_info;
+} LookupData;
+
+_nm_always_inline static inline int
+_lookup_data_cmp(gconstpointer ptr_a, gconstpointer ptr_b, gpointer user_data)
+{
+    const GType *const a = ptr_a;
+    const GType *const b = ptr_b;
+
+    nm_assert(a);
+    nm_assert(b);
+    nm_assert(a != b);
+
+    NM_CMP_DIRECT(*a, *b);
+    return 0;
+}
+
+static const NMMetaSettingInfo *
+_infos_by_gtype_binary_search(GType gtype)
+{
+    static LookupData        static_array[_NM_META_SETTING_TYPE_NUM];
+    static const LookupData *static_ptr = NULL;
+    const LookupData        *ptr;
+    gssize                   idx;
+
+again:
+    ptr = g_atomic_pointer_get(&static_ptr);
+    if (G_UNLIKELY(!ptr)) {
+        static gsize g_lock = 0;
+        int          i;
+
+        if (!g_once_init_enter(&g_lock))
+            goto again;
+
+        for (i = 0; i < _NM_META_SETTING_TYPE_NUM; i++) {
+            const NMMetaSettingInfo *m = &nm_meta_setting_infos[i];
+
+            static_array[i] = (LookupData){
+                .gtype        = m->get_setting_gtype(),
+                .setting_info = m,
+            };
+        }
+
+        g_qsort_with_data(static_array,
+                          _NM_META_SETTING_TYPE_NUM,
+                          sizeof(static_array[0]),
+                          _lookup_data_cmp,
+                          NULL);
+
+        ptr = static_array;
+        g_atomic_pointer_set(&static_ptr, ptr);
+
+        g_once_init_leave(&g_lock, 1);
+    }
+
+    idx = nm_array_find_bsearch_inline(ptr,
+                                       _NM_META_SETTING_TYPE_NUM,
+                                       sizeof(ptr[0]),
+                                       &gtype,
+                                       _lookup_data_cmp,
+                                       NULL);
+    if (idx < 0)
+        return NULL;
+
+    return ptr[idx].setting_info;
+}
+
+const NMMetaSettingInfo *
+nm_meta_setting_infos_by_gtype(GType gtype)
+{
+    const NMMetaSettingInfo *setting_info;
+
+#if _NM_META_SETTING_BASE_IMPL_LIBNM
+    setting_info = _infos_by_gtype_from_class(gtype);
+#else
+    setting_info = _infos_by_gtype_binary_search(gtype);
 #endif
+
+    if (NM_MORE_ASSERTS > 20) {
+        nm_assert(setting_info == _infos_by_gtype_search(gtype));
+        nm_assert(setting_info == _infos_by_gtype_binary_search(gtype));
+    }
+
+    return setting_info;
 }
 
 /*****************************************************************************/

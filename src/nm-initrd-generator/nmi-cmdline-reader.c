@@ -539,8 +539,8 @@ reader_parse_ip(Reader *reader, const char *sysfs_dir, char *argument)
     int                            client_ip_prefix           = -1;
     gboolean                       clear_ip4_required_timeout = TRUE;
     const char                    *dns[2]                     = {
-                                               NULL,
-                                               NULL,
+        NULL,
+        NULL,
     };
     int dns_addr_family[2] = {
         AF_UNSPEC,
@@ -637,8 +637,8 @@ reader_parse_ip(Reader *reader, const char *sysfs_dir, char *argument)
         gboolean is_ipv4 = client_ip_family == AF_INET;
         NMIPAddr addr;
 
-        if (is_ipv4 && nm_utils_parse_inaddr_bin(AF_INET, netmask, NULL, &addr))
-            client_ip_prefix = _nm_utils_ip4_netmask_to_prefix(addr.addr4);
+        if (is_ipv4 && nm_inet_parse_bin(AF_INET, netmask, NULL, &addr))
+            client_ip_prefix = nm_ip4_addr_netmask_to_prefix(addr.addr4);
         else
             client_ip_prefix = _nm_utils_ascii_str_to_int64(netmask, 10, 0, is_ipv4 ? 32 : 128, -1);
 
@@ -651,15 +651,15 @@ reader_parse_ip(Reader *reader, const char *sysfs_dir, char *argument)
         NMIPAddress *address = NULL;
         NMIPAddr     addr;
 
-        if (nm_utils_parse_inaddr_prefix_bin(client_ip_family,
-                                             client_ip,
-                                             NULL,
-                                             &addr,
-                                             client_ip_prefix == -1 ? &client_ip_prefix : NULL)) {
+        if (nm_inet_parse_with_prefix_bin(client_ip_family,
+                                          client_ip,
+                                          NULL,
+                                          &addr,
+                                          client_ip_prefix == -1 ? &client_ip_prefix : NULL)) {
             if (client_ip_prefix == -1) {
                 switch (client_ip_family) {
                 case AF_INET:
-                    client_ip_prefix = _nm_utils_ip4_get_default_prefix(addr.addr4);
+                    client_ip_prefix = nm_ip4_addr_get_default_prefix(addr.addr4);
                     break;
                 case AF_INET6:
                     client_ip_prefix = 64;
@@ -847,7 +847,7 @@ reader_parse_ip(Reader *reader, const char *sysfs_dir, char *argument)
     for (i = 0; i < 2; i++) {
         if (dns_addr_family[i] == AF_UNSPEC)
             break;
-        nm_assert(nm_utils_ipaddr_is_valid(dns_addr_family[i], dns[i]));
+        nm_assert(nm_inet_is_valid(dns_addr_family[i], dns[i]));
         nm_setting_ip_config_add_dns(NM_IS_IPv4(dns_addr_family[i]) ? s_ip4 : s_ip6, dns[i]);
     }
 
@@ -969,14 +969,14 @@ reader_add_routes(Reader *reader, GPtrArray *array)
             connection = reader_get_default_connection(reader);
 
         if (net && *net) {
-            if (!nm_utils_parse_inaddr_prefix_bin(family, net, &family, &net_addr, &net_prefix)) {
+            if (!nm_inet_parse_with_prefix_bin(family, net, &family, &net_addr, &net_prefix)) {
                 _LOGW(LOGD_CORE, "Unrecognized address: %s", net);
                 continue;
             }
         }
 
         if (gateway && *gateway) {
-            if (!nm_utils_parse_inaddr_bin(family, gateway, &family, &gateway_addr)) {
+            if (!nm_inet_parse_bin(family, gateway, &family, &gateway_addr)) {
                 _LOGW(LOGD_CORE, "Unrecognized address: %s", gateway);
                 continue;
             }

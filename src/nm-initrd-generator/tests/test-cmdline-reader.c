@@ -1680,13 +1680,12 @@ test_ibft_ip_dev(void)
                     NM_SETTING_VLAN_SETTING_NAME);
     g_assert_cmpstr(nm_setting_connection_get_interface_name(s_con), ==, NULL);
 
-    expected_uuid = nm_uuid_generate_from_strings("ibft",
-                                                  s_hwaddr,
-                                                  s_vlanid ? "V" : "v",
-                                                  s_vlanid ? s_vlanid : "",
-                                                  s_ipaddr ? "A" : "DHCP",
-                                                  s_ipaddr ? s_ipaddr : "",
-                                                  NULL);
+    expected_uuid = nm_uuid_generate_from_strings_old("ibft",
+                                                      s_hwaddr,
+                                                      s_vlanid ? "V" : "v",
+                                                      s_vlanid ? s_vlanid : "",
+                                                      s_ipaddr ? "A" : "DHCP",
+                                                      s_ipaddr ? s_ipaddr : "");
 
     g_assert_cmpstr(expected_uuid, ==, "16d9bd1c-e2ab-31ef-9196-860078e81a23");
     g_assert_cmpstr(nm_connection_get_uuid(connection), ==, expected_uuid);

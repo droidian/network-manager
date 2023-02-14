@@ -552,29 +552,29 @@ add_dns_domains(GPtrArray            *array,
 static void
 merge_one_l3cd(NMResolvConfData *rc, int addr_family, int ifindex, const NML3ConfigData *l3cd)
 {
-    char               buf[NM_UTILS_INET_ADDRSTRLEN + 50];
+    char               buf[NM_INET_ADDRSTRLEN + 50];
     gboolean           has_trust_ad;
     guint              num_nameservers;
     guint              num;
     guint              i;
-    gconstpointer      nameservers;
-    const char *const *strv;
+    const char *const *strarr;
 
     nm_assert(ifindex == nm_l3_config_data_get_ifindex(l3cd));
 
-    nameservers = nm_l3_config_data_get_nameservers(l3cd, addr_family, &num_nameservers);
+    strarr = nm_l3_config_data_get_nameservers(l3cd, addr_family, &num_nameservers);
     for (i = 0; i < num_nameservers; i++) {
-        const NMIPAddr *addr;
+        NMIPAddr a;
 
-        addr = nm_ip_addr_from_packed_array(addr_family, nameservers, i);
+        if (!nm_utils_dnsname_parse_assert(addr_family, strarr[i], NULL, &a, NULL))
+            continue;
 
         if (addr_family == AF_INET)
-            nm_utils_inet_ntop(addr_family, addr, buf);
-        else if (IN6_IS_ADDR_V4MAPPED(addr))
-            _nm_utils_inet4_ntop(addr->addr6.s6_addr32[3], buf);
+            nm_inet_ntop(addr_family, &a, buf);
+        else if (IN6_IS_ADDR_V4MAPPED(&a))
+            nm_inet4_ntop(a.addr6.s6_addr32[3], buf);
         else {
-            _nm_utils_inet6_ntop(&addr->addr6, buf);
-            if (IN6_IS_ADDR_LINKLOCAL(addr)) {
+            nm_inet6_ntop(&a.addr6, buf);
+            if (IN6_IS_ADDR_LINKLOCAL(&a)) {
                 const char *ifname;
 
                 ifname = nm_platform_link_get_name(NM_PLATFORM_GET, ifindex);
@@ -591,9 +591,9 @@ merge_one_l3cd(NMResolvConfData *rc, int addr_family, int ifindex, const NML3Con
     add_dns_domains(rc->searches, addr_family, l3cd, FALSE, TRUE);
 
     has_trust_ad = FALSE;
-    strv         = nm_l3_config_data_get_dns_options(l3cd, addr_family, &num);
+    strarr       = nm_l3_config_data_get_dns_options(l3cd, addr_family, &num);
     for (i = 0; i < num; i++) {
-        const char *option = strv[i];
+        const char *option = strarr[i];
 
         if (nm_streq(option, NM_SETTING_DNS_OPTION_TRUST_AD)) {
             has_trust_ad = TRUE;
@@ -619,7 +619,7 @@ merge_one_l3cd(NMResolvConfData *rc, int addr_family, int ifindex, const NML3Con
 
         nis_servers = nm_l3_config_data_get_nis_servers(l3cd, &num);
         for (i = 0; i < num; i++)
-            add_string_item(rc->nis_servers, _nm_utils_inet4_ntop(nis_servers[i], buf), TRUE);
+            add_string_item(rc->nis_servers, nm_inet4_ntop(nis_servers[i], buf), TRUE);
 
         if ((nis_domain = nm_l3_config_data_get_nis_domain(l3cd))) {
             /* FIXME: handle multiple domains */
@@ -1201,14 +1201,19 @@ compute_hash(NMDnsManager *self, const NMGlobalDnsConfig *global, guint8 buffer[
 
     if (global)
         nm_global_dns_config_update_checksum(global, sum);
-    else {
+
+    if (!global || !nm_global_dns_config_lookup_domain(global, "*")) {
         const CList *head;
 
         /* FIXME(ip-config-checksum): this relies on the fact that an IP
          * configuration without DNS parameters gives a zero checksum. */
         head = _mgr_get_ip_data_lst_head(self);
-        c_list_for_each_entry (ip_data, head, ip_data_lst)
-            nm_ip_config_dns_hash(ip_data->l3cd, sum, ip_data->addr_family);
+        c_list_for_each_entry (ip_data, head, ip_data_lst) {
+            nm_l3_config_data_hash_dns(ip_data->l3cd,
+                                       sum,
+                                       ip_data->addr_family,
+                                       ip_data->ip_config_type);
+        }
     }
 
     nm_utils_checksum_get_digest_len(sum, buffer, HASH_LEN);
@@ -1244,13 +1249,15 @@ merge_global_dns_config(NMResolvConfData *rc, NMGlobalDnsConfig *global_conf)
     }
 
     default_domain = nm_global_dns_config_lookup_domain(global_conf, "*");
-    nm_assert(default_domain);
+    if (!default_domain)
+        return TRUE;
 
     servers = nm_global_dns_domain_get_servers(default_domain);
-    if (servers) {
-        for (i = 0; servers[i]; i++)
-            add_string_item(rc->nameservers, servers[i], TRUE);
-    }
+    if (!servers)
+        return TRUE;
+
+    for (i = 0; servers[i]; i++)
+        add_string_item(rc->nameservers, servers[i], TRUE);
 
     return TRUE;
 }
@@ -1258,19 +1265,21 @@ merge_global_dns_config(NMResolvConfData *rc, NMGlobalDnsConfig *global_conf)
 static const char *
 get_nameserver_list(int addr_family, const NML3ConfigData *l3cd, NMStrBuf *tmp_strbuf)
 {
-    char          buf[NM_UTILS_INET_ADDRSTRLEN];
-    guint         num;
-    guint         i;
-    gconstpointer nameservers;
+    char               buf[NM_INET_ADDRSTRLEN];
+    guint              num;
+    guint              i;
+    const char *const *strarr;
 
     nm_str_buf_reset(tmp_strbuf);
 
-    nameservers = nm_l3_config_data_get_nameservers(l3cd, addr_family, &num);
+    strarr = nm_l3_config_data_get_nameservers(l3cd, addr_family, &num);
     for (i = 0; i < num; i++) {
-        const NMIPAddr *addr;
+        NMIPAddr a;
 
-        addr = nm_ip_addr_from_packed_array(addr_family, nameservers, i);
-        nm_utils_inet_ntop(addr_family, addr->addr_ptr, buf);
+        if (!nm_utils_dnsname_parse_assert(addr_family, strarr[i], NULL, &a, NULL))
+            continue;
+
+        nm_inet_ntop(addr_family, &a, buf);
         if (i > 0)
             nm_str_buf_append_c(tmp_strbuf, ' ');
         nm_str_buf_append(tmp_strbuf, buf);
@@ -1311,7 +1320,8 @@ _collect_resolv_conf_data(NMDnsManager      *self,
 
     if (global_config)
         merge_global_dns_config(&rc, global_config);
-    else {
+
+    if (!global_config || !nm_global_dns_config_lookup_domain(global_config, "*")) {
         nm_auto_str_buf NMStrBuf tmp_strbuf = NM_STR_BUF_INIT(0, FALSE);
         int                      first_prio = 0;
         const NMDnsConfigIPData *ip_data;
@@ -2090,8 +2100,7 @@ nm_dns_manager_set_hostname(NMDnsManager *self, const char *hostname, gboolean s
 
     /* Certain hostnames we don't want to include in resolv.conf 'searches' */
     if (hostname && nm_utils_is_specific_hostname(hostname)
-        && !g_str_has_suffix(hostname, ".in-addr.arpa")
-        && !nm_utils_ipaddr_is_valid(AF_UNSPEC, hostname)) {
+        && !g_str_has_suffix(hostname, ".in-addr.arpa") && !nm_inet_is_valid(AF_UNSPEC, hostname)) {
         domain = strchr(hostname, '.');
         if (domain) {
             domain++;
@@ -2555,14 +2564,12 @@ config_changed_cb(NMConfig           *config,
     }
 }
 
-static GVariant *
-_get_global_config_variant(NMGlobalDnsConfig *global)
+static void
+_get_global_config_variant(GVariantBuilder *builder, NMGlobalDnsConfig *global)
 {
     NMGlobalDnsDomain *domain;
-    GVariantBuilder    builder;
     guint              i, num;
 
-    g_variant_builder_init(&builder, G_VARIANT_TYPE("aa{sv}"));
     num = nm_global_dns_config_get_num_domains(global);
     for (i = 0; i < num; i++) {
         GVariantBuilder    conf_builder;
@@ -2598,10 +2605,8 @@ _get_global_config_variant(NMGlobalDnsConfig *global)
                               "priority",
                               g_variant_new_int32(NM_DNS_PRIORITY_DEFAULT_NORMAL));
 
-        g_variant_builder_add(&builder, "a{sv}", &conf_builder);
+        g_variant_builder_add(builder, "a{sv}", &conf_builder);
     }
-
-    return g_variant_ref_sink(g_variant_builder_end(&builder));
 }
 
 static GVariant *
@@ -2618,28 +2623,25 @@ _get_config_variant(NMDnsManager *self)
     if (priv->config_variant)
         return priv->config_variant;
 
-    global_config = nm_config_data_get_global_dns_config(nm_config_get_data(priv->config));
-    if (global_config) {
-        priv->config_variant = _get_global_config_variant(global_config);
-        _LOGT("current configuration: %s", (str = g_variant_print(priv->config_variant, TRUE)));
-        return priv->config_variant;
-    }
-
     g_variant_builder_init(&builder, G_VARIANT_TYPE("aa{sv}"));
+
+    global_config = nm_config_data_get_global_dns_config(nm_config_get_data(priv->config));
+    if (global_config)
+        _get_global_config_variant(&builder, global_config);
 
     head = _mgr_get_ip_data_lst_head(self);
     c_list_for_each_entry (ip_data, head, ip_data_lst) {
-        GVariantBuilder entry_builder;
-        GVariantBuilder strv_builder;
-        guint           num;
-        guint           num_domains;
-        guint           num_searches;
-        guint           i;
-        char            buf[NM_UTILS_INET_ADDRSTRLEN];
-        const char     *ifname;
-        gconstpointer   nameservers;
+        GVariantBuilder    entry_builder;
+        GVariantBuilder    strv_builder;
+        guint              num;
+        guint              num_domains;
+        guint              num_searches;
+        guint              i;
+        char               buf[NM_INET_ADDRSTRLEN];
+        const char        *ifname;
+        const char *const *strarr;
 
-        nameservers = nm_l3_config_data_get_nameservers(ip_data->l3cd, ip_data->addr_family, &num);
+        strarr = nm_l3_config_data_get_nameservers(ip_data->l3cd, ip_data->addr_family, &num);
         if (num == 0)
             continue;
 
@@ -2647,12 +2649,12 @@ _get_config_variant(NMDnsManager *self)
 
         g_variant_builder_init(&strv_builder, G_VARIANT_TYPE("as"));
         for (i = 0; i < num; i++) {
-            const NMIPAddr *addr;
+            NMIPAddr a;
 
-            addr = nm_ip_addr_from_packed_array(ip_data->addr_family, nameservers, i);
-            g_variant_builder_add(&strv_builder,
-                                  "s",
-                                  nm_utils_inet_ntop(ip_data->addr_family, addr, buf));
+            if (!nm_utils_dnsname_parse_assert(ip_data->addr_family, strarr[i], NULL, &a, NULL))
+                continue;
+
+            g_variant_builder_add(&strv_builder, "s", nm_inet_ntop(ip_data->addr_family, &a, buf));
         }
         g_variant_builder_add(&entry_builder,
                               "{sv}",

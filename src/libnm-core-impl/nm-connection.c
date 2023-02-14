@@ -11,6 +11,7 @@
 #include <arpa/inet.h>
 
 #include "libnm-glib-aux/nm-uuid.h"
+#include "libnm-glib-aux/nm-ref-string.h"
 #include "nm-connection-private.h"
 #include "nm-utils.h"
 #include "nm-setting-private.h"
@@ -54,39 +55,12 @@ static gboolean _nm_connection_clear_settings(NMConnection *connection, NMConnec
 
 /*****************************************************************************/
 
-#undef NM_IS_SIMPLE_CONNECTION
-#define NM_IS_SIMPLE_CONNECTION(self)                                                           \
-    ({                                                                                          \
-        gconstpointer _self1 = (self);                                                          \
-        gboolean      _result;                                                                  \
-                                                                                                \
-        _result =                                                                               \
-            (_self1                                                                             \
-             && (((GTypeInstance *) _self1)->g_class == _nm_simple_connection_class_instance)); \
-                                                                                                \
-        nm_assert(_result == G_TYPE_CHECK_INSTANCE_TYPE(_self1, NM_TYPE_SIMPLE_CONNECTION));    \
-                                                                                                \
-        _result;                                                                                \
-    })
-
-#undef NM_IS_CONNECTION
-#define NM_IS_CONNECTION(self)                                            \
-    ({                                                                    \
-        gconstpointer _self0 = (self);                                    \
-                                                                          \
-        (_self0                                                           \
-         && (NM_IS_SIMPLE_CONNECTION(_self0)                              \
-             || G_TYPE_CHECK_INSTANCE_TYPE(_self0, NM_TYPE_CONNECTION))); \
-    })
-
-/*****************************************************************************/
-
 void
 _nm_connection_private_clear(NMConnectionPrivate *priv)
 {
     if (priv->self) {
         _nm_connection_clear_settings(priv->self, priv);
-        nm_clear_g_free(&priv->path);
+        nm_clear_pointer(&priv->path, nm_ref_string_unref);
         priv->self = NULL;
     }
 }
@@ -124,19 +98,19 @@ _nm_connection_get_private_from_qdata(NMConnection *connection)
     return priv;
 }
 
-#define NM_CONNECTION_GET_PRIVATE(connection)                                                     \
-    ({                                                                                            \
-        NMConnection        *_connection = (connection);                                          \
-        NMConnectionPrivate *_priv;                                                               \
-                                                                                                  \
-        if (G_LIKELY(NM_IS_SIMPLE_CONNECTION(_connection)))                                       \
-            _priv = (gpointer) (&(((char *) _connection)[_nm_simple_connection_private_offset])); \
-        else                                                                                      \
-            _priv = _nm_connection_get_private_from_qdata(_connection);                           \
-                                                                                                  \
-        nm_assert(_priv && _priv->self == _connection);                                           \
-                                                                                                  \
-        _priv;                                                                                    \
+#define NM_CONNECTION_GET_PRIVATE(connection)                                  \
+    ({                                                                         \
+        NMConnection        *_connection = (connection);                       \
+        NMConnectionPrivate *_priv;                                            \
+                                                                               \
+        if (G_LIKELY(NM_IS_SIMPLE_CONNECTION(_connection)))                    \
+            _priv = _NM_SIMPLE_CONNECTION_GET_CONNECTION_PRIVATE(_connection); \
+        else                                                                   \
+            _priv = _nm_connection_get_private_from_qdata(_connection);        \
+                                                                               \
+        nm_assert(_priv && _priv->self == _connection);                        \
+                                                                               \
+        _priv;                                                                 \
     })
 
 /*****************************************************************************/
@@ -1308,11 +1282,11 @@ _normalize_ip_config(NMConnection *self, GHashTable *parameters)
                 && nm_setting_ip6_config_get_addr_gen_mode((NMSettingIP6Config *) s_ip6)
                        == NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_EUI64) {
                 struct in6_addr i6_token;
-                char            normalized[NM_UTILS_INET_ADDRSTRLEN];
+                char            normalized[NM_INET_ADDRSTRLEN];
 
                 if (inet_pton(AF_INET6, token, &i6_token) == 1
                     && _nm_utils_inet6_is_token(&i6_token)) {
-                    _nm_utils_inet6_ntop(&i6_token, normalized);
+                    nm_inet6_ntop(&i6_token, normalized);
                     if (g_strcmp0(token, normalized)) {
                         g_object_set(s_ip6, NM_SETTING_IP6_CONFIG_TOKEN, normalized, NULL);
                         changed = TRUE;
@@ -1621,6 +1595,18 @@ _normalize_bridge_port_vlan_order(NMConnection *self)
         return FALSE;
 
     return _nm_setting_bridge_port_sort_vlans(s_port);
+}
+
+static gboolean
+_normalize_ovs_port_trunks(NMConnection *self)
+{
+    NMSettingOvsPort *s_ovs_port;
+
+    s_ovs_port = nm_connection_get_setting_ovs_port(self);
+    if (!s_ovs_port)
+        return FALSE;
+
+    return _nm_setting_ovs_port_sort_trunks(s_ovs_port);
 }
 
 static gboolean
@@ -2015,6 +2001,7 @@ _connection_normalize(NMConnection *connection,
     was_modified |= _normalize_bridge_port_vlan_order(connection);
     was_modified |= _normalize_gsm_auto_config(connection);
     was_modified |= _normalize_802_1x_empty_strings(connection);
+    was_modified |= _normalize_ovs_port_trunks(connection);
 
     was_modified = !!was_modified;
 
@@ -2361,6 +2348,45 @@ nm_connection_update_secrets(NMConnection *connection,
     return success;
 }
 
+static const char *
+_need_secrets(NMConnection *connection, gboolean check_rerequest, GPtrArray **hints)
+{
+    NMSetting           *setting_before = NULL;
+    NMConnectionPrivate *priv;
+    int                  i;
+
+    nm_assert(NM_IS_CONNECTION(connection));
+    nm_assert(!hints || !*hints);
+
+    priv = NM_CONNECTION_GET_PRIVATE(connection);
+
+    /* Get list of settings in priority order */
+    for (i = 0; i < (int) _NM_META_SETTING_TYPE_NUM; i++) {
+        NMSetting *setting = priv->settings[nm_meta_setting_types_by_priority[i]];
+        GPtrArray *secrets;
+
+        if (!setting)
+            continue;
+
+        nm_assert(!setting_before || _nm_setting_sort_for_nm_assert(setting_before, setting) < 0);
+        nm_assert(!setting_before || _nm_setting_compare_priority(setting_before, setting) <= 0);
+        setting_before = setting;
+
+        secrets = _nm_setting_need_secrets(setting, check_rerequest);
+        if (!secrets)
+            continue;
+
+        if (hints)
+            *hints = secrets;
+        else
+            g_ptr_array_free(secrets, TRUE);
+
+        return nm_setting_get_name(setting);
+    }
+
+    return NULL;
+}
+
 /**
  * nm_connection_need_secrets:
  * @connection: the #NMConnection
@@ -2383,41 +2409,24 @@ nm_connection_update_secrets(NMConnection *connection,
 const char *
 nm_connection_need_secrets(NMConnection *connection, GPtrArray **hints)
 {
-    NMSetting           *setting_before = NULL;
-    NMConnectionPrivate *priv;
-    int                  i;
-
     g_return_val_if_fail(NM_IS_CONNECTION(connection), NULL);
-    if (hints)
-        g_return_val_if_fail(*hints == NULL, NULL);
+    g_return_val_if_fail(!hints || !*hints, NULL);
 
-    priv = NM_CONNECTION_GET_PRIVATE(connection);
+    return _need_secrets(connection, FALSE, hints);
+}
 
-    /* Get list of settings in priority order */
-    for (i = 0; i < (int) _NM_META_SETTING_TYPE_NUM; i++) {
-        NMSetting *setting = priv->settings[nm_meta_setting_types_by_priority[i]];
-        GPtrArray *secrets;
+/**
+ * nm_connection_need_secrets_for_rerequest:
+ * @connection: the #NMConnection
+ *
+ * Returns TRUE if some secret needs to be re-requested
+ **/
+gboolean
+nm_connection_need_secrets_for_rerequest(NMConnection *connection)
+{
+    g_return_val_if_fail(NM_IS_CONNECTION(connection), FALSE);
 
-        if (!setting)
-            continue;
-
-        nm_assert(!setting_before || _nm_setting_sort_for_nm_assert(setting_before, setting) < 0);
-        nm_assert(!setting_before || _nm_setting_compare_priority(setting_before, setting) <= 0);
-        setting_before = setting;
-
-        secrets = _nm_setting_need_secrets(setting);
-        if (!secrets)
-            continue;
-
-        if (hints)
-            *hints = secrets;
-        else
-            g_ptr_array_free(secrets, TRUE);
-
-        return nm_setting_get_name(setting);
-    }
-
-    return NULL;
+    return !!_need_secrets(connection, TRUE, NULL);
 }
 
 /**
@@ -2942,14 +2951,15 @@ nm_connection_dump(NMConnection *connection)
 void
 nm_connection_set_path(NMConnection *connection, const char *path)
 {
-    NMConnectionPrivate *priv;
-
     g_return_if_fail(NM_IS_CONNECTION(connection));
 
-    priv = NM_CONNECTION_GET_PRIVATE(connection);
+    nm_ref_string_reset_str(&NM_CONNECTION_GET_PRIVATE(connection)->path, path);
+}
 
-    g_free(priv->path);
-    priv->path = g_strdup(path);
+void
+_nm_connection_set_path_rstr(NMConnection *connection, NMRefString *path)
+{
+    nm_ref_string_reset(&NM_CONNECTION_GET_PRIVATE(connection)->path, path);
 }
 
 /**
@@ -2966,6 +2976,12 @@ nm_connection_get_path(NMConnection *connection)
 {
     g_return_val_if_fail(NM_IS_CONNECTION(connection), NULL);
 
+    return nm_ref_string_get_str(NM_CONNECTION_GET_PRIVATE(connection)->path);
+}
+
+NMRefString *
+_nm_connection_get_path_rstr(NMConnection *connection)
+{
     return NM_CONNECTION_GET_PRIVATE(connection)->path;
 }
 

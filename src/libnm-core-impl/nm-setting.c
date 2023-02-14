@@ -331,7 +331,7 @@ _nm_setting_class_commit(NMSettingClass             *setting_class,
         override_len = properties_override->len;
 
         for (i = 0; i < override_len; i++) {
-            NMSettInfoProperty *p = &g_array_index(properties_override, NMSettInfoProperty, i);
+            NMSettInfoProperty *p = &nm_g_array_index(properties_override, NMSettInfoProperty, i);
 
             nm_assert((!!p->name) != (!!p->param_spec));
 
@@ -346,14 +346,14 @@ _nm_setting_class_commit(NMSettingClass             *setting_class,
 #if NM_MORE_ASSERTS > 10
     /* assert that properties_override is constructed consistently. */
     for (i = 0; i < override_len; i++) {
-        const NMSettInfoProperty *p = &g_array_index(properties_override, NMSettInfoProperty, i);
+        const NMSettInfoProperty *p = &nm_g_array_index(properties_override, NMSettInfoProperty, i);
         gboolean                  found = FALSE;
         guint                     k;
 
-        nm_assert(
-            !_nm_sett_info_property_find_in_array((NMSettInfoProperty *) properties_override->data,
-                                                  i,
-                                                  p->name));
+        nm_assert(!_nm_sett_info_property_find_in_array(
+            nm_g_array_index_p(properties_override, NMSettInfoProperty, 0),
+            i,
+            p->name));
         for (k = 0; k < n_property_specs; k++) {
             if (!nm_streq(property_specs[k]->name, p->name))
                 continue;
@@ -369,20 +369,20 @@ _nm_setting_class_commit(NMSettingClass             *setting_class,
         const char         *name = property_specs[i]->name;
         NMSettInfoProperty *p;
 
-        if (_nm_sett_info_property_find_in_array((NMSettInfoProperty *) properties_override->data,
-                                                 override_len,
-                                                 name))
+        if (_nm_sett_info_property_find_in_array(
+                nm_g_array_index_p(properties_override, NMSettInfoProperty, 0),
+                override_len,
+                name))
             continue;
 
-        g_array_set_size(properties_override, properties_override->len + 1);
-        p = &g_array_index(properties_override, NMSettInfoProperty, properties_override->len - 1);
+        p = nm_g_array_append_new(properties_override, NMSettInfoProperty);
         memset(p, 0, sizeof(*p));
         p->name       = name;
         p->param_spec = property_specs[i];
     }
 
     for (i = 0; i < properties_override->len; i++) {
-        NMSettInfoProperty *p = &g_array_index(properties_override, NMSettInfoProperty, i);
+        NMSettInfoProperty *p = &nm_g_array_index(properties_override, NMSettInfoProperty, i);
         GType               vtype;
 
         if (p->property_type)
@@ -492,12 +492,12 @@ _nm_sett_info_setting_get_property_info(const NMSettInfoSetting *sett_info,
         return NULL;
 
     G_STATIC_ASSERT_EXPR(G_STRUCT_OFFSET(NMSettInfoProperty, name) == 0);
-    idx = nm_utils_array_find_binary_search(sett_info->property_infos,
-                                            sizeof(NMSettInfoProperty),
-                                            sett_info->property_infos_len,
-                                            &property_name,
-                                            nm_strcmp_p_with_data,
-                                            NULL);
+    idx = nm_array_find_bsearch(sett_info->property_infos,
+                                sett_info->property_infos_len,
+                                sizeof(NMSettInfoProperty),
+                                &property_name,
+                                nm_strcmp_p_with_data,
+                                NULL);
 
     if (idx < 0)
         return NULL;
@@ -604,7 +604,48 @@ _nm_setting_use_legacy_property(NMSetting  *setting,
                                 const char *new_property)
 {
     gs_unref_variant GVariant *setting_dict = NULL;
-    gs_unref_variant GVariant *value        = NULL;
+    gs_unref_variant GVariant *val_leg      = NULL;
+    gs_unref_variant GVariant *val_new      = NULL;
+
+    /* We want to be both forward and backward compatible (both the client or the daemon
+     * can be newer).
+     *
+     * For the most part, we achieve that by ignoring unknown properties (to be forward
+     * compatible). That of course has the downside, that we don't do strong validation
+     * of the input.
+     *
+     * In some cases, we deprecated a D-Bus property for another one (e.g. the legacy property
+     * "ipv4.routes" became the new property "ipv4.route-data"). In that case, the to/from D-Bus
+     * methods behave differently on the client and the daemon.
+     *
+     * The daemon will serialize both the legacy property and the new property to D-Bus.
+     * The client, will prefer the newer property (if it exists) when deserializing from D-Bus.
+     *
+     * Usually that scheme would fully suffice to support forward and backward compatibility.
+     * However, there is a problem. An old client (unaware of the new property) might get
+     * the profile, modify the old property, and send the entire profile back to the daemon.
+     * In this case, the old client does not know that the new property conflicts with the
+     * old property. The client also might try to preserve any unknown properties and send
+     * them back to the daemon. If the daemon now would prefer the new property, it would be wrong.
+     *
+     * The solution to this is that the daemon -- when both old and new property is set --
+     * will prefer the old property. This is what _nm_setting_use_legacy_property() checks
+     * for. Consequently, a new client will not serialize both the old and the new property.
+     * This is done via "to_dbus_only_in_manager_process" flag.
+     *
+     * The downside of this scheme is that:
+     *
+     * - to/from D-Bus just got more complicated and behaves differently on the client
+     *   and the daemon.
+     * - backward compatibility does not work with a newer client vs. and older daemon.
+     *   This is the major downside. It's only not that severe, because we only deprecate
+     *   properties seldom and only on major versions. Major version updates happen not
+     *   often and they user might reboot (restart the daemon).
+     *
+     * The benefit is that the case with an older client and a newer daemon works, even
+     * if the client fetches a (new) profile, modifies only parts that it understands,
+     * and sends back the complete profile (including the new, unmodified properties).
+     */
 
     if (!connection_dict) {
         /* we also allow the caller to provide no connection_dict.
@@ -626,19 +667,24 @@ _nm_setting_use_legacy_property(NMSetting  *setting,
 
     g_return_val_if_fail(setting_dict != NULL, FALSE);
 
-    /* If the new property isn't set, we have to use the legacy property. */
-    value = g_variant_lookup_value(setting_dict, new_property, NULL);
-    if (!value)
-        return TRUE;
-    nm_clear_pointer(&value, g_variant_unref);
+    if (!_nm_utils_is_manager_process) {
+        /* The client will prefer the new property, unless it does not exist and
+         * the legacy property exists. */
+        val_new = g_variant_lookup_value(setting_dict, new_property, NULL);
+        if (!val_new) {
+            val_leg = g_variant_lookup_value(setting_dict, legacy_property, NULL);
+            if (val_leg)
+                return TRUE;
+        }
 
-    /* Otherwise, clients always prefer new properties sent from the daemon. */
-    if (!_nm_utils_is_manager_process)
         return FALSE;
+    }
 
-    /* The daemon prefers the legacy property if it exists. */
-    value = g_variant_lookup_value(setting_dict, legacy_property, NULL);
-    return !!value;
+    /* The daemon prefers the old property (if it exists). */
+    val_leg = g_variant_lookup_value(setting_dict, legacy_property, NULL);
+    if (val_leg)
+        return TRUE;
+    return FALSE;
 }
 
 /*****************************************************************************/
@@ -1256,7 +1302,7 @@ _nm_setting_property_to_dbus_fcn_direct(_NM_SETT_INFO_PROP_TO_DBUS_FCN_ARGS _nm_
             (const NMValueStrv *) _nm_setting_get_private_field(setting, sett_info, property_info);
         if (!val->arr)
             return NULL;
-        return g_variant_new_strv((const char *const *) val->arr->data, val->arr->len);
+        return g_variant_new_strv(nm_g_array_data(val->arr), val->arr->len);
     }
     default:
         return nm_assert_unreachable_val(NULL);
@@ -1310,7 +1356,7 @@ _nm_setting_property_to_dbus_fcn_gprop(_NM_SETT_INFO_PROP_TO_DBUS_FCN_ARGS _nm_n
         nm_assert(G_VALUE_HOLDS(&prop_value, G_TYPE_ARRAY));
         tmp_array = g_value_get_boxed(&prop_value);
         nm_assert(tmp_array);
-        return nm_g_variant_new_au((const guint32 *) tmp_array->data, tmp_array->len);
+        return nm_g_variant_new_au(nm_g_array_data(tmp_array), tmp_array->len);
     case NM_SETTING_PROPERTY_TO_DBUS_FCN_GPROP_TYPE_STRDICT:
         nm_assert(G_VALUE_HOLDS(&prop_value, G_TYPE_HASH_TABLE));
         return nm_strdict_to_variant_ass(g_value_get_boxed(&prop_value));
@@ -1752,31 +1798,36 @@ property_to_dbus(const NMSettInfoSetting                *sett_info,
               || NM_FLAGS_HAS(property_info->param_spec->flags, G_PARAM_WRITABLE)
               || property_info->property_type == &nm_sett_info_propert_type_setting_name);
 
-    if (property_info->param_spec && !ignore_flags
-        && !NM_FLAGS_HAS(property_info->param_spec->flags, NM_SETTING_PARAM_TO_DBUS_IGNORE_FLAGS)) {
-        if (NM_FLAGS_HAS(property_info->param_spec->flags, NM_SETTING_PARAM_LEGACY)
-            && !_nm_utils_is_manager_process)
+    if (ignore_flags) {
+        /* We are called from _nm_setting_property_compare_fcn_default(). We want
+         * to serialize the property, and ignore the flags. */
+    } else {
+        if (property_info->to_dbus_only_in_manager_process && !_nm_utils_is_manager_process)
             return NULL;
 
-        if (NM_FLAGS_HAS(property_info->param_spec->flags, NM_SETTING_PARAM_SECRET)) {
-            NMSettingSecretFlags f = NM_SETTING_SECRET_FLAG_NONE;
+        if (property_info->param_spec
+            && !NM_FLAGS_HAS(property_info->param_spec->flags,
+                             NM_SETTING_PARAM_TO_DBUS_IGNORE_FLAGS)) {
+            if (NM_FLAGS_HAS(property_info->param_spec->flags, NM_SETTING_PARAM_SECRET)) {
+                NMSettingSecretFlags f = NM_SETTING_SECRET_FLAG_NONE;
 
-            if (NM_FLAGS_ANY(flags,
-                             NM_CONNECTION_SERIALIZE_WITH_SECRETS_AGENT_OWNED
-                                 | NM_CONNECTION_SERIALIZE_WITH_SECRETS_SYSTEM_OWNED
-                                 | NM_CONNECTION_SERIALIZE_WITH_SECRETS_NOT_SAVED)) {
-                if (!nm_setting_get_secret_flags(setting,
-                                                 property_info->param_spec->name,
-                                                 &f,
-                                                 NULL))
+                if (NM_FLAGS_ANY(flags,
+                                 NM_CONNECTION_SERIALIZE_WITH_SECRETS_AGENT_OWNED
+                                     | NM_CONNECTION_SERIALIZE_WITH_SECRETS_SYSTEM_OWNED
+                                     | NM_CONNECTION_SERIALIZE_WITH_SECRETS_NOT_SAVED)) {
+                    if (!nm_setting_get_secret_flags(setting,
+                                                     property_info->param_spec->name,
+                                                     &f,
+                                                     NULL))
+                        return NULL;
+                }
+
+                if (!_nm_connection_serialize_secrets(flags, f))
+                    return NULL;
+            } else {
+                if (!_nm_connection_serialize_non_secret(flags))
                     return NULL;
             }
-
-            if (!_nm_connection_serialize_secrets(flags, f))
-                return NULL;
-        } else {
-            if (!_nm_connection_serialize_non_secret(flags))
-                return NULL;
         }
     }
 
@@ -3196,6 +3247,12 @@ _nm_setting_clear_secrets(NMSetting                       *setting,
 /**
  * _nm_setting_need_secrets:
  * @setting: the #NMSetting
+ * @check_rerequest: If %TRUE: the stored secrets might be wrong and the agent
+ *   should query the user for the correct credentials. If an #NMSetting knows
+ *   that this cannot be the case it should *not* return the corresponding
+ *   setting object. Otherwise it should always return it, even if it is not
+ *   missing.
+ *   If %FALSE: only return it when it is missing.
  *
  * Returns an array of property names for each secret which may be required
  * to make a successful connection.  The returned hints are only intended as a
@@ -3208,14 +3265,14 @@ _nm_setting_clear_secrets(NMSetting                       *setting,
  * free the elements.
  **/
 GPtrArray *
-_nm_setting_need_secrets(NMSetting *setting)
+_nm_setting_need_secrets(NMSetting *setting, gboolean check_rerequest)
 {
     GPtrArray *secrets = NULL;
 
     g_return_val_if_fail(NM_IS_SETTING(setting), NULL);
 
     if (NM_SETTING_GET_CLASS(setting)->need_secrets)
-        secrets = NM_SETTING_GET_CLASS(setting)->need_secrets(setting);
+        secrets = NM_SETTING_GET_CLASS(setting)->need_secrets(setting, check_rerequest);
 
     return secrets;
 }
@@ -3513,7 +3570,7 @@ nm_setting_to_string(NMSetting *setting)
 }
 
 static GVariant *
-_nm_setting_get_deprecated_virtual_interface_name(_NM_SETT_INFO_PROP_TO_DBUS_FCN_ARGS _nm_nil)
+depreated_interface_name_to_dbus(_NM_SETT_INFO_PROP_TO_DBUS_FCN_ARGS _nm_nil)
 {
     NMSettingConnection *s_con;
 
@@ -3533,8 +3590,9 @@ _nm_setting_get_deprecated_virtual_interface_name(_NM_SETT_INFO_PROP_TO_DBUS_FCN
 const NMSettInfoPropertType nm_sett_info_propert_type_deprecated_interface_name =
     NM_SETT_INFO_PROPERT_TYPE_DBUS_INIT(G_VARIANT_TYPE_STRING,
                                         .compare_fcn = _nm_setting_property_compare_fcn_ignore,
-                                        .to_dbus_fcn =
-                                            _nm_setting_get_deprecated_virtual_interface_name, );
+                                        .to_dbus_fcn = depreated_interface_name_to_dbus,
+                                        /* from_dbus_fcn() is handled by the connection.interface-name setter.
+                                         * See nm_setting_connection_no_interface_name(). */ );
 
 const NMSettInfoPropertType nm_sett_info_propert_type_setting_name =
     NM_SETT_INFO_PROPERT_TYPE_DBUS_INIT(G_VARIANT_TYPE_STRING,
@@ -4062,6 +4120,233 @@ nm_setting_option_set_uint32(NMSetting *setting, const char *opt_name, guint32 v
 
     if (changed_value)
         _nm_setting_option_notify(setting, changed_name);
+}
+
+/*****************************************************************************/
+
+G_DEFINE_BOXED_TYPE(NMRange, nm_range, nm_range_ref, (GBoxedFreeFunc) nm_range_unref)
+
+static gboolean
+NM_IS_RANGE(const NMRange *self)
+{
+    return self && self->refcount > 0;
+}
+
+/**
+ * nm_range_new:
+ * @start: the first element of the range
+ * @end: the last element of the range, must be greater than or equal
+ * to @start.
+ *
+ * Creates a new #NMRange object for the given range. Setting @end
+ * equal to @start creates a single-element range.
+ *
+ * Returns: (transfer full): the new #NMRange object.
+ *
+ * Since: 1.42
+ **/
+NMRange *
+nm_range_new(guint64 start, guint64 end)
+{
+    NMRange *range;
+
+    g_return_val_if_fail(start <= end, NULL);
+
+    range  = g_slice_new(NMRange);
+    *range = (NMRange){
+        .refcount = 1,
+        .start    = start,
+        .end      = end,
+    };
+
+    return range;
+}
+
+/**
+ * nm_range_ref:
+ * @range: the #NMRange
+ *
+ * Increases the reference count of the object.
+ * This is thread-safe.
+ *
+ * Returns: the input argument @range object.
+ *
+ * Since: 1.42
+ **/
+NMRange *
+nm_range_ref(const NMRange *range)
+{
+    g_return_val_if_fail(NM_IS_RANGE(range), NULL);
+
+    nm_assert(range->refcount < G_MAXINT);
+
+    g_atomic_int_inc(&((NMRange *) range)->refcount);
+    return (NMRange *) range;
+}
+
+/**
+ * nm_range_unref:
+ * @range: the #NMRange
+ *
+ * Decreases the reference count of the object.  If the reference count
+ * reaches zero the object will be destroyed.
+ * This is thread-safe.
+ *
+ * Since: 1.42
+ **/
+void
+nm_range_unref(const NMRange *range)
+{
+    g_return_if_fail(NM_IS_RANGE(range));
+
+    if (g_atomic_int_dec_and_test(&((NMRange *) range)->refcount))
+        nm_g_slice_free((NMRange *) range);
+}
+
+/**
+ * nm_range_cmp:
+ * @a: a #NMRange
+ * @b: another #NMRange
+ *
+ * Compare two ranges.
+ *
+ * Returns: zero if the two instances are equivalent or
+ *   a non-zero integer otherwise. This defines a total ordering
+ *   over the ranges.
+ *
+ * Since: 1.42
+ **/
+int
+nm_range_cmp(const NMRange *a, const NMRange *b)
+{
+    NM_CMP_SELF(a, b);
+    NM_CMP_FIELD(a, b, start);
+    NM_CMP_FIELD(a, b, end);
+
+    return 0;
+}
+
+/**
+ * nm_range_get_range:
+ * @range: the #NMRange
+ * @start: (out): location to store the start value
+ * @end: (out): location to store the end value
+ *
+ * Gets the start and end values for the range.
+ *
+ * Returns: %TRUE if the range contains more than one
+ * element, %FALSE otherwise.
+ *
+ * Since: 1.42
+ **/
+gboolean
+nm_range_get_range(const NMRange *range, guint64 *start, guint64 *end)
+{
+    /* with LTO and optimization, the compiler complains that the
+     * output variables are not initialized. In practice, the function
+     * only sets the output on success. But make the compiler happy.
+     */
+    NM_SET_OUT(start, 0);
+    NM_SET_OUT(end, 0);
+
+    g_return_val_if_fail(NM_IS_RANGE(range), 0);
+
+    NM_SET_OUT(start, range->start);
+    NM_SET_OUT(end, range->end);
+
+    return range->start != range->end;
+}
+
+/**
+ * nm_range_to_str:
+ * @range: the %NMRange
+ *
+ * Convert a %NMRange to a string.
+ *
+ * Returns: (transfer full): a string representing the range.
+ *
+ * Since: 1.42
+ */
+char *
+nm_range_to_str(const NMRange *range)
+{
+    char  buf[200];
+    char *b = buf;
+    gsize l = sizeof(buf);
+
+    g_return_val_if_fail(NM_IS_RANGE(range), NULL);
+
+    nm_strbuf_append(&b, &l, "%" G_GUINT64_FORMAT, range->start);
+    if (range->start != range->end)
+        nm_strbuf_append(&b, &l, "-%" G_GUINT64_FORMAT, range->end);
+
+    nm_assert(l > 0);
+    return nm_memdup_nul(buf, sizeof(buf) - l);
+}
+
+/**
+ * nm_range_from_str:
+ * @str: the string representation of a range
+ * @error: (out) (allow-none): location to store the error on failure
+ *
+ * Parses the string representation of the range to create a %NMRange
+ * instance.
+ *
+ * Returns: (transfer full): the %NMRange or %NULL
+ *
+ * Since: 1.42
+ */
+NMRange *
+nm_range_from_str(const char *str, GError **error)
+{
+    gs_free char *str_free = NULL;
+    guint64       start;
+    guint64       end = 0;
+    char         *c;
+
+    g_return_val_if_fail(str, NULL);
+    g_return_val_if_fail(!error || !*error, NULL);
+
+    c = strchr(str, '-');
+    if (c) {
+        str = nm_strndup_a(300, str, c - str, &str_free);
+        c++;
+    }
+
+    start = _nm_utils_ascii_str_to_uint64(str, 10, 0, G_MAXUINT64, 0);
+    if (errno != 0) {
+        g_set_error(error,
+                    NM_CONNECTION_ERROR,
+                    NM_CONNECTION_ERROR_FAILED,
+                    "invalid range start '%s'",
+                    str);
+        return NULL;
+    }
+
+    if (c) {
+        end = _nm_utils_ascii_str_to_uint64(c, 10, 0, G_MAXUINT64, 0);
+        if (errno != 0) {
+            g_set_error(error,
+                        NM_CONNECTION_ERROR,
+                        NM_CONNECTION_ERROR_FAILED,
+                        "invalid range end '%s'",
+                        c);
+            return NULL;
+        }
+        if (end < start) {
+            g_set_error(error,
+                        NM_CONNECTION_ERROR,
+                        NM_CONNECTION_ERROR_FAILED,
+                        "invalid range %" G_GUINT64_FORMAT "-%" G_GUINT64_FORMAT
+                        ", start must be less than or equal to end",
+                        start,
+                        end);
+            return NULL;
+        }
+    } else
+        end = start;
+
+    return nm_range_new(start, end);
 }
 
 /*****************************************************************************/

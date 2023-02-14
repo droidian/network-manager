@@ -222,6 +222,16 @@ G_STATIC_ASSERT(RTA_MAX == (__RTA_MAX - 1));
 
 /*****************************************************************************/
 
+#define IFLA_VTI_UNSPEC 0
+#define IFLA_VTI_LINK   1
+#define IFLA_VTI_IKEY   2
+#define IFLA_VTI_OKEY   3
+#define IFLA_VTI_LOCAL  4
+#define IFLA_VTI_REMOTE 5
+#define IFLA_VTI_FWMARK 6
+
+/*****************************************************************************/
+
 #define WG_CMD_GET_DEVICE 0
 #define WG_CMD_SET_DEVICE 1
 
@@ -580,25 +590,29 @@ NM_LINUX_PLATFORM_FROM_PRIVATE(NMLinuxPlatformPrivate *priv)
 #define _NMLOG2(level, ...)            _LOG(level, _NMLOG2_DOMAIN, NULL, __VA_ARGS__)
 #define _NMLOG2_err(errsv, level, ...) _LOG_err(errsv, level, _NMLOG2_DOMAIN, NULL, __VA_ARGS__)
 
-#define _LOG_print(__level, __domain, __errsv, self, ...)                                 \
-    G_STMT_START                                                                          \
-    {                                                                                     \
-        char              __prefix[32];                                                   \
-        const char       *__p_prefix = _NMLOG_PREFIX_NAME;                                \
-        NMPlatform *const __self     = (self);                                            \
-                                                                                          \
-        if (__self && nm_platform_get_log_with_ptr(__self)) {                             \
-            g_snprintf(__prefix, sizeof(__prefix), "%s[%p]", _NMLOG_PREFIX_NAME, __self); \
-            __p_prefix = __prefix;                                                        \
-        }                                                                                 \
-        _nm_log(__level,                                                                  \
-                __domain,                                                                 \
-                __errsv,                                                                  \
-                NULL,                                                                     \
-                NULL,                                                                     \
-                "%s: " _NM_UTILS_MACRO_FIRST(__VA_ARGS__),                                \
-                __p_prefix _NM_UTILS_MACRO_REST(__VA_ARGS__));                            \
-    }                                                                                     \
+#define _LOG_print(__level, __domain, __errsv, self, ...)      \
+    G_STMT_START                                               \
+    {                                                          \
+        char              __prefix[64];                        \
+        const char       *__p_prefix = _NMLOG_PREFIX_NAME;     \
+        NMPlatform *const __self     = (self);                 \
+                                                               \
+        if (__self && nm_platform_get_log_with_ptr(__self)) {  \
+            g_snprintf(__prefix,                               \
+                       sizeof(__prefix),                       \
+                       "%s[" NM_HASH_OBFUSCATE_PTR_FMT "]",    \
+                       _NMLOG_PREFIX_NAME,                     \
+                       NM_HASH_OBFUSCATE_PTR(__self));         \
+            __p_prefix = __prefix;                             \
+        }                                                      \
+        _nm_log(__level,                                       \
+                __domain,                                      \
+                __errsv,                                       \
+                NULL,                                          \
+                NULL,                                          \
+                "%s: " _NM_UTILS_MACRO_FIRST(__VA_ARGS__),     \
+                __p_prefix _NM_UTILS_MACRO_REST(__VA_ARGS__)); \
+    }                                                          \
     G_STMT_END
 
 #define _LOG(level, domain, self, ...)                           \
@@ -811,6 +825,8 @@ static const LinkDesc link_descs[] = {
     [NM_LINK_TYPE_VETH]        = {"veth", "veth", NULL},
     [NM_LINK_TYPE_VLAN]        = {"vlan", "vlan", "vlan"},
     [NM_LINK_TYPE_VRF]         = {"vrf", "vrf", "vrf"},
+    [NM_LINK_TYPE_VTI]         = {"vti", "vti", NULL},
+    [NM_LINK_TYPE_VTI6]        = {"vti6", "vti6", NULL},
     [NM_LINK_TYPE_VXLAN]       = {"vxlan", "vxlan", "vxlan"},
     [NM_LINK_TYPE_WIREGUARD]   = {"wireguard", "wireguard", "wireguard"},
 
@@ -853,6 +869,8 @@ _link_type_from_rtnl_type(const char *name)
         NM_LINK_TYPE_VETH,        /* "veth"        */
         NM_LINK_TYPE_VLAN,        /* "vlan"        */
         NM_LINK_TYPE_VRF,         /* "vrf"         */
+        NM_LINK_TYPE_VTI,         /* "vti"         */
+        NM_LINK_TYPE_VTI6,        /* "vti6"        */
         NM_LINK_TYPE_VXLAN,       /* "vxlan"       */
         NM_LINK_TYPE_WIMAX,       /* "wimax"       */
         NM_LINK_TYPE_WIREGUARD,   /* "wireguard"   */
@@ -1158,7 +1176,7 @@ _linktype_read_devtype(int dirfd)
         end = strpbrk(cont, "\r\n");
         if (end)
             *end++ = '\0';
-        if (strncmp(cont, DEVTYPE_PREFIX, NM_STRLEN(DEVTYPE_PREFIX)) == 0) {
+        if (NM_STR_HAS_PREFIX(cont, DEVTYPE_PREFIX)) {
             cont += NM_STRLEN(DEVTYPE_PREFIX);
             memmove(contents, cont, strlen(cont) + 1);
             return g_steal_pointer(&contents);
@@ -1289,22 +1307,6 @@ _linktype_get_type(NMPlatform       *platform,
         }
 
         if (arptype == ARPHRD_ETHER) {
-            /* Misc non-upstream WWAN drivers.  rmnet is Qualcomm's proprietary
-             * modem interface, ccmni is MediaTek's.  FIXME: these drivers should
-             * really set devtype=WWAN.
-             */
-            if (g_str_has_prefix(ifname, "rmnet") || g_str_has_prefix(ifname, "rev_rmnet")
-                || g_str_has_prefix(ifname, "ccmni"))
-                return NM_LINK_TYPE_WWAN_NET;
-
-            /* Standard wired ethernet interfaces don't report an rtnl_link_type, so
-             * only allow fallback to Ethernet if no type is given.  This should
-             * prevent future virtual network drivers from being treated as Ethernet
-             * when they should be Generic instead.
-             */
-            if (!kind && !devtype)
-                return NM_LINK_TYPE_ETHERNET;
-
             /* The USB gadget interfaces behave and look like ordinary ethernet devices
              * aside from the DEVTYPE. */
             if (nm_streq0(devtype, "gadget"))
@@ -1312,6 +1314,35 @@ _linktype_get_type(NMPlatform       *platform,
 
             /* Distributed Switch Architecture switch chips */
             if (nm_streq0(devtype, "dsa"))
+                return NM_LINK_TYPE_ETHERNET;
+        }
+
+        /* Misc non-upstream WWAN drivers.  rmnet is Qualcomm's proprietary
+         * modem interface, ccmni is MediaTek's.  FIXME: these drivers should
+         * really set devtype=WWAN.
+         *
+         * Value "530" is the out-of-tree version of ARPHRD_RAWIP before it's
+         * merged in Linux 4.14. For the mainline version, this has the value
+         * of "519".
+         *
+         * [1] https://github.com/LineageOS/android_kernel_google_msm-4.9/commit/54948008c293fdf48552a5c39c91c09c3eb76ed2
+         */
+        if (NM_IN_SET(arptype,
+                      ARPHRD_ETHER,
+                      519 /* ARPHRD_RAWIP */,
+                      530 /* out-of-tree ARPHRD_RAWIP */)) {
+            if (NM_STR_HAS_PREFIX(ifname, "rmnet") || NM_STR_HAS_PREFIX(ifname, "rev_rmnet")
+                || NM_STR_HAS_PREFIX(ifname, "ccmni"))
+                return NM_LINK_TYPE_WWAN_NET;
+        }
+
+        if (arptype == ARPHRD_ETHER) {
+            /* Standard wired ethernet interfaces don't report an rtnl_link_type, so
+             * only allow fallback to Ethernet if no type is given.  This should
+             * prevent future virtual network drivers from being treated as Ethernet
+             * when they should be Generic instead.
+             */
+            if (!kind && !devtype)
                 return NM_LINK_TYPE_ETHERNET;
         }
     }
@@ -1338,7 +1369,8 @@ typedef struct {
     };
 } ParseNlmsgIter;
 
-#define NLMSG_TAIL(nmsg) ((struct rtattr *) (((char *) (nmsg)) + NLMSG_ALIGN((nmsg)->nlmsg_len)))
+#define NLMSG_TAIL(nmsg) \
+    NM_CAST_ALIGN(struct rtattr, ((char *) (nmsg)) + NLMSG_ALIGN((nmsg)->nlmsg_len))
 
 /* copied from iproute2's addattr_l(). */
 static gboolean
@@ -2244,6 +2276,11 @@ _parse_lnk_vlan(const char *kind, struct nlattr *info_data)
     obj              = nmp_object_new(NMP_OBJECT_TYPE_LNK_VLAN, NULL);
     obj->lnk_vlan.id = nla_get_u16(tb[IFLA_VLAN_ID]);
 
+    if (tb[IFLA_VLAN_PROTOCOL])
+        obj->lnk_vlan.protocol = ntohs(nla_get_u16(tb[IFLA_VLAN_PROTOCOL]));
+    else
+        obj->lnk_vlan.protocol = ETH_P_8021Q;
+
     if (tb[IFLA_VLAN_FLAGS]) {
         struct ifla_vlan_flags flags;
 
@@ -2384,6 +2421,76 @@ _parse_lnk_vxlan(const char *kind, struct nlattr *info_data)
         props->l2miss = !!nla_get_u8(tb[IFLA_VXLAN_L2MISS]);
     if (tb[IFLA_VXLAN_L3MISS])
         props->l3miss = !!nla_get_u8(tb[IFLA_VXLAN_L3MISS]);
+
+    return obj;
+}
+
+static NMPObject *
+_parse_lnk_vti(const char *kind, struct nlattr *info_data)
+{
+    static const struct nla_policy policy[] = {
+        [IFLA_VTI_LINK]   = {.type = NLA_U32},
+        [IFLA_VTI_LOCAL]  = {.type = NLA_U32},
+        [IFLA_VTI_REMOTE] = {.type = NLA_U32},
+        [IFLA_VTI_IKEY]   = {.type = NLA_U32},
+        [IFLA_VTI_OKEY]   = {.type = NLA_U32},
+        [IFLA_VTI_FWMARK] = {.type = NLA_U32},
+    };
+    struct nlattr    *tb[G_N_ELEMENTS(policy)];
+    NMPObject        *obj;
+    NMPlatformLnkVti *props;
+
+    if (!info_data || !nm_streq0(kind, "vti"))
+        return NULL;
+
+    if (nla_parse_nested_arr(tb, info_data, policy) < 0)
+        return NULL;
+
+    obj   = nmp_object_new(NMP_OBJECT_TYPE_LNK_VTI, NULL);
+    props = &obj->lnk_vti;
+
+    props->parent_ifindex = tb[IFLA_VTI_LINK] ? nla_get_u32(tb[IFLA_VTI_LINK]) : 0;
+    props->local          = tb[IFLA_VTI_LOCAL] ? nla_get_u32(tb[IFLA_VTI_LOCAL]) : 0;
+    props->remote         = tb[IFLA_VTI_REMOTE] ? nla_get_u32(tb[IFLA_VTI_REMOTE]) : 0;
+    props->ikey           = tb[IFLA_VTI_IKEY] ? ntohl(nla_get_u32(tb[IFLA_VTI_IKEY])) : 0;
+    props->okey           = tb[IFLA_VTI_OKEY] ? ntohl(nla_get_u32(tb[IFLA_VTI_OKEY])) : 0;
+    props->fwmark         = tb[IFLA_VTI_FWMARK] ? nla_get_u32(tb[IFLA_VTI_FWMARK]) : 0;
+
+    return obj;
+}
+
+static NMPObject *
+_parse_lnk_vti6(const char *kind, struct nlattr *info_data)
+{
+    static const struct nla_policy policy[] = {
+        [IFLA_VTI_LINK]   = {.type = NLA_U32},
+        [IFLA_VTI_LOCAL]  = {.minlen = sizeof(struct in6_addr)},
+        [IFLA_VTI_REMOTE] = {.minlen = sizeof(struct in6_addr)},
+        [IFLA_VTI_IKEY]   = {.type = NLA_U32},
+        [IFLA_VTI_OKEY]   = {.type = NLA_U32},
+        [IFLA_VTI_FWMARK] = {.type = NLA_U32},
+    };
+    struct nlattr     *tb[G_N_ELEMENTS(policy)];
+    NMPObject         *obj;
+    NMPlatformLnkVti6 *props;
+
+    if (!info_data || !nm_streq0(kind, "vti6"))
+        return NULL;
+
+    if (nla_parse_nested_arr(tb, info_data, policy) < 0)
+        return NULL;
+
+    obj   = nmp_object_new(NMP_OBJECT_TYPE_LNK_VTI6, NULL);
+    props = &obj->lnk_vti6;
+
+    props->parent_ifindex = tb[IFLA_VTI_LINK] ? nla_get_u32(tb[IFLA_VTI_LINK]) : 0;
+    if (tb[IFLA_VTI_LOCAL])
+        props->local = *nla_data_as(struct in6_addr, tb[IFLA_VTI_LOCAL]);
+    if (tb[IFLA_VTI_REMOTE])
+        props->remote = *nla_data_as(struct in6_addr, tb[IFLA_VTI_REMOTE]);
+    props->ikey   = tb[IFLA_VTI_IKEY] ? ntohl(nla_get_u32(tb[IFLA_VTI_IKEY])) : 0;
+    props->okey   = tb[IFLA_VTI_OKEY] ? ntohl(nla_get_u32(tb[IFLA_VTI_OKEY])) : 0;
+    props->fwmark = tb[IFLA_VTI_FWMARK] ? nla_get_u32(tb[IFLA_VTI_FWMARK]) : 0;
 
     return obj;
 }
@@ -2540,16 +2647,15 @@ _wireguard_update_from_peers_nla(CList *peers, GArray **p_allowed_ips, struct nl
         GArray        *allowed_ips = *p_allowed_ips;
 
         nla_for_each_nested (attr, tb[WGPEER_A_ALLOWEDIPS], rem) {
+            NMPWireGuardAllowedIP *new;
+
             if (!allowed_ips) {
                 allowed_ips    = g_array_new(FALSE, FALSE, sizeof(NMPWireGuardAllowedIP));
                 *p_allowed_ips = allowed_ips;
-                g_array_set_size(allowed_ips, 1);
-            } else
-                g_array_set_size(allowed_ips, allowed_ips->len + 1);
+            }
 
-            if (!_wireguard_update_from_allowed_ips_nla(
-                    &g_array_index(allowed_ips, NMPWireGuardAllowedIP, allowed_ips->len - 1),
-                    attr)) {
+            new = nm_g_array_append_new(allowed_ips, NMPWireGuardAllowedIP);
+            if (!_wireguard_update_from_allowed_ips_nla(new, attr)) {
                 /* we ignore the error of parsing one allowed-ip. */
                 g_array_set_size(allowed_ips, allowed_ips->len - 1);
                 continue;
@@ -3379,6 +3485,12 @@ _new_from_nl_link(NMPlatform            *platform,
     case NM_LINK_TYPE_VRF:
         lnk_data = _parse_lnk_vrf(nl_info_kind, nl_info_data);
         break;
+    case NM_LINK_TYPE_VTI:
+        lnk_data = _parse_lnk_vti(nl_info_kind, nl_info_data);
+        break;
+    case NM_LINK_TYPE_VTI6:
+        lnk_data = _parse_lnk_vti6(nl_info_kind, nl_info_data);
+        break;
     case NM_LINK_TYPE_VXLAN:
         lnk_data = _parse_lnk_vxlan(nl_info_kind, nl_info_data);
         break;
@@ -3631,21 +3743,27 @@ _new_from_nl_route(const struct nlmsghdr *nlh, gboolean id_only, ParseNlmsgIter 
     struct {
         gboolean found;
         gboolean has_more;
+        guint8   weight;
         int      ifindex;
         NMIPAddr gateway;
     } nh = {
         .found    = FALSE,
         .has_more = FALSE,
     };
-    guint32  mss;
-    guint32  window   = 0;
-    guint32  cwnd     = 0;
-    guint32  initcwnd = 0;
-    guint32  initrwnd = 0;
-    guint32  mtu      = 0;
-    guint32  rto_min  = 0;
-    guint32  lock     = 0;
-    gboolean quickack = FALSE;
+    guint                           v4_n_nexthops = 0;
+    NMPlatformIP4RtNextHop          v4_nh_extra_nexthops_stack[10];
+    gs_free NMPlatformIP4RtNextHop *v4_nh_extra_nexthops_heap = NULL;
+    NMPlatformIP4RtNextHop         *v4_nh_extra_nexthops      = v4_nh_extra_nexthops_stack;
+    guint                           v4_nh_extra_alloc = G_N_ELEMENTS(v4_nh_extra_nexthops_stack);
+    guint32                         mss;
+    guint32                         window   = 0;
+    guint32                         cwnd     = 0;
+    guint32                         initcwnd = 0;
+    guint32                         initrwnd = 0;
+    guint32                         mtu      = 0;
+    guint32                         rto_min  = 0;
+    guint32                         lock     = 0;
+    gboolean                        quickack = FALSE;
 
     nm_assert((parse_nlmsg_iter->iter_more && parse_nlmsg_iter->ip6_route.next_multihop > 0)
               || (!parse_nlmsg_iter->iter_more && parse_nlmsg_iter->ip6_route.next_multihop == 0));
@@ -3667,15 +3785,6 @@ _new_from_nl_route(const struct nlmsghdr *nlh, gboolean id_only, ParseNlmsgIter 
     else if (addr_family == AF_INET6)
         IS_IPv4 = FALSE;
     else
-        return NULL;
-
-    if (!NM_IN_SET(rtm->rtm_type,
-                   RTN_UNICAST,
-                   RTN_LOCAL,
-                   RTN_BLACKHOLE,
-                   RTN_UNREACHABLE,
-                   RTN_PROHIBIT,
-                   RTN_THROW))
         return NULL;
 
     if (nlmsg_parse_arr(nlh, sizeof(struct rtmsg), tb, policy) < 0)
@@ -3703,9 +3812,57 @@ _new_from_nl_route(const struct nlmsghdr *nlh, gboolean id_only, ParseNlmsgIter 
 
         idx = 0;
         while (TRUE) {
-            if (idx == multihop_idx) {
+            if (nh.found && IS_IPv4) {
+                NMPlatformIP4RtNextHop *new_nexthop;
+
+                /* we parsed the first IPv4 nexthop in "nh", let's parse the following ones.
+                 *
+                 * At this point, v4_n_nexthops still counts how many hops we already added,
+                 * now we are about to add the (v4_n_nexthops+1) hop.
+                 *
+                 * Note that the first hop (of then v4_n_nexthops) is tracked in "nh".
+                 * v4_nh_extra_nexthops tracks the additional hops.
+                 *
+                 * v4_nh_extra_alloc is how many space is allocated for
+                 * v4_nh_extra_nexthops (note that in the end we will only add (v4_n_nexthops-1)
+                 * hops in this list). */
+                nm_assert(v4_n_nexthops > 0u);
+                if (v4_n_nexthops - 1u >= v4_nh_extra_alloc) {
+                    v4_nh_extra_alloc = NM_MAX(4, v4_nh_extra_alloc * 2u);
+                    if (!v4_nh_extra_nexthops_heap) {
+                        v4_nh_extra_nexthops_heap =
+                            g_new(NMPlatformIP4RtNextHop, v4_nh_extra_alloc);
+                        memcpy(v4_nh_extra_nexthops_heap,
+                               v4_nh_extra_nexthops_stack,
+                               G_N_ELEMENTS(v4_nh_extra_nexthops_stack));
+                    } else {
+                        v4_nh_extra_nexthops_heap = g_renew(NMPlatformIP4RtNextHop,
+                                                            v4_nh_extra_nexthops_heap,
+                                                            v4_nh_extra_alloc);
+                    }
+                    v4_nh_extra_nexthops = v4_nh_extra_nexthops_heap;
+                }
+                nm_assert(v4_n_nexthops - 1u < v4_nh_extra_alloc);
+                new_nexthop          = &v4_nh_extra_nexthops[v4_n_nexthops - 1u];
+                new_nexthop->ifindex = rtnh->rtnh_ifindex;
+                new_nexthop->weight  = NM_MAX(((guint) rtnh->rtnh_hops) + 1u, 1u);
+                if (rtnh->rtnh_len > sizeof(*rtnh)) {
+                    struct nlattr *ntb[RTA_MAX + 1];
+
+                    if (nla_parse_arr(ntb,
+                                      (struct nlattr *) RTNH_DATA(rtnh),
+                                      rtnh->rtnh_len - sizeof(*rtnh),
+                                      NULL)
+                        < 0)
+                        return NULL;
+
+                    if (_check_addr_or_return_null(ntb, RTA_GATEWAY, addr_len))
+                        memcpy(&new_nexthop->gateway, nla_data(ntb[RTA_GATEWAY]), addr_len);
+                }
+            } else if (IS_IPv4 || idx == multihop_idx) {
                 nh.found   = TRUE;
                 nh.ifindex = rtnh->rtnh_ifindex;
+                nh.weight  = NM_MAX(((guint) rtnh->rtnh_hops) + 1u, 1u);
                 if (rtnh->rtnh_len > sizeof(*rtnh)) {
                     struct nlattr *ntb[RTA_MAX + 1];
 
@@ -3722,21 +3879,15 @@ _new_from_nl_route(const struct nlmsghdr *nlh, gboolean id_only, ParseNlmsgIter 
             } else if (nh.found) {
                 /* we just parsed a nexthop, but there is yet another hop afterwards. */
                 nm_assert(idx == multihop_idx + 1);
-                if (IS_IPv4) {
-                    /* for IPv4, multihop routes are currently not supported.
-                     *
-                     * If we ever support them, then the next-hop list is part of the NMPlatformIPRoute,
-                     * that is, for IPv4 we truly have multihop routes. Unlike for IPv6.
-                     *
-                     * For now, just error out. */
-                    return NULL;
-                }
 
                 /* For IPv6 multihop routes, we need to remember to iterate again.
                  * For each next-hop, we will create a distinct single-hop NMPlatformIP6Route. */
                 nh.has_more = TRUE;
                 break;
             }
+
+            if (IS_IPv4)
+                v4_n_nexthops++;
 
             if (tlen < RTNH_ALIGN(rtnh->rtnh_len) + sizeof(*rtnh))
                 break;
@@ -3771,6 +3922,9 @@ rta_multipath_done:
             nh.ifindex = ifindex;
             nh.gateway = gateway;
             nh.found   = TRUE;
+            nm_assert(v4_n_nexthops == 0);
+            if (IS_IPv4)
+                v4_n_nexthops = 1;
         } else {
             /* Kernel supports new style nexthop configuration,
              * verify that it is a duplicate and ignore old-style nexthop. */
@@ -3860,6 +4014,23 @@ rta_multipath_done:
         tb[RTA_TABLE] ? nla_get_u32(tb[RTA_TABLE]) : (guint32) rtm->rtm_table);
 
     obj->ip_route.ifindex = nh.ifindex;
+
+    if (IS_IPv4) {
+        nm_assert((!!nh.found) == (v4_n_nexthops > 0u));
+        obj->ip4_route.n_nexthops = v4_n_nexthops;
+        if (v4_n_nexthops > 1) {
+            /* We only set the weight for multihop routes. I think that corresponds to what kernel
+             * does. The weight is mostly undefined for single-hop. */
+            obj->ip4_route.weight = NM_MAX(nh.weight, 1u);
+
+            obj->_ip4_route.extra_nexthops =
+                (v4_nh_extra_alloc == v4_n_nexthops - 1u
+                 && v4_nh_extra_nexthops == v4_nh_extra_nexthops_heap)
+                    ? g_steal_pointer(&v4_nh_extra_nexthops_heap)
+                    : nm_memdup(v4_nh_extra_nexthops,
+                                sizeof(v4_nh_extra_nexthops[0]) * (v4_n_nexthops - 1u));
+        }
+    }
 
     if (_check_addr_or_return_null(tb, RTA_DST, addr_len))
         memcpy(obj->ip_route.network_ptr, nla_data(tb[RTA_DST]), addr_len);
@@ -4580,11 +4751,13 @@ _nl_msg_new_link_set_linkinfo(struct nl_msg *msg, NMLinkType link_type, gconstpo
         const NMPlatformLnkVlan *props = extra_data;
 
         nm_assert(extra_data);
+        nm_assert(props->protocol != 0);
 
         if (!(data = nla_nest_start(msg, IFLA_INFO_DATA)))
             goto nla_put_failure;
 
         NLA_PUT_U16(msg, IFLA_VLAN_ID, props->id);
+        NLA_PUT_U16(msg, IFLA_VLAN_PROTOCOL, htons(props->protocol));
 
         {
             struct ifla_vlan_flags flags = {
@@ -4833,6 +5006,44 @@ _nl_msg_new_link_set_linkinfo(struct nl_msg *msg, NMLinkType link_type, gconstpo
 
         NLA_PUT_U32(msg, IFLA_MACVLAN_MODE, props->mode);
         NLA_PUT_U16(msg, IFLA_MACVLAN_FLAGS, props->no_promisc ? MACVLAN_FLAG_NOPROMISC : 0);
+        break;
+    }
+    case NM_LINK_TYPE_VTI:
+    {
+        const NMPlatformLnkVti *props = extra_data;
+
+        nm_assert(props);
+
+        if (!(data = nla_nest_start(msg, IFLA_INFO_DATA)))
+            goto nla_put_failure;
+
+        if (props->parent_ifindex > 0)
+            NLA_PUT_U32(msg, IFLA_VTI_LINK, props->parent_ifindex);
+        NLA_PUT_U32(msg, IFLA_VTI_LOCAL, props->local);
+        NLA_PUT_U32(msg, IFLA_VTI_REMOTE, props->remote);
+        NLA_PUT_U32(msg, IFLA_VTI_IKEY, htonl(props->ikey));
+        NLA_PUT_U32(msg, IFLA_VTI_OKEY, htonl(props->okey));
+        NLA_PUT_U32(msg, IFLA_VTI_FWMARK, props->fwmark);
+        break;
+    }
+    case NM_LINK_TYPE_VTI6:
+    {
+        const NMPlatformLnkVti6 *props = extra_data;
+
+        nm_assert(props);
+
+        if (!(data = nla_nest_start(msg, IFLA_INFO_DATA)))
+            goto nla_put_failure;
+
+        if (props->parent_ifindex > 0)
+            NLA_PUT_U32(msg, IFLA_VTI_LINK, props->parent_ifindex);
+        if (!IN6_IS_ADDR_UNSPECIFIED(&props->local))
+            NLA_PUT(msg, IFLA_VTI_LOCAL, sizeof(props->local), &props->local);
+        if (!IN6_IS_ADDR_UNSPECIFIED(&props->remote))
+            NLA_PUT(msg, IFLA_VTI_REMOTE, sizeof(props->remote), &props->remote);
+        NLA_PUT_U32(msg, IFLA_VTI_IKEY, htonl(props->ikey));
+        NLA_PUT_U32(msg, IFLA_VTI_OKEY, htonl(props->okey));
+        NLA_PUT_U32(msg, IFLA_VTI_FWMARK, props->fwmark);
         break;
     }
     default:
@@ -5088,7 +5299,7 @@ ip_route_get_lock_flag(const NMPlatformIPRoute *route)
 }
 
 static gboolean
-ip_route_ignored_protocol(const NMPlatformIPRoute *route)
+ip_route_is_alive(const NMPlatformIPRoute *route)
 {
     guint8 prot;
 
@@ -5100,12 +5311,29 @@ ip_route_ignored_protocol(const NMPlatformIPRoute *route)
 
     nm_assert(nmp_utils_ip_config_source_from_rtprot(prot) == route->rt_source);
 
-    /* We ignore all routes outside a certain subest of rtm_protocol. NetworkManager
-     * itself wouldn't configure those, so they are always configured by somebody
-     * external. We thus ignore them to avoid the overhead that processing them brings.
-     * For example, the BGP daemon "bird"  might configure a huge number of RTPROT_BIRD routes. */
+    if (prot > RTPROT_STATIC && !NM_IN_SET(prot, RTPROT_DHCP, RTPROT_RA)) {
+        /* We ignore certain rtm_protocol, because NetworkManager would only ever
+         * configure certain protocols. Other routes are not configured by NetworkManager
+         * and we don't track them in the platform cache.
+         *
+         * This is to help with the performance overhead of a huge number of
+         * routes, for example with the bird BGP software, that adds routes
+         * with RTPROT_BIRD protocol. */
+        return FALSE;
+    }
 
-    return prot > RTPROT_STATIC && !NM_IN_SET(prot, RTPROT_DHCP, RTPROT_RA);
+    if (!NM_IN_SET(nm_platform_route_type_uncoerce(route->type_coerced),
+                   RTN_UNICAST,
+                   RTN_LOCAL,
+                   RTN_BLACKHOLE,
+                   RTN_UNREACHABLE,
+                   RTN_PROHIBIT,
+                   RTN_THROW)) {
+        /* Certain route types are ignored and not placed into the cache. */
+        return FALSE;
+    }
+
+    return TRUE;
 }
 
 /* Copied and modified from libnl3's build_route_msg() and rtnl_route_build_msg(). */
@@ -5118,7 +5346,7 @@ _nl_msg_new_route(uint16_t nlmsg_type, uint16_t nlmsg_flags, const NMPObject *ob
     const guint32                lock    = ip_route_get_lock_flag(NMP_OBJECT_CAST_IP_ROUTE(obj));
     const guint32                table =
         nm_platform_route_table_uncoerce(NMP_OBJECT_CAST_IP_ROUTE(obj)->table_coerced, TRUE);
-    const struct rtmsg rtmsg = {
+    struct rtmsg rtmsg = {
         .rtm_family   = klass->addr_family,
         .rtm_tos      = IS_IPv4 ? obj->ip4_route.tos : 0,
         .rtm_table    = table <= 0xFF ? table : RT_TABLE_UNSPEC,
@@ -5126,7 +5354,7 @@ _nl_msg_new_route(uint16_t nlmsg_type, uint16_t nlmsg_flags, const NMPObject *ob
         .rtm_scope =
             IS_IPv4 ? nm_platform_route_scope_inv(obj->ip4_route.scope_inv) : RT_SCOPE_NOWHERE,
         .rtm_type    = nm_platform_route_type_uncoerce(NMP_OBJECT_CAST_IP_ROUTE(obj)->type_coerced),
-        .rtm_flags   = obj->ip_route.r_rtm_flags & ((unsigned) (RTNH_F_ONLINK)),
+        .rtm_flags   = 0,
         .rtm_dst_len = obj->ip_route.plen,
         .rtm_src_len = IS_IPv4 ? 0 : NMP_OBJECT_CAST_IP6_ROUTE(obj)->src_plen,
     };
@@ -5136,6 +5364,17 @@ _nl_msg_new_route(uint16_t nlmsg_type, uint16_t nlmsg_flags, const NMPObject *ob
     nm_assert(
         NM_IN_SET(NMP_OBJECT_GET_TYPE(obj), NMP_OBJECT_TYPE_IP4_ROUTE, NMP_OBJECT_TYPE_IP6_ROUTE));
     nm_assert(NM_IN_SET(nlmsg_type, RTM_NEWROUTE, RTM_DELROUTE));
+
+    if (NM_FLAGS_HAS(obj->ip_route.r_rtm_flags, ((unsigned) (RTNH_F_ONLINK)))) {
+        if (IS_IPv4 && obj->ip4_route.gateway == 0) {
+            /* Kernel does not allow setting the onlink flag, if there is no gateway.
+             * We silently don't configure the flag.
+             *
+             * For multi-hop routes, we will set the flag for each next-hop (which
+             * has a gateway set). */
+        } else
+            rtmsg.rtm_flags |= ((unsigned) RTNH_F_ONLINK);
+    }
 
     msg = nlmsg_alloc_new(0, nlmsg_type, nlmsg_flags);
 
@@ -5169,6 +5408,54 @@ _nl_msg_new_route(uint16_t nlmsg_type, uint16_t nlmsg_flags, const NMPObject *ob
     } else {
         if (!IN6_IS_ADDR_UNSPECIFIED(&NMP_OBJECT_CAST_IP6_ROUTE(obj)->pref_src))
             NLA_PUT(msg, RTA_PREFSRC, addr_len, &obj->ip6_route.pref_src);
+    }
+
+    if (IS_IPv4 && obj->ip4_route.n_nexthops > 1u) {
+        struct nlattr *multipath;
+        guint          i;
+
+        if (!(multipath = nla_nest_start(msg, RTA_MULTIPATH)))
+            goto nla_put_failure;
+
+        for (i = 0u; i < obj->ip4_route.n_nexthops; i++) {
+            struct rtnexthop *rtnh;
+            in_addr_t         gw;
+
+            rtnh = nlmsg_reserve(msg, sizeof(*rtnh), NLMSG_ALIGNTO);
+            if (!rtnh)
+                goto nla_put_failure;
+
+            /* For multihop routes, a valid weight must be in range 1-256 (on netlink's
+             * "rtnh_hops" this is 0-255). We allow that the caller leaves the value unset
+             * at zero. */
+            if (i == 0u) {
+                rtnh->rtnh_hops    = NM_MAX(obj->ip4_route.weight, 1u) - 1u;
+                rtnh->rtnh_ifindex = obj->ip4_route.ifindex;
+                gw                 = obj->ip4_route.gateway;
+            } else {
+                const NMPlatformIP4RtNextHop *n = &obj->_ip4_route.extra_nexthops[i - 1u];
+
+                rtnh->rtnh_hops    = NM_MAX(n->weight, 1u) - 1u;
+                rtnh->rtnh_ifindex = n->ifindex;
+                gw                 = n->gateway;
+            }
+            NLA_PUT_U32(msg, RTA_GATEWAY, gw);
+
+            rtnh->rtnh_flags = 0;
+
+            if (obj->ip4_route.n_nexthops > 1
+                && NM_FLAGS_HAS(obj->ip_route.r_rtm_flags, (unsigned) (RTNH_F_ONLINK)) && gw != 0) {
+                /* Unlike kernel, we only track the onlink flag per NMPlatformIP4Address, and
+                 * not per nexthop. That is fine for NetworkManager configuring addresses.
+                 * It is not fine for tracking addresses from kernel in platform cache,
+                 * because the rtnh_flags of the nexthops need to be part of nmp_object_id_cmp(). */
+                rtnh->rtnh_flags |= RTNH_F_ONLINK;
+            }
+
+            rtnh->rtnh_len = (char *) nlmsg_tail(nlmsg_hdr(msg)) - (char *) rtnh;
+        }
+
+        nla_nest_end(msg, multipath);
     }
 
     if (obj->ip_route.mss || obj->ip_route.window || obj->ip_route.cwnd || obj->ip_route.initcwnd
@@ -5462,7 +5749,7 @@ _nl_msg_new_tfilter(uint16_t nlmsg_type, uint16_t nlmsg_flags, const NMPlatformT
         if (nm_streq(action->kind, NM_PLATFORM_ACTION_KIND_SIMPLE)) {
             const NMPlatformActionSimple *simple = &action->simple;
             struct tc_defact              sel    = {
-                                0,
+                0,
             };
 
             if (!(act_options = nla_nest_start(msg, TCA_ACT_OPTIONS)))
@@ -5476,7 +5763,7 @@ _nl_msg_new_tfilter(uint16_t nlmsg_type, uint16_t nlmsg_flags, const NMPlatformT
         } else if (nm_streq(action->kind, NM_PLATFORM_ACTION_KIND_MIRRED)) {
             const NMPlatformActionMirred *mirred = &action->mirred;
             struct tc_mirred              sel    = {
-                                0,
+                0,
             };
 
             if (!(act_options = nla_nest_start(msg, TCA_ACT_OPTIONS)))
@@ -5512,25 +5799,25 @@ nla_put_failure:
 
 /*****************************************************************************/
 
-#define ASSERT_SYSCTL_ARGS(pathid, dirfd, path)                                                 \
-    G_STMT_START                                                                                \
-    {                                                                                           \
-        const char *const _pathid = (pathid);                                                   \
-        const int         _dirfd  = (dirfd);                                                    \
-        const char *const _path   = (path);                                                     \
-                                                                                                \
-        nm_assert(_path &&_path[0]);                                                            \
-        g_assert(!strstr(_path, "/../"));                                                       \
-        if (_dirfd < 0) {                                                                       \
-            nm_assert(!_pathid);                                                                \
-            nm_assert(_path[0] == '/');                                                         \
-            nm_assert(g_str_has_prefix(_path, "/proc/sys/") || g_str_has_prefix(_path, "/sys/") \
-                      || g_str_has_prefix(_path, "/proc/net"));                                 \
-        } else {                                                                                \
-            nm_assert(_pathid &&_pathid[0] && _pathid[0] != '/');                               \
-            nm_assert(_path[0] != '/');                                                         \
-        }                                                                                       \
-    }                                                                                           \
+#define ASSERT_SYSCTL_ARGS(pathid, dirfd, path)                                                   \
+    G_STMT_START                                                                                  \
+    {                                                                                             \
+        const char *const _pathid = (pathid);                                                     \
+        const int         _dirfd  = (dirfd);                                                      \
+        const char *const _path   = (path);                                                       \
+                                                                                                  \
+        nm_assert(_path &&_path[0]);                                                              \
+        g_assert(!strstr(_path, "/../"));                                                         \
+        if (_dirfd < 0) {                                                                         \
+            nm_assert(!_pathid);                                                                  \
+            nm_assert(_path[0] == '/');                                                           \
+            nm_assert(NM_STR_HAS_PREFIX(_path, "/proc/sys/") || NM_STR_HAS_PREFIX(_path, "/sys/") \
+                      || NM_STR_HAS_PREFIX(_path, "/proc/net"));                                  \
+        } else {                                                                                  \
+            nm_assert(_pathid &&_pathid[0] && _pathid[0] != '/');                                 \
+            nm_assert(_path[0] != '/');                                                           \
+        }                                                                                         \
+    }                                                                                             \
     G_STMT_END
 
 /*****************************************************************************/
@@ -5599,12 +5886,14 @@ sysctl_set_internal(NMPlatform *platform,
                     const char *path,
                     const char *value)
 {
-    int           fd, tries;
+    int           fd;
+    int           tries;
     gssize        nwrote;
     gssize        len;
     char         *actual;
     gs_free char *actual_free = NULL;
     int           errsv;
+    int           r;
 
     if (dirfd < 0) {
         pathid = path;
@@ -5698,18 +5987,13 @@ sysctl_set_internal(NMPlatform *platform,
         _LOGE("sysctl: failed to set '%s' to '%s' after three attempts", path, value);
     }
 
-    if (nwrote < len - 1) {
-        if (nm_close(fd) != 0) {
-            if (errsv != 0)
-                errno = errsv;
-        } else if (errsv != 0)
-            errno = errsv;
-        else
-            errno = EIO;
-        return FALSE;
-    }
-    if (nm_close(fd) != 0) {
-        /* errno is already properly set. */
+    r = nm_close_with_error(fd);
+    if (r < 0 || nwrote < len - 1) {
+        if (errsv == 0) {
+            /* propagate the error from nm_close_with_error(). */
+            errsv = (r < 0) ? -r : EIO;
+        }
+        errno = errsv;
         return FALSE;
     }
 
@@ -6260,11 +6544,11 @@ static NM_UTILS_LOOKUP_STR_DEFINE(
     NM_UTILS_LOOKUP_ITEM_IGNORE(DELAYED_ACTION_TYPE_REFRESH_ALL_RTNL_ROUTING_RULES_ALL),
     NM_UTILS_LOOKUP_ITEM_IGNORE(__DELAYED_ACTION_TYPE_MAX), );
 
-#define delayed_action_get_list_wait_for_resonse(priv, netlink_protocol, idx)                   \
-    (&g_array_index((priv)->delayed_action.list_wait_for_response_x[nmp_netlink_protocol_check( \
-                        (netlink_protocol))],                                                   \
-                    DelayedActionWaitForNlResponseData,                                         \
-                    (idx)))
+#define delayed_action_get_list_wait_for_resonse(priv, netlink_protocol, idx)                      \
+    (&nm_g_array_index((priv)->delayed_action.list_wait_for_response_x[nmp_netlink_protocol_check( \
+                           (netlink_protocol))],                                                   \
+                       DelayedActionWaitForNlResponseData,                                         \
+                       (idx)))
 
 static const char *
 delayed_action_to_string_full(DelayedActionType action_type,
@@ -6752,6 +7036,14 @@ cache_prune_one_type(NMPlatform *platform, const NMPLookup *lookup)
             continue;
 
         obj = main_entry->obj;
+
+        if (NMP_OBJECT_GET_TYPE(obj) == NMP_OBJECT_TYPE_IP6_ADDRESS) {
+            const NMPlatformIP6Address *pladdr = NMP_OBJECT_CAST_IP6_ADDRESS(obj);
+
+            if (pladdr->n_ifa_flags & IFA_F_TENTATIVE) {
+                nm_platform_ip6_dadfailed_set(platform, pladdr->ifindex, &pladdr->address, TRUE);
+            }
+        }
 
         _LOGt("cache-prune: prune %s",
               nmp_object_to_string(obj, NMP_OBJECT_TO_STRING_ALL, sbuf, sizeof(sbuf)));
@@ -7568,6 +7860,7 @@ _rtnl_handle_msg(NMPlatform *platform, const struct nl_msg_lite *msg)
             gboolean                        resync_required = FALSE;
             gboolean                        only_dirty      = FALSE;
             gboolean                        is_ipv6;
+            gboolean                        route_is_alive;
 
             /* IPv4 routes that are a response to RTM_GETROUTE must have
              * the cloned flag while IPv6 routes don't have to. */
@@ -7597,24 +7890,13 @@ _rtnl_handle_msg(NMPlatform *platform, const struct nl_msg_lite *msg)
                 }
             }
 
-            if (ip_route_ignored_protocol(NMP_OBJECT_CAST_IP_ROUTE(obj))) {
-                /* We ignore certain rtm_protocol, because NetworkManager would only ever
-                 * configure certain protocols. Other routes were not added by NetworkManager
-                 * and we don't need to track them in the platform cache.
-                 *
-                 * This is to help with the performance overhead of a huge number of
-                 * routes, for example with the bird BGP software, that adds routes
-                 * with RTPROT_BIRD protocol.
-                 *
-                 * Even if this is a IPv6 multipath route, we abort (parse_nlmsg_iter). There
-                 * is nothing for us to do. */
-                return;
-            }
+            route_is_alive = ip_route_is_alive(NMP_OBJECT_CAST_IP_ROUTE(obj));
 
             cache_op = nmp_cache_update_netlink_route(cache,
                                                       obj,
                                                       is_dump,
                                                       msghdr->nlmsg_flags,
+                                                      route_is_alive,
                                                       &obj_old,
                                                       &obj_new,
                                                       &obj_replace,
@@ -7661,11 +7943,21 @@ _rtnl_handle_msg(NMPlatform *platform, const struct nl_msg_lite *msg)
                 delayed_action_schedule(platform,
                                         delayed_action_refresh_from_needle_object(obj),
                                         NULL);
+                /* We are done here. */
+                return;
             }
             break;
         }
 
         case RTM_DELADDR:
+            if (NMP_OBJECT_GET_TYPE(obj) == NMP_OBJECT_TYPE_IP6_ADDRESS) {
+                const NMPlatformIP6Address *ip6 = NMP_OBJECT_CAST_IP6_ADDRESS(obj);
+
+                if (ip6->n_ifa_flags & IFA_F_DADFAILED) {
+                    nm_platform_ip6_dadfailed_set(platform, ip6->ifindex, &ip6->address, TRUE);
+                }
+            }
+            /* fall-through */
         case RTM_DELLINK:
         case RTM_DELQDISC:
         case RTM_DELROUTE:
@@ -7948,7 +8240,8 @@ retry:
     } else if (NM_IN_SET(seq_result, -ESRCH, -ENOENT)) {
         log_detail = ", firmware not found";
         result     = -NME_PL_NO_FIRMWARE;
-    } else if (NM_IN_SET(seq_result, -ERANGE) && change_link_type == CHANGE_LINK_TYPE_SET_MTU) {
+    } else if (NM_IN_SET(seq_result, -ERANGE, -EINVAL)
+               && change_link_type == CHANGE_LINK_TYPE_SET_MTU) {
         log_detail = ", setting MTU to requested size is not possible";
         result     = -NME_PL_CANT_SET_MTU;
     } else if (NM_IN_SET(seq_result, -ENFILE) && change_link_type == CHANGE_LINK_TYPE_SET_ADDRESS
@@ -8126,7 +8419,7 @@ static gboolean
 link_set_token(NMPlatform *platform, int ifindex, const NMUtilsIPv6IfaceId *iid)
 {
     nm_auto_nlmsg struct nl_msg *nlmsg = NULL;
-    char                         sbuf[NM_UTILS_INET_ADDRSTRLEN];
+    char                         sbuf[NM_INET_ADDRSTRLEN];
 
     _LOGD("link: change %d: token: set IPv6 address generation token to %s",
           ifindex,
@@ -8202,7 +8495,7 @@ link_set_address(NMPlatform *platform, int ifindex, gconstpointer address, size_
     nm_auto_nlmsg struct nl_msg *nlmsg = NULL;
     const ChangeLinkData         d     = {
                     .set_address =
-                        {
+            {
                             .address = address,
                             .length  = length,
             },
@@ -9310,25 +9603,15 @@ ip6_address_delete(NMPlatform *platform, int ifindex, struct in6_addr addr, guin
 /*****************************************************************************/
 
 static int
-ip_route_add(NMPlatform              *platform,
-             NMPNlmFlags              flags,
-             int                      addr_family,
-             const NMPlatformIPRoute *route)
+ip_route_add(NMPlatform *platform, NMPNlmFlags flags, NMPObject *obj_stack)
 {
     nm_auto_nlmsg struct nl_msg *nlmsg = NULL;
-    NMPObject                    obj;
 
-    nmp_object_stackinit(&obj,
-                         NMP_OBJECT_TYPE_IP_ROUTE(NM_IS_IPv4(addr_family)),
-                         (const NMPlatformObject *) route);
-
-    nm_platform_ip_route_normalize(addr_family, NMP_OBJECT_CAST_IP_ROUTE(&obj));
-
-    nlmsg = _nl_msg_new_route(RTM_NEWROUTE, flags & NMP_NLM_FLAG_FMASK, &obj);
+    nlmsg = _nl_msg_new_route(RTM_NEWROUTE, flags & NMP_NLM_FLAG_FMASK, obj_stack);
     if (!nlmsg)
         g_return_val_if_reached(-NME_BUG);
     return do_add_addrroute(platform,
-                            &obj,
+                            obj_stack,
                             nlmsg,
                             NM_FLAGS_HAS(flags, NMP_NLM_FLAG_SUPPRESS_NETLINK_FAILURE));
 }
@@ -9820,7 +10103,7 @@ continue_reading:
         goto stop;
     }
 
-    hdr = (struct nlmsghdr *) priv->netlink_recv_buf.buf;
+    hdr = NM_CAST_ALIGN(struct nlmsghdr, priv->netlink_recv_buf.buf);
     while (nlmsg_ok(hdr, n)) {
         WaitForNlResponseResult  seq_result;
         gboolean                 process_valid_msg = FALSE;
@@ -10588,8 +10871,8 @@ constructed(GObject *_object)
               : (!nmp_netns_get_current()
                      ? "no netns support"
                      : nm_sprintf_bufa(100,
-                                       "in netns[%p]%s",
-                                       nmp_netns_get_current(),
+                                       "in netns[" NM_HASH_OBFUSCATE_PTR_FMT "]%s",
+                                       NM_HASH_OBFUSCATE_PTR(nmp_netns_get_current()),
                                        nmp_netns_get_current() == nmp_netns_get_initial() ? "/main"
                                                                                           : "")),
           nm_platform_get_use_udev(platform) ? "use" : "no",
@@ -10732,7 +11015,10 @@ path_is_read_only_fs(const char *path)
 }
 
 NMPlatform *
-nm_linux_platform_new(gboolean log_with_ptr, gboolean netns_support, gboolean cache_tc)
+nm_linux_platform_new(NMDedupMultiIndex *multi_idx,
+                      gboolean           log_with_ptr,
+                      gboolean           netns_support,
+                      gboolean           cache_tc)
 {
     gboolean use_udev = FALSE;
 
@@ -10740,6 +11026,8 @@ nm_linux_platform_new(gboolean log_with_ptr, gboolean netns_support, gboolean ca
         use_udev = TRUE;
 
     return g_object_new(NM_TYPE_LINUX_PLATFORM,
+                        NM_PLATFORM_MULTI_IDX,
+                        multi_idx,
                         NM_PLATFORM_LOG_WITH_PTR,
                         log_with_ptr,
                         NM_PLATFORM_USE_UDEV,

@@ -8,7 +8,7 @@
 
 #include <stdlib.h>
 #include <netinet/in.h>
-#include <linux/if_addr.h>
+#include "nm-compat-headers/linux/if_addr.h"
 
 #include "nm-setting-ip6-config.h"
 #include "NetworkManagerUtils.h"
@@ -20,7 +20,7 @@
 #define NM_RA_TIMEOUT_INFINITY ((guint32) G_MAXINT32)
 
 #define NM_TYPE_NDISC            (nm_ndisc_get_type())
-#define NM_NDISC(obj)            (G_TYPE_CHECK_INSTANCE_CAST((obj), NM_TYPE_NDISC, NMNDisc))
+#define NM_NDISC(obj)            (_NM_G_TYPE_CHECK_INSTANCE_CAST((obj), NM_TYPE_NDISC, NMNDisc))
 #define NM_NDISC_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST((klass), NM_TYPE_NDISC, NMNDiscClass))
 #define NM_IS_NDISC(obj)         (G_TYPE_CHECK_INSTANCE_TYPE((obj), NM_TYPE_NDISC))
 #define NM_IS_NDISC_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE((klass), NM_TYPE_NDISC))
@@ -115,6 +115,8 @@ typedef struct _NMNDiscRoute {
     gint64             expiry_msec;
     NMIcmpv6RouterPref preference;
     guint8             plen;
+    bool               on_link : 1;
+    bool               duplicate : 1;
 } NMNDiscRoute;
 
 typedef struct {
@@ -228,9 +230,9 @@ NMNDiscNodeType nm_ndisc_get_node_type(NMNDisc *self);
 gboolean nm_ndisc_set_iid(NMNDisc *ndisc, const NMUtilsIPv6IfaceId iid, gboolean is_token);
 void     nm_ndisc_start(NMNDisc *ndisc);
 void     nm_ndisc_stop(NMNDisc *ndisc);
+void     nm_ndisc_set_config(NMNDisc *ndisc, const NML3ConfigData *l3cd);
 NMNDiscConfigMap
-nm_ndisc_dad_failed(NMNDisc *ndisc, const struct in6_addr *address, gboolean emit_changed_signal);
-void nm_ndisc_set_config(NMNDisc *ndisc, const NML3ConfigData *l3cd);
+nm_ndisc_dad_failed(NMNDisc *ndisc, GArray *addresses, gboolean emit_changed_signal);
 
 NMPlatform *nm_ndisc_get_platform(NMNDisc *self);
 NMPNetns   *nm_ndisc_netns_get(NMNDisc *self);

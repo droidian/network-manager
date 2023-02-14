@@ -67,7 +67,10 @@ _crypto_format_to_ck(NMCryptoFileFormat format)
 
 /*****************************************************************************/
 
-typedef void (*EAPMethodNeedSecretsFunc)(NMSetting8021x *self, GPtrArray *secrets, gboolean phase2);
+typedef void (*EAPMethodNeedSecretsFunc)(NMSetting8021x *self,
+                                         GPtrArray      *secrets,
+                                         gboolean        phase2,
+                                         gboolean        check_rerequest);
 
 typedef gboolean (*EAPMethodValidateFunc)(NMSetting8021x *self, gboolean phase2, GError **error);
 
@@ -1601,7 +1604,7 @@ nm_setting_802_1x_get_phase2_ca_cert_path(NMSetting8021x *setting)
  * nm_setting_802_1x_get_phase2_ca_cert_blob() and
  * nm_setting_802_1x_get_phase2_ca_cert_path().
  *
- * Currently, it's limited to PKCS#11 URIs ('pkcs11' scheme as defined by RFC
+ * Currently, it's limited to PKCS#<!-- -->11 URIs ('pkcs11' scheme as defined by RFC
  * 7512), but may be extended to other schemes in future (such as 'file' URIs
  * for local files and 'data' URIs for inline certificate data).
  *
@@ -1937,7 +1940,7 @@ nm_setting_802_1x_get_phase2_client_cert_path(NMSetting8021x *setting)
  * nm_setting_802_1x_get_phase2_ca_cert_blob() and
  * nm_setting_802_1x_get_phase2_ca_cert_path().
  *
- * Currently, it's limited to PKCS#11 URIs ('pkcs11' scheme as defined by RFC
+ * Currently, it's limited to PKCS#<!-- -->11 URIs ('pkcs11' scheme as defined by RFC
  * 7512), but may be extended to other schemes in future (such as 'file' URIs
  * for local files and 'data' URIs for inline certificate data).
  *
@@ -2173,7 +2176,7 @@ nm_setting_802_1x_get_private_key_path(NMSetting8021x *setting)
  * nm_setting_802_1x_get_private_key_blob() and
  * nm_setting_802_1x_get_private_key_path().
  *
- * Currently, it's limited to PKCS#11 URIs ('pkcs11' scheme as defined by RFC
+ * Currently, it's limited to PKCS#<!-- -->11 URIs ('pkcs11' scheme as defined by RFC
  * 7512), but may be extended to other schemes in future (such as 'file' URIs
  * for local files and 'data' URIs for inline certificate data).
  *
@@ -2376,7 +2379,7 @@ nm_setting_802_1x_get_phase2_private_key_path(NMSetting8021x *setting)
  * nm_setting_802_1x_get_phase2_private_key_blob() and
  * nm_setting_802_1x_get_phase2_private_key_path().
  *
- * Currently, it's limited to PKCS#11 URIs ('pkcs11' scheme as defined by RFC
+ * Currently, it's limited to PKCS#<!-- -->11 URIs ('pkcs11' scheme as defined by RFC
  * 7512), but may be extended to other schemes in future (such as 'file' URIs
  * for local files and 'data' URIs for inline certificate data).
  *
@@ -2500,31 +2503,44 @@ nm_setting_802_1x_get_optional(NMSetting8021x *setting)
 /*****************************************************************************/
 
 static void
-need_secrets_password(NMSetting8021x *self, GPtrArray *secrets, gboolean phase2)
+need_secrets_password(NMSetting8021x *self,
+                      GPtrArray      *secrets,
+                      gboolean        phase2,
+                      gboolean        check_rerequest)
 {
     NMSetting8021xPrivate *priv = NM_SETTING_802_1X_GET_PRIVATE(self);
 
-    if (nm_str_is_empty(priv->password)
-        && (!priv->password_raw || !g_bytes_get_size(priv->password_raw))) {
+    if (check_rerequest
+        || (nm_str_is_empty(priv->password)
+            && (!priv->password_raw || !g_bytes_get_size(priv->password_raw)))) {
         g_ptr_array_add(secrets, NM_SETTING_802_1X_PASSWORD);
         g_ptr_array_add(secrets, NM_SETTING_802_1X_PASSWORD_RAW);
     }
 }
 
 static void
-need_secrets_sim(NMSetting8021x *self, GPtrArray *secrets, gboolean phase2)
+need_secrets_sim(NMSetting8021x *self,
+                 GPtrArray      *secrets,
+                 gboolean        phase2,
+                 gboolean        check_rerequest)
 {
     NMSetting8021xPrivate *priv = NM_SETTING_802_1X_GET_PRIVATE(self);
 
-    if (nm_str_is_empty(priv->pin))
+    if (check_rerequest || nm_str_is_empty(priv->pin))
         g_ptr_array_add(secrets, NM_SETTING_802_1X_PIN);
 }
 
 static void
-need_secrets_tls(NMSetting8021x *self, GPtrArray *secrets, gboolean phase2)
+need_secrets_tls(NMSetting8021x *self,
+                 GPtrArray      *secrets,
+                 gboolean        phase2,
+                 gboolean        check_rerequest)
 {
     NMSetting8021xPrivate *priv = NM_SETTING_802_1X_GET_PRIVATE(self);
     NMSetting8021xCKScheme scheme;
+
+    /* If check_rerequest is TRUE do not return secrets, unless missing.
+     * This secret cannot be wrong. */
 
     if (!NM_FLAGS_HAS(phase2 ? priv->phase2_private_key_password_flags
                              : priv->private_key_password_flags,
@@ -2719,7 +2735,10 @@ verify_ttls(NMSetting8021x *self, gboolean phase2, GError **error)
 }
 
 static void
-need_secrets_phase2(NMSetting8021x *self, GPtrArray *secrets, gboolean phase2)
+need_secrets_phase2(NMSetting8021x *self,
+                    GPtrArray      *secrets,
+                    gboolean        phase2,
+                    gboolean        check_rerequest)
 {
     NMSetting8021xPrivate *priv   = NM_SETTING_802_1X_GET_PRIVATE(self);
     char                  *method = NULL;
@@ -2740,7 +2759,7 @@ need_secrets_phase2(NMSetting8021x *self, GPtrArray *secrets, gboolean phase2)
         if (!eap_methods_table[i].ns_func)
             continue;
         if (nm_streq(eap_methods_table[i].method, method)) {
-            (*eap_methods_table[i].ns_func)(self, secrets, TRUE);
+            (*eap_methods_table[i].ns_func)(self, secrets, TRUE, check_rerequest);
             break;
         }
     }
@@ -2885,10 +2904,35 @@ verify(NMSetting *setting, NMConnection *connection, GError **error)
     }
 
     if (NM_FLAGS_ANY(priv->phase1_auth_flags, ~((guint32) NM_SETTING_802_1X_AUTH_FLAGS_ALL))) {
-        g_set_error_literal(error,
-                            NM_CONNECTION_ERROR,
-                            NM_CONNECTION_ERROR_INVALID_PROPERTY,
-                            _("invalid auth flags"));
+        g_set_error(error,
+                    NM_CONNECTION_ERROR,
+                    NM_CONNECTION_ERROR_INVALID_PROPERTY,
+                    _("invalid auth flags: '%d' contains unknown flags"),
+                    priv->phase1_auth_flags);
+        g_prefix_error(error,
+                       "%s.%s: ",
+                       NM_SETTING_802_1X_SETTING_NAME,
+                       NM_SETTING_802_1X_PHASE1_AUTH_FLAGS);
+        return FALSE;
+    }
+
+    if (NM_FLAGS_ALL(priv->phase1_auth_flags,
+                     NM_SETTING_802_1X_AUTH_FLAGS_TLS_1_0_ENABLE
+                         | NM_SETTING_802_1X_AUTH_FLAGS_TLS_1_0_DISABLE)
+        || NM_FLAGS_ALL(priv->phase1_auth_flags,
+                        NM_SETTING_802_1X_AUTH_FLAGS_TLS_1_1_ENABLE
+                            | NM_SETTING_802_1X_AUTH_FLAGS_TLS_1_1_DISABLE)
+        || NM_FLAGS_ALL(priv->phase1_auth_flags,
+                        NM_SETTING_802_1X_AUTH_FLAGS_TLS_1_2_ENABLE
+                            | NM_SETTING_802_1X_AUTH_FLAGS_TLS_1_2_DISABLE)
+        || NM_FLAGS_ALL(priv->phase1_auth_flags,
+                        NM_SETTING_802_1X_AUTH_FLAGS_TLS_1_3_ENABLE
+                            | NM_SETTING_802_1X_AUTH_FLAGS_TLS_1_3_DISABLE)) {
+        g_set_error_literal(
+            error,
+            NM_CONNECTION_ERROR,
+            NM_CONNECTION_ERROR_INVALID_PROPERTY,
+            _("invalid auth flags: both enable and disable are set for the same TLS version"));
         g_prefix_error(error,
                        "%s.%s: ",
                        NM_SETTING_802_1X_SETTING_NAME,
@@ -3030,7 +3074,7 @@ verify(NMSetting *setting, NMConnection *connection, GError **error)
 /*****************************************************************************/
 
 static GPtrArray *
-need_secrets(NMSetting *setting)
+need_secrets(NMSetting *setting, gboolean check_rerequest)
 {
     NMSetting8021x        *self = NM_SETTING_802_1X(setting);
     NMSetting8021xPrivate *priv = NM_SETTING_802_1X_GET_PRIVATE(self);
@@ -3049,7 +3093,7 @@ need_secrets(NMSetting *setting)
             if (eap_methods_table[i].ns_func == NULL)
                 continue;
             if (!strcmp(eap_methods_table[i].method, method)) {
-                (*eap_methods_table[i].ns_func)(self, secrets, FALSE);
+                (*eap_methods_table[i].ns_func)(self, secrets, FALSE, check_rerequest);
 
                 /* Only break out of the outer loop if this EAP method
                  * needed secrets.
@@ -3296,9 +3340,6 @@ nm_setting_802_1x_class_init(NMSetting8021xClass *klass)
      *
      * Since: 1.8
      **/
-    /* ---ifcfg-rh---
-     * ---end---
-     */
     _nm_setting_property_define_direct_string(properties_override,
                                               obj_properties,
                                               NM_SETTING_802_1X_CA_CERT_PASSWORD,
@@ -3314,9 +3355,6 @@ nm_setting_802_1x_class_init(NMSetting8021xClass *klass)
      *
      * Since: 1.8
      **/
-    /* ---ifcfg-rh---
-     * ---end---
-     */
     _nm_setting_property_define_direct_secret_flags(properties_override,
                                                     obj_properties,
                                                     NM_SETTING_802_1X_CA_CERT_PASSWORD_FLAGS,
@@ -3353,9 +3391,10 @@ nm_setting_802_1x_class_init(NMSetting8021xClass *klass)
      *
      * Substring to be matched against the subject of the certificate presented
      * by the authentication server. When unset, no verification of the
-     * authentication server certificate's subject is performed.  This property
-     * provides little security, if any, and its use is deprecated in favor of
-     * NMSetting8021x:domain-suffix-match.
+     * authentication server certificate's subject is performed. This property
+     * provides little security, if any, and should not be used.
+     *
+     * Deprecated: 1.2: Use #NMSetting8021x:phase2-domain-suffix-match instead.
      **/
     /* ---ifcfg-rh---
      * property: subject-match
@@ -3370,7 +3409,8 @@ nm_setting_802_1x_class_init(NMSetting8021xClass *klass)
                                               PROP_SUBJECT_MATCH,
                                               NM_SETTING_PARAM_NONE,
                                               NMSetting8021xPrivate,
-                                              subject_match);
+                                              subject_match,
+                                              .is_deprecated = TRUE, );
 
     /**
      * NMSetting8021x:altsubject-matches:
@@ -3486,9 +3526,6 @@ nm_setting_802_1x_class_init(NMSetting8021xClass *klass)
      *
      * Since: 1.8
      **/
-    /* ---ifcfg-rh---
-     * ---end---
-     */
     _nm_setting_property_define_direct_string(properties_override,
                                               obj_properties,
                                               NM_SETTING_802_1X_CLIENT_CERT_PASSWORD,
@@ -3504,9 +3541,6 @@ nm_setting_802_1x_class_init(NMSetting8021xClass *klass)
      *
      * Since: 1.8
      **/
-    /* ---ifcfg-rh---
-     * ---end---
-     */
     _nm_setting_property_define_direct_secret_flags(properties_override,
                                                     obj_properties,
                                                     NM_SETTING_802_1X_CLIENT_CERT_PASSWORD_FLAGS,
@@ -3594,9 +3628,10 @@ nm_setting_802_1x_class_init(NMSetting8021xClass *klass)
      *
      * Specifies authentication flags to use in "phase 1" outer
      * authentication using #NMSetting8021xAuthFlags options.
-     * The individual TLS versions can be explicitly disabled. If a certain
-     * TLS disable flag is not set, it is up to the supplicant to allow
-     * or forbid it. The TLS options map to tls_disable_tlsv1_x settings.
+     * The individual TLS versions can be explicitly disabled. TLS time checks
+     * can be also disabled. If a certain TLS disable flag is not
+     * set, it is up to the supplicant to allow or forbid it. The TLS options
+     * map to tls_disable_tlsv1_x and tls_disable_time_checks settings.
      * See the wpa_supplicant documentation for more details.
      *
      * Since: 1.8
@@ -3718,9 +3753,6 @@ nm_setting_802_1x_class_init(NMSetting8021xClass *klass)
      *
      * Since: 1.8
      **/
-    /* ---ifcfg-rh---
-     * ---end---
-     */
     _nm_setting_property_define_direct_string(properties_override,
                                               obj_properties,
                                               NM_SETTING_802_1X_PHASE2_CA_CERT_PASSWORD,
@@ -3736,9 +3768,6 @@ nm_setting_802_1x_class_init(NMSetting8021xClass *klass)
      *
      * Since: 1.8
      **/
-    /* ---ifcfg-rh---
-     * ---end---
-     */
     _nm_setting_property_define_direct_secret_flags(properties_override,
                                                     obj_properties,
                                                     NM_SETTING_802_1X_PHASE2_CA_CERT_PASSWORD_FLAGS,
@@ -3776,9 +3805,10 @@ nm_setting_802_1x_class_init(NMSetting8021xClass *klass)
      * Substring to be matched against the subject of the certificate presented
      * by the authentication server during the inner "phase 2"
      * authentication. When unset, no verification of the authentication server
-     * certificate's subject is performed.  This property provides little security,
-     * if any, and its use is deprecated in favor of
-     * NMSetting8021x:phase2-domain-suffix-match.
+     * certificate's subject is performed. This property provides little security,
+     * if any, and should not be used.
+     *
+     * Deprecated: 1.2: Use #NMSetting8021x:phase2-domain-suffix-match instead.
      **/
     /* ---ifcfg-rh---
      * property: phase2-subject-match
@@ -3793,7 +3823,8 @@ nm_setting_802_1x_class_init(NMSetting8021xClass *klass)
                                               PROP_PHASE2_SUBJECT_MATCH,
                                               NM_SETTING_PARAM_NONE,
                                               NMSetting8021xPrivate,
-                                              phase2_subject_match);
+                                              phase2_subject_match,
+                                              .is_deprecated = TRUE, );
 
     /**
      * NMSetting8021x:phase2-altsubject-matches:
@@ -3913,9 +3944,6 @@ nm_setting_802_1x_class_init(NMSetting8021xClass *klass)
      *
      * Since: 1.8
      **/
-    /* ---ifcfg-rh---
-     * ---end---
-     */
     _nm_setting_property_define_direct_string(properties_override,
                                               obj_properties,
                                               NM_SETTING_802_1X_PHASE2_CLIENT_CERT_PASSWORD,
@@ -3931,9 +3959,6 @@ nm_setting_802_1x_class_init(NMSetting8021xClass *klass)
      *
      * Since: 1.8
      **/
-    /* ---ifcfg-rh---
-     * ---end---
-     */
     _nm_setting_property_define_direct_secret_flags(
         properties_override,
         obj_properties,

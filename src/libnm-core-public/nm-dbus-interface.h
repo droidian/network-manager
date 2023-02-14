@@ -39,6 +39,7 @@
 #define NM_DBUS_INTERFACE_DEVICE_GRE           NM_DBUS_INTERFACE_DEVICE ".Gre"
 #define NM_DBUS_INTERFACE_DEVICE_INFINIBAND    NM_DBUS_INTERFACE_DEVICE ".Infiniband"
 #define NM_DBUS_INTERFACE_DEVICE_IP_TUNNEL     NM_DBUS_INTERFACE_DEVICE ".IPTunnel"
+#define NM_DBUS_INTERFACE_DEVICE_LOOPBACK      NM_DBUS_INTERFACE_DEVICE ".Loopback"
 #define NM_DBUS_INTERFACE_DEVICE_MACSEC        NM_DBUS_INTERFACE_DEVICE ".Macsec"
 #define NM_DBUS_INTERFACE_DEVICE_MACVLAN       NM_DBUS_INTERFACE_DEVICE ".Macvlan"
 #define NM_DBUS_INTERFACE_DEVICE_MODEM         NM_DBUS_INTERFACE_DEVICE ".Modem"
@@ -88,6 +89,20 @@
 
 #define NM_DBUS_INTERFACE_DNS_MANAGER "org.freedesktop.NetworkManager.DnsManager"
 #define NM_DBUS_PATH_DNS_MANAGER      "/org/freedesktop/NetworkManager/DnsManager"
+
+/**
+ * NMVersionInfoCapability:
+ * %_NM_VERSION_INFO_CAPABILITY_UNUSED: a dummy capability. It has no meaning,
+ *   don't use it.
+ *
+ * Currently no enum values are defined. These capabilities are exposed
+ * on D-Bus in the "VersionInfo" bit field.
+ *
+ * Since: 1.42
+ */
+typedef enum {
+    _NM_VERSION_INFO_CAPABILITY_UNUSED = 0x7FFFFFFFu,
+} NMVersionInfoCapability;
 
 /**
  * NMCapability:
@@ -218,6 +233,7 @@ typedef enum {
  * @NM_DEVICE_TYPE_WIREGUARD: a WireGuard interface
  * @NM_DEVICE_TYPE_WIFI_P2P: an 802.11 Wi-Fi P2P device. Since: 1.16.
  * @NM_DEVICE_TYPE_VRF: A VRF (Virtual Routing and Forwarding) interface. Since: 1.24.
+ * @NM_DEVICE_TYPE_LOOPBACK: a loopback interface. Since: 1.42.
  *
  * #NMDeviceType values indicate the type of hardware represented by a
  * device object.
@@ -255,6 +271,7 @@ typedef enum {
     NM_DEVICE_TYPE_WIREGUARD     = 29,
     NM_DEVICE_TYPE_WIFI_P2P      = 30,
     NM_DEVICE_TYPE_VRF           = 31,
+    NM_DEVICE_TYPE_LOOPBACK      = 32,
 } NMDeviceType;
 
 /**
@@ -1153,11 +1170,9 @@ typedef enum /*< flags >*/ {
  * Flags for the Reapply() D-Bus call of a device and
  * nm_device_reapply_async().
  *
- * Since: 1.42, 1.40.10
- *
- * On 1.40.10+, no GFlags type is created.
+ * Since: 1.42
  */
-typedef enum /*< skip >*/ {
+typedef enum /*< flags >*/ {
     NM_DEVICE_REAPPLY_FLAGS_NONE                 = 0,
     NM_DEVICE_REAPPLY_FLAGS_PRESERVE_EXTERNAL_IP = 0x1,
 } NMDeviceReapplyFlags;

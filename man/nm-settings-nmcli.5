@@ -2,12 +2,12 @@
 .\"     Title: nm-settings-nmcli
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 01/26/2023
+.\"      Date: 02/10/2023
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.40.12
+.\"    Source: NetworkManager 1.42.0
 .\"  Language: English
 .\"
-.TH "NM\-SETTINGS\-NMCLI" "5" "" "NetworkManager 1\&.40\&.12" "Configuration"
+.TH "NM\-SETTINGS\-NMCLI" "5" "" "NetworkManager 1\&.42\&.0" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -314,7 +314,7 @@ A universally unique identifier for the connection, for example generated with l
 .sp
 The UUID must be in the format "2815492f\-7e56\-435e\-b2e9\-246bd7cdc664" (ie, contains only hexadecimal characters and "\-")\&.
 .sp
-Format: string
+Format: a valid RFC4122 universally unique identifier (UUID)\&.
 .RE
 .PP
 \fBwait\-activation\-delay\fR
@@ -513,7 +513,7 @@ Format: NMSettingSecretFlags (uint32)
 .PP
 \fBphase1\-auth\-flags\fR
 .RS 4
-Specifies authentication flags to use in "phase 1" outer authentication using NMSetting8021xAuthFlags options\&. The individual TLS versions can be explicitly disabled\&. If a certain TLS disable flag is not set, it is up to the supplicant to allow or forbid it\&. The TLS options map to tls_disable_tlsv1_x settings\&. See the wpa_supplicant documentation for more details\&.
+Specifies authentication flags to use in "phase 1" outer authentication using NMSetting8021xAuthFlags options\&. The individual TLS versions can be explicitly disabled\&. TLS time checks can be also disabled\&. If a certain TLS disable flag is not set, it is up to the supplicant to allow or forbid it\&. The TLS options map to tls_disable_tlsv1_x and tls_disable_time_checks settings\&. See the wpa_supplicant documentation for more details\&.
 .sp
 Format: uint32
 .RE
@@ -656,7 +656,9 @@ Format: NMSettingSecretFlags (uint32)
 .PP
 \fBphase2\-subject\-match\fR
 .RS 4
-Substring to be matched against the subject of the certificate presented by the authentication server during the inner "phase 2" authentication\&. When unset, no verification of the authentication server certificate\*(Aqs subject is performed\&. This property provides little security, if any, and its use is deprecated in favor of NMSetting8021x:phase2\-domain\-suffix\-match\&.
+Substring to be matched against the subject of the certificate presented by the authentication server during the inner "phase 2" authentication\&. When unset, no verification of the authentication server certificate\*(Aqs subject is performed\&. This property provides little security, if any, and should not be used\&.
+.sp
+This property is deprecated since version 1\&.2\&. Use "phase2\-domain\-suffix\-match" instead\&.
 .sp
 Format: string
 .RE
@@ -702,7 +704,9 @@ Format: NMSettingSecretFlags (uint32)
 .PP
 \fBsubject\-match\fR
 .RS 4
-Substring to be matched against the subject of the certificate presented by the authentication server\&. When unset, no verification of the authentication server certificate\*(Aqs subject is performed\&. This property provides little security, if any, and its use is deprecated in favor of NMSetting8021x:domain\-suffix\-match\&.
+Substring to be matched against the subject of the certificate presented by the authentication server\&. When unset, no verification of the authentication server certificate\*(Aqs subject is performed\&. This property provides little security, if any, and should not be used\&.
+.sp
+This property is deprecated since version 1\&.2\&. Use "phase2\-domain\-suffix\-match" instead\&.
 .sp
 Format: string
 .RE
@@ -867,7 +871,9 @@ Alias: mac
 .sp
 If specified, the MAC address of bridge\&. When creating a new bridge, this MAC address will be set\&.
 .sp
-If this field is left unspecified, the "ethernet\&.cloned\-mac\-address" is referred instead to generate the initial MAC address\&. Note that setting "ethernet\&.cloned\-mac\-address" anyway overwrites the MAC address of the bridge later while activating the bridge\&. Hence, this property is deprecated\&. Deprecated: 1
+If this field is left unspecified, the "ethernet\&.cloned\-mac\-address" is referred instead to generate the initial MAC address\&. Note that setting "ethernet\&.cloned\-mac\-address" anyway overwrites the MAC address of the bridge later while activating the bridge\&.
+.sp
+This property is deprecated since version 1\&.12\&. Use the "cloned\-mac\-address" property instead\&.
 .sp
 Format: byte array
 .RE
@@ -1642,7 +1648,9 @@ Format: string
 .PP
 \fBnumber\fR
 .RS 4
-Legacy setting that used to help establishing PPP data sessions for GSM\-based modems\&. Deprecated: 1
+Legacy setting that used to help establishing PPP data sessions for GSM\-based modems\&.
+.sp
+This property is deprecated since version 1\&.16\&. User\-provided values for this setting are no longer used\&.
 .sp
 Format: string
 .RE
@@ -1764,6 +1772,15 @@ Array of IP addresses\&.
 Format: a comma separated list of addresses
 .RE
 .PP
+\fBauto\-route\-ext\-gw\fR
+.RS 4
+VPN connections will default to add the route automatically unless this setting is set to FALSE\&.
+.sp
+For other connection types, adding such an automatic route is currently not supported and setting this to TRUE has no effect\&.
+.sp
+Format: NMTernary (int32)
+.RE
+.PP
 \fBdad\-timeout\fR
 .RS 4
 Timeout in milliseconds used to check for the presence of duplicate IP addresses on the network\&. If an address conflict is detected, the activation will fail\&. A zero value means that no duplicate address detection is performed, \-1 means the default value (either configuration ipvx\&.dad\-timeout override or zero)\&. A value greater than zero is a timeout in milliseconds\&.
@@ -1859,6 +1876,8 @@ Format: string
 \fBdns\fR
 .RS 4
 Array of IP addresses of DNS servers\&.
+.sp
+For DoT (DNS over TLS), the SNI server name can be specified by appending "#example\&.com" to the IP address of the DNS server\&. This currently only has effect when using systemd\-resolved\&.
 .sp
 Format: array of uint32
 .RE
@@ -2155,7 +2174,7 @@ Various attributes are supported:
 .IP \(bu 2.3
 .\}
 "onlink"
-\- a boolean value\&.
+\- a boolean value\&. The onlink flag is ignored for IPv4 routes without a gateway\&. That also means, with a positive "weight" the route cannot merge with ECMP routes which are onlink and have a gateway\&.
 .RE
 .sp
 .RS 4
@@ -2257,6 +2276,20 @@ unicast\&.
 .sp -1
 .IP \(bu 2.3
 .\}
+"weight"
+\- an unsigned 32 bit integer ranging from 0 to 256\&. A non\-zero weight indicates that the IPv4 route is an ECMP IPv4 route\&. NetworkManager will automatically merge compatible ECMP routes into multi\-hop routes\&. Setting to zero or omitting the attribute configures single hop routes that won\*(Aqt get merged\&. If the route finds no merge partner, it is configured as single hop route\&.
+.sp
+Note that in NetworkManager, currently all nexthops of a ECMP route must share the same "onlink" flag in order to be mergable\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
 "window"
 \- an unsigned 32 bit integer\&.
 .RE
@@ -2307,6 +2340,15 @@ Alias: ip6
 Array of IP addresses\&.
 .sp
 Format: a comma separated list of addresses
+.RE
+.PP
+\fBauto\-route\-ext\-gw\fR
+.RS 4
+VPN connections will default to add the route automatically unless this setting is set to FALSE\&.
+.sp
+For other connection types, adding such an automatic route is currently not supported and setting this to TRUE has no effect\&.
+.sp
+Format: NMTernary (int32)
 .RE
 .PP
 \fBdhcp\-duid\fR
@@ -2368,6 +2410,8 @@ Format: int32
 \fBdns\fR
 .RS 4
 Array of IP addresses of DNS servers\&.
+.sp
+For DoT (DNS over TLS), the SNI server name can be specified by appending "#example\&.com" to the IP address of the DNS server\&. This currently only has effect when using systemd\-resolved\&.
 .sp
 Format: array of byte array
 .RE
@@ -2828,6 +2872,13 @@ The flow label to assign to tunnel packets\&. This property applies only to IPv6
 Format: uint32
 .RE
 .PP
+\fBfwmark\fR
+.RS 4
+The fwmark value to assign to tunnel packets\&. This property can be set to a non zero value only on VTI and VTI6 tunnels\&.
+.sp
+Format: uint32
+.RE
+.PP
 \fBinput\-key\fR
 .RS 4
 The key used for tunnel input packets; the property is valid only for certain tunnel modes (GRE, IP6GRE)\&. If empty, no key is used\&.
@@ -3166,11 +3217,32 @@ Open vSwitch DPDK number of rx queues\&. Defaults to zero which means to leave t
 .sp
 Format: uint32
 .RE
+.PP
+\fBn\-rxq\-desc\fR
+.RS 4
+The rx queue size (number of rx descriptors) for DPDK ports\&. Must be zero or a power of 2 between 1 and 4096, and supported by the hardware\&. Defaults to zero which means to leave the parameter in OVS unspecified and effectively configures 2048 descriptors\&.
+.sp
+Format: uint32
+.RE
+.PP
+\fBn\-txq\-desc\fR
+.RS 4
+The tx queue size (number of tx descriptors) for DPDK ports\&. Must be zero or a power of 2 between 1 and 4096, and supported by the hardware\&. Defaults to zero which means to leave the parameter in OVS unspecified and effectively configures 2048 descriptors\&.
+.sp
+Format: uint32
+.RE
 .SS "ovs\-interface setting"
 .PP
 Open vSwitch Interface Settings\&.
 .PP
 Properties:
+.PP
+\fBofport\-request\fR
+.RS 4
+Open vSwitch openflow port number\&. Defaults to zero which means that port number will not be specified and it will be chosen randomly by ovs\&. OpenFlow ports are the network interfaces for passing packets between OpenFlow processing and the rest of the network\&. OpenFlow switches connect logically to each other via their OpenFlow ports\&.
+.sp
+Format: uint32
+.RE
 .PP
 \fBtype\fR
 .RS 4
@@ -3231,9 +3303,18 @@ The VLAN tag in the range 0\-4095\&.
 Format: uint32
 .RE
 .PP
+\fBtrunks\fR
+.RS 4
+A list of VLAN ranges that this port trunks\&.
+.sp
+The property is valid only for ports with mode "trunk", "native\-tagged", or "native\-untagged port"\&. If it is empty, the port trunks all VLANs\&.
+.sp
+Format: array of vardict
+.RE
+.PP
 \fBvlan\-mode\fR
 .RS 4
-The VLAN mode\&. One of "access", "native\-tagged", "native\-untagged", "trunk" or unset\&.
+The VLAN mode\&. One of "access", "native\-tagged", "native\-untagged", "trunk", "dot1q\-tunnel" or unset\&.
 .sp
 Format: string
 .RE
@@ -4027,6 +4108,15 @@ If given, specifies the parent interface name or parent connection UUID from whi
 .sp
 Format: string
 .RE
+.PP
+\fBprotocol\fR
+.RS 4
+Specifies the VLAN protocol to use for encapsulation\&.
+.sp
+Supported values are: \*(Aq802\&.1Q\*(Aq, \*(Aq802\&.1ad\*(Aq\&. If not specified the default value is \*(Aq802\&.1Q\*(Aq\&.
+.sp
+Format: string
+.RE
 .SS "vpn setting"
 .PP
 VPN Settings\&.
@@ -4265,7 +4355,9 @@ Properties:
 .RS 4
 Alias: mac
 .sp
-If specified, this connection will only apply to the WiMAX device whose MAC address matches\&. This property does not change the MAC address of the device (known as MAC spoofing)\&. Deprecated: 1
+If specified, this connection will only apply to the WiMAX device whose MAC address matches\&. This property does not change the MAC address of the device (known as MAC spoofing)\&.
+.sp
+This property is deprecated since version 1\&.2\&. WiMAX is no longer supported\&.
 .sp
 Format: byte array
 .RE
@@ -4274,7 +4366,9 @@ Format: byte array
 .RS 4
 Alias: nsp
 .sp
-Network Service Provider (NSP) name of the WiMAX network this connection should use\&. Deprecated: 1
+Network Service Provider (NSP) name of the WiMAX network this connection should use\&.
+.sp
+This property is deprecated since version 1\&.2\&. WiMAX is no longer supported\&.
 .sp
 Format: string
 .RE
@@ -4588,7 +4682,9 @@ Format: array of string
 .PP
 \fBmac\-address\-randomization\fR
 .RS 4
-One of NM_SETTING_MAC_RANDOMIZATION_DEFAULT (0) (never randomize unless the user has set a global default to randomize and the supplicant supports randomization), NM_SETTING_MAC_RANDOMIZATION_NEVER (1) (never randomize the MAC address), or NM_SETTING_MAC_RANDOMIZATION_ALWAYS (2) (always randomize the MAC address)\&. This property is deprecated for \*(Aqcloned\-mac\-address\*(Aq\&. Deprecated: 1
+One of NM_SETTING_MAC_RANDOMIZATION_DEFAULT (0) (never randomize unless the user has set a global default to randomize and the supplicant supports randomization), NM_SETTING_MAC_RANDOMIZATION_NEVER (1) (never randomize the MAC address), or NM_SETTING_MAC_RANDOMIZATION_ALWAYS (2) (always randomize the MAC address)\&.
+.sp
+This property is deprecated since version 1\&.4\&. Use the "cloned\-mac\-address" property instead\&.
 .sp
 Format: uint32
 .RE
@@ -4915,6 +5011,20 @@ If the value is zero, it can be overridden by a global value from NetworkManager
 Negative values have the special effect of excluding other connections with a greater numerical priority value; so in presence of at least one negative priority, only connections with the lowest priority value will be used to determine the hostname\&.
 .sp
 Format: int32
+.RE
+.SS "loopback setting"
+.PP
+Loopback Link Settings\&.
+.PP
+Properties:
+.PP
+\fBmtu\fR
+.RS 4
+Alias: mtu
+.sp
+If non\-zero, only transmit packets of the specified size or smaller, breaking larger packets up into multiple Ethernet frames\&.
+.sp
+Format: uint32
 .RE
 .SS "veth setting"
 .PP

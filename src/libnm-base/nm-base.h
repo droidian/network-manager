@@ -393,6 +393,12 @@ typedef struct {
 
 #define NM_BOND_PORT_QUEUE_ID_DEF 0
 
+/****************************************************************************/
+
+/* ifindex generation is per-net namespace, and loopback is always the first
+ * device in the network namespace, thus any loopback device should get ifindex 1. */
+#define NM_LOOPBACK_IFINDEX 1
+
 /*****************************************************************************/
 
 /* NM_CRYPTO_ERROR is part of public API in libnm (implemented in libnm-core).
@@ -408,5 +414,13 @@ typedef struct {
 
 #define _NM_CRYPTO_ERROR _nm_crypto_error_quark()
 GQuark _nm_crypto_error_quark(void);
+
+typedef enum {
+    NM_DNS_IP_CONFIG_TYPE_REMOVED = -1,
+
+    NM_DNS_IP_CONFIG_TYPE_DEFAULT = 0,
+    NM_DNS_IP_CONFIG_TYPE_BEST_DEVICE,
+    NM_DNS_IP_CONFIG_TYPE_VPN,
+} NMDnsIPConfigType;
 
 #endif /* __NM_LIBNM_BASE_H__ */

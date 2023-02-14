@@ -50,7 +50,7 @@ NMSetting  *nm_setting_vpn_new(void);
 const char *nm_setting_vpn_get_service_type(NMSettingVpn *setting);
 const char *nm_setting_vpn_get_user_name(NMSettingVpn *setting);
 
-NM_AVAILABLE_IN_1_40_4
+NM_AVAILABLE_IN_1_42
 gboolean nm_setting_vpn_get_persistent(NMSettingVpn *setting);
 
 guint32     nm_setting_vpn_get_num_data_items(NMSettingVpn *setting);

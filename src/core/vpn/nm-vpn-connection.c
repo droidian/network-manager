@@ -107,14 +107,15 @@ typedef struct {
     NMIPAddr gw_internal;
     NMIPAddr gw_external;
 
-    /* Whether this address family is enabled. If not, then we won't have a l3cd instance,
-     * but the activation for this address family is still complete. */
-    bool enabled : 1;
+    /* Whether VPN auto-configuration is enabled in the connection profile for
+     * this address family. */
+    bool method_auto : 1;
 
-    /* Whether this address family is ready. This means we received the IP configuration.
-     * Usually this implies we also have a corresponding l3cd, but that might not be the
-     * case if this address family is disabled. */
-    bool conf_ready : 1;
+    /* Whether VPN auto-configuration is enabled, in the connection profile AND
+     * in the configuration reported by the VPN. If not, then we won't have a
+     * l3cd instance, but the activation for this address family is still
+     * complete. */
+    bool enabled : 1;
 } IPData;
 
 typedef struct {
@@ -1217,7 +1218,7 @@ _parent_device_l3cd_add_gateway_route(NML3ConfigData *l3cd,
             if (!nm_ip_addr_is_null(addr_family, gw)) {
                 nm_ip_addr_set(addr_family, &parent_gw, gw);
                 has_parent_gw = TRUE;
-            } else if (nm_utils_ip_is_site_local(addr_family, vpn_gw))
+            } else if (nm_ip_addr_is_site_local(addr_family, vpn_gw))
                 has_parent_gw = TRUE;
             else if ((obj = nm_device_get_best_default_route(parent_device, addr_family))
                      && nm_ip_addr_is_null(
@@ -1296,6 +1297,17 @@ _l3cfg_l3cd_gw_extern_update(NMVpnConnection *self)
 
     changed = FALSE;
     for (IS_IPv4 = 1; IS_IPv4 >= 0; IS_IPv4--) {
+        const int          addr_family = IS_IPv4 ? AF_INET : AF_INET6;
+        NMSettingIPConfig *s_ip;
+
+        s_ip = nm_connection_get_setting_ip_config(_get_applied_connection(self), addr_family);
+        if (s_ip && nm_setting_ip_config_get_auto_route_ext_gw(s_ip) == NM_TERNARY_FALSE) {
+            _LOGD("IPv%c route to the external gateway have been deactivated via auto-route-ext-gw "
+                  "setting",
+                  nm_utils_addr_family_to_char(addr_family));
+            continue;
+        }
+
         if (_parent_device_l3cd_add_gateway_route(
                 l3cd,
                 IS_IPv4 ? AF_INET : AF_INET6,
@@ -1870,9 +1882,16 @@ _dbus_signal_config_cb(NMVpnConnection *self, GVariant *dict)
     else
         priv->ip_data_6.enabled = FALSE;
 
-    _LOGD("config: reply received (IPv4:%s, IPv6:%s)",
+    _LOGD("config: reply received (IPv4:%s(%s), IPv6:%s(%s))",
           priv->ip_data_4.enabled ? "on" : "off",
-          priv->ip_data_6.enabled ? "on" : "off");
+          priv->ip_data_4.method_auto ? "auto" : "disabled",
+          priv->ip_data_4.enabled ? "on" : "off",
+          priv->ip_data_6.method_auto ? "auto" : "disabled");
+
+    if (!priv->ip_data_4.method_auto)
+        priv->ip_data_4.enabled = FALSE;
+    if (!priv->ip_data_6.method_auto)
+        priv->ip_data_6.enabled = FALSE;
 
     if (priv->vpn_state == STATE_CONNECT)
         _set_vpn_state(self, STATE_IP_CONFIG_GET, NM_ACTIVE_CONNECTION_STATE_REASON_NONE, FALSE);
@@ -1936,7 +1955,8 @@ _dbus_signal_ip_config_cb(NMVpnConnection *self, int addr_family, GVariant *dict
                 return;
             }
 
-            priv->ip_data_4.enabled = TRUE;
+            if (priv->ip_data_4.method_auto)
+                priv->ip_data_4.enabled = TRUE;
             priv->ip_data_6.enabled = FALSE;
         }
     } else {
@@ -1951,6 +1971,11 @@ _dbus_signal_ip_config_cb(NMVpnConnection *self, int addr_family, GVariant *dict
 
     if (priv->vpn_state == STATE_CONNECT) {
         _set_vpn_state(self, STATE_IP_CONFIG_GET, NM_ACTIVE_CONNECTION_STATE_REASON_NONE, FALSE);
+    }
+
+    if (!priv->ip_data_x[IS_IPv4].enabled) {
+        _check_complete(self, TRUE);
+        return;
     }
 
     ip_ifindex = nm_vpn_connection_get_ip_ifindex(self, TRUE);
@@ -2011,14 +2036,14 @@ _dbus_signal_ip_config_cb(NMVpnConnection *self, int addr_family, GVariant *dict
     if (IS_IPv4) {
         if (g_variant_lookup(dict, NM_VPN_PLUGIN_IP4_CONFIG_DNS, "au", &var_iter)) {
             while (g_variant_iter_next(var_iter, "u", &u32))
-                nm_l3_config_data_add_nameserver(l3cd, addr_family, &u32);
+                nm_l3_config_data_add_nameserver_detail(l3cd, addr_family, &u32, NULL);
             g_variant_iter_free(var_iter);
         }
     } else {
         if (g_variant_lookup(dict, NM_VPN_PLUGIN_IP6_CONFIG_DNS, "aay", &var_iter)) {
             while (g_variant_iter_next(var_iter, "@ay", &v)) {
                 if (nm_ip_addr_set_from_variant(AF_INET6, &v_addr, v, NULL))
-                    nm_l3_config_data_add_nameserver(l3cd, addr_family, &v_addr);
+                    nm_l3_config_data_add_nameserver_detail(l3cd, addr_family, &v_addr, NULL);
                 g_variant_unref(v);
             }
             g_variant_iter_free(var_iter);
@@ -2104,9 +2129,8 @@ _dbus_signal_ip_config_cb(NMVpnConnection *self, int addr_family, GVariant *dict
 
                     if (plen > 32)
                         break;
-                    route.r4.plen = plen;
-                    route.r4.network =
-                        nm_utils_ip4_address_clear_host_address(route.r4.network, plen);
+                    route.r4.plen    = plen;
+                    route.r4.network = nm_ip4_addr_clear_host_address(route.r4.network, plen);
 
                     if (priv->ip_data_4.gw_external.addr4
                         && route.r4.network == priv->ip_data_4.gw_external.addr4
@@ -2146,9 +2170,7 @@ _dbus_signal_ip_config_cb(NMVpnConnection *self, int addr_family, GVariant *dict
 
                 nm_ip_addr_set_from_variant(AF_INET6, &route.r6.gateway, next_hop, NULL);
 
-                nm_utils_ip6_address_clear_host_address(&route.r6.network,
-                                                        &route.r6.network,
-                                                        route.r6.plen);
+                nm_ip6_addr_clear_host_address(&route.r6.network, &route.r6.network, route.r6.plen);
 
                 if (!IN6_IS_ADDR_UNSPECIFIED(&priv->ip_data_6.gw_external.addr6)
                     && IN6_ARE_ADDR_EQUAL(&route.r6.network, &priv->ip_data_6.gw_external.addr6)
@@ -2761,6 +2783,11 @@ nm_vpn_connection_activate(NMVpnConnection *self, NMVpnPluginInfo *plugin_info)
 
     _LOGI("starting %s", nm_vpn_plugin_info_get_name(plugin_info));
 
+    priv->ip_data_4.method_auto = nm_streq0(nm_utils_get_ip_config_method(connection, AF_INET),
+                                            NM_SETTING_IP4_CONFIG_METHOD_AUTO);
+    priv->ip_data_6.method_auto = nm_streq0(nm_utils_get_ip_config_method(connection, AF_INET6),
+                                            NM_SETTING_IP6_CONFIG_METHOD_AUTO);
+
     priv->connection_can_persist = nm_setting_vpn_get_persistent(s_vpn);
     priv->plugin_info            = g_object_ref(plugin_info);
 
@@ -2841,17 +2868,11 @@ device_changed(NMActiveConnection *active, NMDevice *new_device, NMDevice *old_d
     _l3cfg_clear(self, l3cfg_old);
 
     priv->ifindex_dev = ifindex;
-    if (ifindex > 0) {
-        priv->l3cfg_dev = nm_netns_l3cfg_acquire(priv->netns, ifindex);
-        g_signal_connect(priv->l3cfg_dev,
-                         NM_L3CFG_SIGNAL_NOTIFY,
-                         G_CALLBACK(_l3cfg_notify_cb),
-                         self);
-        priv->l3cfg_commit_type_dev = nm_l3cfg_commit_type_register(priv->l3cfg_dev,
-                                                                    NM_L3_CFG_COMMIT_TYPE_UPDATE,
-                                                                    NULL,
-                                                                    "vpn");
-    }
+
+    priv->l3cfg_dev = nm_netns_l3cfg_acquire(priv->netns, ifindex);
+    g_signal_connect(priv->l3cfg_dev, NM_L3CFG_SIGNAL_NOTIFY, G_CALLBACK(_l3cfg_notify_cb), self);
+    priv->l3cfg_commit_type_dev =
+        nm_l3cfg_commit_type_register(priv->l3cfg_dev, NM_L3_CFG_COMMIT_TYPE_UPDATE, NULL, "vpn");
 
     if (_l3cfg_l3cd_gw_extern_update(self))
         nm_l3cfg_commit_on_idle_schedule(priv->l3cfg_dev, NM_L3_CFG_COMMIT_TYPE_AUTO);

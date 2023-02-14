@@ -447,6 +447,24 @@ nm_str_buf_get_str(NMStrBuf *strbuf)
     return strbuf->_priv_str;
 }
 
+static inline char *
+nm_str_buf_dup_str(NMStrBuf *strbuf)
+{
+    _nm_str_buf_assert(strbuf);
+
+    /* Gives almost the same as g_strdup(nm_str_buf_get_str(strbuf)). The difference
+     * is:
+     *   - unlike nm_str_buf_get_str(), it does not need to allocate
+     *     one more character to NUL terminate the string.
+     *   - it does not require an additional strlen(), because we
+     *     already know the length. */
+
+    if (!strbuf->_priv_str)
+        return NULL;
+
+    return nm_memdup_nul(strbuf->_priv_str, strbuf->_priv_len);
+}
+
 /**
  * nm_str_buf_get_str_unsafe:
  * @strbuf: the buffer
@@ -530,10 +548,7 @@ nm_str_buf_finalize(NMStrBuf *strbuf, gsize *out_len)
         char *str = g_steal_pointer(&strbuf->_priv_str);
         char *result;
 
-        result = g_new(char, strbuf->_priv_len + 1u);
-        memcpy(result, str, strbuf->_priv_len);
-        result[strbuf->_priv_len] = '\0';
-
+        result = nm_memdup_nul(str, strbuf->_priv_len);
         if (strbuf->_priv_do_bzero_mem)
             nm_explicit_bzero(str, strbuf->_priv_len);
         return result;

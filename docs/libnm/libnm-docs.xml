@@ -301,6 +301,7 @@ print ("NetworkManager version " + client.get_version())]]></programlisting></in
     <xi:include href="xml/nm-object.xml"/>
     <xi:include href="xml/nm-errors.xml"/>
     <xi:include href="xml/nm-dbus-interface.xml"/>
+    <xi:include href="xml/nm-vpn-dbus-interface.xml"/>
   </chapter>
 
   <chapter>
@@ -331,6 +332,7 @@ print ("NetworkManager version " + client.get_version())]]></programlisting></in
     <xi:include href="xml/nm-setting-ip-tunnel.xml"/>
     <xi:include href="xml/nm-setting-ip4-config.xml"/>
     <xi:include href="xml/nm-setting-ip6-config.xml"/>
+    <xi:include href="xml/nm-setting-loopback.xml"/>
     <xi:include href="xml/nm-setting-macsec.xml"/>
     <xi:include href="xml/nm-setting-macvlan.xml"/>
     <xi:include href="xml/nm-setting-match.xml"/>
@@ -339,6 +341,7 @@ print ("NetworkManager version " + client.get_version())]]></programlisting></in
     <xi:include href="xml/nm-setting-ovs-dpdk.xml"/>
     <xi:include href="xml/nm-setting-ovs-external-ids.xml"/>
     <xi:include href="xml/nm-setting-ovs-interface.xml"/>
+    <xi:include href="xml/nm-setting-ovs-other-config.xml"/>
     <xi:include href="xml/nm-setting-ovs-patch.xml"/>
     <xi:include href="xml/nm-setting-ovs-port.xml"/>
     <xi:include href="xml/nm-setting-ppp.xml"/>
@@ -380,6 +383,7 @@ print ("NetworkManager version " + client.get_version())]]></programlisting></in
     <xi:include href="xml/nm-device-generic.xml"/>
     <xi:include href="xml/nm-device-infiniband.xml"/>
     <xi:include href="xml/nm-device-ip-tunnel.xml"/>
+    <xi:include href="xml/nm-device-loopback.xml"/>
     <xi:include href="xml/nm-device-macsec.xml"/>
     <xi:include href="xml/nm-device-macvlan.xml"/>
     <xi:include href="xml/nm-device-modem.xml"/>
@@ -414,7 +418,10 @@ print ("NetworkManager version " + client.get_version())]]></programlisting></in
     <title>Utility API Reference</title>
     <xi:include href="xml/nm-keyfile.xml"/>
     <xi:include href="xml/nm-utils.xml"/>
+    <xi:include href="xml/nm-conn-utils.xml"/>
+    <xi:include href="xml/nm-ethtool-utils.xml"/>
     <xi:include href="xml/nm-version.xml"/>
+    <xi:include href="xml/nm-version-macros.xml"/>
   </chapter>
 
   <chapter>

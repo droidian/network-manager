@@ -957,6 +957,7 @@ const NMSIfcfgKeyTypeInfo nms_ifcfg_well_known_keys[] = {
     _KEY_TYPE("IEEE_8021X_SUBJECT_MATCH", NMS_IFCFG_KEY_TYPE_IS_PLAIN),
     _KEY_TYPE("IEEE_8021X_SYSTEM_CA_CERTS", NMS_IFCFG_KEY_TYPE_IS_PLAIN),
     _KEY_TYPE("IPADDR", NMS_IFCFG_KEY_TYPE_IS_NUMBERED),
+    _KEY_TYPE("IPV4_AUTO_ROUTE_EXT_GW", NMS_IFCFG_KEY_TYPE_IS_PLAIN),
     _KEY_TYPE("IPV4_DHCP_TIMEOUT", NMS_IFCFG_KEY_TYPE_IS_PLAIN),
     _KEY_TYPE("IPV4_DNS_PRIORITY", NMS_IFCFG_KEY_TYPE_IS_PLAIN),
     _KEY_TYPE("IPV4_FAILURE_FATAL", NMS_IFCFG_KEY_TYPE_IS_PLAIN),
@@ -971,6 +972,7 @@ const NMSIfcfgKeyTypeInfo nms_ifcfg_well_known_keys[] = {
     _KEY_TYPE("IPV6TUNNELIPV4", NMS_IFCFG_KEY_TYPE_IS_PLAIN),
     _KEY_TYPE("IPV6_ADDR_GEN_MODE", NMS_IFCFG_KEY_TYPE_IS_PLAIN),
     _KEY_TYPE("IPV6_AUTOCONF", NMS_IFCFG_KEY_TYPE_IS_PLAIN),
+    _KEY_TYPE("IPV6_AUTO_ROUTE_EXT_GW", NMS_IFCFG_KEY_TYPE_IS_PLAIN),
     _KEY_TYPE("IPV6_DEFAULTDEV", NMS_IFCFG_KEY_TYPE_IS_PLAIN),
     _KEY_TYPE("IPV6_DEFAULTGW", NMS_IFCFG_KEY_TYPE_IS_PLAIN),
     _KEY_TYPE("IPV6_DEFROUTE", NMS_IFCFG_KEY_TYPE_IS_PLAIN),
@@ -1061,6 +1063,7 @@ const NMSIfcfgKeyTypeInfo nms_ifcfg_well_known_keys[] = {
     _KEY_TYPE("VLAN_FLAGS", NMS_IFCFG_KEY_TYPE_IS_PLAIN),
     _KEY_TYPE("VLAN_ID", NMS_IFCFG_KEY_TYPE_IS_PLAIN),
     _KEY_TYPE("VLAN_INGRESS_PRIORITY_MAP", NMS_IFCFG_KEY_TYPE_IS_PLAIN),
+    _KEY_TYPE("VLAN_PROTOCOL", NMS_IFCFG_KEY_TYPE_IS_PLAIN),
     _KEY_TYPE("VRF", NMS_IFCFG_KEY_TYPE_IS_PLAIN),
     _KEY_TYPE("VRF_UUID", NMS_IFCFG_KEY_TYPE_IS_PLAIN),
     _KEY_TYPE("WAIT_ACTIVATION_DELAY", NMS_IFCFG_KEY_TYPE_IS_PLAIN),
@@ -1080,12 +1083,12 @@ nms_ifcfg_well_known_key_find_info(const char *key, gssize *out_idx)
 
     G_STATIC_ASSERT(G_STRUCT_OFFSET(NMSIfcfgKeyTypeInfo, key_name) == 0);
 
-    idx = nm_utils_array_find_binary_search(nms_ifcfg_well_known_keys,
-                                            sizeof(nms_ifcfg_well_known_keys[0]),
-                                            G_N_ELEMENTS(nms_ifcfg_well_known_keys),
-                                            &key,
-                                            nm_strcmp_p_with_data,
-                                            NULL);
+    idx = nm_array_find_bsearch(nms_ifcfg_well_known_keys,
+                                G_N_ELEMENTS(nms_ifcfg_well_known_keys),
+                                sizeof(nms_ifcfg_well_known_keys[0]),
+                                &key,
+                                nm_strcmp_p_with_data,
+                                NULL);
     NM_SET_OUT(out_idx, idx);
     if (idx < 0)
         return NULL;

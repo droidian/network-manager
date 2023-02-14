@@ -42,11 +42,10 @@
 </colgroup>
 <tbody>
 <tr>
-<td class="function_type">
-<span class="returnvalue">0</span>
+<td class="function_type">const <span class="returnvalue">char</span> *
 </td>
 <td class="function_name">
-<a class="link" href="NMDeviceDummy.html#NM-DEPRECATED-IN-1-24-FOR:CAPS" title="NM_DEPRECATED_IN_1_24_FOR ()">NM_DEPRECATED_IN_1_24_FOR</a> <span class="c_punctuation">()</span>
+<a class="link" href="NMDeviceVxlan.html#nm-device-vxlan-get-hw-address" title="nm_device_vxlan_get_hw_address ()">nm_device_vxlan_get_hw_address</a> <span class="c_punctuation">()</span>
 </td>
 </tr>
 <tr>
@@ -387,10 +386,36 @@
 <div class="refsect1">
 <a name="NMDeviceVxlan.functions_details"></a><h2>Functions</h2>
 <div class="refsect2">
-<a name="NM-DEPRECATED-IN-1-24-FOR:CAPS"></a><h3>NM_DEPRECATED_IN_1_24_FOR ()</h3>
-<pre class="programlisting"><span class="returnvalue">0</span>
-NM_DEPRECATED_IN_1_24_FOR ();</pre>
-<div class="warning"><p><code class="literal">NM_DEPRECATED_IN_1_24_FOR</code> is deprecated and should not be used in newly-written code.</p></div>
+<a name="nm-device-vxlan-get-hw-address"></a><h3>nm_device_vxlan_get_hw_address ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *
+nm_device_vxlan_get_hw_address (<em class="parameter"><code><a class="link" href="NMDeviceVxlan.html" title="NMDeviceVxlan"><span class="type">NMDeviceVxlan</span></a> *device</code></em>);</pre>
+<div class="warning">
+<p><code class="literal">nm_device_vxlan_get_hw_address</code> has been deprecated since version 1.24 and should not be used in newly-written code.</p>
+<p>Use <a class="link" href="NMDevice.html#nm-device-get-hw-address" title="nm_device_get_hw_address ()"><code class="function">nm_device_get_hw_address()</code></a> instead.</p>
+</div>
+<p>Gets the hardware (MAC) address of the <a class="link" href="NMDeviceVxlan.html" title="NMDeviceVxlan"><span class="type">NMDeviceVxlan</span></a></p>
+<p><span class="annotation">[<acronym title="Exposed in C code, not necessarily available in other languages."><span class="acronym">skip</span></acronym>]</span></p>
+<div class="refsect3">
+<a name="nm-device-vxlan-get-hw-address.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>device</p></td>
+<td class="parameter_description"><p>a <a class="link" href="NMDeviceVxlan.html" title="NMDeviceVxlan"><span class="type">NMDeviceVxlan</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="nm-device-vxlan-get-hw-address.returns"></a><h4>Returns</h4>
+<p> the hardware address. This is the internal string used by the
+device, and must not be modified.</p>
+</div>
+<p class="since">Since: 1.2</p>
 </div>
 <hr>
 <div class="refsect2">
@@ -419,7 +444,7 @@ nm_device_vxlan_get_carrier (<em class="parameter"><code><a class="link" href="N
 <p>This property is not implemented yet, and the function always returns
 FALSE.</p>
 </div>
-<p class="since">Since: 1.42, 1.40.4</p>
+<p class="since">Since: 1.42</p>
 </div>
 <hr>
 <div class="refsect2">
@@ -786,7 +811,7 @@ nm_device_vxlan_get_rsc (<em class="parameter"><code><a class="link" href="NMDev
 <a name="nm-device-vxlan-get-rsc.returns"></a><h4>Returns</h4>
 <p> whether route short circuit is turned on</p>
 </div>
-<p class="since">Since: 1.42, 1.40.4</p>
+<p class="since">Since: 1.42</p>
 </div>
 <hr>
 <div class="refsect2">

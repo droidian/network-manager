@@ -227,7 +227,16 @@ typedef enum {
 
 /*****************************************************************************/
 
-#define NM_CLIENT_INSTANCE_FLAGS_ALL ((NMClientInstanceFlags) 0x1)
+#define NM_CLIENT_INSTANCE_FLAGS_ALL                                             \
+    ((NMClientInstanceFlags) (NM_CLIENT_INSTANCE_FLAGS_NO_AUTO_FETCH_PERMISSIONS \
+                              | NM_CLIENT_INSTANCE_FLAGS_INITIALIZED_GOOD        \
+                              | NM_CLIENT_INSTANCE_FLAGS_INITIALIZED_BAD))
+
+#define NM_CLIENT_INSTANCE_FLAGS_ALL_WRITABLE                                                       \
+    ((NMClientInstanceFlags) (NM_CLIENT_INSTANCE_FLAGS_ALL                                          \
+                              & ~((                                                                 \
+                                  NMClientInstanceFlags) (NM_CLIENT_INSTANCE_FLAGS_INITIALIZED_GOOD \
+                                                          | NM_CLIENT_INSTANCE_FLAGS_INITIALIZED_BAD))))
 
 typedef struct {
     GType (*get_o_type_fcn)(void);
@@ -556,7 +565,7 @@ struct _NMLDBusMetaIface {
                              NML_DBUS_META_IFACE_OBJ_PROPERTIES(),                              \
                              ##__VA_ARGS__)
 
-extern const NMLDBusMetaIface *const _nml_dbus_meta_ifaces[44];
+extern const NMLDBusMetaIface *const _nml_dbus_meta_ifaces[45];
 
 extern const NMLDBusMetaIface _nml_dbus_meta_iface_nm;
 extern const NMLDBusMetaIface _nml_dbus_meta_iface_nm_accesspoint;
@@ -572,6 +581,7 @@ extern const NMLDBusMetaIface _nml_dbus_meta_iface_nm_device_dummy;
 extern const NMLDBusMetaIface _nml_dbus_meta_iface_nm_device_generic;
 extern const NMLDBusMetaIface _nml_dbus_meta_iface_nm_device_infiniband;
 extern const NMLDBusMetaIface _nml_dbus_meta_iface_nm_device_iptunnel;
+extern const NMLDBusMetaIface _nml_dbus_meta_iface_nm_device_loopback;
 extern const NMLDBusMetaIface _nml_dbus_meta_iface_nm_device_lowpan;
 extern const NMLDBusMetaIface _nml_dbus_meta_iface_nm_device_macsec;
 extern const NMLDBusMetaIface _nml_dbus_meta_iface_nm_device_macvlan;

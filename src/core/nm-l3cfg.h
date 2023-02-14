@@ -13,7 +13,7 @@
 #define NM_ACD_TIMEOUT_MAX_MSEC         30000u
 
 #define NM_TYPE_L3CFG            (nm_l3cfg_get_type())
-#define NM_L3CFG(obj)            (G_TYPE_CHECK_INSTANCE_CAST((obj), NM_TYPE_L3CFG, NML3Cfg))
+#define NM_L3CFG(obj)            (_NM_G_TYPE_CHECK_INSTANCE_CAST((obj), NM_TYPE_L3CFG, NML3Cfg))
 #define NM_L3CFG_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST((klass), NM_TYPE_L3CFG, NML3CfgClass))
 #define NM_IS_L3CFG(obj)         (G_TYPE_CHECK_INSTANCE_TYPE((obj), NM_TYPE_L3CFG))
 #define NM_IS_L3CFG_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE((klass), NM_TYPE_L3CFG))
@@ -209,6 +209,16 @@ struct _NML3Cfg {
         const NMPObject          *plobj_next;
         int                       ifindex;
     } priv;
+
+    /* NML3Cfg strongly cooperates with NMNetns. The latter is
+     * the one that creates and manages (also) the lifetime of the
+     * NML3Cfg instance. We track some per-l3cfg-data that is only
+     * relevant to NMNetns here. */
+    struct {
+        guint32 signal_pending_obj_type_flags;
+        CList   signal_pending_lst;
+        CList   ecmp_track_ifindex_lst_head;
+    } internal_netns;
 };
 
 typedef struct _NML3CfgClass NML3CfgClass;
@@ -400,7 +410,7 @@ gboolean nm_l3cfg_check_ready(NML3Cfg               *self,
                               const NML3ConfigData  *l3cd,
                               int                    addr_family,
                               NML3CfgCheckReadyFlags flags,
-                              gboolean              *acd_used);
+                              GArray               **conflicts);
 
 gboolean nm_l3cfg_has_temp_not_available_obj(NML3Cfg *self, int addr_family);
 

@@ -54,6 +54,51 @@ nm_editor_bindings_init(void)
     g_value_register_transform_func(G_TYPE_STRING, G_TYPE_UINT, value_transform_string_uint);
 }
 
+gboolean
+certificate_to_string(GBinding     *binding,
+                      const GValue *source_value,
+                      GValue       *target_value,
+                      gpointer      user_data)
+{
+    GBytes *bytes;
+    char   *utf8;
+
+    bytes = g_value_get_boxed(source_value);
+    if (bytes)
+        utf8 = nm_utils_ssid_to_utf8(g_bytes_get_data(bytes, NULL), g_bytes_get_size(bytes));
+    else
+        utf8 = g_strdup("");
+    g_value_take_string(target_value, utf8);
+    return TRUE;
+}
+
+gboolean
+certificate_from_string(GBinding     *binding,
+                        const GValue *source_value,
+                        GValue       *target_value,
+                        gpointer      user_data)
+{
+    const char   *text;
+    gs_free char *cert  = NULL;
+    GBytes       *bytes = NULL;
+
+    text = g_value_get_string(source_value);
+
+    if (text[0]) {
+        /* Consider anything without a scheme prefix as an absolute path */
+        if (!g_str_has_prefix(text, "file://") && !g_str_has_prefix(text, "blob://")
+            && !g_str_has_prefix(text, "pkcs11://")) {
+            cert = g_strdup_printf("file://%s%s", text[0] == '/' ? "" : "/", text);
+            text = cert;
+        }
+
+        bytes = g_bytes_new(text, strlen(text) + 1);
+    }
+    g_value_take_boxed(target_value, bytes);
+
+    return TRUE;
+}
+
 static gboolean
 ip_addresses_with_prefix_to_strv(GBinding     *binding,
                                  const GValue *source_value,
@@ -116,7 +161,7 @@ ip_addresses_with_prefix_from_strv(GBinding     *binding,
         } else
             addr = addrs->pdata[i];
 
-        if (!nm_utils_parse_inaddr_prefix(addr_family, strings[i], &addrstr, &prefix)) {
+        if (!nm_inet_parse_with_prefix_str(addr_family, strings[i], &addrstr, &prefix)) {
             g_ptr_array_unref(addrs);
             return FALSE;
         }
@@ -126,7 +171,7 @@ ip_addresses_with_prefix_from_strv(GBinding     *binding,
                 in_addr_t v4;
 
                 inet_pton(addr_family, addrstr, &v4);
-                if (nm_utils_ip_is_site_local(AF_INET, &v4))
+                if (nm_ip_addr_is_site_local(AF_INET, &v4))
                     prefix = nm_utils_ip4_get_default_prefix(v4);
                 else
                     prefix = 32;
@@ -194,7 +239,7 @@ ip_addresses_check_and_copy(GBinding     *binding,
     strings = g_value_get_boxed(source_value);
 
     for (i = 0; strings[i]; i++) {
-        if (!nm_utils_ipaddr_is_valid(addr_family, strings[i]))
+        if (!nm_inet_is_valid(addr_family, strings[i]))
             return FALSE;
     }
 
@@ -256,7 +301,7 @@ ip_gateway_from_string(GBinding     *binding,
     const char *gateway;
 
     gateway = g_value_get_string(source_value);
-    if (gateway && !nm_utils_ipaddr_is_valid(addr_family, gateway))
+    if (gateway && !nm_inet_is_valid(addr_family, gateway))
         gateway = NULL;
 
     g_value_set_string(target_value, gateway);
@@ -428,7 +473,7 @@ ip_route_transform_from_dest_string(GBinding     *binding,
     int         prefix;
 
     text = g_value_get_string(source_value);
-    if (!nm_utils_parse_inaddr_prefix(addr_family, text, &addrstr, &prefix))
+    if (!nm_inet_parse_with_prefix_str(addr_family, text, &addrstr, &prefix))
         return FALSE;
 
     /* Fetch the original property value */
@@ -442,9 +487,9 @@ ip_route_transform_from_dest_string(GBinding     *binding,
             in_addr_t v4;
 
             inet_pton(addr_family, addrstr, &v4);
-            if (nm_utils_ip_is_site_local(AF_INET, &v4)) {
+            if (nm_ip_addr_is_site_local(AF_INET, &v4)) {
                 prefix = nm_utils_ip4_get_default_prefix(v4);
-                if (v4 & (~_nm_utils_ip4_prefix_to_netmask(prefix)))
+                if (v4 & (~nm_ip4_addr_netmask_from_prefix(prefix)))
                     prefix = 32;
             } else
                 prefix = 32;
@@ -472,7 +517,7 @@ ip_route_transform_from_next_hop_string(GBinding     *binding,
 
     text = g_value_get_string(source_value);
     if (*text) {
-        if (!nm_utils_ipaddr_is_valid(addr_family, text))
+        if (!nm_inet_is_valid(addr_family, text))
             return FALSE;
     } else
         text = NULL;
@@ -803,7 +848,9 @@ peer_transform_from_persistent_keepalive_string(GBinding     *binding,
 typedef struct {
     NMConnection              *connection;
     NMSettingWirelessSecurity *s_wsec;
+    NMSetting8021x            *s_8021x;
     gboolean                   s_wsec_in_use;
+    gboolean                   s_8021x_in_use;
 
     GObject *target;
     char    *target_property;
@@ -891,6 +938,7 @@ wireless_security_target_changed(GObject *object, GParamSpec *pspec, gpointer us
 {
     NMEditorWirelessSecurityMethodBinding *binding = user_data;
     char                                  *method;
+    gboolean                               need_8021x = FALSE;
 
     if (binding->updating)
         return;
@@ -900,11 +948,14 @@ wireless_security_target_changed(GObject *object, GParamSpec *pspec, gpointer us
     binding->updating = TRUE;
 
     if (!strcmp(method, "none")) {
-        if (!binding->s_wsec_in_use)
-            return;
-        binding->s_wsec_in_use = FALSE;
-        nm_connection_remove_setting(binding->connection, NM_TYPE_SETTING_WIRELESS_SECURITY);
-
+        if (binding->s_wsec_in_use) {
+            binding->s_wsec_in_use = FALSE;
+            nm_connection_remove_setting(binding->connection, NM_TYPE_SETTING_WIRELESS_SECURITY);
+        }
+        if (binding->s_8021x_in_use) {
+            binding->s_8021x_in_use = FALSE;
+            nm_connection_remove_setting(binding->connection, NM_TYPE_SETTING_802_1X);
+        }
         binding->updating = FALSE;
         return;
     }
@@ -985,9 +1036,20 @@ wireless_security_target_changed(GObject *object, GParamSpec *pspec, gpointer us
                      NULL,
                      NM_SETTING_WIRELESS_SECURITY_WEP_KEY_TYPE,
                      NM_WEP_KEY_TYPE_UNKNOWN,
+                     NM_SETTING_WIRELESS_SECURITY_PSK,
+                     NULL,
                      NULL);
+        need_8021x = TRUE;
     } else
         g_warn_if_reached();
+
+    if (need_8021x != binding->s_8021x_in_use) {
+        binding->s_8021x_in_use = need_8021x;
+        if (need_8021x)
+            nm_connection_add_setting(binding->connection, NM_SETTING(binding->s_8021x));
+        else
+            nm_connection_remove_setting(binding->connection, NM_TYPE_SETTING_802_1X);
+    }
 
     binding->updating = FALSE;
 }
@@ -1031,6 +1093,7 @@ wireless_security_target_destroyed(gpointer user_data, GObject *ex_target)
 void
 nm_editor_bind_wireless_security_method(NMConnection              *connection,
                                         NMSettingWirelessSecurity *s_wsec,
+                                        NMSetting8021x            *s_8021x,
                                         gpointer                   target,
                                         const char                *target_property,
                                         GBindingFlags              flags)
@@ -1054,9 +1117,11 @@ nm_editor_bind_wireless_security_method(NMConnection              *connection,
                      NM_CONNECTION_CHANGED,
                      G_CALLBACK(wireless_connection_changed),
                      binding);
-    binding->s_wsec_in_use = (nm_connection_get_setting_wireless_security(connection) != NULL);
+    binding->s_wsec_in_use  = (nm_connection_get_setting_wireless_security(connection) != NULL);
+    binding->s_wsec         = g_object_ref(s_wsec);
+    binding->s_8021x_in_use = (nm_connection_get_setting_802_1x(connection) != NULL);
+    binding->s_8021x        = g_object_ref(s_8021x);
 
-    binding->s_wsec = g_object_ref(s_wsec);
     g_signal_connect(s_wsec,
                      "notify::" NM_SETTING_WIRELESS_SECURITY_KEY_MGMT,
                      G_CALLBACK(wireless_security_changed),

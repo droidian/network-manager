@@ -120,6 +120,7 @@ nm_checkpoint_get_type
 <TITLE>NMClient</TITLE>
 NMClientInstanceFlags
 NM_CLIENT_VERSION
+NM_CLIENT_VERSION_INFO
 NM_CLIENT_STATE
 NM_CLIENT_STARTUP
 NM_CLIENT_NM_RUNNING
@@ -165,7 +166,6 @@ NM_CLIENT_ACTIVE_CONNECTION_REMOVED
 NMClientError
 NM_CLIENT_ERROR
 nm_client_error_quark
-NMDnsEntry
 nm_dns_entry_unref
 nm_dns_entry_get_interface
 nm_dns_entry_get_nameservers
@@ -181,6 +181,7 @@ nm_client_get_main_context
 nm_client_get_context_busy_watcher
 nm_client_get_dbus_name_owner
 nm_client_get_version
+nm_client_get_version_info
 nm_client_get_state
 nm_client_get_startup
 nm_client_get_nm_running
@@ -266,7 +267,10 @@ nm_utils_print
 nm_utils_file_is_certificate
 nm_utils_file_is_private_key
 nm_utils_file_is_pkcs12
+nm_client_wait_shutdown
+nm_client_wait_shutdown_finish
 NMClient
+NMDnsEntry
 <SUBSECTION Standard>
 NMClientClass
 NM_CLIENT
@@ -371,11 +375,6 @@ nm_connection_get_type
 </SECTION>
 
 <SECTION>
-<FILE>nm-connection-private</FILE>
-
-</SECTION>
-
-<SECTION>
 <FILE>nm-core-enum-types</FILE>
 <SUBSECTION Standard>
 NM_TYPE_802_11_AP_FLAGS
@@ -398,6 +397,7 @@ NM_TYPE_DEVICE_CAPABILITIES
 NM_TYPE_DEVICE_ERROR
 NM_TYPE_DEVICE_INTERFACE_FLAGS
 NM_TYPE_DEVICE_MODEM_CAPABILITIES
+NM_TYPE_DEVICE_REAPPLY_FLAGS
 NM_TYPE_DEVICE_STATE_REASON
 NM_TYPE_DEVICE_TYPE
 NM_TYPE_DEVICE_WIFI_CAPABILITIES
@@ -454,6 +454,7 @@ NM_TYPE_STATE
 NM_TYPE_TEAM_LINK_WATCHER_ARP_PING_FLAGS
 NM_TYPE_TERNARY
 NM_TYPE_UTILS_SECURITY_TYPE
+NM_TYPE_VERSION_INFO_CAPABILITY
 NM_TYPE_VLAN_FLAGS
 NM_TYPE_VLAN_PRIORITY_MAP
 NM_TYPE_VPN_CONNECTION_STATE_REASON
@@ -481,6 +482,7 @@ nm_device_capabilities_get_type
 nm_device_error_get_type
 nm_device_interface_flags_get_type
 nm_device_modem_capabilities_get_type
+nm_device_reapply_flags_get_type
 nm_device_state_reason_get_type
 nm_device_type_get_type
 nm_device_wifi_capabilities_get_type
@@ -537,6 +539,7 @@ nm_state_get_type
 nm_team_link_watcher_arp_ping_flags_get_type
 nm_ternary_get_type
 nm_utils_security_type_get_type
+nm_version_info_capability_get_type
 nm_vlan_flags_get_type
 nm_vlan_priority_map_get_type
 nm_vpn_connection_state_reason_get_type
@@ -544,68 +547,6 @@ nm_vpn_plugin_error_get_type
 nm_vpn_plugin_failure_get_type
 nm_wep_key_type_get_type
 nm_wimax_nsp_network_type_get_type
-</SECTION>
-
-<SECTION>
-<FILE>nm-core-types</FILE>
-<TITLE>NMSettingOvs</TITLE>
-NMUtilsPredicateStr
-NMConnection
-NMSetting
-NMSetting6Lowpan
-NMSetting8021x
-NMSettingAdsl
-NMSettingBluetooth
-NMSettingBond
-NMSettingBondPort
-NMSettingBridge
-NMSettingBridgePort
-NMSettingCdma
-NMSettingConnection
-NMSettingDcb
-NMSettingDummy
-NMSettingEthtool
-NMSettingGeneric
-NMSettingGsm
-NMSettingHostname
-NMSettingIP4Config
-NMSettingIP6Config
-NMSettingIPConfig
-NMSettingIPTunnel
-NMSettingInfiniband
-NMSettingMacsec
-NMSettingMacvlan
-NMSettingMatch
-NMSettingOlpcMesh
-NMSettingOvsBridge
-NMSettingOvsDpdk
-NMSettingOvsExternalIDs
-NMSettingOvsInterface
-NMSettingOvsPatch
-NMSettingOvsPort
-NMSettingPpp
-NMSettingPppoe
-NMSettingProxy
-NMSettingSerial
-NMSettingSriov
-NMSettingTCConfig
-NMSettingTeam
-NMSettingTeamPort
-NMSettingTun
-NMSettingUser
-NMSettingVeth
-NMSettingVlan
-NMSettingVpn
-NMSettingVrf
-NMSettingVxlan
-NMSettingWifiP2P
-NMSettingWimax
-NMSettingWireGuard
-NMSettingWired
-NMSettingWireless
-NMSettingWirelessSecurity
-NMSettingWpan
-NMSimpleConnection
 </SECTION>
 
 <SECTION>
@@ -628,6 +569,7 @@ NM_DBUS_INTERFACE_DEVICE_GENERIC
 NM_DBUS_INTERFACE_DEVICE_GRE
 NM_DBUS_INTERFACE_DEVICE_INFINIBAND
 NM_DBUS_INTERFACE_DEVICE_IP_TUNNEL
+NM_DBUS_INTERFACE_DEVICE_LOOPBACK
 NM_DBUS_INTERFACE_DEVICE_MACSEC
 NM_DBUS_INTERFACE_DEVICE_MACVLAN
 NM_DBUS_INTERFACE_DEVICE_MODEM
@@ -670,6 +612,7 @@ NM_DBUS_INTERFACE_SECRET_AGENT
 NM_DBUS_PATH_SECRET_AGENT
 NM_DBUS_INTERFACE_DNS_MANAGER
 NM_DBUS_PATH_DNS_MANAGER
+NMVersionInfoCapability
 NMCapability
 NMState
 NMConnectivityState
@@ -730,11 +673,6 @@ NMClientPermission
 NMClientPermissionResult
 NMRadioFlags
 NMMptcpFlags
-</SECTION>
-
-<SECTION>
-<FILE>nm-default-libnm</FILE>
-NETWORKMANAGER_COMPILATION
 </SECTION>
 
 <SECTION>
@@ -951,7 +889,7 @@ nm_device_bt_get_type
 <FILE>nm-device-dummy</FILE>
 <TITLE>NMDeviceDummy</TITLE>
 NM_DEVICE_DUMMY_HW_ADDRESS
-NM_DEPRECATED_IN_1_24_FOR
+nm_device_dummy_get_hw_address
 NMDeviceDummy
 <SUBSECTION Standard>
 NMDeviceDummyClass
@@ -1066,6 +1004,21 @@ nm_device_ip_tunnel_get_type
 </SECTION>
 
 <SECTION>
+<FILE>nm-device-loopback</FILE>
+<TITLE>NMDeviceLoopback</TITLE>
+NMDeviceLoopback
+<SUBSECTION Standard>
+NMDeviceLoopbackClass
+NM_DEVICE_LOOPBACK
+NM_DEVICE_LOOPBACK_CLASS
+NM_DEVICE_LOOPBACK_GET_CLASS
+NM_IS_DEVICE_LOOPBACK
+NM_IS_DEVICE_LOOPBACK_CLASS
+NM_TYPE_DEVICE_LOOPBACK
+nm_device_loopback_get_type
+</SECTION>
+
+<SECTION>
 <FILE>nm-device-macsec</FILE>
 <TITLE>NMDeviceMacsec</TITLE>
 NM_DEVICE_MACSEC_PARENT
@@ -1083,7 +1036,7 @@ NM_DEVICE_MACSEC_ES
 NM_DEVICE_MACSEC_SCB
 NM_DEVICE_MACSEC_REPLAY_PROTECT
 nm_device_macsec_get_parent
-NM_DEPRECATED_IN_1_24_FOR
+nm_device_macsec_get_hw_address
 nm_device_macsec_get_sci
 nm_device_macsec_get_icv_length
 nm_device_macsec_get_cipher_suite
@@ -1120,7 +1073,7 @@ nm_device_macvlan_get_parent
 nm_device_macvlan_get_mode
 nm_device_macvlan_get_no_promisc
 nm_device_macvlan_get_tap
-NM_DEPRECATED_IN_1_24_FOR
+nm_device_macvlan_get_hw_address
 NMDeviceMacvlan
 <SUBSECTION Standard>
 NMDeviceMacvlanClass
@@ -1276,7 +1229,7 @@ NM_DEVICE_TUN_MODE
 NM_DEVICE_TUN_NO_PI
 NM_DEVICE_TUN_VNET_HDR
 NM_DEVICE_TUN_MULTI_QUEUE
-NM_DEPRECATED_IN_1_24_FOR
+nm_device_tun_get_hw_address
 nm_device_tun_get_mode
 nm_device_tun_get_owner
 nm_device_tun_get_group
@@ -1373,7 +1326,7 @@ NM_DEVICE_VXLAN_RSC
 NM_DEVICE_VXLAN_L2MISS
 NM_DEVICE_VXLAN_L3MISS
 NM_DEVICE_VXLAN_DST_PORT
-NM_DEPRECATED_IN_1_24_FOR
+nm_device_vxlan_get_hw_address
 nm_device_vxlan_get_carrier
 nm_device_vxlan_get_parent
 nm_device_vxlan_get_id
@@ -1446,7 +1399,7 @@ nm_device_wifi_get_type
 NM_DEVICE_WIFI_P2P_HW_ADDRESS
 NM_DEVICE_WIFI_P2P_PEERS
 NM_DEVICE_WIFI_P2P_WFDIES
-NM_DEPRECATED_IN_1_24_FOR
+nm_device_wifi_p2p_get_hw_address
 nm_device_wifi_p2p_get_peer_by_path
 nm_device_wifi_p2p_get_peers
 nm_device_wifi_p2p_start_find
@@ -1728,112 +1681,6 @@ NMKeyfileHandlerData
 </SECTION>
 
 <SECTION>
-<FILE>nm-libnm-utils</FILE>
-<TITLE>NMIPConfig</TITLE>
-nm_utils_fixup_vendor_string
-nm_utils_fixup_product_string
-nm_utils_wincaps_to_dash
-nm_utils_g_param_spec_is_default
-NMLDBusLogLevel
-nml_dbus_log_enabled_full
-nml_dbus_log_enabled
-NML_DBUS_LOG
-NML_DBUS_LOG_T
-NML_DBUS_LOG_D
-NML_DBUS_LOG_W
-NML_DBUS_LOG_E
-NML_NMCLIENT_LOG
-NML_NMCLIENT_LOG_T
-NML_NMCLIENT_LOG_D
-NML_NMCLIENT_LOG_W
-NML_NMCLIENT_LOG_E
-nm_dbus_path_not_empty
-nm_context_busy_watcher_quark
-nm_context_busy_watcher_integrate_source
-NMLInitData
-nml_init_data_new_sync
-nml_init_data_new_async
-nml_init_data_return
-nml_cleanup_context_busy_watcher_on_idle
-NMLDBusMetaInteracePrio
-NM_CLIENT_INSTANCE_FLAGS_ALL
-NMLDBusPropertVTableO
-NMLDBusPropertyO
-nml_dbus_property_o_get_obj
-nml_dbus_property_o_is_ready
-nml_dbus_property_o_is_ready_fully
-nml_dbus_property_o_clear
-nml_dbus_property_o_clear_many
-nml_dbus_property_o_notify_changed_many
-NMLDBusPropertVTableAO
-NMLDBusPropertyAO
-nml_dbus_property_ao_get_objs_as_ptrarray
-nml_dbus_property_ao_is_ready
-nml_dbus_property_ao_clear
-nml_dbus_property_ao_clear_many
-nml_dbus_property_ao_notify_changed_many
-NMLDBusNotifyUpdatePropFlags
-nml_dbus_property_ao_notify
-NMLDBusMetaProperty
-NML_DBUS_META_PROPERTY_INIT
-NML_DBUS_META_PROPERTY_INIT_B
-NML_DBUS_META_PROPERTY_INIT_Y
-NML_DBUS_META_PROPERTY_INIT_Q
-NML_DBUS_META_PROPERTY_INIT_I
-NML_DBUS_META_PROPERTY_INIT_U
-NML_DBUS_META_PROPERTY_INIT_X
-NML_DBUS_META_PROPERTY_INIT_T
-NML_DBUS_META_PROPERTY_INIT_S
-NML_DBUS_META_PROPERTY_INIT_AS
-NML_DBUS_META_PROPERTY_INIT_AY
-NML_DBUS_META_PROPERTY_INIT_O
-NML_DBUS_META_PROPERTY_INIT_O_PROP
-NML_DBUS_META_PROPERTY_INIT_AO_PROP
-NML_DBUS_META_PROPERTY_INIT_FCN
-NML_DBUS_META_PROPERTY_INIT_IGNORE
-NML_DBUS_META_PROPERTY_INIT_TODO
-NMLDBusMetaIface
-NML_DBUS_META_IFACE_OBJ_PROPERTIES
-NML_DBUS_META_IFACE_DBUS_PROPERTIES
-NML_DBUS_META_IFACE_INIT
-NML_DBUS_META_IFACE_INIT_PROP
-nml_dbus_meta_iface_get
-nml_dbus_meta_property_get
-NMLDBusObjState
-NMLDBusObjChangedType
-nml_dbus_object_ref
-nml_dbus_object_unref
-nm_auto_unref_nml_dbusobj
-nml_dbus_object_get_property_location
-NMObjectBase
-NMObjectBaseClass
-NMObject
-_NMObjectClassFieldInfo
-NMObjectClass
-NMDevice
-NMDeviceClass
-NMDeviceEthernet
-NMDeviceEthernetClass
-NMActiveConnection
-NMActiveConnectionClass
-NMDhcpConfig
-NMDhcpConfigClass
-NMIPConfig
-NMIPConfigClass
-NM_CLIENT_NOTIFY_EVENT_PRIO_BEFORE
-NM_CLIENT_NOTIFY_EVENT_PRIO_GPROP
-NM_CLIENT_NOTIFY_EVENT_PRIO_AFTER
-NMClientNotifyEventCb
-NMClientNotifyEvent
-NMClientNotifyEventWithPtrCb
-NMClientNotifyEventWithPtr
-NMLDBusObjWatcher
-<SUBSECTION Standard>
-NMLDBusObject
-NML_IS_DBUS_OBJECT
-</SECTION>
-
-<SECTION>
 <FILE>nm-object</FILE>
 <TITLE>NMObject</TITLE>
 NM_OBJECT_PATH
@@ -1964,7 +1811,15 @@ nm_setting_option_set_boolean
 nm_setting_option_get_all_names
 nm_setting_option_clear_by_name
 nm_setting_get_dbus_property_type
+nm_range_new
+nm_range_ref
+nm_range_unref
+nm_range_cmp
+nm_range_get_range
+nm_range_to_str
+nm_range_from_str
 <SUBSECTION Standard>
+NMRange
 NMSettingClass
 NM_IS_SETTING
 NM_IS_SETTING_CLASS
@@ -1972,6 +1827,7 @@ NM_SETTING
 NM_SETTING_CLASS
 NM_SETTING_GET_CLASS
 NM_TYPE_SETTING
+nm_range_get_type
 nm_setting_get_type
 </SECTION>
 
@@ -2221,6 +2077,7 @@ NM_SETTING_BOND_OPTION_ARP_INTERVAL
 NM_SETTING_BOND_OPTION_ARP_IP_TARGET
 NM_SETTING_BOND_OPTION_ARP_VALIDATE
 NM_SETTING_BOND_OPTION_PRIMARY
+NM_SETTING_BOND_OPTION_BALANCE_SLB
 NM_SETTING_BOND_OPTION_PRIMARY_RESELECT
 NM_SETTING_BOND_OPTION_FAIL_OVER_MAC
 NM_SETTING_BOND_OPTION_USE_CARRIER
@@ -2792,6 +2649,7 @@ NM_IP_ROUTE_ATTRIBUTE_TABLE
 NM_IP_ROUTE_ATTRIBUTE_TOS
 NM_IP_ROUTE_ATTRIBUTE_TYPE
 NM_IP_ROUTE_ATTRIBUTE_WINDOW
+NM_IP_ROUTE_ATTRIBUTE_WEIGHT
 nm_ip_routing_rule_new
 nm_ip_routing_rule_new_clone
 nm_ip_routing_rule_ref
@@ -2862,6 +2720,7 @@ NM_SETTING_IP_CONFIG_DHCP_TIMEOUT
 NM_SETTING_IP_CONFIG_REQUIRED_TIMEOUT
 NM_SETTING_IP_CONFIG_DHCP_IAID
 NM_SETTING_IP_CONFIG_DHCP_REJECT_SERVERS
+NM_SETTING_IP_CONFIG_AUTO_ROUTE_EXT_GW
 NM_SETTING_IP_CONFIG_ROUTING_RULES
 NM_SETTING_DNS_OPTION_DEBUG
 NM_SETTING_DNS_OPTION_NDOTS
@@ -2937,6 +2796,7 @@ nm_setting_ip_config_get_dhcp_reject_servers
 nm_setting_ip_config_add_dhcp_reject_server
 nm_setting_ip_config_remove_dhcp_reject_server
 nm_setting_ip_config_clear_dhcp_reject_servers
+nm_setting_ip_config_get_auto_route_ext_gw
 <SUBSECTION Standard>
 NMIPAddress
 NMIPRoute
@@ -2969,6 +2829,7 @@ NM_SETTING_IP_TUNNEL_INPUT_KEY
 NM_SETTING_IP_TUNNEL_OUTPUT_KEY
 NM_SETTING_IP_TUNNEL_ENCAPSULATION_LIMIT
 NM_SETTING_IP_TUNNEL_FLOW_LABEL
+NM_SETTING_IP_TUNNEL_FWMARK
 NM_SETTING_IP_TUNNEL_MTU
 NM_SETTING_IP_TUNNEL_FLAGS
 NMIPTunnelFlags
@@ -2984,6 +2845,7 @@ nm_setting_ip_tunnel_get_input_key
 nm_setting_ip_tunnel_get_output_key
 nm_setting_ip_tunnel_get_encapsulation_limit
 nm_setting_ip_tunnel_get_flow_label
+nm_setting_ip_tunnel_get_fwmark
 nm_setting_ip_tunnel_get_mtu
 nm_setting_ip_tunnel_get_flags
 <SUBSECTION Standard>
@@ -3062,6 +2924,24 @@ NM_SETTING_IP6_CONFIG_CLASS
 NM_SETTING_IP6_CONFIG_GET_CLASS
 NM_TYPE_SETTING_IP6_CONFIG
 nm_setting_ip6_config_get_type
+</SECTION>
+
+<SECTION>
+<FILE>nm-setting-loopback</FILE>
+<TITLE>NMSettingLoopback</TITLE>
+NM_SETTING_LOOPBACK_SETTING_NAME
+NM_SETTING_LOOPBACK_MTU
+nm_setting_loopback_new
+nm_setting_loopback_get_mtu
+<SUBSECTION Standard>
+NMSettingLoopbackClass
+NM_IS_SETTING_LOOPBACK
+NM_IS_SETTING_LOOPBACK_CLASS
+NM_SETTING_LOOPBACK
+NM_SETTING_LOOPBACK_CLASS
+NM_SETTING_LOOPBACK_GET_CLASS
+NM_TYPE_SETTING_LOOPBACK
+nm_setting_loopback_get_type
 </SECTION>
 
 <SECTION>
@@ -3229,9 +3109,13 @@ nm_setting_ovs_bridge_get_type
 NM_SETTING_OVS_DPDK_SETTING_NAME
 NM_SETTING_OVS_DPDK_DEVARGS
 NM_SETTING_OVS_DPDK_N_RXQ
+NM_SETTING_OVS_DPDK_N_RXQ_DESC
+NM_SETTING_OVS_DPDK_N_TXQ_DESC
 nm_setting_ovs_dpdk_new
 nm_setting_ovs_dpdk_get_devargs
 nm_setting_ovs_dpdk_get_n_rxq
+nm_setting_ovs_dpdk_get_n_rxq_desc
+nm_setting_ovs_dpdk_get_n_txq_desc
 <SUBSECTION Standard>
 NMSettingOvsDpdkClass
 NM_IS_SETTING_OVS_DPDK
@@ -3270,8 +3154,10 @@ nm_setting_ovs_external_ids_get_type
 <TITLE>NMSettingOvsInterface</TITLE>
 NM_SETTING_OVS_INTERFACE_SETTING_NAME
 NM_SETTING_OVS_INTERFACE_TYPE
+NM_SETTING_OVS_INTERFACE_OFPORT_REQUEST
 nm_setting_ovs_interface_new
 nm_setting_ovs_interface_get_interface_type
+nm_setting_ovs_interface_get_ofport_request
 <SUBSECTION Standard>
 NMSettingOvsInterfaceClass
 NM_IS_SETTING_OVS_INTERFACE
@@ -3281,6 +3167,26 @@ NM_SETTING_OVS_INTERFACE_CLASS
 NM_SETTING_OVS_INTERFACE_GET_CLASS
 NM_TYPE_SETTING_OVS_INTERFACE
 nm_setting_ovs_interface_get_type
+</SECTION>
+
+<SECTION>
+<FILE>nm-setting-ovs-other-config</FILE>
+<TITLE>NMSettingOvsOtherConfig</TITLE>
+NM_SETTING_OVS_OTHER_CONFIG_SETTING_NAME
+NM_SETTING_OVS_OTHER_CONFIG_DATA
+nm_setting_ovs_other_config_new
+nm_setting_ovs_other_config_get_data_keys
+nm_setting_ovs_other_config_get_data
+nm_setting_ovs_other_config_set_data
+<SUBSECTION Standard>
+NMSettingOvsOtherConfigClass
+NM_IS_SETTING_OVS_OTHER_CONFIG
+NM_IS_SETTING_OVS_OTHER_CONFIG_CLASS
+NM_SETTING_OVS_OTHER_CONFIG
+NM_SETTING_OVS_OTHER_CONFIG_CLASS
+NM_SETTING_OVS_OTHER_CONFIG_GET_CLASS
+NM_TYPE_SETTING_OVS_OTHER_CONFIG
+nm_setting_ovs_other_config_get_type
 </SECTION>
 
 <SECTION>
@@ -3307,6 +3213,7 @@ nm_setting_ovs_patch_get_type
 NM_SETTING_OVS_PORT_SETTING_NAME
 NM_SETTING_OVS_PORT_VLAN_MODE
 NM_SETTING_OVS_PORT_TAG
+NM_SETTING_OVS_PORT_TRUNKS
 NM_SETTING_OVS_PORT_LACP
 NM_SETTING_OVS_PORT_BOND_MODE
 NM_SETTING_OVS_PORT_BOND_UPDELAY
@@ -3318,6 +3225,12 @@ nm_setting_ovs_port_get_lacp
 nm_setting_ovs_port_get_bond_mode
 nm_setting_ovs_port_get_bond_updelay
 nm_setting_ovs_port_get_bond_downdelay
+nm_setting_ovs_port_add_trunk
+nm_setting_ovs_port_get_num_trunks
+nm_setting_ovs_port_get_trunk
+nm_setting_ovs_port_remove_trunk
+nm_setting_ovs_port_remove_trunk_by_value
+nm_setting_ovs_port_clear_trunks
 <SUBSECTION Standard>
 NMSettingOvsPortClass
 NM_IS_SETTING_OVS_PORT
@@ -3793,6 +3706,7 @@ NM_SETTING_VLAN_SETTING_NAME
 NM_SETTING_VLAN_PARENT
 NM_SETTING_VLAN_ID
 NM_SETTING_VLAN_FLAGS
+NM_SETTING_VLAN_PROTOCOL
 NM_SETTING_VLAN_INGRESS_PRIORITY_MAP
 NM_SETTING_VLAN_EGRESS_PRIORITY_MAP
 NMVlanPriorityMap
@@ -3802,6 +3716,7 @@ nm_setting_vlan_new
 nm_setting_vlan_get_parent
 nm_setting_vlan_get_id
 nm_setting_vlan_get_flags
+nm_setting_vlan_get_protocol
 nm_setting_vlan_get_num_priorities
 nm_setting_vlan_get_priority
 nm_setting_vlan_add_priority
@@ -4285,43 +4200,6 @@ nm_simple_connection_get_type
 </SECTION>
 
 <SECTION>
-<FILE>nm-team-utils</FILE>
-NMTeamAttribute
-nm_team_attribute_to_flags
-NMTeamSettingData
-NMTeamSetting
-nm_team_setting_new
-nm_team_setting_free
-nm_auto_free_team_setting
-nm_team_setting_config_get
-nm_team_setting_config_set
-nm_team_setting_value_get_bool
-nm_team_setting_value_get_int32
-nm_team_setting_value_get_string
-nm_team_setting_value_reset
-nm_team_setting_value_set_bool
-nm_team_setting_value_set_int32
-nm_team_setting_value_set_string
-nm_team_setting_value_link_watchers_add
-nm_team_setting_value_link_watchers_remove
-nm_team_setting_value_link_watchers_remove_by_value
-nm_team_setting_value_link_watchers_set_list
-nm_team_setting_value_master_runner_tx_hash_add
-nm_team_setting_value_master_runner_tx_hash_remove
-nm_team_setting_value_master_runner_tx_hash_set_list
-nm_team_setting_verify
-nm_team_setting_cmp
-nm_team_setting_reset
-nm_team_setting_reset_from_dbus
-nm_team_setting_maybe_changed
-nm_sett_info_propert_type_team_b
-nm_sett_info_propert_type_team_i
-nm_sett_info_propert_type_team_s
-nm_sett_info_propert_type_team_as
-NMTeamLinkWatcher
-</SECTION>
-
-<SECTION>
 <FILE>nm-utils</FILE>
 nm_utils_is_empty_ssid
 nm_utils_escape_ssid
@@ -4399,6 +4277,7 @@ nm_utils_sriov_vf_to_str
 nm_utils_sriov_vf_from_str
 nm_utils_get_timestamp_msec
 nm_utils_base64secret_decode
+nm_utils_ensure_gtypes
 NMVariantAttributeSpec
 in6_addr
 stat
@@ -4474,7 +4353,9 @@ NM_AVAILABLE_IN_1_38
 NM_DEPRECATED_IN_1_40
 NM_DEPRECATED_IN_1_40_FOR
 NM_AVAILABLE_IN_1_40
-NM_AVAILABLE_IN_1_40_4
+NM_DEPRECATED_IN_1_42
+NM_DEPRECATED_IN_1_42_FOR
+NM_AVAILABLE_IN_1_42
 </SECTION>
 
 <SECTION>
@@ -4507,7 +4388,7 @@ NM_VERSION_1_34
 NM_VERSION_1_36
 NM_VERSION_1_38
 NM_VERSION_1_40
-NM_VERSION_1_40_4
+NM_VERSION_1_42
 NM_API_VERSION
 NM_VERSION_CUR_STABLE
 NM_VERSION_NEXT_STABLE

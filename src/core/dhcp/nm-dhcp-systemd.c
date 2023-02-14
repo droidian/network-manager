@@ -30,7 +30,7 @@
 
 #define NM_TYPE_DHCP_SYSTEMD (nm_dhcp_systemd_get_type())
 #define NM_DHCP_SYSTEMD(obj) \
-    (G_TYPE_CHECK_INSTANCE_CAST((obj), NM_TYPE_DHCP_SYSTEMD, NMDhcpSystemd))
+    (_NM_G_TYPE_CHECK_INSTANCE_CAST((obj), NM_TYPE_DHCP_SYSTEMD, NMDhcpSystemd))
 #define NM_DHCP_SYSTEMD_CLASS(klass) \
     (G_TYPE_CHECK_CLASS_CAST((klass), NM_TYPE_DHCP_SYSTEMD, NMDhcpSystemdClass))
 #define NM_IS_DHCP_SYSTEMD(obj)         (G_TYPE_CHECK_INSTANCE_TYPE((obj), NM_TYPE_DHCP_SYSTEMD))
@@ -74,7 +74,7 @@ lease_to_ip6_config(NMDhcpSystemd *self, sd_dhcp6_lease *lease, gint32 ts, GErro
     gs_unref_hashtable GHashTable          *options = NULL;
     struct in6_addr                         tmp_addr;
     const struct in6_addr                  *dns;
-    char                                    addr_str[NM_UTILS_INET_ADDRSTRLEN];
+    char                                    addr_str[NM_INET_ADDRSTRLEN];
     char                                  **domains;
     char                                  **ntp_fqdns;
     const struct in6_addr                  *ntp_addrs;
@@ -107,7 +107,7 @@ lease_to_ip6_config(NMDhcpSystemd *self, sd_dhcp6_lease *lease, gint32 ts, GErro
 
             nm_l3_config_data_add_address_6(l3cd, &address);
 
-            _nm_utils_inet6_ntop(&tmp_addr, addr_str);
+            nm_inet6_ntop(&tmp_addr, addr_str);
             g_string_append(nm_gstring_add_space_delimiter(str), addr_str);
 
             has_any_addresses = TRUE;
@@ -133,9 +133,9 @@ lease_to_ip6_config(NMDhcpSystemd *self, sd_dhcp6_lease *lease, gint32 ts, GErro
     if (num > 0) {
         nm_gstring_prepare(&str);
         for (i = 0; i < num; i++) {
-            _nm_utils_inet6_ntop(&dns[i], addr_str);
+            nm_inet6_ntop(&dns[i], addr_str);
             g_string_append(nm_gstring_add_space_delimiter(str), addr_str);
-            nm_l3_config_data_add_nameserver(l3cd, AF_INET6, &dns[i]);
+            nm_l3_config_data_add_nameserver_detail(l3cd, AF_INET6, &dns[i], NULL);
         }
         nm_dhcp_option_add_option(options, AF_INET6, NM_DHCP_OPTION_DHCP6_DNS_SERVERS, str->str);
     }
@@ -170,7 +170,7 @@ lease_to_ip6_config(NMDhcpSystemd *self, sd_dhcp6_lease *lease, gint32 ts, GErro
     num = sd_dhcp6_lease_get_ntp_addrs(lease, &ntp_addrs);
     if (num > 0) {
         for (i = 0; i < num; i++) {
-            _nm_utils_inet6_ntop(&ntp_addrs[i], addr_str);
+            nm_inet6_ntop(&ntp_addrs[i], addr_str);
             g_string_append(nm_gstring_add_space_delimiter(str), addr_str);
         }
     }

@@ -460,12 +460,12 @@ verify_secrets(NMSetting *setting, NMConnection *connection, GError **error)
 }
 
 static GPtrArray *
-need_secrets(NMSetting *setting)
+need_secrets(NMSetting *setting, gboolean check_rerequest)
 {
     NMSettingGsmPrivate *priv    = NM_SETTING_GSM_GET_PRIVATE(setting);
     GPtrArray           *secrets = NULL;
 
-    if (priv->password && *priv->password)
+    if (!check_rerequest && priv->password && *priv->password)
         return NULL;
 
     if (priv->username) {
@@ -545,7 +545,8 @@ nm_setting_gsm_class_init(NMSettingGsmClass *klass)
                                               PROP_NUMBER,
                                               NM_SETTING_PARAM_NONE,
                                               NMSettingGsmPrivate,
-                                              number);
+                                              number,
+                                              .is_deprecated = TRUE, );
 
     /**
      * NMSettingGsm:username:
@@ -744,10 +745,12 @@ nm_setting_gsm_class_init(NMSettingGsmClass *klass)
     /* Ignore incoming deprecated properties */
     _nm_properties_override_dbus(properties_override,
                                  "allowed-bands",
-                                 &nm_sett_info_propert_type_deprecated_ignore_u);
+                                 &nm_sett_info_propert_type_deprecated_ignore_u,
+                                 .dbus_deprecated = TRUE, );
     _nm_properties_override_dbus(properties_override,
                                  "network-type",
-                                 &nm_sett_info_propert_type_deprecated_ignore_i);
+                                 &nm_sett_info_propert_type_deprecated_ignore_i,
+                                 .dbus_deprecated = TRUE, );
 
     g_object_class_install_properties(object_class, _PROPERTY_ENUMS_LAST, obj_properties);
 

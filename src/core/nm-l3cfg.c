@@ -7,7 +7,7 @@
 #include "libnm-std-aux/nm-linux-compat.h"
 
 #include <net/if.h>
-#include <linux/if_addr.h>
+#include "nm-compat-headers/linux/if_addr.h"
 #include <linux/if_ether.h>
 #include <linux/rtnetlink.h>
 
@@ -358,16 +358,16 @@ G_DEFINE_TYPE(NML3Cfg, nm_l3cfg, G_TYPE_OBJECT)
     }                                                                         \
     G_STMT_END
 
-#define _LOGT_acd(acd_data, ...)                                      \
-    G_STMT_START                                                      \
-    {                                                                 \
-        char _sbuf_acd[NM_UTILS_INET_ADDRSTRLEN];                     \
-                                                                      \
-        _LOGT("acd[%s, %s]: " _NM_UTILS_MACRO_FIRST(__VA_ARGS__),     \
-              _nm_utils_inet4_ntop((acd_data)->info.addr, _sbuf_acd), \
-              _l3_acd_addr_state_to_string((acd_data)->info.state)    \
-                  _NM_UTILS_MACRO_REST(__VA_ARGS__));                 \
-    }                                                                 \
+#define _LOGT_acd(acd_data, ...)                                   \
+    G_STMT_START                                                   \
+    {                                                              \
+        char _sbuf_acd[NM_INET_ADDRSTRLEN];                        \
+                                                                   \
+        _LOGT("acd[%s, %s]: " _NM_UTILS_MACRO_FIRST(__VA_ARGS__),  \
+              nm_inet4_ntop((acd_data)->info.addr, _sbuf_acd),     \
+              _l3_acd_addr_state_to_string((acd_data)->info.state) \
+                  _NM_UTILS_MACRO_REST(__VA_ARGS__));              \
+    }                                                              \
     G_STMT_END
 
 /*****************************************************************************/
@@ -548,7 +548,7 @@ _l3_config_notify_data_to_string(const NML3ConfigNotifyData *notify_data,
                                  char                       *sbuf,
                                  gsize                       sbuf_size)
 {
-    char      sbuf_addr[NM_UTILS_INET_ADDRSTRLEN];
+    char      sbuf_addr[NM_INET_ADDRSTRLEN];
     char      sbuf100[100];
     char      sbufobf[NM_HASH_OBFUSCATE_PTR_STR_BUF_SIZE];
     char     *s = sbuf;
@@ -577,7 +577,7 @@ _l3_config_notify_data_to_string(const NML3ConfigNotifyData *notify_data,
         nm_strbuf_append(&s,
                          &l,
                          ", addr=%s, state=%s",
-                         _nm_utils_inet4_ntop(notify_data->acd_event.info.addr, sbuf_addr),
+                         nm_inet4_ntop(notify_data->acd_event.info.addr, sbuf_addr),
                          _l3_acd_addr_state_to_string(notify_data->acd_event.info.state));
         break;
     case NM_L3_CONFIG_NOTIFY_TYPE_PLATFORM_CHANGE:
@@ -603,7 +603,7 @@ _l3_config_notify_data_to_string(const NML3ConfigNotifyData *notify_data,
             &l,
             ", ipv4ll=" NM_HASH_OBFUSCATE_PTR_FMT "%s%s, state=%s",
             NM_HASH_OBFUSCATE_PTR(notify_data->ipv4ll_event.ipv4ll),
-            NM_PRINT_FMT_QUOTED2(addr4 != 0, ", addr=", _nm_utils_inet4_ntop(addr4, sbuf_addr), ""),
+            NM_PRINT_FMT_QUOTED2(addr4 != 0, ", addr=", nm_inet4_ntop(addr4, sbuf_addr), ""),
             nm_l3_ipv4ll_state_to_string(nm_l3_ipv4ll_get_state(notify_data->ipv4ll_event.ipv4ll),
                                          sbuf100,
                                          sizeof(sbuf100)));
@@ -1143,7 +1143,7 @@ _commit_collect_routes(NML3Cfg          *self,
                                                NMP_OBJECT_TYPE_IP_ROUTE(IS_IPv4));
 
     if (!head_entry)
-        return;
+        goto loop_done;
 
     c_list_for_each_entry (entry, &head_entry->lst_entries_head, lst_entries) {
         const NMPObject *obj = entry->obj;
@@ -1152,6 +1152,14 @@ _commit_collect_routes(NML3Cfg          *self,
         if (_obj_is_route_nodev(obj))
             r = routes_nodev;
         else {
+            nm_assert(NMP_OBJECT_CAST_IP_ROUTE(obj)->ifindex == self->priv.ifindex);
+
+            if (IS_IPv4 && NMP_OBJECT_CAST_IP4_ROUTE(obj)->weight > 0) {
+                /* This route needs to be registered as ECMP route. */
+                nm_netns_ip_route_ecmp_register(self->priv.netns, self, obj);
+                continue;
+            }
+
             if (!_obj_states_sync_filter(self, obj, commit_type))
                 continue;
             r = routes;
@@ -1161,6 +1169,36 @@ _commit_collect_routes(NML3Cfg          *self,
             *r = g_ptr_array_new_full(head_entry->len, (GDestroyNotify) nm_dedup_multi_obj_unref);
 
         g_ptr_array_add(*r, (gpointer) nmp_object_ref(obj));
+    }
+
+loop_done:
+
+    if (IS_IPv4) {
+        gs_unref_ptrarray GPtrArray *singlehop_routes = NULL;
+        guint                        i;
+
+        /* NMNetns will merge the routes. The ones that found a merge partner are true multihop
+         * routes, with potentially a next hop on different interfaces. The routes
+         * that didn't find a merge partner are returned in "singlehop_routes". */
+        nm_netns_ip_route_ecmp_commit(self->priv.netns,
+                                      self,
+                                      &singlehop_routes,
+                                      NM_IN_SET(commit_type, NM_L3_CFG_COMMIT_TYPE_REAPPLY));
+
+        if (singlehop_routes) {
+            for (i = 0; i < singlehop_routes->len; i++) {
+                const NMPObject *obj = singlehop_routes->pdata[i];
+
+                if (!_obj_states_sync_filter(self, obj, commit_type))
+                    continue;
+
+                if (!*routes)
+                    *routes =
+                        g_ptr_array_new_with_free_func((GDestroyNotify) nm_dedup_multi_obj_unref);
+
+                g_ptr_array_add(*routes, (gpointer) nmp_object_ref(obj));
+            }
+        }
     }
 }
 
@@ -1430,7 +1468,8 @@ _acd_data_free(AcdData *acd_data)
 }
 
 static guint
-_acd_data_collect_tracks_data(const AcdData     *acd_data,
+_acd_data_collect_tracks_data(NML3Cfg           *self,
+                              const AcdData     *acd_data,
                               NMTernary          dirty_selector,
                               guint32           *out_best_acd_timeout_msec,
                               NML3AcdDefendType *out_best_acd_defend_type)
@@ -1465,6 +1504,12 @@ _acd_data_collect_tracks_data(const AcdData     *acd_data,
 
     nm_assert(n == 0 || best_acd_defend_type > _NM_L3_ACD_DEFEND_TYPE_NONE);
     nm_assert(best_acd_defend_type <= NM_L3_ACD_DEFEND_TYPE_ALWAYS);
+
+    if (self->priv.ifindex == NM_LOOPBACK_IFINDEX) {
+        /* On loopback interface, ACD makes no sense. We always force the
+         * timeout to zero, which means no ACD. */
+        best_acd_timeout_msec = 0;
+    }
 
     NM_SET_OUT(out_best_acd_timeout_msec, n > 0 ? best_acd_timeout_msec : 0u);
     NM_SET_OUT(out_best_acd_defend_type, best_acd_defend_type);
@@ -2230,7 +2275,7 @@ _l3_acd_data_state_change(NML3Cfg           *self,
     gint64            now_msec;
     const char       *log_reason;
     char              sbuf256[256];
-    char              sbuf_addr[NM_UTILS_INET_ADDRSTRLEN];
+    char              sbuf_addr[NM_INET_ADDRSTRLEN];
 
     if (!p_now_msec) {
         now_msec   = 0;
@@ -2313,7 +2358,8 @@ _l3_acd_data_state_change(NML3Cfg           *self,
         return;
 
 handle_init:
-        if (_acd_data_collect_tracks_data(acd_data,
+        if (_acd_data_collect_tracks_data(self,
+                                          acd_data,
                                           NM_TERNARY_FALSE,
                                           &acd_timeout_msec,
                                           &acd_defend_type)
@@ -2362,7 +2408,8 @@ handle_init:
 
         /* we just did a commit of the IP configuration and now visit all ACD states
          * and kick off the necessary actions... */
-        if (_acd_data_collect_tracks_data(acd_data,
+        if (_acd_data_collect_tracks_data(self,
+                                          acd_data,
                                           NM_TERNARY_TRUE,
                                           &acd_timeout_msec,
                                           &acd_defend_type)
@@ -2465,7 +2512,8 @@ handle_init:
             /* after a timeout, re-probe the address. This only happens if the caller
              * does not deconfigure the address after USED/CONFLICT. But in that case,
              * we eventually want to retry. */
-            if (_acd_data_collect_tracks_data(acd_data,
+            if (_acd_data_collect_tracks_data(self,
+                                              acd_data,
                                               NM_TERNARY_TRUE,
                                               &acd_timeout_msec,
                                               &acd_defend_type)
@@ -2550,7 +2598,7 @@ handle_init:
         if (!_l3_acd_data_defendconflict_warning_ratelimited(acd_data, p_now_msec)) {
             _LOGI("IPv4 address %s is used on network connected to interface %d%s%s%s from "
                   "host %s",
-                  _nm_utils_inet4_ntop(acd_data->info.addr, sbuf_addr),
+                  nm_inet4_ntop(acd_data->info.addr, sbuf_addr),
                   self->priv.ifindex,
                   NM_PRINT_FMT_QUOTED(self->priv.plobj_next,
                                       " (",
@@ -2565,7 +2613,7 @@ handle_init:
         nm_assert(acd_data->info.state == NM_L3_ACD_ADDR_STATE_DEFENDING);
         _LOGT_acd(acd_data,
                   "address %s defended from %s",
-                  _nm_utils_inet4_ntop(acd_data->info.addr, sbuf_addr),
+                  nm_inet4_ntop(acd_data->info.addr, sbuf_addr),
                   nm_ether_addr_to_string_a(sender_addr));
         /* we just log an info message. Nothing else to do. */
         return;
@@ -2575,7 +2623,7 @@ handle_init:
 
         _LOGT_acd(acd_data,
                   "address conflict for %s detected with %s",
-                  _nm_utils_inet4_ntop(acd_data->info.addr, sbuf_addr),
+                  nm_inet4_ntop(acd_data->info.addr, sbuf_addr),
                   nm_ether_addr_to_string_a(sender_addr));
 
         if (!_l3_acd_data_defendconflict_warning_ratelimited(acd_data, p_now_msec)) {
@@ -2587,7 +2635,7 @@ handle_init:
                                       NMP_OBJECT_CAST_LINK(self->priv.plobj_next)->name,
                                       ")",
                                       ""),
-                  _nm_utils_inet4_ntop(acd_data->info.addr, sbuf_addr),
+                  nm_inet4_ntop(acd_data->info.addr, sbuf_addr),
                   nm_ether_addr_to_string_a(sender_addr));
         }
 
@@ -2990,68 +3038,103 @@ nm_l3cfg_check_ready(NML3Cfg               *self,
                      const NML3ConfigData  *l3cd,
                      int                    addr_family,
                      NML3CfgCheckReadyFlags flags,
-                     gboolean              *acd_used)
+                     GArray               **conflicts)
 {
     NMDedupMultiIter iter;
     const NMPObject *obj;
+    gboolean         ready = TRUE;
 
     nm_assert(NM_IS_L3CFG(self));
-    nm_assert_addr_family_or_unspec(addr_family);
-
-    NM_SET_OUT(acd_used, FALSE);
+    nm_assert_addr_family(addr_family);
+    nm_assert(!conflicts || !*conflicts);
 
     if (!l3cd)
         return TRUE;
 
-    if (NM_IN_SET(addr_family, AF_UNSPEC, AF_INET)
-        && NM_FLAGS_HAS(flags, NM_L3CFG_CHECK_READY_FLAGS_IP4_ACD_READY)) {
-        gboolean pending = FALSE;
+    if (addr_family == AF_INET) {
+        if (NM_FLAGS_HAS(flags, NM_L3CFG_CHECK_READY_FLAGS_IP4_ACD_READY)) {
+            nm_l3_config_data_iter_obj_for_each (&iter, l3cd, &obj, NMP_OBJECT_TYPE_IP4_ADDRESS) {
+                const NML3AcdAddrInfo *addr_info;
 
-        nm_l3_config_data_iter_obj_for_each (&iter, l3cd, &obj, NMP_OBJECT_TYPE_IP4_ADDRESS) {
-            const NML3AcdAddrInfo *addr_info;
-
-            addr_info = nm_l3cfg_get_acd_addr_info(self, NMP_OBJECT_CAST_IP4_ADDRESS(obj)->address);
-            if (!addr_info) {
-                /* We don't track the this address? That's odd. Not ready. */
-                pending = TRUE;
-            } else {
-                if (addr_info->state <= NM_L3_ACD_ADDR_STATE_PROBING) {
-                    /* Still probing. Not ready. */
-                    pending = TRUE;
-                } else if (addr_info->state == NM_L3_ACD_ADDR_STATE_USED) {
-                    NM_SET_OUT(acd_used, TRUE);
+                addr_info =
+                    nm_l3cfg_get_acd_addr_info(self, NMP_OBJECT_CAST_IP4_ADDRESS(obj)->address);
+                if (!addr_info) {
+                    /* We don't track the this address? That's odd. Not ready. */
+                    ready = FALSE;
+                } else {
+                    if (addr_info->state <= NM_L3_ACD_ADDR_STATE_PROBING) {
+                        /* Still probing. Not ready. */
+                        ready = FALSE;
+                    } else if (addr_info->state == NM_L3_ACD_ADDR_STATE_USED) {
+                        if (conflicts) {
+                            if (!*conflicts)
+                                *conflicts = g_array_new(FALSE,
+                                                         FALSE,
+                                                         nm_utils_addr_family_to_size(addr_family));
+                            g_array_append_val(*conflicts, addr_info->addr);
+                        }
+                    }
                 }
+                /* we only care that we don't have ACD still pending. Otherwise we are ready,
+                 * including if we have no addr_info about this address or the address is in use. */
             }
-            /* we only care that we don't have ACD still pending. Otherwise we are ready,
-             * including if we have no addr_info about this address or the address is in use. */
         }
-        if (pending)
-            return FALSE;
+        return ready;
     }
 
-    if (NM_IN_SET(addr_family, AF_UNSPEC, AF_INET6)
-        && NM_FLAGS_HAS(flags, NM_L3CFG_CHECK_READY_FLAGS_IP6_DAD_READY)) {
+    /* AF_INET6 */
+    if (NM_FLAGS_HAS(flags, NM_L3CFG_CHECK_READY_FLAGS_IP6_DAD_READY)) {
         nm_l3_config_data_iter_obj_for_each (&iter, l3cd, &obj, NMP_OBJECT_TYPE_IP6_ADDRESS) {
             ObjStateData *obj_state;
+            gboolean      dadfailed = FALSE;
 
             obj_state = g_hash_table_lookup(self->priv.p->obj_state_hash, &obj);
 
             if (!obj_state) {
                 /* Hm, we don't track this object? That is odd. Not ready. */
-                return FALSE;
+                ready = FALSE;
+                continue;
             }
 
             if (!obj_state->os_nm_configured && !obj_state->os_plobj) {
                 /* We didn't (yet) configure this address and it also is not in platform.
                  * Not ready. */
-                return FALSE;
+                ready = FALSE;
+                continue;
+            }
+
+            if (obj_state->os_plobj
+                && NM_FLAGS_HAS(NMP_OBJECT_CAST_IP6_ADDRESS(obj_state->os_plobj)->n_ifa_flags,
+                                IFA_F_DADFAILED)) {
+                /* The address is still present with DADFAILED flag. */
+                dadfailed = TRUE;
+            } else if (obj_state->os_nm_configured && !obj_state->os_plobj
+                       && nm_platform_ip6_dadfailed_check(
+                           self->priv.platform,
+                           self->priv.ifindex,
+                           &NMP_OBJECT_CAST_IP6_ADDRESS(obj_state->obj)->address)) {
+                /* We configured the address and kernel removed it with DADFAILED flag. */
+                dadfailed = TRUE;
+            }
+
+            if (dadfailed) {
+                if (conflicts) {
+                    if (!*conflicts) {
+                        *conflicts =
+                            g_array_new(FALSE, FALSE, nm_utils_addr_family_to_size(addr_family));
+                    }
+                    g_array_append_val(*conflicts,
+                                       NMP_OBJECT_CAST_IP6_ADDRESS(obj_state->obj)->address);
+                }
+                continue;
             }
 
             if (obj_state->os_plobj
                 && NM_FLAGS_HAS(NMP_OBJECT_CAST_IP6_ADDRESS(obj_state->os_plobj)->n_ifa_flags,
                                 IFA_F_TENTATIVE)) {
                 /* The address is configured in kernel, but still tentative. Not ready. */
-                return FALSE;
+                ready = FALSE;
+                continue;
             }
 
             /* This address is ready. Even if it is not (not anymore) configured in kernel (as
@@ -3060,7 +3143,7 @@ nm_l3cfg_check_ready(NML3Cfg               *self,
         }
     }
 
-    return TRUE;
+    return ready;
 }
 
 /*****************************************************************************/
@@ -3144,7 +3227,7 @@ nm_l3cfg_commit_on_idle_is_scheduled(NML3Cfg *self)
 /*****************************************************************************/
 
 #define _l3_config_datas_at(l3_config_datas, idx) \
-    (&g_array_index((l3_config_datas), L3ConfigData, (idx)))
+    (&nm_g_array_index((l3_config_datas), L3ConfigData, (idx)))
 
 static gssize
 _l3_config_datas_find_next(GArray               *l3_config_datas,
@@ -3395,8 +3478,10 @@ nm_l3cfg_add_config(NML3Cfg              *self,
 
     nm_assert(l3_config_data->acd_defend_type_confdata == acd_defend_type);
 
-    if (changed)
+    if (changed) {
         _l3_changed_configs_set_dirty(self);
+        nm_l3cfg_commit_on_idle_schedule(self, NM_L3_CFG_COMMIT_TYPE_AUTO);
+    }
 
     return changed;
 }
@@ -3439,6 +3524,9 @@ _l3cfg_remove_config(NML3Cfg              *self,
             break;
         }
     }
+
+    if (changed)
+        nm_l3cfg_commit_on_idle_schedule(self, NM_L3_CFG_COMMIT_TYPE_AUTO);
 
     if (self->priv.p->l3_config_datas->len == 0) {
         nm_assert(changed);
@@ -3713,6 +3801,38 @@ _l3cfg_update_combined_config(NML3Cfg               *self,
                                     &hook_data);
         }
 
+        if (self->priv.ifindex == NM_LOOPBACK_IFINDEX) {
+            NMPlatformIPXAddress ax;
+            NMPlatformIPXRoute   rx;
+
+            if (!nm_l3_config_data_lookup_address_4(l3cd,
+                                                    NM_IPV4LO_ADDR1,
+                                                    NM_IPV4LO_PREFIXLEN,
+                                                    NM_IPV4LO_ADDR1)) {
+                nm_l3_config_data_add_address_4(
+                    l3cd,
+                    nm_platform_ip4_address_init_loopback_addr1(&ax.a4));
+            }
+            if (!nm_l3_config_data_lookup_address_6(l3cd, &in6addr_loopback)) {
+                nm_l3_config_data_add_address_6(l3cd,
+                                                nm_platform_ip6_address_init_loopback(&ax.a6));
+            }
+
+            rx.r4 = (NMPlatformIP4Route){
+                .ifindex       = NM_LOOPBACK_IFINDEX,
+                .rt_source     = NM_IP_CONFIG_SOURCE_KERNEL,
+                .network       = NM_IPV4LO_ADDR1,
+                .plen          = NM_IPV4LO_PREFIXLEN,
+                .table_coerced = nm_platform_route_table_coerce(RT_TABLE_LOCAL),
+                .scope_inv     = nm_platform_route_scope_inv(RT_SCOPE_HOST),
+                .type_coerced  = nm_platform_route_type_coerce(RTN_LOCAL),
+                .pref_src      = NM_IPV4LO_ADDR1,
+            };
+            nm_platform_ip_route_normalize(AF_INET, &rx.rx);
+            if (!nm_l3_config_data_lookup_route(l3cd, AF_INET, &rx.rx)) {
+                nm_l3_config_data_add_route_4(l3cd, &rx.r4);
+            }
+        }
         for (i = 0; i < l3_config_datas_len; i++) {
             const L3ConfigData *l3cd_data = l3_config_datas_arr[i];
             int                 IS_IPv4;
@@ -4371,9 +4491,9 @@ _l3_commit_mptcp_af(NML3Cfg          *self,
                 default:
                     if (IS_IPv4) {
                         /* We take all addresses, including rfc1918 private addresses
-                         * (nm_utils_ip_is_site_local()). */
+                         * (nm_ip_addr_is_site_local()). */
                     } else {
-                        if (nm_utils_ip6_is_ula(&addr->a6.address)) {
+                        if (nm_ip6_addr_is_ula(&addr->a6.address)) {
                             /* Exclude unique local IPv6 addresses fc00::/7. */
                             goto skip_addr;
                         } else {
@@ -4470,7 +4590,7 @@ _l3_commit_one(NML3Cfg              *self,
     gs_unref_ptrarray GPtrArray *addresses_prune                    = NULL;
     gs_unref_ptrarray GPtrArray *routes_prune                       = NULL;
     gs_unref_ptrarray GPtrArray *routes_temporary_not_available_arr = NULL;
-    NMIPRouteTableSyncMode       route_table_sync = NM_IP_ROUTE_TABLE_SYNC_MODE_NONE;
+    NMIPRouteTableSyncMode       route_table_sync;
     gboolean                     final_failure_for_temporary_not_available = FALSE;
     char                         sbuf_commit_type[50];
     gboolean                     success = TRUE;
@@ -4487,15 +4607,15 @@ _l3_commit_one(NML3Cfg              *self,
           nm_utils_addr_family_to_char(addr_family),
           _l3_cfg_commit_type_to_string(commit_type, sbuf_commit_type, sizeof(sbuf_commit_type)));
 
-    if (self->priv.p->combined_l3cd_commited) {
-        addresses = _commit_collect_addresses(self, addr_family, commit_type);
+    addresses = _commit_collect_addresses(self, addr_family, commit_type);
 
-        _commit_collect_routes(self, addr_family, commit_type, &routes, &routes_nodev);
+    _commit_collect_routes(self, addr_family, commit_type, &routes, &routes_nodev);
 
-        route_table_sync =
-            nm_l3_config_data_get_route_table_sync(self->priv.p->combined_l3cd_commited,
-                                                   addr_family);
-    }
+    route_table_sync =
+        self->priv.p->combined_l3cd_commited
+            ? nm_l3_config_data_get_route_table_sync(self->priv.p->combined_l3cd_commited,
+                                                     addr_family)
+            : NM_IP_ROUTE_TABLE_SYNC_MODE_NONE;
 
     if (!IS_IPv4) {
         _l3_commit_ip6_privacy(self, commit_type);
@@ -4552,6 +4672,23 @@ _l3_commit_one(NML3Cfg              *self,
         }
     }
 
+    if (self->priv.ifindex == NM_LOOPBACK_IFINDEX) {
+        if (!addresses) {
+            NMPlatformIPXAddress ax;
+
+            addresses = g_ptr_array_new_with_free_func((GDestroyNotify) nmp_object_unref);
+            if (IS_IPv4) {
+                g_ptr_array_add(
+                    addresses,
+                    nmp_object_new(NMP_OBJECT_TYPE_IP4_ADDRESS,
+                                   nm_platform_ip4_address_init_loopback_addr1(&ax.a4)));
+            } else {
+                g_ptr_array_add(addresses,
+                                nmp_object_new(NMP_OBJECT_TYPE_IP6_ADDRESS,
+                                               nm_platform_ip6_address_init_loopback(&ax.a6)));
+            }
+        }
+    }
     /* FIXME(l3cfg): need to honor and set nm_l3_config_data_get_ndisc_*(). */
     /* FIXME(l3cfg): need to honor and set nm_l3_config_data_get_mtu(). */
 
@@ -4559,7 +4696,10 @@ _l3_commit_one(NML3Cfg              *self,
                                 addr_family,
                                 self->priv.ifindex,
                                 addresses,
-                                addresses_prune);
+                                addresses_prune,
+                                self->priv.ifindex == NM_LOOPBACK_IFINDEX
+                                    ? NMP_IP_ADDRESS_SYNC_FLAGS_NONE
+                                    : NMP_IP_ADDRESS_SYNC_FLAGS_WITH_NOPREFIXROUTE);
 
     _nodev_routes_sync(self, addr_family, commit_type, routes_nodev);
 
@@ -4810,6 +4950,9 @@ nm_l3cfg_commit_type_register(NML3Cfg                 *self,
         c_list_link_tail(&self->priv.p->commit_type_lst_head, &handle->commit_type_lst);
 
     ret = handle;
+
+    nm_l3cfg_commit_on_idle_schedule(self, NM_L3_CFG_COMMIT_TYPE_AUTO);
+
 out:
     _LOGT("commit type register (type \"%s\", source \"%s\", existing " NM_HASH_OBFUSCATE_PTR_FMT
           ") -> " NM_HASH_OBFUSCATE_PTR_FMT "",
@@ -4831,6 +4974,8 @@ nm_l3cfg_commit_type_unregister(NML3Cfg *self, NML3CfgCommitTypeHandle *handle)
     nm_assert(c_list_contains(&self->priv.p->commit_type_lst_head, &handle->commit_type_lst));
 
     _LOGT("commit type unregister " NM_HASH_OBFUSCATE_PTR_FMT "", NM_HASH_OBFUSCATE_PTR(handle));
+
+    nm_l3cfg_commit_on_idle_schedule(self, NM_L3_CFG_COMMIT_TYPE_AUTO);
 
     c_list_unlink_stale(&handle->commit_type_lst);
     if (c_list_is_empty(&self->priv.p->commit_type_lst_head))
@@ -5024,6 +5169,9 @@ nm_l3cfg_init(NML3Cfg *self)
     c_list_init(&self->priv.p->blocked_lst_head_4);
     c_list_init(&self->priv.p->blocked_lst_head_6);
 
+    c_list_init(&self->internal_netns.signal_pending_lst);
+    c_list_init(&self->internal_netns.ecmp_track_ifindex_lst_head);
+
     self->priv.p->obj_state_hash = g_hash_table_new_full(nmp_object_indirect_id_hash,
                                                          nmp_object_indirect_id_equal,
                                                          _obj_state_data_free,
@@ -5065,6 +5213,9 @@ finalize(GObject *object)
 {
     NML3Cfg *self = NM_L3CFG(object);
     gboolean changed;
+
+    nm_assert(c_list_is_empty(&self->internal_netns.signal_pending_lst));
+    nm_assert(c_list_is_empty(&self->internal_netns.ecmp_track_ifindex_lst_head));
 
     nm_assert(!self->priv.p->ipconfig_4);
     nm_assert(!self->priv.p->ipconfig_6);

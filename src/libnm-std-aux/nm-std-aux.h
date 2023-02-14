@@ -16,9 +16,11 @@
 
 #define _nm_packed             __attribute__((__packed__))
 #define _nm_unused             __attribute__((__unused__))
+#define _nm_always_inline      __attribute__((__always_inline__))
 #define _nm_used               __attribute__((__used__))
 #define _nm_pure               __attribute__((__pure__))
 #define _nm_const              __attribute__((__const__))
+#define _nm_noreturn           __attribute__((__noreturn__))
 #define _nm_warn_unused_result __attribute__((__warn_unused_result__))
 #define _nm_printf(a, b)       __attribute__((__format__(__printf__, a, b)))
 #define _nm_align(s)           __attribute__((__aligned__(s)))
@@ -42,8 +44,8 @@
 #endif
 #endif
 
-#if defined(__clang__) && __clang_major__ == 13
-/* Clang 13 can emit -Wunused-but-set-variable warning for cleanup variables
+#if defined(__clang__)
+/* Clang can emit -Wunused-but-set-variable warning for cleanup variables
  * that are only assigned (never used otherwise). Hack around */
 #define _nm_auto_extra _nm_unused
 #else
@@ -70,6 +72,14 @@
 #else
 #define _nm_fallthrough
 #endif
+
+/*****************************************************************************/
+
+/* This is mainly used in case of failed assertions. Usually assert() itself
+ * already ensures that the code path is marked as unreachable, however with
+ * NDEBUG that might not be the case. We want to mark the code as unreachable
+ * even with NDEBUG/G_DISABLE_ASSERT. */
+#define _nm_unreachable_code() __builtin_unreachable()
 
 /*****************************************************************************/
 
@@ -154,6 +164,15 @@ typedef uint64_t _nm_bitwise nm_be64_t;
 
 /*****************************************************************************/
 
+/* NM_BOOLEAN_EXPR(expr) exists to ensure that there is still a compiler
+ * warning when accidentally(?) using assignments like `NM_BOOLEAN_EXPR(x = 1)`
+ * Compiler will warn about that and suggest either == or additional parentheses
+ * `NM_BOOLEAN_EXPR((x = 1))`.
+ *
+ * This also is true for users of this macro, like `NM_LIKELY(x = 1)` and further
+ * up `nm_assert(x = 1)`. Those users must make sure not themselves adding additional
+ * parentheses around the condition.
+ */
 #define _NM_BOOLEAN_EXPR_IMPL(v, expr) \
     ({                                 \
         int NM_UNIQ_T(V, v);           \
@@ -164,14 +183,22 @@ typedef uint64_t _nm_bitwise nm_be64_t;
             NM_UNIQ_T(V, v) = 0;       \
         NM_UNIQ_T(V, v);               \
     })
-#define NM_BOOLEAN_EXPR(expr) _NM_BOOLEAN_EXPR_IMPL(NM_UNIQ, expr)
+
+#if defined(__GNUC__) && (__GNUC__ > 4)
+#define NM_BOOLEAN_EXPR(expr)                         \
+    __builtin_choose_expr(__builtin_constant_p(expr), \
+                          (!!(expr)),                 \
+                          _NM_BOOLEAN_EXPR_IMPL(NM_UNIQ, expr))
+#else
+#define NM_BOOLEAN_EXPR(expr) (!!(expr))
+#endif
 
 #if defined(__GNUC__) && (__GNUC__ > 2) && defined(__OPTIMIZE__)
-#define NM_LIKELY(expr)   (__builtin_expect(NM_BOOLEAN_EXPR(expr), 1))
-#define NM_UNLIKELY(expr) (__builtin_expect(NM_BOOLEAN_EXPR(expr), 0))
+#define NM_LIKELY(expr)   __builtin_expect(NM_BOOLEAN_EXPR(expr), 1)
+#define NM_UNLIKELY(expr) __builtin_expect(NM_BOOLEAN_EXPR(expr), 0)
 #else
-#define NM_LIKELY(expr)   (NM_BOOLEAN_EXPR(expr))
-#define NM_UNLIKELY(expr) (NM_BOOLEAN_EXPR(expr))
+#define NM_LIKELY(expr)   NM_BOOLEAN_EXPR(expr)
+#define NM_UNLIKELY(expr) NM_BOOLEAN_EXPR(expr)
 #endif
 
 /*****************************************************************************/
@@ -192,67 +219,106 @@ typedef uint64_t _nm_bitwise nm_be64_t;
 #define NM_MORE_ASSERTS 0
 #endif
 
-#ifndef _nm_assert_call
-#define _nm_assert_call(cond)         assert(cond)
-#define _nm_assert_call_not_reached() assert(0)
+#if NM_MORE_ASSERTS == 0
+/* The string with the assertion check and the function name blows up the
+ * binary size. In production mode, let's drop those, similar to
+ * g_assertion_message_expr.
+ *
+ * Note that <assert.h> can be included multiple times. We can thus
+ * not redefine __assert_fail(...). Instead, just redefine the name
+ * __assert_fail. */
+_nm_noreturn static inline void
+_nm_assert_fail_internal(const char  *assertion,
+                         const char  *file,
+                         unsigned int line,
+                         const char  *function)
+{
+    __assert_fail("<dropped>", file, line, "<unknown-fcn>");
+}
+#define __assert_fail _nm_assert_fail_internal
 #endif
 
-#if NM_MORE_ASSERTS
-#define nm_assert(cond)        \
-    ({                         \
-        _nm_assert_call(cond); \
-        1;                     \
-    })
-#define nm_assert_se(cond)                \
-    ({                                    \
-        if (NM_LIKELY(cond)) {            \
-            ;                             \
-        } else {                          \
-            _nm_assert_call(0 && (cond)); \
-        }                                 \
-        1;                                \
-    })
-#define nm_assert_not_reached()        \
-    ({                                 \
-        _nm_assert_call_not_reached(); \
-        1;                             \
-    })
+#ifndef NDEBUG
+#define _NM_ASSERT_FAIL_ENABLED 1
+#define _nm_assert_fail(msg)    __assert_fail((msg), __FILE__, __LINE__, __func__)
 #else
-#define nm_assert(cond)  \
-    ({                   \
-        if (0) {         \
-            if (cond) {} \
-        }                \
-        1;               \
-    })
-#define nm_assert_se(cond)     \
-    ({                         \
-        if (NM_LIKELY(cond)) { \
-            ;                  \
-        }                      \
-        1;                     \
-    })
-#define nm_assert_not_reached() ({ 1; })
+#define _NM_ASSERT_FAIL_ENABLED 0
+#define _nm_assert_fail(msg)                 \
+    do {                                     \
+        _nm_unused const char *_msg = (msg); \
+                                             \
+        _nm_unreachable_code();              \
+    } while (0)
 #endif
+
+#define NM_MORE_ASSERTS_EFFECTIVE (_NM_ASSERT_FAIL_ENABLED ? NM_MORE_ASSERTS : 0)
+
+#define nm_assert(cond)                                                \
+    ({                                                                 \
+        /* nm_assert() must do *nothing* of effect, except evaluating
+         * @cond (0 or 1 times).
+         *
+         * As such, nm_assert() is async-signal-safe (provided @cond is, and
+         * the assertion does not fail). */  \
+        if (NM_MORE_ASSERTS_EFFECTIVE == 0) {                          \
+            if (__builtin_constant_p(cond) && !(cond)) {               \
+                /* Constant expressions are still evaluated and result
+                 * in unreachable code. This handles nm_assert(FALSE). */ \
+                _nm_unreachable_code();                                \
+            }                                                          \
+            /* pass */                                                 \
+        } else if (NM_LIKELY(cond)) {                                  \
+            /* pass */                                                 \
+        } else {                                                       \
+            _nm_assert_fail(#cond);                                    \
+        }                                                              \
+        1;                                                             \
+    })
+
+#define nm_assert_se(cond)                                            \
+    ({                                                                \
+        /* nm_assert() must do *nothing* of effect, except evaluating
+         * @cond (exactly 1 times).
+         *
+         * As such, nm_assert() is async-signal-safe (provided @cond is, and
+         * the assertion does not fail). */ \
+        if (NM_LIKELY(cond)) {                                        \
+            /* pass */                                                \
+        } else {                                                      \
+            if (NM_MORE_ASSERTS_EFFECTIVE != 0) {                     \
+                _nm_assert_fail(#cond);                               \
+            }                                                         \
+            _nm_unreachable_code();                                   \
+        }                                                             \
+        1;                                                            \
+    })
+
+#define nm_assert_not_reached()         \
+    ({                                  \
+        _nm_assert_fail("unreachable"); \
+        1;                              \
+    })
 
 /* This is similar nm_assert_not_reached(), but it's supposed to be used only during
  * development. Like _XXX_ comments, they can be used as a marker that something still
  * needs to be done. */
-#define XXX(msg)   \
-    nm_assert(!"X" \
-               "XX error: " msg "")
+#define XXX(msg)                              \
+    ({                                        \
+        _nm_assert_fail("X"                   \
+                        "XX error: " msg ""); \
+        1;                                    \
+    })
 
-#define nm_assert_unreachable_val(val) \
-    ({                                 \
-        nm_assert_not_reached();       \
-        (val);                         \
+#define nm_assert_unreachable_val(val)              \
+    ({                                              \
+        _nm_assert_fail("unreachable value " #val); \
+        (val);                                      \
     })
 
 #define NM_STATIC_ASSERT(cond) static_assert(cond, "")
 #define NM_STATIC_ASSERT_EXPR_1(cond) \
-    (sizeof(struct { char __static_assert_expr_1[(cond) ? 1 : -1]; }) == 1)
-#define NM_STATIC_ASSERT_EXPR_VOID(cond) \
-    ((void) (sizeof(struct { char __static_assert_expr_void[(cond) ? 1 : -1]; }) == 1))
+    (!!sizeof(struct { unsigned __static_assert_expr_1 : ((cond) ? 2 : -1); }))
+#define NM_STATIC_ASSERT_EXPR_VOID(cond) ((void) NM_STATIC_ASSERT_EXPR_1(cond))
 
 /*****************************************************************************/
 
@@ -282,12 +348,8 @@ typedef uint64_t _nm_bitwise nm_be64_t;
      * It's useful to check the let the compiler ensure that @value is
      * of a certain type. */
 #define _NM_ENSURE_TYPE(type, value) (_Generic((value), type : (value)))
-#define _NM_ENSURE_TYPE_CONST(type, value)              \
-    (_Generic((value), const type                       \
-              : ((const type)(value)), const type const \
-              : ((const type)(value)), type             \
-              : ((const type)(value)), type const       \
-              : ((const type)(value))))
+#define _NM_ENSURE_TYPE_CONST(type, value) \
+    (_Generic((value), const type : ((const type)(value)), type : ((const type)(value))))
 #else
 #define _NM_ENSURE_TYPE(type, value)       (value)
 #define _NM_ENSURE_TYPE_CONST(type, value) ((const type)(value))
@@ -413,6 +475,24 @@ nm_mult_clamped_u(unsigned a, unsigned b)
 
 /*****************************************************************************/
 
+static inline size_t
+NM_ALIGN_TO(size_t l, size_t ali)
+{
+    nm_assert(nm_utils_is_power_of_two(ali));
+
+    if (l > SIZE_MAX - (ali - 1))
+        return SIZE_MAX; /* indicate overflow */
+
+    return ((l + ali - 1) & ~(ali - 1));
+}
+
+#define NM_ALIGN4(l)    NM_ALIGN_TO(l, 4)
+#define NM_ALIGN8(l)    NM_ALIGN_TO(l, 8)
+#define NM_ALIGN(l)     NM_ALIGN_TO(l, sizeof(void *))
+#define NM_ALIGN_PTR(p) ((void *) NM_ALIGN((uintptr_t) (p)))
+
+/*****************************************************************************/
+
 #define NM_SWAP(p_a, p_b)                   \
     do {                                    \
         typeof(*(p_a)) *const _p_a = (p_a); \
@@ -504,10 +584,21 @@ nm_memeq(const void *s1, const void *s2, size_t len)
     return nm_memcmp(s1, s2, len) == 0;
 }
 
+static inline void *
+nm_memcpy(void *restrict dest, const void *restrict src, size_t n)
+{
+    /* Workaround undefined behavior in memcpy() with NULL pointers. */
+    if (n == 0)
+        return dest;
+
+    nm_assert(src);
+    return memcpy(dest, src, n);
+}
+
 /*
  * Very similar to g_str_has_prefix() with the obvious meaning.
  * Differences:
- * 1) suffix is enforced to be a C string literal
+ * 1) prefix is enforced to be a C string literal
  *   (it is thus more restricted, but you'll know it at compile time).
  * 2) it accepts str==NULL
  *   (it is thus more forgiving than g_str_has_prefix())
@@ -902,38 +993,6 @@ _NM_IN_STRSET_EVAL_op_streq(const char *x1, const char *x)
 
 /*****************************************************************************/
 
-/**
- * nm_close:
- *
- * Like close() but throws an assertion if the input fd is
- * invalid.  Closing an invalid fd is a programming error, so
- * it's better to catch it early.
- */
-static inline int
-nm_close(int fd)
-{
-    int r;
-
-    r = close(fd);
-    nm_assert(r != -1 || fd < 0 || errno != EBADF);
-    return r;
-}
-
-static inline bool
-nm_clear_fd(int *p_fd)
-{
-    int fd;
-
-    if (!p_fd || (fd = *p_fd) < 0)
-        return false;
-
-    *p_fd = -1;
-    nm_close(fd);
-    return true;
-}
-
-/*****************************************************************************/
-
 /* Note: @value is only evaluated when *out_val is present.
  * Thus,
  *    NM_SET_OUT (out_str, g_strdup ("hallo"));
@@ -1011,13 +1070,106 @@ _nm_auto_protect_errno(const int *p_saved_errno)
 
 /*****************************************************************************/
 
+/**
+ * nm_close_with_error:
+ *
+ * Wrapper around close().
+ *
+ * This fails an nm_assert() for EBADF with a non-negative file descriptor. Trying
+ * to close an invalid file descriptor is always a serious bug. Never use close()
+ * directly, because we want to catch such bugs.
+ *
+ * This also suppresses any EINTR and pretends success. That is appropriate
+ * on Linux (but not necessarily on other POSIX systems).
+ *
+ * In no case is it appropriate to use @fd afterwards (or retry).
+ *
+ * This function returns 0 on success, or a negative errno value.
+ * On success, errno is undefined afterwards. On failure, errno is
+ * the same as the (negative) return value.
+ *
+ * In the common case, when you don't intend to handle the error from close(),
+ * prefer nm_close() over nm_close_with_error(). Never use close() directly.
+ *
+ * The function is also async-signal-safe (unless an assertion fails).
+ *
+ * Returns: 0 on success or the negative errno from close().
+ */
+static inline int
+nm_close_with_error(int fd)
+{
+    int r;
+
+    r = close(fd);
+
+    if (r != 0) {
+        int errsv = errno;
+
+        nm_assert(r == -1);
+
+        /* EBADF indicates a bug.
+         *
+         * - if fd is non-negative, this means the tracking of the descriptor
+         *   got messed up. That's very bad, somebody closed a wrong FD or we
+         *   might do so. On a multi threaded application, messing up the tracking
+         *   of the file descriptor means we race against closing an unrelated FD.
+         * - if fd is negative, it may not be a bug but intentional. However, our callers
+         *   are not supposed to call close() on a negative FD either. Assert
+         *   against that too. */
+        nm_assert(errsv != EBADF);
+
+        if (errsv == EINTR) {
+            /* There isn't really much we can do about EINTR. On Linux, always this means
+             * the FD was closed. On some POSIX systems that may be different and retry
+             * would be appropriate.
+             *
+             * Whether there was any IO error is unknown. Assume not and signal success. */
+            return 0;
+        }
+
+        return -errsv;
+    }
+
+    return 0;
+}
+
+/**
+ * nm_close:
+ *
+ * Wrapper around nm_close_with_error(), which ignores any error and preserves the
+ * caller's errno.
+ *
+ * We usually don't care about errors from close, so this is usually preferable over
+ * nm_close_with_error(). Never use close() directly.
+ *
+ * Everything from nm_close_with_error() applies.
+ */
+static inline void
+nm_close(int fd)
+{
+    NM_AUTO_PROTECT_ERRNO(errsv);
+
+    nm_close_with_error(fd);
+}
+
+static inline bool
+nm_clear_fd(int *p_fd)
+{
+    int fd;
+
+    if (!p_fd || (fd = *p_fd) < 0)
+        return false;
+
+    *p_fd = -1;
+    nm_close(fd);
+    return true;
+}
+
 static inline void
 _nm_auto_close(int *pfd)
 {
-    if (*pfd >= 0) {
-        NM_AUTO_PROTECT_ERRNO(errsv);
-        (void) nm_close(*pfd);
-    }
+    if (*pfd >= 0)
+        nm_close(*pfd);
 }
 #define nm_auto_close nm_auto(_nm_auto_close)
 
@@ -1298,13 +1450,10 @@ nm_utils_addr_family_other(int addr_family)
 static inline size_t
 nm_utils_addr_family_to_size(int addr_family)
 {
-    switch (addr_family) {
-    case NM_AF_INET:
-        return NM_AF_INET_SIZE;
-    case NM_AF_INET6:
+    if (!NM_IS_IPv4(addr_family))
         return NM_AF_INET6_SIZE;
-    }
-    return nm_assert_unreachable_val(0);
+    else
+        return NM_AF_INET_SIZE;
 }
 
 static inline size_t
@@ -1340,5 +1489,34 @@ nm_utils_addr_family_from_size(size_t len)
     }
     return NM_AF_UNSPEC;
 }
+
+#define _NM_PTR_IS_ALIGNED_(uniq, type, ptr)                                            \
+    ({                                                                                  \
+        const void *const NM_UNIQ_T(_ptr, uniq) = (ptr);                                \
+                                                                                        \
+        /* NULL is accepted too. */                                                     \
+                                                                                        \
+        (!NM_UNIQ_T(_ptr, uniq)                                                         \
+         || ((((uintptr_t) (void *) NM_UNIQ_T(_ptr, uniq)) % _nm_alignof(type)) == 0)); \
+    })
+
+#define _NM_PTR_IS_ALIGNED(type, ptr) _NM_PTR_IS_ALIGNED_(NM_UNIQ, type, (ptr))
+
+/* We build with "-Wcast-align=strict", which can warn about alignment problems
+ * with casting. In some cases, we know that the pointer has the suitable
+ * alignment and the cast is in fact correct. The way to disable the warning
+ * would be to cast ((Type *) ((void *) (ptr))).
+ *
+ * This macro does essentially that, but it also does an nm_assert() that the
+ * alignment of the pointer is suitable to cast to (Type *). */
+#define _NM_CAST_ALIGN(uniq, Type, ptr)                             \
+    ({                                                              \
+        const void *const NM_UNIQ_T(_ptr, uniq) = (ptr);            \
+                                                                    \
+        nm_assert(_NM_PTR_IS_ALIGNED(Type, NM_UNIQ_T(_ptr, uniq))); \
+                                                                    \
+        ((Type *) NM_UNIQ_T(_ptr, uniq));                           \
+    })
+#define NM_CAST_ALIGN(Type, ptr) _NM_CAST_ALIGN(NM_UNIQ, Type, ptr)
 
 #endif /* __NM_STD_AUX_H__ */

@@ -11,7 +11,7 @@
 #include "nm-device-wifi.h"
 
 #define NM_TYPE_DEVICE_IWD (nm_device_iwd_get_type())
-#define NM_DEVICE_IWD(obj) (G_TYPE_CHECK_INSTANCE_CAST((obj), NM_TYPE_DEVICE_IWD, NMDeviceIwd))
+#define NM_DEVICE_IWD(obj) (_NM_G_TYPE_CHECK_INSTANCE_CAST((obj), NM_TYPE_DEVICE_IWD, NMDeviceIwd))
 #define NM_DEVICE_IWD_CLASS(klass) \
     (G_TYPE_CHECK_CLASS_CAST((klass), NM_TYPE_DEVICE_IWD, NMDeviceIwdClass))
 #define NM_IS_DEVICE_IWD(obj)         (G_TYPE_CHECK_INSTANCE_TYPE((obj), NM_TYPE_DEVICE_IWD))
@@ -45,5 +45,7 @@ void _nm_device_iwd_request_scan(NMDeviceIwd           *self,
                                  GDBusMethodInvocation *invocation);
 
 void nm_device_iwd_network_add_remove(NMDeviceIwd *device, GDBusProxy *network, bool add);
+
+bool nm_device_iwd_set_netconfig(NMDeviceIwd *device, int addr_family, GVariantIter *config_iter);
 
 #endif /* __NETWORKMANAGER_DEVICE_IWD_H__ */

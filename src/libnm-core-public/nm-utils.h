@@ -104,13 +104,13 @@ GPtrArray *nm_utils_ip6_addresses_from_variant(GVariant *value, char **out_gatew
 GVariant  *nm_utils_ip6_routes_to_variant(GPtrArray *routes);
 GPtrArray *nm_utils_ip6_routes_from_variant(GVariant *value);
 
-NM_AVAILABLE_IN_1_40_4
+NM_AVAILABLE_IN_1_42
 GVariant *nm_utils_ip_addresses_to_variant(GPtrArray *addresses);
-NM_AVAILABLE_IN_1_40_4
+NM_AVAILABLE_IN_1_42
 GPtrArray *nm_utils_ip_addresses_from_variant(GVariant *value, int family);
-NM_AVAILABLE_IN_1_40_4
+NM_AVAILABLE_IN_1_42
 GVariant *nm_utils_ip_routes_to_variant(GPtrArray *routes);
-NM_AVAILABLE_IN_1_40_4
+NM_AVAILABLE_IN_1_42
 GPtrArray *nm_utils_ip_routes_from_variant(GVariant *value, int family);
 
 char *nm_utils_uuid_generate(void);
@@ -172,6 +172,7 @@ gboolean nm_utils_iface_valid_name(const char *name);
 NM_AVAILABLE_IN_1_6
 gboolean nm_utils_is_valid_iface_name(const char *name, GError **error);
 
+NM_DEPRECATED_IN_1_32
 gboolean nm_utils_is_uuid(const char *str);
 
 /**
@@ -253,6 +254,9 @@ gint64 nm_utils_get_timestamp_msec(void);
 NM_AVAILABLE_IN_1_16
 gboolean
 nm_utils_base64secret_decode(const char *base64_key, gsize required_key_len, guint8 *out_key);
+
+NM_AVAILABLE_IN_1_42
+void nm_utils_ensure_gtypes(void);
 
 G_END_DECLS
 

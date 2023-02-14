@@ -1,4 +1,5 @@
 Force-online-state-with-unmanaged-devices.patch
+libnm-docs-fix-gtk-doc-generation-for-settings.patch
 
 # Ubuntu patches
 Provide-access-to-some-of-NM-s-interfaces-to-whoopsie.patch

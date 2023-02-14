@@ -13,11 +13,14 @@
 #include "nm-setting.h"
 #include "nm-setting-bridge.h"
 #include "nm-connection.h"
+#include "nm-simple-connection.h"
 #include "nm-core-enum-types.h"
 
 #include "libnm-core-intern/nm-core-internal.h"
 
 /*****************************************************************************/
+
+struct _NMRefString;
 
 typedef struct {
     NMConnection *self;
@@ -25,11 +28,53 @@ typedef struct {
     NMSetting *settings[_NM_META_SETTING_TYPE_NUM];
 
     /* D-Bus path of the connection, if any */
-    char *path;
+    struct _NMRefString *path;
 } NMConnectionPrivate;
 
 extern GTypeClass *_nm_simple_connection_class_instance;
 extern int         _nm_simple_connection_private_offset;
+
+#undef NM_IS_SIMPLE_CONNECTION
+#define NM_IS_SIMPLE_CONNECTION(self)                                                           \
+    ({                                                                                          \
+        gconstpointer _self1 = (self);                                                          \
+        gboolean      _result;                                                                  \
+                                                                                                \
+        _result =                                                                               \
+            (_self1                                                                             \
+             && (((GTypeInstance *) _self1)->g_class == _nm_simple_connection_class_instance)); \
+                                                                                                \
+        nm_assert(_result == G_TYPE_CHECK_INSTANCE_TYPE(_self1, NM_TYPE_SIMPLE_CONNECTION));    \
+                                                                                                \
+        _result;                                                                                \
+    })
+
+#undef NM_IS_CONNECTION
+#define NM_IS_CONNECTION(self)                                            \
+    ({                                                                    \
+        gconstpointer _self0 = (self);                                    \
+                                                                          \
+        (_self0                                                           \
+         && (NM_IS_SIMPLE_CONNECTION(_self0)                              \
+             || G_TYPE_CHECK_INSTANCE_TYPE(_self0, NM_TYPE_CONNECTION))); \
+    })
+
+#define _NM_SIMPLE_CONNECTION_GET_CONNECTION_PRIVATE(connection)                                \
+    ({                                                                                          \
+        gpointer             _connection_1 = (connection);                                      \
+        NMConnectionPrivate *_priv_1;                                                           \
+                                                                                                \
+        nm_assert(NM_IS_SIMPLE_CONNECTION(_connection_1));                                      \
+                                                                                                \
+        _priv_1 = (void *) (&(((char *) _connection_1)[_nm_simple_connection_private_offset])); \
+                                                                                                \
+        nm_assert(_priv_1                                                                       \
+                  == G_TYPE_INSTANCE_GET_PRIVATE(_connection_1,                                 \
+                                                 NM_TYPE_SIMPLE_CONNECTION,                     \
+                                                 NMConnectionPrivate));                         \
+                                                                                                \
+        _priv_1;                                                                                \
+    })
 
 void _nm_connection_private_clear(NMConnectionPrivate *priv);
 
@@ -55,7 +100,7 @@ struct _NMSettingClass {
 
     gboolean (*verify_secrets)(NMSetting *setting, NMConnection *connection, GError **error);
 
-    GPtrArray *(*need_secrets)(NMSetting *setting);
+    GPtrArray *(*need_secrets)(NMSetting *setting, gboolean check_rerequest);
 
     int (*update_one_secret)(NMSetting *setting, const char *key, GVariant *value, GError **error);
 
@@ -120,11 +165,23 @@ struct _NMSettingIPConfigClass {
     NMSettingClass parent;
 
     /* In the past, this struct was public API. Preserve ABI! */
+
     union {
-        gpointer _dummy;
+        gpointer _dummy1;
         int      private_offset;
     };
-    gpointer padding[7];
+
+    union {
+        gpointer _dummy2;
+        gint8    addr_family;
+    };
+
+    union {
+        gpointer _dummy3;
+        bool     is_ipv4;
+    };
+
+    gpointer padding[5];
 };
 
 typedef struct {
@@ -140,6 +197,7 @@ typedef struct {
     char      *dhcp_hostname;
     char      *dhcp_iaid;
     gint64     route_metric;
+    int        auto_route_ext_gw;
     gint32     required_timeout;
     gint32     dad_timeout;
     gint32     dhcp_timeout;
@@ -154,6 +212,11 @@ typedef struct {
 } NMSettingIPConfigPrivate;
 
 void _nm_setting_ip_config_private_init(gpointer self, NMSettingIPConfigPrivate *priv);
+
+#define NM_SETTING_IP_CONFIG_GET_ADDR_FAMILY(setting) \
+    (NM_SETTING_IP_CONFIG_GET_CLASS(setting)->addr_family)
+
+#define NM_SETTING_IP_CONFIG_IS_IPv4(setting) (NM_SETTING_IP_CONFIG_GET_CLASS(setting)->is_ipv4)
 
 /*****************************************************************************/
 
@@ -240,6 +303,14 @@ typedef struct {
 
 /*****************************************************************************/
 
+struct _NMRange {
+    int     refcount;
+    guint64 start;
+    guint64 end;
+};
+
+/*****************************************************************************/
+
 #define NM_SETTING_PARAM_NONE 0
 
 /* The property of the #NMSetting should be considered during comparisons that
@@ -256,8 +327,9 @@ typedef struct {
  */
 #define NM_SETTING_PARAM_INFERRABLE (1 << (4 + G_PARAM_USER_SHIFT))
 
-/* This is a legacy property, which clients should not send to the daemon. */
-#define NM_SETTING_PARAM_LEGACY (1 << (5 + G_PARAM_USER_SHIFT))
+/* This flag has no meaning (anymore). It's only kept, because we used it
+ * on some older versions of libnm. */
+#define NM_SETTING_PARAM_UNUSED1 (1 << (5 + G_PARAM_USER_SHIFT))
 
 /* When a connection is active and gets modified, usually the change
  * to the settings-connection does not propagate automatically to the
@@ -442,10 +514,14 @@ _nm_properties_override(GArray *properties_override, const NMSettInfoProperty *p
                                                   .property_type = (p_property_type), \
                                                   __VA_ARGS__))
 
-#define _nm_properties_override_dbus(properties_override, p_name, p_property_type) \
-    _nm_properties_override(                                                       \
-        (properties_override),                                                     \
-        NM_SETT_INFO_PROPERTY(.name = ("" p_name ""), .property_type = (p_property_type), ))
+#define _nm_properties_override_dbus(properties_override,                             \
+                                     p_name,                                          \
+                                     p_property_type,                                 \
+                                     ... /* extra NMSettInfoProperty fields */)       \
+    _nm_properties_override((properties_override),                                    \
+                            NM_SETT_INFO_PROPERTY(.name          = ("" p_name ""),    \
+                                                  .property_type = (p_property_type), \
+                                                  __VA_ARGS__))
 
 /*****************************************************************************/
 
@@ -984,7 +1060,7 @@ gboolean _nm_setting_use_legacy_property(NMSetting  *setting,
                                          const char *legacy_property,
                                          const char *new_property);
 
-GPtrArray *_nm_setting_need_secrets(NMSetting *setting);
+GPtrArray *_nm_setting_need_secrets(NMSetting *setting, gboolean check_rerequest);
 
 gboolean _nm_setting_should_compare_secret_property(NMSetting            *setting,
                                                     NMSetting            *other,
@@ -998,15 +1074,26 @@ gboolean _nm_utils_bridge_vlans_from_dbus(_NM_SETT_INFO_PROP_FROM_DBUS_FCN_ARGS 
 
 GVariant *_nm_utils_bridge_vlans_to_dbus(_NM_SETT_INFO_PROP_TO_DBUS_FCN_ARGS _nm_nil);
 
+gboolean _nm_utils_ranges_from_dbus(_NM_SETT_INFO_PROP_FROM_DBUS_FCN_ARGS _nm_nil);
+
+NMTernary _nm_utils_ranges_cmp(_NM_SETT_INFO_PROP_COMPARE_FCN_ARGS _nm_nil);
+
+GVariant *_nm_utils_ranges_to_dbus(_NM_SETT_INFO_PROP_TO_DBUS_FCN_ARGS _nm_nil);
+
 NMTernary _nm_setting_ip_config_compare_fcn_addresses(_NM_SETT_INFO_PROP_COMPARE_FCN_ARGS _nm_nil);
 
 NMTernary _nm_setting_ip_config_compare_fcn_routes(_NM_SETT_INFO_PROP_COMPARE_FCN_ARGS _nm_nil);
 
-gboolean _nm_utils_hwaddr_cloned_not_set(_NM_SETT_INFO_PROP_MISSING_FROM_DBUS_FCN_ARGS _nm_nil);
+NMTernary _nm_setting_ip_config_compare_fcn_dns(_NM_SETT_INFO_PROP_COMPARE_FCN_ARGS _nm_nil);
 
-GVariant *_nm_utils_hwaddr_cloned_get(_NM_SETT_INFO_PROP_TO_DBUS_FCN_ARGS _nm_nil);
+gboolean _nm_sett_info_prop_missing_from_dbus_fcn_cloned_mac_address(
+    _NM_SETT_INFO_PROP_MISSING_FROM_DBUS_FCN_ARGS _nm_nil);
 
-gboolean _nm_utils_hwaddr_cloned_set(_NM_SETT_INFO_PROP_FROM_DBUS_FCN_ARGS _nm_nil);
+GVariant *
+_nm_sett_info_prop_to_dbus_fcn_cloned_mac_address(_NM_SETT_INFO_PROP_TO_DBUS_FCN_ARGS _nm_nil);
+
+gboolean
+_nm_sett_info_prop_from_dbus_fcn_cloned_mac_address(_NM_SETT_INFO_PROP_FROM_DBUS_FCN_ARGS _nm_nil);
 
 /*****************************************************************************/
 

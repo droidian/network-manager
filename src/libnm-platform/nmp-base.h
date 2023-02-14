@@ -11,6 +11,22 @@
 
 /*****************************************************************************/
 
+/* IFNAMSIZ is both defined in <linux/if.h> and <net/if.h>. In the past, these
+ * headers conflicted, so we cannot simply include either of them in a header-file.*/
+#define NMP_IFNAMSIZ 16
+
+/*****************************************************************************/
+
+/* Define of the IN6_ADDR_GEN_MODE_* values to workaround old kernel headers
+ * that don't define it. */
+#define NM_IN6_ADDR_GEN_MODE_UNKNOWN        255 /* no corresponding value.  */
+#define NM_IN6_ADDR_GEN_MODE_EUI64          0   /* IN6_ADDR_GEN_MODE_EUI64 */
+#define NM_IN6_ADDR_GEN_MODE_NONE           1   /* IN6_ADDR_GEN_MODE_NONE */
+#define NM_IN6_ADDR_GEN_MODE_STABLE_PRIVACY 2   /* IN6_ADDR_GEN_MODE_STABLE_PRIVACY */
+#define NM_IN6_ADDR_GEN_MODE_RANDOM         3   /* IN6_ADDR_GEN_MODE_RANDOM */
+
+/*****************************************************************************/
+
 typedef enum {
     NM_PLATFORM_LINK_DUPLEX_UNKNOWN,
     NM_PLATFORM_LINK_DUPLEX_HALF,
@@ -145,6 +161,8 @@ typedef enum _nm_packed {
     NMP_OBJECT_TYPE_LNK_TUN,
     NMP_OBJECT_TYPE_LNK_VLAN,
     NMP_OBJECT_TYPE_LNK_VRF,
+    NMP_OBJECT_TYPE_LNK_VTI,
+    NMP_OBJECT_TYPE_LNK_VTI6,
     NMP_OBJECT_TYPE_LNK_VXLAN,
     NMP_OBJECT_TYPE_LNK_WIREGUARD,
     NMP_OBJECT_TYPE_LNK_BOND,
@@ -188,5 +206,12 @@ typedef enum {
     NM_IP_ROUTE_TABLE_SYNC_MODE_ALL,
     NM_IP_ROUTE_TABLE_SYNC_MODE_ALL_PRUNE,
 } NMIPRouteTableSyncMode;
+
+/*****************************************************************************/
+
+const char *nm_platform_link_flags2str(unsigned flags, char *buf, gsize len);
+const char *nm_platform_link_inet6_addrgenmode2str(guint8 mode, char *buf, gsize len);
+const char *nm_platform_addr_flags2str(unsigned flags, char *buf, gsize len);
+const char *nm_platform_route_scope2str(int scope, char *buf, gsize len);
 
 #endif /* __NMP_FWD_H__ */

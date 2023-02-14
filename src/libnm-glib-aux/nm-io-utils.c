@@ -12,6 +12,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/un.h>
+#include <sys/ioctl.h>
 
 #include "nm-str-buf.h"
 #include "nm-shared-utils.h"
@@ -351,6 +352,7 @@ nm_utils_file_set_contents(const char            *filename,
     int           errsv;
     gssize        s;
     int           fd;
+    int           r;
 
     g_return_val_if_fail(filename, FALSE);
     g_return_val_if_fail(contents || !length, FALSE);
@@ -414,7 +416,16 @@ nm_utils_file_set_contents(const char            *filename,
                                    tmp_name);
     }
 
-    nm_close(fd);
+    r = nm_close_with_error(fd);
+    if (r < 0) {
+        errsv = NM_ERRNO_NATIVE(-r);
+        unlink(tmp_name);
+        return _get_contents_error(error,
+                                   errsv,
+                                   out_errsv,
+                                   "failed close() after writing file %s",
+                                   tmp_name);
+    }
 
     if (rename(tmp_name, filename)) {
         errsv = NM_ERRNO_NATIVE(errno);
@@ -492,6 +503,45 @@ nm_utils_fd_read(int fd, NMStrBuf *out_string)
     }
 
     return n_read;
+}
+
+/*****************************************************************************/
+
+/* Taken from systemd's next_datagram_size_fd(). */
+gssize
+nm_fd_next_datagram_size(int fd)
+{
+    gssize l;
+    int    k;
+
+    /* This is a bit like FIONREAD/SIOCINQ, however a bit more powerful. The difference being: recv(MSG_PEEK) will
+     * actually cause the next datagram in the queue to be validated regarding checksums, which FIONREAD doesn't
+     * do. This difference is actually of major importance as we need to be sure that the size returned here
+     * actually matches what we will read with recvmsg() next, as otherwise we might end up allocating a buffer of
+     * the wrong size. */
+
+    l = recv(fd, NULL, 0, MSG_PEEK | MSG_TRUNC);
+    if (l < 0) {
+        if (NM_IN_SET(errno, EOPNOTSUPP, EFAULT))
+            goto fallback;
+
+        return -errno;
+    }
+    if (l == 0)
+        goto fallback;
+
+    return l;
+
+fallback:
+    k = 0;
+
+    /* Some sockets (AF_PACKET) do not support null-sized recv() with MSG_TRUNC set, let's fall back to FIONREAD
+     * for them. Checksums don't matter for raw sockets anyway, hence this should be fine. */
+
+    if (ioctl(fd, FIONREAD, &k) < 0)
+        return -errno;
+
+    return (gssize) k;
 }
 
 /*****************************************************************************/

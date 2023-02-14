@@ -6,7 +6,7 @@ project(
 #  - add corresponding NM_VERSION_x_y_z macros in
 #    "src/libnm-core-public/nm-version-macros.h.in"
 #  - update number in configure.ac
-  version: '1.40.12',
+  version: '1.42.0',
   license: 'GPL2+',
   default_options: [
     'buildtype=debugoptimized',
@@ -96,7 +96,7 @@ set_defines = [
   ['VERSION', nm_version],
 ]
 
-default_test_timeout = 90
+default_test_timeout = 180
 
 foreach define: set_defines
   config_h.set_quoted(define[0], define[1])
@@ -174,21 +174,28 @@ endif
 common_flags += cc.get_supported_arguments([
   '-Wall',
   '-Wextra',
+  '-Wcast-align=strict',
   '-Wdeclaration-after-statement',
   '-Wfloat-equal',
   '-Wformat-nonliteral',
   '-Wformat-security',
   '-Wimplicit-function-declaration',
+  '-Wimplicit-int',
   '-Winit-self',
+  '-Wint-conversion',
   '-Wlogical-op',
   '-Wmissing-declarations',
   '-Wmissing-include-dirs',
   '-Wmissing-prototypes',
+  '-Wold-style-definition',
+  '-Wparentheses-equality',
   '-Wpointer-arith',
   '-Wshadow',
   '-Wshift-negative-value',
   '-Wstrict-prototypes',
+  '-Wtypedef-redefinition',
   '-Wundef',
+  '-Wunknown-attributes',
   '-Wvla',
   '-Wno-duplicate-decl-specifier',
   '-Wno-format-truncation',
@@ -200,13 +207,6 @@ common_flags += cc.get_supported_arguments([
   '-Wno-tautological-constant-out-of-range-compare',
   '-Wno-unknown-pragmas',
   '-Wno-unused-parameter',
-  '-Wparentheses-equality',
-  '-Wpointer-arith',
-  '-Wshadow',
-  '-Wstrict-prototypes',
-  '-Wtypedef-redefinition',
-  '-Wundef',
-  '-Wunknown-attributes',
   '-fno-strict-aliasing',
 ])
 

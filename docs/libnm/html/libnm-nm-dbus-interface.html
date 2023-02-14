@@ -7,7 +7,7 @@
 <link rel="home" href="index.html" title="libnm Reference Manual">
 <link rel="up" href="ch02.html" title="Client Object API Reference">
 <link rel="prev" href="libnm-nm-errors.html" title="nm-errors">
-<link rel="next" href="ch03.html" title="Connection and Setting API Reference">
+<link rel="next" href="libnm-nm-vpn-dbus-interface.html" title="nm-vpn-dbus-interface">
 <meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
@@ -21,7 +21,7 @@
 <td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
 <td><a accesskey="u" href="ch02.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
 <td><a accesskey="p" href="libnm-nm-errors.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
-<td><a accesskey="n" href="ch03.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+<td><a accesskey="n" href="libnm-nm-vpn-dbus-interface.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
 </tr></table>
 <div class="refentry">
 <a name="libnm-nm-dbus-interface"></a><div class="titlepage"></div>
@@ -111,6 +111,10 @@
 <tr>
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="libnm-nm-dbus-interface.html#NM-DBUS-INTERFACE-DEVICE-IP-TUNNEL:CAPS" title="NM_DBUS_INTERFACE_DEVICE_IP_TUNNEL">NM_DBUS_INTERFACE_DEVICE_IP_TUNNEL</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libnm-nm-dbus-interface.html#NM-DBUS-INTERFACE-DEVICE-LOOPBACK:CAPS" title="NM_DBUS_INTERFACE_DEVICE_LOOPBACK">NM_DBUS_INTERFACE_DEVICE_LOOPBACK</a></td>
 </tr>
 <tr>
 <td class="define_keyword">#define</td>
@@ -279,6 +283,10 @@
 <tr>
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="libnm-nm-dbus-interface.html#NM-DBUS-PATH-DNS-MANAGER:CAPS" title="NM_DBUS_PATH_DNS_MANAGER">NM_DBUS_PATH_DNS_MANAGER</a></td>
+</tr>
+<tr>
+<td class="datatype_keyword">enum</td>
+<td class="function_name"><a class="link" href="libnm-nm-dbus-interface.html#NMVersionInfoCapability" title="enum NMVersionInfoCapability">NMVersionInfoCapability</a></td>
 </tr>
 <tr>
 <td class="datatype_keyword">enum</td>
@@ -541,6 +549,7 @@
     <span class="lineart">├──</span> NMMetered
     <span class="lineart">├──</span> NMState
     <span class="lineart">├──</span> NMTernary
+    <span class="lineart">├──</span> NMVersionInfoCapability
     <span class="lineart">╰──</span> NMWimaxNspNetworkType
     <a href="/usr/share/gtk-doc/html/gobject/gobject-Enumeration-and-Flag-Types.html">GFlags</a>
     <span class="lineart">├──</span> NM80211ApFlags
@@ -551,6 +560,7 @@
     <span class="lineart">├──</span> NMDeviceCapabilities
     <span class="lineart">├──</span> NMDeviceInterfaceFlags
     <span class="lineart">├──</span> NMDeviceModemCapabilities
+    <span class="lineart">├──</span> NMDeviceReapplyFlags
     <span class="lineart">├──</span> NMDeviceWifiCapabilities
     <span class="lineart">├──</span> NMManagerReloadFlags
     <span class="lineart">├──</span> NMMptcpFlags
@@ -674,6 +684,12 @@
 <div class="refsect2">
 <a name="NM-DBUS-INTERFACE-DEVICE-IP-TUNNEL:CAPS"></a><h3>NM_DBUS_INTERFACE_DEVICE_IP_TUNNEL</h3>
 <pre class="programlisting">#define NM_DBUS_INTERFACE_DEVICE_IP_TUNNEL     NM_DBUS_INTERFACE_DEVICE ".IPTunnel"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-DBUS-INTERFACE-DEVICE-LOOPBACK:CAPS"></a><h3>NM_DBUS_INTERFACE_DEVICE_LOOPBACK</h3>
+<pre class="programlisting">#define NM_DBUS_INTERFACE_DEVICE_LOOPBACK      NM_DBUS_INTERFACE_DEVICE ".Loopback"
 </pre>
 </div>
 <hr>
@@ -926,6 +942,28 @@
 <a name="NM-DBUS-PATH-DNS-MANAGER:CAPS"></a><h3>NM_DBUS_PATH_DNS_MANAGER</h3>
 <pre class="programlisting">#define NM_DBUS_PATH_DNS_MANAGER      "/org/freedesktop/NetworkManager/DnsManager"
 </pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMVersionInfoCapability"></a><h3>enum NMVersionInfoCapability</h3>
+<p>Currently no enum values are defined. These capabilities are exposed
+on D-Bus in the "VersionInfo" bit field.</p>
+<div class="refsect3">
+<a name="NMVersionInfoCapability.members"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="300px" class="enum_members_name">
+<col class="enum_members_description">
+<col width="200px" class="enum_members_annotations">
+</colgroup>
+<tbody><tr>
+<td class="enum_member_name"><p><a name="NM-VERSION-INFO-CAPABILITY-UNUSED:CAPS"></a>_NM_VERSION_INFO_CAPABILITY_UNUSED</p></td>
+<td> </td>
+<td> </td>
+</tr></tbody>
+</table></div>
+</div>
+<p class="since">Since: 1.42</p>
 </div>
 <hr>
 <div class="refsect2">
@@ -1358,6 +1396,13 @@ GSM/UMTS, or LTE network access protocols</p>
 <td class="enum_member_name"><p><a name="NM-DEVICE-TYPE-VRF:CAPS"></a>NM_DEVICE_TYPE_VRF</p></td>
 <td class="enum_member_description">
 <p>A VRF (Virtual Routing and Forwarding) interface. Since: 1.24.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-DEVICE-TYPE-LOOPBACK:CAPS"></a>NM_DEVICE_TYPE_LOOPBACK</p></td>
+<td class="enum_member_description">
+<p>a loopback interface. Since: 1.42.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -2553,7 +2598,7 @@ network and is cleaning up the connection request</p>
 <div class="refsect2">
 <a name="NMMetered"></a><h3>enum NMMetered</h3>
 <p>The NMMetered enum has two different purposes: one is to configure
-"connection.metered" setting of a connection profile in <a class="link" href="NMSettingConnection.html" title="NMSettingConnection"><span class="type">NMSettingConnection</span></a>, and
+"connection.metered" setting of a connection profile in <a href="/usr/share/gtk-doc/html/libnm-util/NMSettingConnection.html#NMSettingConnection-struct"><span class="type">NMSettingConnection</span></a>, and
 the other is to express the actual metered state of the <a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a> at a given moment.</p>
 <p>For the connection profile only <a class="link" href="libnm-nm-dbus-interface.html#NM-METERED-UNKNOWN:CAPS"><span class="type">NM_METERED_UNKNOWN</span></a>, <a class="link" href="libnm-nm-dbus-interface.html#NM-METERED-NO:CAPS"><span class="type">NM_METERED_NO</span></a>
 and <a class="link" href="libnm-nm-dbus-interface.html#NM-METERED-YES:CAPS"><span class="type">NM_METERED_YES</span></a> are allowed.</p>
@@ -3705,7 +3750,7 @@ preserve external IP addresses and routes.</p>
 </tbody>
 </table></div>
 </div>
-<p class="since">Since: 1.42, 1.40.10</p>
+<p class="since">Since: 1.42</p>
 </div>
 <hr>
 <div class="refsect2">

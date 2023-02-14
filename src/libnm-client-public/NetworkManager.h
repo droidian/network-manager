@@ -15,6 +15,8 @@
 
 #include "nm-core-enum-types.h"
 
+#include "nm-errors.h"
+
 #include "nm-connection.h"
 #include "nm-simple-connection.h"
 #include "nm-keyfile.h"
@@ -42,6 +44,7 @@
 #include "nm-setting-ip6-config.h"
 #include "nm-setting-ip-config.h"
 #include "nm-setting-ip-tunnel.h"
+#include "nm-setting-loopback.h"
 #include "nm-setting-macsec.h"
 #include "nm-setting-macvlan.h"
 #include "nm-setting-match.h"
@@ -109,6 +112,7 @@
 #include "nm-device-generic.h"
 #include "nm-device-infiniband.h"
 #include "nm-device-ip-tunnel.h"
+#include "nm-device-loopback.h"
 #include "nm-device-macsec.h"
 #include "nm-device-macvlan.h"
 #include "nm-device-modem.h"
@@ -120,6 +124,7 @@
 #include "nm-device-tun.h"
 #include "nm-device-veth.h"
 #include "nm-device-vlan.h"
+#include "nm-device-vrf.h"
 #include "nm-device-vxlan.h"
 #include "nm-device-wifi.h"
 #include "nm-device-wifi-p2p.h"

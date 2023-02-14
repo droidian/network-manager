@@ -68,7 +68,7 @@ bool in4_addr_is_link_local_dynamic(const struct in_addr *a) {
 bool in6_addr_is_link_local(const struct in6_addr *a) {
         assert(a);
 
-        return IN6_IS_ADDR_LINKLOCAL(a); /* lgtm [cpp/potentially-dangerous-function] */
+        return IN6_IS_ADDR_LINKLOCAL(a);
 }
 
 int in_addr_is_link_local(int family, const union in_addr_union *u) {
@@ -133,7 +133,7 @@ int in_addr_is_localhost(int family, const union in_addr_union *u) {
                 return in4_addr_is_localhost(&u->in);
 
         if (family == AF_INET6)
-                return IN6_IS_ADDR_LOOPBACK(&u->in6); /* lgtm [cpp/potentially-dangerous-function] */
+                return IN6_IS_ADDR_LOOPBACK(&u->in6);
 
         return -EAFNOSUPPORT;
 }
@@ -146,7 +146,7 @@ int in_addr_is_localhost_one(int family, const union in_addr_union *u) {
                 return be32toh(u->in.s_addr) == UINT32_C(0x7F000001);
 
         if (family == AF_INET6)
-                return IN6_IS_ADDR_LOOPBACK(&u->in6); /* lgtm [cpp/potentially-dangerous-function] */
+                return IN6_IS_ADDR_LOOPBACK(&u->in6);
 
         return -EAFNOSUPPORT;
 }
@@ -197,8 +197,7 @@ int in_addr_prefix_intersect(
         assert(a);
         assert(b);
 
-        /* Checks whether there are any addresses that are in both
-         * networks */
+        /* Checks whether there are any addresses that are in both networks */
 
         m = MIN(aprefixlen, bprefixlen);
 
@@ -206,7 +205,7 @@ int in_addr_prefix_intersect(
                 uint32_t x, nm;
 
                 x = be32toh(a->in.s_addr ^ b->in.s_addr);
-                nm = (m == 0) ? 0 : 0xFFFFFFFFUL << (32 - m);
+                nm = m == 0 ? 0 : 0xFFFFFFFFUL << (32 - m);
 
                 return (x & nm) == 0;
         }
@@ -594,6 +593,7 @@ unsigned char in4_addr_netmask_to_prefixlen(const struct in_addr *addr) {
         return 32U - u32ctz(be32toh(addr->s_addr));
 }
 
+/* Calculate an IPv4 netmask from prefix length, for example /8 -> 255.0.0.0. */
 struct in_addr* in4_addr_prefixlen_to_netmask(struct in_addr *addr, unsigned char prefixlen) {
         assert(addr);
         assert(prefixlen <= 32);
@@ -605,6 +605,47 @@ struct in_addr* in4_addr_prefixlen_to_netmask(struct in_addr *addr, unsigned cha
                 addr->s_addr = htobe32((0xffffffff << (32 - prefixlen)) & 0xffffffff);
 
         return addr;
+}
+
+/* Calculate an IPv6 netmask from prefix length, for example /16 -> ffff::. */
+struct in6_addr* in6_addr_prefixlen_to_netmask(struct in6_addr *addr, unsigned char prefixlen) {
+        assert(addr);
+        assert(prefixlen <= 128);
+
+        for (unsigned i = 0; i < 16; i++) {
+                uint8_t mask;
+
+                if (prefixlen >= 8) {
+                        mask = 0xFF;
+                        prefixlen -= 8;
+                } else if (prefixlen > 0) {
+                        mask = 0xFF << (8 - prefixlen);
+                        prefixlen = 0;
+                } else {
+                        assert(prefixlen == 0);
+                        mask = 0;
+                }
+
+                addr->s6_addr[i] = mask;
+        }
+
+        return addr;
+}
+
+/* Calculate an IPv4 or IPv6 netmask from prefix length, for example /8 -> 255.0.0.0 or /16 -> ffff::. */
+int in_addr_prefixlen_to_netmask(int family, union in_addr_union *addr, unsigned char prefixlen) {
+        assert(addr);
+
+        switch (family) {
+        case AF_INET:
+                in4_addr_prefixlen_to_netmask(&addr->in, prefixlen);
+                return 0;
+        case AF_INET6:
+                in6_addr_prefixlen_to_netmask(&addr->in6, prefixlen);
+                return 0;
+        default:
+                return -EAFNOSUPPORT;
+        }
 }
 
 int in4_addr_default_prefixlen(const struct in_addr *addr, unsigned char *prefixlen) {

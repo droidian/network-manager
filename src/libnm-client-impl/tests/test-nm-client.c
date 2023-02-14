@@ -8,7 +8,10 @@
 #include <sys/types.h>
 #include <signal.h>
 
+#include "libnm-client-impl/nm-dbus-helpers.h"
+
 #include "libnm-client-test/nm-test-libnm-utils.h"
+#include "libnm-glib-aux/nm-time-utils.h"
 
 static struct {
     GMainLoop *loop;
@@ -495,7 +498,8 @@ nm_running_changed(GObject *client, GParamSpec *pspec, gpointer user_data)
 {
     int *running_changed = user_data;
 
-    (*running_changed)++;
+    if (running_changed)
+        (*running_changed)++;
     g_main_loop_quit(gl.loop);
 }
 
@@ -788,50 +792,15 @@ activate_cb(GObject *object, GAsyncResult *result, gpointer user_data)
         g_main_loop_quit(info->loop);
 }
 
-static void
-_dev_eth0_1_state_changed_cb(NMDevice           *device,
-                             NMDeviceState       new_state,
-                             NMDeviceState       old_state,
-                             NMDeviceStateReason reason,
-                             int                *p_count_call)
+static NMClient *
+_activate_virtual(NMTstcServiceInfo *sinfo)
 {
-    const GPtrArray *arr;
-
-    g_assert(p_count_call);
-    g_assert_cmpint(*p_count_call, ==, 0);
-
-    (*p_count_call)++;
-
-    g_assert(NM_IS_DEVICE_VLAN(device));
-
-    g_assert_cmpint(old_state, >=, NM_DEVICE_STATE_PREPARE);
-    g_assert_cmpint(old_state, <=, NM_DEVICE_STATE_ACTIVATED);
-    g_assert_cmpint(new_state, ==, NM_DEVICE_STATE_UNKNOWN);
-
-    arr = nm_device_get_available_connections(device);
-    g_assert(arr);
-    g_assert_cmpint(arr->len, ==, 0);
-
-    g_assert(!nm_device_get_active_connection(device));
-}
-
-static void
-test_activate_virtual(void)
-{
-    nmtstc_auto_service_cleanup NMTstcServiceInfo *sinfo  = NULL;
-    gs_unref_object NMClient                      *client = NULL;
-    NMConnection                                  *conn;
-    NMSettingConnection                           *s_con;
-    NMSettingVlan                                 *s_vlan;
-    TestACInfo                                     info      = {gl.loop, NULL, 0};
-    TestConnectionInfo                             conn_info = {gl.loop, NULL};
-
-    if (nmtst_test_skip_slow())
-        return;
-
-    sinfo = nmtstc_service_init();
-    if (!nmtstc_service_available(sinfo))
-        return;
+    NMClient            *client = NULL;
+    NMConnection        *conn;
+    NMSettingConnection *s_con;
+    NMSettingVlan       *s_vlan;
+    TestACInfo           info      = {gl.loop, NULL, 0};
+    TestConnectionInfo   conn_info = {gl.loop, NULL};
 
     client = nmtstc_client_new(TRUE);
 
@@ -878,55 +847,89 @@ test_activate_virtual(void)
         nm_clear_g_signal_handler(info.device, &info.ac_signal_id);
     }
 
-    if (nmtst_get_rand_bool()) {
-        /* OK, enough for this run. Let's see whether we can tear down
-         * successfully at this point. */
+    return client;
+}
+
+static void
+test_activate_virtual(void)
+{
+    nmtstc_auto_service_cleanup NMTstcServiceInfo *sinfo = NULL;
+
+    if (nmtst_test_skip_slow())
         return;
+
+    sinfo = nmtstc_service_init();
+    if (!nmtstc_service_available(sinfo))
+        return;
+
+    g_object_unref(_activate_virtual(sinfo));
+}
+
+static void
+_client_dev_removed(NMClient *client, NMDevice *device, int *p_count_call)
+{
+    (*p_count_call)++;
+}
+
+static void
+test_activate_virtual_teardown(gconstpointer user_data)
+{
+    nmtstc_auto_service_cleanup NMTstcServiceInfo *sinfo  = NULL;
+    gs_unref_object NMClient                      *client = NULL;
+    NMDevice                                      *dev_eth0_1;
+    NMActiveConnection                            *ac;
+    const GPtrArray                               *arr;
+    int                                            call_count       = 0;
+    gboolean                                       take_ref         = nmtst_get_rand_bool();
+    gboolean                                       teardown_service = GPOINTER_TO_INT(user_data);
+
+    if (nmtst_test_skip_slow())
+        return;
+
+    sinfo = nmtstc_service_init();
+    if (!nmtstc_service_available(sinfo))
+        return;
+
+    client = _activate_virtual(sinfo);
+
+    /* ensure we got all the necessary events in place. */
+    nmtst_main_loop_run(gl.loop, 50);
+
+    dev_eth0_1 = nm_client_get_device_by_iface(client, "eth0.1");
+    g_assert(NM_IS_DEVICE_VLAN(dev_eth0_1));
+    if (take_ref)
+        g_object_ref(dev_eth0_1);
+
+    arr = nm_device_get_available_connections(dev_eth0_1);
+    g_assert(arr);
+    g_assert_cmpint(arr->len, ==, 1);
+
+    ac = nm_device_get_active_connection(dev_eth0_1);
+    g_assert(NM_IS_ACTIVE_CONNECTION(ac));
+
+    g_signal_connect(client, "device-removed", G_CALLBACK(_client_dev_removed), &call_count);
+
+    if (teardown_service) {
+        g_signal_connect(client,
+                         "notify::" NM_CLIENT_NM_RUNNING,
+                         G_CALLBACK(nm_running_changed),
+                         NULL);
+        nm_clear_pointer(&sinfo, nmtstc_service_cleanup);
+        nmtst_main_loop_run(gl.loop, 1000);
+        g_assert_cmpint(call_count, ==, 2);
+    } else {
+        g_clear_object(&client);
+        g_assert_cmpint(call_count, ==, 0);
     }
 
-    {
-        NMDevice           *dev_eth0_1;
-        NMActiveConnection *ac;
-        const GPtrArray    *arr;
-        gulong              sig_id;
-        int                 call_count = 0;
-        gboolean            take_ref   = nmtst_get_rand_bool();
-
-        /* ensure we got all the necessary events in place. */
-        nmtst_main_loop_run(gl.loop, 50);
-
-        dev_eth0_1 = nm_client_get_device_by_iface(client, "eth0.1");
-        g_assert(NM_IS_DEVICE_VLAN(dev_eth0_1));
-        if (take_ref)
-            g_object_ref(dev_eth0_1);
-
+    if (take_ref) {
         arr = nm_device_get_available_connections(dev_eth0_1);
         g_assert(arr);
-        g_assert_cmpint(arr->len, ==, 1);
+        g_assert_cmpint(arr->len, ==, 0);
 
-        ac = nm_device_get_active_connection(dev_eth0_1);
-        g_assert(NM_IS_ACTIVE_CONNECTION(ac));
+        g_assert(!nm_device_get_active_connection(dev_eth0_1));
 
-        sig_id = g_signal_connect(dev_eth0_1,
-                                  "state-changed",
-                                  G_CALLBACK(_dev_eth0_1_state_changed_cb),
-                                  &call_count);
-
-        g_clear_object(&client);
-
-        g_assert_cmpint(call_count, ==, 1);
-
-        if (take_ref) {
-            arr = nm_device_get_available_connections(dev_eth0_1);
-            g_assert(arr);
-            g_assert_cmpint(arr->len, ==, 0);
-
-            g_assert(!nm_device_get_active_connection(dev_eth0_1));
-
-            nm_clear_g_signal_handler(dev_eth0_1, &sig_id);
-
-            g_object_unref(dev_eth0_1);
-        }
+        g_object_unref(dev_eth0_1);
     }
 }
 
@@ -1349,6 +1352,240 @@ test_connection_invalid(void)
 
 /*****************************************************************************/
 
+typedef struct {
+    NMClient    *nmc;
+    NMOptionBool completed;
+} WaitShutdownNmcInitData;
+
+static void
+_wait_shutdown_cb(GObject *source, GAsyncResult *result, gpointer user_data)
+{
+    gs_free_error GError *error = NULL;
+    gboolean              b;
+    guint                *p_pending_ops = user_data;
+
+    g_assert(!source);
+
+    if (nmtst_get_rand_bool()) {
+        b = nm_client_wait_shutdown_finish(result, &error);
+        g_assert(b == !error);
+    }
+
+    g_assert_cmpint(*p_pending_ops, >, 0);
+    (*p_pending_ops)--;
+}
+
+static void
+_wait_shutdown_nmc_init_cb(GObject *source, GAsyncResult *result, gpointer user_data)
+{
+    WaitShutdownNmcInitData *data  = user_data;
+    gs_free_error GError    *error = NULL;
+    gboolean                 b;
+
+    g_assert(data->nmc == NM_CLIENT(source));
+    g_assert(data->completed == NM_OPTION_BOOL_DEFAULT);
+
+    b = g_async_initable_init_finish(G_ASYNC_INITABLE(source), result, &error);
+    nmtst_assert_success(b, error);
+    g_assert(b == TRUE);
+
+    g_assert(NM_FLAGS_HAS(nm_client_get_instance_flags(data->nmc),
+                          NM_CLIENT_INSTANCE_FLAGS_INITIALIZED_GOOD));
+
+    data->completed = TRUE;
+}
+
+static void
+test_client_wait_shutdown(void)
+{
+    gs_unref_ptrarray GPtrArray *contexts =
+        g_ptr_array_new_with_free_func((GDestroyNotify) g_main_context_unref);
+    nmtstc_auto_service_cleanup NMTstcServiceInfo *sinfo = NULL;
+    int                                            i_run;
+    const int                                      N_RUN           = 50;
+    gs_free_error GError                          *error           = NULL;
+    gs_unref_object GDBusConnection               *dbus_connection = NULL;
+    guint                                          pending_ops     = 0;
+    int                                            i;
+    gint64                                         until_msec;
+
+    /* The test creates NMClient instances in various ways (with different
+     * context of g_main_context_default()) and with sync/asnyc/no initialization.
+     *
+     * Then it calls nm_client_wait_shutdown() and checks that all callbacks
+     * got invoked.
+     *
+     * You can also manually bump N_RUN and convince yourself that there are no
+     * leaks.
+     */
+
+    sinfo = nmtstc_service_init();
+    if (!nmtstc_service_available(sinfo))
+        return;
+
+    /* Have 5 contexts for creating clients (+ the default one). */
+    g_ptr_array_add(contexts, g_main_context_ref(g_main_context_default()));
+    for (i = 0; i < 5; i++)
+        g_ptr_array_add(contexts, g_main_context_new());
+
+    dbus_connection = g_bus_get_sync(_nm_dbus_bus_type(), NULL, &error);
+    nmtst_assert_success(dbus_connection, error);
+
+    for (i_run = 0; i_run < N_RUN; i_run++) {
+        gs_unref_object GCancellable          *init_cancellable = g_cancellable_new();
+        gs_unref_object NMClient              *nmc              = NULL;
+        nm_auto_pop_gmaincontext GMainContext *client_context   = NULL;
+        gboolean                               b;
+        gboolean                               context_integrated = FALSE;
+        gs_unref_object GCancellable          *cancellable_1      = NULL;
+        GMainContext                          *ctx;
+
+        /* Choose a random context for the client. */
+        ctx = contexts->pdata[nmtst_get_rand_uint32() % contexts->len];
+        if (ctx == g_main_context_default()) {
+            /* don't use the main context explicitly. */
+        } else if (!g_main_context_acquire(ctx)) {
+            /* the context is in use, we cannot use it. */
+        } else {
+            g_main_context_release(ctx);
+            client_context = g_main_context_ref(ctx);
+            g_main_context_push_thread_default(client_context);
+        }
+
+        nmc = g_object_new(
+            NM_TYPE_CLIENT,
+            NM_CLIENT_INSTANCE_FLAGS,
+            nmtst_get_rand_one_case_in(5) ? NM_CLIENT_INSTANCE_FLAGS_NO_AUTO_FETCH_PERMISSIONS : 0,
+            NM_CLIENT_DBUS_CONNECTION,
+            nmtst_get_rand_one_case_in(3) ? NULL : dbus_connection,
+            NULL);
+
+        if (nmtst_get_rand_bool()) {
+            /* randomly already pop the context before initializing nmc. */
+            nm_clear_pointer(&client_context, nm_g_main_context_pop_and_unref);
+        }
+
+        if (nmtst_get_rand_bool()) {
+            nm_auto_pop_gmaincontext GMainContext *context =
+                nm_g_main_context_push_thread_default(NULL);
+
+            /* It is also allowed to start waiting before initialization started. Randomly do that. */
+            pending_ops++;
+            nm_client_wait_shutdown(
+                nmc,
+                nmtst_true_once(&context_integrated, nmtst_get_rand_bool()),
+                (cancellable_1 = nmtst_get_rand_bool() ? g_cancellable_new() : NULL),
+                _wait_shutdown_cb,
+                &pending_ops);
+        }
+
+        /* randomly do some initialization... */
+        switch (nmtst_get_rand_uint32() % 4) {
+        case 0:
+            /* Don't start initialization. */
+            break;
+        case 1:
+            /* Do sync initialization. */
+            b = g_initable_init(G_INITABLE(nmc),
+                                nmtst_get_rand_bool() ? init_cancellable : NULL,
+                                &error);
+            nmtst_assert_success(b, error);
+            break;
+        case 2:
+            /* Start async initialization in the background, but don't wait for it complete. */
+            g_async_initable_init_async(G_ASYNC_INITABLE(nmc),
+                                        G_PRIORITY_DEFAULT,
+                                        nmtst_get_rand_bool() ? init_cancellable : NULL,
+                                        NULL,
+                                        NULL);
+            break;
+        default:
+        {
+            /* Do async initialization, and iterate the main context until done. */
+            WaitShutdownNmcInitData data = {
+                .completed = NM_OPTION_BOOL_DEFAULT,
+                .nmc       = nmc,
+            };
+
+            g_async_initable_init_async(G_ASYNC_INITABLE(nmc),
+                                        G_PRIORITY_DEFAULT,
+                                        nmtst_get_rand_bool() ? init_cancellable : NULL,
+                                        _wait_shutdown_nmc_init_cb,
+                                        &data);
+
+            while (data.completed != TRUE) {
+                g_main_context_iteration(context_integrated ? g_main_context_default()
+                                                            : nm_client_get_main_context(nmc),
+                                         TRUE);
+            }
+            break;
+        }
+        }
+
+        if (!context_integrated && nmtst_get_rand_bool()) {
+            nm_clear_g_cancellable(&cancellable_1);
+        }
+
+        if (nmtst_get_rand_bool())
+            nm_clear_pointer(&client_context, nm_g_main_context_pop_and_unref);
+
+        {
+            gs_unref_object GCancellable *cancellable = NULL;
+
+            pending_ops++;
+            nm_client_wait_shutdown(
+                nmc,
+                nmtst_true_once(&context_integrated, nmtst_get_rand_bool()),
+                (cancellable = nmtst_get_rand_bool() ? g_cancellable_new() : NULL),
+                _wait_shutdown_cb,
+                &pending_ops);
+        }
+
+        if (nmtst_get_rand_bool())
+            g_clear_object(&nmc);
+
+        for (i = 0; i < (int) contexts->len; i++) {
+            GMainContext *context = contexts->pdata[i];
+
+            if (nmtst_get_rand_bool()) {
+                /* iterate next time. */
+                continue;
+            }
+
+            if (!g_main_context_acquire(context)) {
+                /* It's integrated, skip. */
+                continue;
+            }
+            g_main_context_release(context);
+
+            while (g_main_context_iteration(context, FALSE)) {
+                /* pass */
+            }
+        }
+    }
+
+    until_msec = nm_utils_get_monotonic_timestamp_msec() + 10000;
+    while (pending_ops > 0 && nm_utils_get_monotonic_timestamp_msec() < until_msec) {
+        for (i = contexts->len; i > 0; i--) {
+            GMainContext *context = contexts->pdata[i - 1];
+
+            if (!g_main_context_acquire(context)) {
+                /* integrated, skip. */
+                continue;
+            }
+            g_main_context_release(context);
+
+            while (g_main_context_iteration(context, FALSE)) {
+                /* pass */
+            }
+        }
+    }
+
+    g_assert_cmpint(pending_ops, ==, 0);
+}
+
+/*****************************************************************************/
+
 NMTST_DEFINE();
 
 int
@@ -1366,9 +1603,16 @@ main(int argc, char **argv)
     g_test_add_func("/libnm/devices-array", test_devices_array);
     g_test_add_func("/libnm/client-nm-running", test_client_nm_running);
     g_test_add_func("/libnm/active-connections", test_active_connections);
-    g_test_add_func("/libnm/activate-virtual", test_activate_virtual);
+    g_test_add_func("/libnm/activate-virtual/without-teardown", test_activate_virtual);
+    g_test_add_data_func("/libnm/activate-virtual/with-teardown/service",
+                         GINT_TO_POINTER(true),
+                         test_activate_virtual_teardown);
+    g_test_add_data_func("/libnm/activate-virtual/with-teardown/client",
+                         GINT_TO_POINTER(false),
+                         test_activate_virtual_teardown);
     g_test_add_func("/libnm/device-connection-compatibility", test_device_connection_compatibility);
     g_test_add_func("/libnm/connection/invalid", test_connection_invalid);
+    g_test_add_func("/libnm/test_client_wait_shutdown", test_client_wait_shutdown);
 
     return g_test_run();
 }

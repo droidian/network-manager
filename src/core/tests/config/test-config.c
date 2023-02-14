@@ -370,7 +370,21 @@ test_config_global_dns(void)
 
     g_object_unref(config);
 
-    /* Check that a file without a default domain section gives a NULL configuration */
+    /* Check that a file with a default domain section gives a good configuration */
+    config =
+        setup_config(NULL, TEST_DIR "/global-dns-good.conf", "", NULL, "/no/such/dir", "", NULL);
+    dns = nm_config_data_get_global_dns_config(nm_config_get_data_orig(config));
+    g_assert(dns);
+    g_object_unref(config);
+
+    /* Check that a file with options but no domains gives a good configuration */
+    config =
+        setup_config(NULL, TEST_DIR "/global-dns-options.conf", "", NULL, "/no/such/dir", "", NULL);
+    dns = nm_config_data_get_global_dns_config(nm_config_get_data_orig(config));
+    g_assert(dns);
+    g_object_unref(config);
+
+    /* Check that a file with a domain domain, but without a default one gives a NULL configuration */
     config =
         setup_config(NULL, TEST_DIR "/global-dns-invalid.conf", "", NULL, "/no/such/dir", "", NULL);
     dns = nm_config_data_get_global_dns_config(nm_config_get_data_orig(config));
@@ -1103,9 +1117,9 @@ test_config_set_values(void)
     const char               *CONFIG_USER               = BUILD_DIR "/test-set-values-user.conf";
     const char               *CONFIG_INTERN             = BUILD_DIR "/test-set-values-intern.conf";
     const char               *atomic_section_prefixes[] = {
-                      "atomic-prefix-1.",
-                      "atomic-prefix-2.",
-                      NULL,
+        "atomic-prefix-1.",
+        "atomic-prefix-2.",
+        NULL,
     };
 
     g_assert(g_file_set_contents(CONFIG_USER, "", 0, NULL));
