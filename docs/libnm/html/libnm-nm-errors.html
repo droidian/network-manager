@@ -254,7 +254,7 @@ nm_vpn_plugin_error_quark (<em class="parameter"><code><span class="type">void</
 <a name="NMAgentManagerError"></a><h3>enum NMAgentManagerError</h3>
 <p>Errors returned from the secret-agent manager.</p>
 <p>These errors may be returned from operations that could cause secrets to be
-requested (such as <a href="/usr/share/gtk-doc/html/libnm-glib/NMClient.html#nm-client-activate-connection"><code class="function">nm_client_activate_connection()</code></a>), and correspond to D-Bus
+requested (such as <code class="function">nm_client_activate_connection()</code>), and correspond to D-Bus
 errors in the "org.freedesktop.NetworkManager.AgentManager" namespace.</p>
 <div class="refsect3">
 <a name="NMAgentManagerError.members"></a><h4>Members</h4>
@@ -325,9 +325,9 @@ request</p>
 <hr>
 <div class="refsect2">
 <a name="NMConnectionError"></a><h3>enum NMConnectionError</h3>
-<p>Describes errors that may result from operations involving a <a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html#NMConnection-struct"><span class="type">NMConnection</span></a>
-or its <a href="/usr/share/gtk-doc/html/libnm-util/NMSetting.html#NMSetting-struct"><span class="type">NMSettings</span></a>.</p>
-<p>These errors may be returned directly from <a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html#NMConnection-struct"><span class="type">NMConnection</span></a> and <a href="/usr/share/gtk-doc/html/libnm-util/NMSetting.html#NMSetting-struct"><span class="type">NMSetting</span></a>
+<p>Describes errors that may result from operations involving a <a class="link" href="NMConnection.html" title="NMConnection"><span class="type">NMConnection</span></a>
+or its <span class="type">NMSettings</span>.</p>
+<p>These errors may be returned directly from <a class="link" href="NMConnection.html" title="NMConnection"><span class="type">NMConnection</span></a> and <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a>
 methods, or may be returned from D-Bus operations (eg on <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> or
 <a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a>), where they correspond to errors in the
 "org.freedesktop.NetworkManager.Settings.Connection" namespace.</p>
@@ -350,16 +350,16 @@ methods, or may be returned from D-Bus operations (eg on <a class="link" href="N
 <tr>
 <td class="enum_member_name"><p><a name="NM-CONNECTION-ERROR-SETTING-NOT-FOUND:CAPS"></a>NM_CONNECTION_ERROR_SETTING_NOT_FOUND</p></td>
 <td class="enum_member_description">
-<p>the <a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html#NMConnection-struct"><span class="type">NMConnection</span></a> object
-did not contain the specified <a href="/usr/share/gtk-doc/html/libnm-util/NMSetting.html#NMSetting-struct"><span class="type">NMSetting</span></a> object</p>
+<p>the <a class="link" href="NMConnection.html" title="NMConnection"><span class="type">NMConnection</span></a> object
+did not contain the specified <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> object</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
 <tr>
 <td class="enum_member_name"><p><a name="NM-CONNECTION-ERROR-PROPERTY-NOT-FOUND:CAPS"></a>NM_CONNECTION_ERROR_PROPERTY_NOT_FOUND</p></td>
 <td class="enum_member_description">
-<p>the <a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html#NMConnection-struct"><span class="type">NMConnection</span></a> did not contain the
-requested <a href="/usr/share/gtk-doc/html/libnm-util/NMSetting.html#NMSetting-struct"><span class="type">NMSetting</span></a> property</p>
+<p>the <a class="link" href="NMConnection.html" title="NMConnection"><span class="type">NMConnection</span></a> did not contain the
+requested <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> property</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -374,8 +374,8 @@ was attempted on a non-secret property</p>
 <tr>
 <td class="enum_member_name"><p><a name="NM-CONNECTION-ERROR-MISSING-SETTING:CAPS"></a>NM_CONNECTION_ERROR_MISSING_SETTING</p></td>
 <td class="enum_member_description">
-<p>the <a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html#NMConnection-struct"><span class="type">NMConnection</span></a> object is missing an
-<a href="/usr/share/gtk-doc/html/libnm-util/NMSetting.html#NMSetting-struct"><span class="type">NMSetting</span></a> which is required for its configuration. The error message will
+<p>the <a class="link" href="NMConnection.html" title="NMConnection"><span class="type">NMConnection</span></a> object is missing an
+<a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> which is required for its configuration. The error message will
 always be prefixed with "&lt;setting-name&gt;: ", where "&lt;setting-name&gt;" is the
 name of the setting that is missing.</p>
 </td>
@@ -384,8 +384,8 @@ name of the setting that is missing.</p>
 <tr>
 <td class="enum_member_name"><p><a name="NM-CONNECTION-ERROR-INVALID-SETTING:CAPS"></a>NM_CONNECTION_ERROR_INVALID_SETTING</p></td>
 <td class="enum_member_description">
-<p>the <a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html#NMConnection-struct"><span class="type">NMConnection</span></a> object contains an
-invalid or inappropriate <a href="/usr/share/gtk-doc/html/libnm-util/NMSetting.html#NMSetting-struct"><span class="type">NMSetting</span></a>. The error message will always be
+<p>the <a class="link" href="NMConnection.html" title="NMConnection"><span class="type">NMConnection</span></a> object contains an
+invalid or inappropriate <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a>. The error message will always be
 prefixed with "&lt;setting-name&gt;: ", where "&lt;setting-name&gt;" is the name of the
 setting that is invalid.</p>
 </td>
@@ -394,7 +394,7 @@ setting that is invalid.</p>
 <tr>
 <td class="enum_member_name"><p><a name="NM-CONNECTION-ERROR-MISSING-PROPERTY:CAPS"></a>NM_CONNECTION_ERROR_MISSING_PROPERTY</p></td>
 <td class="enum_member_description">
-<p>the <a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html#NMConnection-struct"><span class="type">NMConnection</span></a> object is invalid
+<p>the <a class="link" href="NMConnection.html" title="NMConnection"><span class="type">NMConnection</span></a> object is invalid
 because it is missing a required property. The error message will always be
 prefixed with "&lt;setting-name&gt;.&lt;property-name&gt;: ", where "&lt;setting-name&gt;" is
 the name of the setting with the missing property, and "&lt;property-name&gt;" is
@@ -405,7 +405,7 @@ the property that is missing.</p>
 <tr>
 <td class="enum_member_name"><p><a name="NM-CONNECTION-ERROR-INVALID-PROPERTY:CAPS"></a>NM_CONNECTION_ERROR_INVALID_PROPERTY</p></td>
 <td class="enum_member_description">
-<p>the <a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html#NMConnection-struct"><span class="type">NMConnection</span></a> object is invalid
+<p>the <a class="link" href="NMConnection.html" title="NMConnection"><span class="type">NMConnection</span></a> object is invalid
 because a property has an invalid value. The error message will always be
 prefixed with "&lt;setting-name&gt;.&lt;property-name&gt;: ", where "&lt;setting-name&gt;" is
 the name of the setting with the invalid property, and "&lt;property-name&gt;" is
@@ -427,7 +427,7 @@ the property that is invalid.</p>
 <div class="refsect2">
 <a name="NMCryptoError"></a><h3>enum NMCryptoError</h3>
 <p>Cryptography-related errors that can be returned from some nm-utils methods,
-and some <span class="type">NMSetting8021x</span> operations.</p>
+and some <a class="link" href="NMSetting8021x.html" title="NMSetting8021x"><span class="type">NMSetting8021x</span></a> operations.</p>
 <div class="refsect3">
 <a name="NMCryptoError.members"></a><h4>Members</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
@@ -737,7 +737,7 @@ activation but is not available.</p>
 when they encounter problems retrieving secrets on behalf of NM. They
 correspond to errors in the "org.freedesktop.NetworkManager.SecretManager"
 namespace.</p>
-<p>Client APIs such as <a href="/usr/share/gtk-doc/html/libnm-glib/NMClient.html#nm-client-activate-connection"><code class="function">nm_client_activate_connection()</code></a> will not see these error
+<p>Client APIs such as <code class="function">nm_client_activate_connection()</code> will not see these error
 codes; instead, the secret agent manager will translate them to the
 corresponding <a class="link" href="libnm-nm-errors.html#NMAgentManagerError" title="enum NMAgentManagerError"><span class="type">NMAgentManagerError</span></a> codes.</p>
 <div class="refsect3">

@@ -6,10 +6,10 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: NetworkManager 1.42.0\n"
+"Project-Id-Version: NetworkManager 1.42.2\n"
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/NetworkManager/"
 "NetworkManager/issues\n"
-"POT-Creation-Date: 2023-02-10 09:16+0100\n"
+"POT-Creation-Date: 2023-02-23 10:42+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -172,7 +172,7 @@ msgid "%s %u"
 msgstr ""
 
 #: src/core/devices/adsl/nm-device-adsl.c:115
-#: src/libnmc-setting/nm-meta-setting-desc.c:8400
+#: src/libnmc-setting/nm-meta-setting-desc.c:8406
 msgid "ADSL connection"
 msgstr ""
 
@@ -249,7 +249,7 @@ msgid "Wired connection %d"
 msgstr ""
 
 #: src/core/devices/nm-device-ethernet.c:1638
-#: src/libnmc-setting/nm-meta-setting-desc.c:8440
+#: src/libnmc-setting/nm-meta-setting-desc.c:8446
 msgid "Veth connection"
 msgstr ""
 
@@ -262,7 +262,7 @@ msgid "Wired connection"
 msgstr ""
 
 #: src/core/devices/nm-device-infiniband.c:157
-#: src/libnmc-setting/nm-meta-setting-desc.c:8414
+#: src/libnmc-setting/nm-meta-setting-desc.c:8420
 msgid "InfiniBand connection"
 msgstr ""
 
@@ -283,17 +283,17 @@ msgid "TUN connection"
 msgstr ""
 
 #: src/core/devices/nm-device-vlan.c:377
-#: src/libnmc-setting/nm-meta-setting-desc.c:8441
+#: src/libnmc-setting/nm-meta-setting-desc.c:8447
 msgid "VLAN connection"
 msgstr ""
 
 #: src/core/devices/nm-device-vrf.c:182
-#: src/libnmc-setting/nm-meta-setting-desc.c:8443
+#: src/libnmc-setting/nm-meta-setting-desc.c:8449
 msgid "VRF connection"
 msgstr ""
 
 #: src/core/devices/nm-device-vxlan.c:382
-#: src/libnmc-setting/nm-meta-setting-desc.c:8444
+#: src/libnmc-setting/nm-meta-setting-desc.c:8450
 msgid "VXLAN connection"
 msgstr ""
 
@@ -598,23 +598,23 @@ msgstr ""
 msgid "Show NetworkManager options"
 msgstr ""
 
-#: src/core/nm-manager.c:6193 src/libnmc-setting/nm-meta-setting-desc.c:8442
+#: src/core/nm-manager.c:6193 src/libnmc-setting/nm-meta-setting-desc.c:8448
 msgid "VPN connection"
 msgstr ""
 
-#: src/core/settings/plugins/ifcfg-rh/nms-ifcfg-rh-reader.c:5609
+#: src/core/settings/plugins/ifcfg-rh/nms-ifcfg-rh-reader.c:5613
 #: src/libnm-client-impl/nm-device.c:1780
 #: src/libnm-core-impl/nm-connection.c:3190 src/nmtui/nm-editor-utils.c:196
 msgid "Bond"
 msgstr ""
 
-#: src/core/settings/plugins/ifcfg-rh/nms-ifcfg-rh-reader.c:5680
+#: src/core/settings/plugins/ifcfg-rh/nms-ifcfg-rh-reader.c:5684
 #: src/libnm-client-impl/nm-device.c:1782
 #: src/libnm-core-impl/nm-connection.c:3192 src/nmtui/nm-editor-utils.c:214
 msgid "Team"
 msgstr ""
 
-#: src/core/settings/plugins/ifcfg-rh/nms-ifcfg-rh-reader.c:6017
+#: src/core/settings/plugins/ifcfg-rh/nms-ifcfg-rh-reader.c:6021
 #: src/libnm-client-impl/nm-device.c:1784
 #: src/libnm-core-impl/nm-connection.c:3194 src/nmtui/nm-editor-utils.c:205
 msgid "Bridge"
@@ -1181,7 +1181,7 @@ msgstr ""
 #: src/libnm-core-impl/nm-setting-connection.c:1149
 #: src/libnm-core-impl/nm-setting-connection.c:1187
 #: src/libnm-core-impl/nm-setting-connection.c:1516
-#: src/libnm-core-impl/nm-setting-ip-config.c:5482
+#: src/libnm-core-impl/nm-setting-ip-config.c:5499
 #: src/libnm-core-impl/nm-setting-ip-tunnel.c:407
 #: src/libnm-core-impl/nm-setting-olpc-mesh.c:99
 #: src/libnm-core-impl/nm-setting-ovs-patch.c:75
@@ -1522,7 +1522,7 @@ msgstr ""
 #: src/libnm-core-impl/nm-setting-gsm.c:353
 #: src/libnm-core-impl/nm-setting-gsm.c:396
 #: src/libnm-core-impl/nm-setting-gsm.c:405
-#: src/libnm-core-impl/nm-setting-ip-config.c:5491
+#: src/libnm-core-impl/nm-setting-ip-config.c:5508
 #: src/libnm-core-impl/nm-setting-ip4-config.c:286
 #: src/libnm-core-impl/nm-setting-ip4-config.c:298
 #: src/libnm-core-impl/nm-setting-pppoe.c:151
@@ -2217,79 +2217,79 @@ msgstr ""
 msgid "invalid address family"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:5123
+#: src/libnm-core-impl/nm-setting-ip-config.c:5124
 #, c-format
 msgid "rule #%u is invalid: %s"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:5512
+#: src/libnm-core-impl/nm-setting-ip-config.c:5529
 #, c-format
 msgid "%u. DNS server address is invalid"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:5532
+#: src/libnm-core-impl/nm-setting-ip-config.c:5549
 #, c-format
 msgid "%d. IP address is invalid"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:5547
+#: src/libnm-core-impl/nm-setting-ip-config.c:5564
 #, c-format
 msgid "%d. IP address has 'label' property with invalid type"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:5559
+#: src/libnm-core-impl/nm-setting-ip-config.c:5576
 #, c-format
 msgid "%d. IP address has invalid label '%s'"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:5577
+#: src/libnm-core-impl/nm-setting-ip-config.c:5594
 msgid "gateway cannot be set if there are no addresses configured"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:5589
+#: src/libnm-core-impl/nm-setting-ip-config.c:5606
 msgid "gateway is invalid"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:5607
+#: src/libnm-core-impl/nm-setting-ip-config.c:5624
 #, c-format
 msgid "%d. route is invalid"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:5620
+#: src/libnm-core-impl/nm-setting-ip-config.c:5637
 #, c-format
 msgid "invalid attribute: %s"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:5640
+#: src/libnm-core-impl/nm-setting-ip-config.c:5657
 #, c-format
 msgid "%u. rule has wrong address-family"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:5652
+#: src/libnm-core-impl/nm-setting-ip-config.c:5669
 #, c-format
 msgid "%u. rule is invalid: %s"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:5668
+#: src/libnm-core-impl/nm-setting-ip-config.c:5685
 #, c-format
 msgid "'%s' is not a valid IAID"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:5682
+#: src/libnm-core-impl/nm-setting-ip-config.c:5699
 #, c-format
 msgid "the property cannot be set when '%s' is disabled"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:5708
+#: src/libnm-core-impl/nm-setting-ip-config.c:5725
 msgid "the property is currently supported only for DHCPv4"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:5725
+#: src/libnm-core-impl/nm-setting-ip-config.c:5742
 #, c-format
 msgid "'%s' is not a valid IP or subnet"
 msgstr ""
 
-#: src/libnm-core-impl/nm-setting-ip-config.c:5741
+#: src/libnm-core-impl/nm-setting-ip-config.c:5758
 #, c-format
 msgid "a gateway is incompatible with '%s'"
 msgstr ""
@@ -3323,21 +3323,21 @@ msgstr ""
 msgid "only one VLAN can be the PVID"
 msgstr ""
 
-#: src/libnm-core-impl/nm-utils.c:5700
+#: src/libnm-core-impl/nm-utils.c:5707
 #, c-format
 msgid "unknown flags 0x%x"
 msgstr ""
 
-#: src/libnm-core-impl/nm-utils.c:5712
+#: src/libnm-core-impl/nm-utils.c:5719
 msgid ""
 "'fqdn-no-update' and 'fqdn-serv-update' flags cannot be set at the same time"
 msgstr ""
 
-#: src/libnm-core-impl/nm-utils.c:5723
+#: src/libnm-core-impl/nm-utils.c:5730
 msgid "'fqdn-clear-flags' flag is incompatible with other FQDN flags"
 msgstr ""
 
-#: src/libnm-core-impl/nm-utils.c:5731
+#: src/libnm-core-impl/nm-utils.c:5738
 msgid "DHCPv6 does not support the E (encoded) FQDN flag"
 msgstr ""
 
@@ -4425,7 +4425,7 @@ msgid "MACsec PSK authentication"
 msgstr ""
 
 #: src/libnmc-base/nm-secret-agent-simple.c:931
-#: src/libnmc-setting/nm-meta-setting-desc.c:6673
+#: src/libnmc-setting/nm-meta-setting-desc.c:6679
 msgid "MKA CAK"
 msgstr ""
 
@@ -5008,7 +5008,7 @@ msgstr ""
 #: src/libnmc-setting/nm-meta-setting-desc.c:5141
 #: src/libnmc-setting/nm-meta-setting-desc.c:5437
 #: src/libnmc-setting/nm-meta-setting-desc.c:5927
-#: src/libnmc-setting/nm-meta-setting-desc.c:7028
+#: src/libnmc-setting/nm-meta-setting-desc.c:7034
 msgid "Password [none]"
 msgstr ""
 
@@ -5023,10 +5023,10 @@ msgstr ""
 
 #: src/libnmc-setting/nm-meta-setting-desc.c:5247
 #: src/libnmc-setting/nm-meta-setting-desc.c:6001
-#: src/libnmc-setting/nm-meta-setting-desc.c:7754
-#: src/libnmc-setting/nm-meta-setting-desc.c:7792
-#: src/libnmc-setting/nm-meta-setting-desc.c:7977
-#: src/libnmc-setting/nm-meta-setting-desc.c:8210
+#: src/libnmc-setting/nm-meta-setting-desc.c:7760
+#: src/libnmc-setting/nm-meta-setting-desc.c:7798
+#: src/libnmc-setting/nm-meta-setting-desc.c:7983
+#: src/libnmc-setting/nm-meta-setting-desc.c:8216
 msgid "MAC [none]"
 msgstr ""
 
@@ -5081,7 +5081,7 @@ msgstr ""
 
 #: src/libnmc-setting/nm-meta-setting-desc.c:5431
 #: src/libnmc-setting/nm-meta-setting-desc.c:5921
-#: src/libnmc-setting/nm-meta-setting-desc.c:7601
+#: src/libnmc-setting/nm-meta-setting-desc.c:7607
 msgid "Username [none]"
 msgstr ""
 
@@ -5122,9 +5122,9 @@ msgid "APN"
 msgstr ""
 
 #: src/libnmc-setting/nm-meta-setting-desc.c:6010
-#: src/libnmc-setting/nm-meta-setting-desc.c:6630
-#: src/libnmc-setting/nm-meta-setting-desc.c:7823
-#: src/libnmc-setting/nm-meta-setting-desc.c:8017
+#: src/libnmc-setting/nm-meta-setting-desc.c:6636
+#: src/libnmc-setting/nm-meta-setting-desc.c:7829
+#: src/libnmc-setting/nm-meta-setting-desc.c:8023
 #: src/nmtui/nmt-page-ethernet.c:124 src/nmtui/nmt-page-infiniband.c:81
 #: src/nmtui/nmt-page-ip-tunnel.c:178 src/nmtui/nmt-page-vlan.c:100
 #: src/nmtui/nmt-page-wifi.c:395 src/nmtui/nmt-page-wireguard.c:85
@@ -5183,7 +5183,7 @@ msgid ""
 "\n"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:6314
+#: src/libnmc-setting/nm-meta-setting-desc.c:6317
 msgid ""
 "Enter a list of IPv6 addresses of DNS servers.  If the IPv6 configuration "
 "method is 'auto' these DNS servers are appended to those (if any) returned "
@@ -5195,11 +5195,11 @@ msgid ""
 "Example: 2607:f0d0:1002:51::4, 2607:f0d0:1002:51::1\n"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:6367
+#: src/libnmc-setting/nm-meta-setting-desc.c:6370
 msgid "IPv6 address (IP[/plen]) [none]"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:6369
+#: src/libnmc-setting/nm-meta-setting-desc.c:6372
 msgid ""
 "Enter a list of IPv6 addresses formatted as:\n"
 "  ip[/prefix], ip[/prefix],...\n"
@@ -5208,11 +5208,11 @@ msgid ""
 "Example: 2607:f0d0:1002:51::4/64, 1050:0:0:0:5:600:300c:326b\n"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:6388
+#: src/libnmc-setting/nm-meta-setting-desc.c:6391
 msgid "IPv6 gateway [none]"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:6396
+#: src/libnmc-setting/nm-meta-setting-desc.c:6399
 msgid ""
 "Enter a list of IPv6 routes formatted as:\n"
 "  ip[/prefix] [next-hop] [metric],...\n"
@@ -5226,395 +5226,395 @@ msgid ""
 "          abbe::/64 55\n"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:6436
+#: src/libnmc-setting/nm-meta-setting-desc.c:6439
 msgid ""
 "Enter a list of IPv6 routing rules formatted as:\n"
 "  priority [prio] [from [src]] [to [dst]], ,...\n"
 "\n"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:6567
-#: src/libnmc-setting/nm-meta-setting-desc.c:7654
+#: src/libnmc-setting/nm-meta-setting-desc.c:6573
+#: src/libnmc-setting/nm-meta-setting-desc.c:7660
 msgid "Parent device [none]"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:6573
+#: src/libnmc-setting/nm-meta-setting-desc.c:6579
 msgid "Local endpoint [none]"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:6580
-#: src/libnmc-setting/nm-meta-setting-desc.c:7673
+#: src/libnmc-setting/nm-meta-setting-desc.c:6586
+#: src/libnmc-setting/nm-meta-setting-desc.c:7679
 msgid "Remote"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:6646
+#: src/libnmc-setting/nm-meta-setting-desc.c:6652
 msgid "MACsec parent device or connection UUID"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:6667
+#: src/libnmc-setting/nm-meta-setting-desc.c:6673
 msgid "Enable encryption"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:6683
+#: src/libnmc-setting/nm-meta-setting-desc.c:6689
 msgid "MKA_CKN"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:6689
+#: src/libnmc-setting/nm-meta-setting-desc.c:6695
 #: src/nmtui/nmt-page-macsec.c:170
 msgid "SCI port"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:6715
+#: src/libnmc-setting/nm-meta-setting-desc.c:6721
 msgid "MACVLAN parent device or connection UUID"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:6736
+#: src/libnmc-setting/nm-meta-setting-desc.c:6742
 msgid "Tap"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:6803
-#: src/libnmc-setting/nm-meta-setting-desc.c:7931 src/nmtui/nmt-page-wifi.c:216
+#: src/libnmc-setting/nm-meta-setting-desc.c:6809
+#: src/libnmc-setting/nm-meta-setting-desc.c:7937 src/nmtui/nmt-page-wifi.c:216
 msgid "SSID"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:6812
+#: src/libnmc-setting/nm-meta-setting-desc.c:6818
 msgid "OLPC Mesh channel"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:6821
+#: src/libnmc-setting/nm-meta-setting-desc.c:6827
 msgid "DHCP anycast MAC address [none]"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:7009
+#: src/libnmc-setting/nm-meta-setting-desc.c:7015
 msgid "PPPoE parent device"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:7015
+#: src/libnmc-setting/nm-meta-setting-desc.c:7021
 msgid "Service [none]"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:7022
+#: src/libnmc-setting/nm-meta-setting-desc.c:7028
 msgid "PPPoE username"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:7058
+#: src/libnmc-setting/nm-meta-setting-desc.c:7064
 msgid "Browser only"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:7064
+#: src/libnmc-setting/nm-meta-setting-desc.c:7070
 msgid "PAC URL"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:7070
+#: src/libnmc-setting/nm-meta-setting-desc.c:7076
 msgid "PAC script"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:7194
-#: src/libnmc-setting/nm-meta-setting-desc.c:7382
+#: src/libnmc-setting/nm-meta-setting-desc.c:7200
+#: src/libnmc-setting/nm-meta-setting-desc.c:7388
 msgid "Team JSON configuration [none]"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:7485
+#: src/libnmc-setting/nm-meta-setting-desc.c:7491
 msgid "User ID [none]"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:7491
+#: src/libnmc-setting/nm-meta-setting-desc.c:7497
 msgid "Group ID [none]"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:7497
+#: src/libnmc-setting/nm-meta-setting-desc.c:7503
 msgid "Enable PI"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:7503
+#: src/libnmc-setting/nm-meta-setting-desc.c:7509
 msgid "Enable VNET header"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:7509
+#: src/libnmc-setting/nm-meta-setting-desc.c:7515
 msgid "Enable multi queue"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:7522
+#: src/libnmc-setting/nm-meta-setting-desc.c:7528
 msgid "veth peer"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:7535
+#: src/libnmc-setting/nm-meta-setting-desc.c:7541
 msgid "VLAN parent device or connection UUID"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:7542
+#: src/libnmc-setting/nm-meta-setting-desc.c:7548
 msgid "VLAN ID (<0-4094>)"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:7548
+#: src/libnmc-setting/nm-meta-setting-desc.c:7554
 msgid "VLAN flags (<0-7>) [none]"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:7563
+#: src/libnmc-setting/nm-meta-setting-desc.c:7569
 msgid "Ingress priority maps [none]"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:7573
+#: src/libnmc-setting/nm-meta-setting-desc.c:7579
 msgid "Egress priority maps [none]"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:7641
+#: src/libnmc-setting/nm-meta-setting-desc.c:7647
 msgid "Table"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:7661
+#: src/libnmc-setting/nm-meta-setting-desc.c:7667
 msgid "VXLAN ID"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:7667
+#: src/libnmc-setting/nm-meta-setting-desc.c:7673
 msgid "Local address [none]"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:7679
+#: src/libnmc-setting/nm-meta-setting-desc.c:7685
 msgid "Minimum source port"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:7685
+#: src/libnmc-setting/nm-meta-setting-desc.c:7691
 msgid "Maximum source port"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:7691
+#: src/libnmc-setting/nm-meta-setting-desc.c:7697
 msgid "Destination port"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:7731
+#: src/libnmc-setting/nm-meta-setting-desc.c:7737
 #: src/nmtui/nmt-wireguard-peer-editor.c:78
 msgid "Peer"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:7761
+#: src/libnmc-setting/nm-meta-setting-desc.c:7767
 msgid "WiMAX NSP name"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:7798
-#: src/libnmc-setting/nm-meta-setting-desc.c:7982
+#: src/libnmc-setting/nm-meta-setting-desc.c:7804
+#: src/libnmc-setting/nm-meta-setting-desc.c:7988
 msgid "Cloned MAC [none]"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:7831
+#: src/libnmc-setting/nm-meta-setting-desc.c:7837
 msgid ""
 "Enter a list of subchannels (comma or space separated).\n"
 "\n"
 "Example: 0.0.0e20 0.0.0e21 0.0.0e22\n"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:8159
+#: src/libnmc-setting/nm-meta-setting-desc.c:8165
 msgid ""
 "Enter the type of WEP keys. The accepted values are: 0 or unknown, 1 or key, "
 "and 2 or passphrase.\n"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:8218
+#: src/libnmc-setting/nm-meta-setting-desc.c:8224
 msgid "Short address (<0x0000-0xffff>)"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:8234
+#: src/libnmc-setting/nm-meta-setting-desc.c:8240
 msgid "PAN Identifier (<0x0000-0xffff>)"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:8249
+#: src/libnmc-setting/nm-meta-setting-desc.c:8255
 msgid "Page (<default|0-31>)"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:8263
+#: src/libnmc-setting/nm-meta-setting-desc.c:8269
 msgid "Channel (<default|0-26>)"
 msgstr ""
 
 #. ***************************************************************************
-#: src/libnmc-setting/nm-meta-setting-desc.c:8398
+#: src/libnmc-setting/nm-meta-setting-desc.c:8404
 msgid "6LOWPAN settings"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:8399
+#: src/libnmc-setting/nm-meta-setting-desc.c:8405
 msgid "802-1x settings"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:8401
+#: src/libnmc-setting/nm-meta-setting-desc.c:8407
 msgid "bluetooth connection"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:8402
+#: src/libnmc-setting/nm-meta-setting-desc.c:8408
 msgid "Bond device"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:8403
+#: src/libnmc-setting/nm-meta-setting-desc.c:8409
 msgid "Bond port"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:8404
+#: src/libnmc-setting/nm-meta-setting-desc.c:8410
 msgid "Bridge device"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:8405
+#: src/libnmc-setting/nm-meta-setting-desc.c:8411
 msgid "Bridge port"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:8406
+#: src/libnmc-setting/nm-meta-setting-desc.c:8412
 msgid "CDMA mobile broadband connection"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:8407
+#: src/libnmc-setting/nm-meta-setting-desc.c:8413
 msgid "General settings"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:8408
+#: src/libnmc-setting/nm-meta-setting-desc.c:8414
 msgid "DCB settings"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:8409
+#: src/libnmc-setting/nm-meta-setting-desc.c:8415
 msgid "Dummy settings"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:8410
+#: src/libnmc-setting/nm-meta-setting-desc.c:8416
 msgid "Ethtool settings"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:8411
+#: src/libnmc-setting/nm-meta-setting-desc.c:8417
 msgid "Generic settings"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:8412
+#: src/libnmc-setting/nm-meta-setting-desc.c:8418
 msgid "GSM mobile broadband connection"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:8413
+#: src/libnmc-setting/nm-meta-setting-desc.c:8419
 msgid "Hostname settings"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:8415
+#: src/libnmc-setting/nm-meta-setting-desc.c:8421
 msgid "IPv4 protocol"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:8416
+#: src/libnmc-setting/nm-meta-setting-desc.c:8422
 msgid "IPv6 protocol"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:8417
+#: src/libnmc-setting/nm-meta-setting-desc.c:8423
 msgid "IP-tunnel settings"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:8418
+#: src/libnmc-setting/nm-meta-setting-desc.c:8424
 msgid "Loopback settings"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:8419
+#: src/libnmc-setting/nm-meta-setting-desc.c:8425
 msgid "MACsec connection"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:8420
+#: src/libnmc-setting/nm-meta-setting-desc.c:8426
 msgid "macvlan connection"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:8421
+#: src/libnmc-setting/nm-meta-setting-desc.c:8427
 msgid "Match"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:8422
+#: src/libnmc-setting/nm-meta-setting-desc.c:8428
 msgid "OLPC Mesh connection"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:8423
+#: src/libnmc-setting/nm-meta-setting-desc.c:8429
 msgid "Open vSwitch bridge settings"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:8424
+#: src/libnmc-setting/nm-meta-setting-desc.c:8430
 msgid "Open vSwitch DPDK interface settings"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:8425
+#: src/libnmc-setting/nm-meta-setting-desc.c:8431
 msgid "OVS Other Config"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:8426
+#: src/libnmc-setting/nm-meta-setting-desc.c:8432
 msgid "OVS External IDs"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:8427
+#: src/libnmc-setting/nm-meta-setting-desc.c:8433
 msgid "Open vSwitch interface settings"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:8428
+#: src/libnmc-setting/nm-meta-setting-desc.c:8434
 msgid "Open vSwitch patch interface settings"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:8429
+#: src/libnmc-setting/nm-meta-setting-desc.c:8435
 msgid "Open vSwitch port settings"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:8430
+#: src/libnmc-setting/nm-meta-setting-desc.c:8436
 msgid "PPP settings"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:8431
+#: src/libnmc-setting/nm-meta-setting-desc.c:8437
 msgid "PPPoE"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:8432
+#: src/libnmc-setting/nm-meta-setting-desc.c:8438
 msgid "Proxy"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:8433
+#: src/libnmc-setting/nm-meta-setting-desc.c:8439
 msgid "Serial settings"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:8434
+#: src/libnmc-setting/nm-meta-setting-desc.c:8440
 msgid "SR-IOV settings"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:8435
+#: src/libnmc-setting/nm-meta-setting-desc.c:8441
 msgid "Traffic controls"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:8436
+#: src/libnmc-setting/nm-meta-setting-desc.c:8442
 msgid "Team device"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:8437
+#: src/libnmc-setting/nm-meta-setting-desc.c:8443
 msgid "Team port"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:8438
+#: src/libnmc-setting/nm-meta-setting-desc.c:8444
 msgid "Tun device"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:8439
+#: src/libnmc-setting/nm-meta-setting-desc.c:8445
 msgid "User settings"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:8445
+#: src/libnmc-setting/nm-meta-setting-desc.c:8451
 msgid "Wi-Fi P2P connection"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:8446
+#: src/libnmc-setting/nm-meta-setting-desc.c:8452
 msgid "WiMAX connection"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:8447
+#: src/libnmc-setting/nm-meta-setting-desc.c:8453
 msgid "Wired Ethernet"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:8448
+#: src/libnmc-setting/nm-meta-setting-desc.c:8454
 msgid "WireGuard VPN settings"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:8449
+#: src/libnmc-setting/nm-meta-setting-desc.c:8455
 msgid "Wi-Fi connection"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:8450
+#: src/libnmc-setting/nm-meta-setting-desc.c:8456
 msgid "Wi-Fi security settings"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:8451
+#: src/libnmc-setting/nm-meta-setting-desc.c:8457
 msgid "WPAN settings"
 msgstr ""
 
-#: src/libnmc-setting/nm-meta-setting-desc.c:8864
+#: src/libnmc-setting/nm-meta-setting-desc.c:8870
 msgid "name"
 msgstr ""
 
@@ -6069,7 +6069,7 @@ msgstr ""
 #: src/libnmc-setting/settings-docs.h.in:81
 #: src/libnmc-setting/settings-docs.h.in:123
 #: src/libnmc-setting/settings-docs.h.in:148
-#: src/libnmc-setting/settings-docs.h.in:290
+#: src/libnmc-setting/settings-docs.h.in:292
 msgid "Flags indicating how to handle the \"password\" property."
 msgstr ""
 
@@ -6807,7 +6807,7 @@ msgid ""
 msgstr ""
 
 #: src/libnmc-setting/settings-docs.h.in:160
-#: src/libnmc-setting/settings-docs.h.in:189
+#: src/libnmc-setting/settings-docs.h.in:190
 msgid ""
 "VPN connections will default to add the route automatically unless this "
 "setting is set to FALSE. For other connection types, adding such an "
@@ -6816,7 +6816,7 @@ msgid ""
 msgstr ""
 
 #: src/libnmc-setting/settings-docs.h.in:161
-#: src/libnmc-setting/settings-docs.h.in:190
+#: src/libnmc-setting/settings-docs.h.in:191
 msgid ""
 "Timeout in milliseconds used to check for the presence of duplicate IP "
 "addresses on the network.  If an address conflict is detected, the "
@@ -6859,7 +6859,7 @@ msgid ""
 msgstr ""
 
 #: src/libnmc-setting/settings-docs.h.in:164
-#: src/libnmc-setting/settings-docs.h.in:192
+#: src/libnmc-setting/settings-docs.h.in:193
 msgid ""
 "If the \"dhcp-send-hostname\" property is TRUE, then the specified name will "
 "be sent to the DHCP server when acquiring a lease. This property and \"dhcp-"
@@ -6867,7 +6867,7 @@ msgid ""
 msgstr ""
 
 #: src/libnmc-setting/settings-docs.h.in:165
-#: src/libnmc-setting/settings-docs.h.in:193
+#: src/libnmc-setting/settings-docs.h.in:194
 msgid ""
 "Flags for the DHCP hostname and FQDN. Currently, this property only includes "
 "flags to control the FQDN flags set in the DHCP FQDN option. Supported FQDN "
@@ -6887,23 +6887,29 @@ msgid ""
 msgstr ""
 
 #: src/libnmc-setting/settings-docs.h.in:166
-#: src/libnmc-setting/settings-docs.h.in:194
+#: src/libnmc-setting/settings-docs.h.in:195
 msgid ""
 "A string containing the \"Identity Association Identifier\" (IAID) used by "
-"the DHCP client. The property is a 32-bit decimal value or a special value "
-"among \"mac\", \"perm-mac\", \"ifname\" and \"stable\". When set to "
-"\"mac\" (or \"perm-mac\"), the last 4 bytes of the current (or permanent) "
-"MAC address are used as IAID. When set to \"ifname\", the IAID is computed "
-"by hashing the interface name. The special value \"stable\" can be used to "
-"generate an IAID based on the stable-id (see connection.stable-id), a per-"
-"host key and the interface name. When the property is unset, the value from "
-"global configuration is used; if no global default is set then the IAID is "
-"assumed to be \"ifname\". Note that at the moment this property is ignored "
-"for IPv6 by dhclient, which always derives the IAID from the MAC address."
+"the DHCP client. The string can be a 32-bit number (either decimal, "
+"hexadecimal or or as colon separated hexadecimal numbers). Alternatively it "
+"can be set to the special values \"mac\", \"perm-mac\", \"ifname\" or "
+"\"stable\". When set to \"mac\" (or \"perm-mac\"), the last 4 bytes of the "
+"current (or permanent) MAC address are used as IAID. When set to \"ifname\", "
+"the IAID is computed by hashing the interface name. The special value "
+"\"stable\" can be used to generate an IAID based on the stable-id (see "
+"connection.stable-id), a per-host key and the interface name. When the "
+"property is unset, the value from global configuration is used; if no global "
+"default is set then the IAID is assumed to be \"ifname\". For DHCPv4, the "
+"IAID is only used with \"ipv4.dhcp-client-id\" values \"duid\" and \"ipv6-"
+"duid\" to generate the client-id. For DHCPv6, note that at the moment this "
+"property is only supported by the \"internal\" DHCPv6 plugin. The "
+"\"dhclient\" DHCPv6 plugin always derives the IAID from the MAC address. The "
+"actually used DHCPv6 IAID for a currently activated interface is exposed in "
+"the lease information of the device."
 msgstr ""
 
 #: src/libnmc-setting/settings-docs.h.in:167
-#: src/libnmc-setting/settings-docs.h.in:195
+#: src/libnmc-setting/settings-docs.h.in:196
 msgid ""
 "Array of servers from which DHCP offers must be rejected. This property is "
 "useful to avoid getting a lease from misconfigured or rogue servers. For "
@@ -6913,7 +6919,7 @@ msgid ""
 msgstr ""
 
 #: src/libnmc-setting/settings-docs.h.in:168
-#: src/libnmc-setting/settings-docs.h.in:196
+#: src/libnmc-setting/settings-docs.h.in:197
 msgid ""
 "If TRUE, a hostname is sent to the DHCP server when acquiring a lease. Some "
 "DHCP servers use this hostname to update DNS databases, essentially "
@@ -6923,7 +6929,7 @@ msgid ""
 msgstr ""
 
 #: src/libnmc-setting/settings-docs.h.in:169
-#: src/libnmc-setting/settings-docs.h.in:197
+#: src/libnmc-setting/settings-docs.h.in:198
 msgid ""
 "A timeout for a DHCP transaction in seconds. If zero (the default), a "
 "globally configured default is used. If still unspecified, a device specific "
@@ -6941,7 +6947,7 @@ msgid ""
 msgstr ""
 
 #: src/libnmc-setting/settings-docs.h.in:171
-#: src/libnmc-setting/settings-docs.h.in:198
+#: src/libnmc-setting/settings-docs.h.in:199
 msgid ""
 "Array of IP addresses of DNS servers. For DoT (DNS over TLS), the SNI server "
 "name can be specified by appending \"#example.com\" to the IP address of the "
@@ -6949,7 +6955,7 @@ msgid ""
 msgstr ""
 
 #: src/libnmc-setting/settings-docs.h.in:172
-#: src/libnmc-setting/settings-docs.h.in:199
+#: src/libnmc-setting/settings-docs.h.in:200
 msgid ""
 "Array of DNS options as described in man 5 resolv.conf. NULL means that the "
 "options are unset and left at the default. In this case NetworkManager will "
@@ -6966,7 +6972,7 @@ msgid ""
 msgstr ""
 
 #: src/libnmc-setting/settings-docs.h.in:173
-#: src/libnmc-setting/settings-docs.h.in:200
+#: src/libnmc-setting/settings-docs.h.in:201
 msgid ""
 "DNS servers priority. The relative priority for DNS servers specified by "
 "this setting.  A lower numerical value is better (higher priority). Negative "
@@ -7007,7 +7013,7 @@ msgid ""
 msgstr ""
 
 #: src/libnmc-setting/settings-docs.h.in:174
-#: src/libnmc-setting/settings-docs.h.in:201
+#: src/libnmc-setting/settings-docs.h.in:202
 msgid ""
 "List of DNS search domains. Domains starting with a tilde ('~') are "
 "considered 'routing' domains and are used only to decide the interface over "
@@ -7024,7 +7030,7 @@ msgid ""
 msgstr ""
 
 #: src/libnmc-setting/settings-docs.h.in:175
-#: src/libnmc-setting/settings-docs.h.in:202
+#: src/libnmc-setting/settings-docs.h.in:203
 msgid ""
 "The gateway associated with this configuration. This is only meaningful if "
 "\"addresses\" is also set. Setting the gateway causes NetworkManager to "
@@ -7037,7 +7043,7 @@ msgid ""
 msgstr ""
 
 #: src/libnmc-setting/settings-docs.h.in:176
-#: src/libnmc-setting/settings-docs.h.in:203
+#: src/libnmc-setting/settings-docs.h.in:204
 msgid ""
 "When \"method\" is set to \"auto\" and this property to TRUE, automatically "
 "configured name servers and search domains are ignored and only name servers "
@@ -7046,7 +7052,7 @@ msgid ""
 msgstr ""
 
 #: src/libnmc-setting/settings-docs.h.in:177
-#: src/libnmc-setting/settings-docs.h.in:204
+#: src/libnmc-setting/settings-docs.h.in:205
 msgid ""
 "When \"method\" is set to \"auto\" and this property to TRUE, automatically "
 "configured routes are ignored and only routes specified in the \"routes\" "
@@ -7066,7 +7072,7 @@ msgid ""
 msgstr ""
 
 #: src/libnmc-setting/settings-docs.h.in:179
-#: src/libnmc-setting/settings-docs.h.in:206
+#: src/libnmc-setting/settings-docs.h.in:207
 msgid ""
 "If TRUE, allow overall network configuration to proceed even if the "
 "configuration specified by this property times out.  Note that at least one "
@@ -7077,7 +7083,7 @@ msgid ""
 msgstr ""
 
 #: src/libnmc-setting/settings-docs.h.in:180
-#: src/libnmc-setting/settings-docs.h.in:207
+#: src/libnmc-setting/settings-docs.h.in:208
 msgid ""
 "IP configuration method. NMSettingIP4Config and NMSettingIP6Config both "
 "support \"disabled\", \"auto\", \"manual\", and \"link-local\". See the "
@@ -7094,14 +7100,21 @@ msgid ""
 msgstr ""
 
 #: src/libnmc-setting/settings-docs.h.in:181
-#: src/libnmc-setting/settings-docs.h.in:209
+#: src/libnmc-setting/settings-docs.h.in:210
 msgid ""
 "If TRUE, this connection will never be the default connection for this IP "
 "type, meaning it will never be assigned the default route by NetworkManager."
 msgstr ""
 
 #: src/libnmc-setting/settings-docs.h.in:182
-#: src/libnmc-setting/settings-docs.h.in:211
+#: src/libnmc-setting/settings-docs.h.in:212
+msgid ""
+"Connections will default to keep the autogenerated priority 0 local rule "
+"unless this setting is set to TRUE."
+msgstr ""
+
+#: src/libnmc-setting/settings-docs.h.in:183
+#: src/libnmc-setting/settings-docs.h.in:213
 msgid ""
 "The minimum time interval in milliseconds for which dynamic IP configuration "
 "should be tried before the connection succeeds. This property is useful for "
@@ -7116,8 +7129,8 @@ msgid ""
 "configuration ipvx.required-timeout override or zero)."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:183
-#: src/libnmc-setting/settings-docs.h.in:212
+#: src/libnmc-setting/settings-docs.h.in:184
+#: src/libnmc-setting/settings-docs.h.in:214
 msgid ""
 "The default metric for routes that don't explicitly specify a metric. The "
 "default value -1 means that the metric is chosen automatically based on the "
@@ -7128,8 +7141,8 @@ msgid ""
 "mean setting it to 1024. For IPv4, zero is a regular value for the metric."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:184
-#: src/libnmc-setting/settings-docs.h.in:213
+#: src/libnmc-setting/settings-docs.h.in:185
+#: src/libnmc-setting/settings-docs.h.in:215
 msgid ""
 "Enable policy routing (source routing) and set the routing table used when "
 "adding routes. This affects all routes, including device-routes, IPv4LL, "
@@ -7146,7 +7159,7 @@ msgid ""
 "tables outside of NetworkManager."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:185
+#: src/libnmc-setting/settings-docs.h.in:186
 msgid ""
 "A list of IPv4 destination addresses, prefix length, optional IPv4 next hop "
 "addresses, optional route metric, optional attribute. The valid syntax is: "
@@ -7154,12 +7167,12 @@ msgid ""
 "example \"192.0.2.0/24 10.1.1.1 77, 198.51.100.0/24\"."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:186
-#: src/libnmc-setting/settings-docs.h.in:215
+#: src/libnmc-setting/settings-docs.h.in:187
+#: src/libnmc-setting/settings-docs.h.in:217
 msgid "A comma separated list of routing rules for policy routing."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:187
+#: src/libnmc-setting/settings-docs.h.in:188
 msgid ""
 "Configure method for creating the address for use with RFC4862 IPv6 "
 "Stateless Address Autoconfiguration. The permitted values are: "
@@ -7188,7 +7201,7 @@ msgid ""
 "affect the temporary addresses configured with this option."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:188
+#: src/libnmc-setting/settings-docs.h.in:189
 msgid ""
 "A list of IPv6 addresses and their prefix length. Multiple addresses can be "
 "separated by comma. For example \"2001:db8:85a3::8a2e:370:7334/64, 2001:"
@@ -7197,7 +7210,7 @@ msgid ""
 "with IPv6 source address selection (RFC 6724, section 5)."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:191
+#: src/libnmc-setting/settings-docs.h.in:192
 msgid ""
 "A string containing the DHCPv6 Unique Identifier (DUID) used by the dhcp "
 "client to identify itself to DHCPv6 servers (RFC 3315). The DUID is carried "
@@ -7226,7 +7239,7 @@ msgid ""
 "assumed."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:205
+#: src/libnmc-setting/settings-docs.h.in:206
 msgid ""
 "Configure IPv6 Privacy Extensions for SLAAC, described in RFC4941.  If "
 "enabled, it makes the kernel generate a temporary IPv6 address in addition "
@@ -7243,7 +7256,7 @@ msgid ""
 "IPv6 addresses."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:208
+#: src/libnmc-setting/settings-docs.h.in:209
 msgid ""
 "Maximum transmission unit size, in bytes. If zero (the default), the MTU is "
 "set automatically from router advertisements or is left equal to the link-"
@@ -7251,7 +7264,7 @@ msgid ""
 "than the minimum IPv6 MTU of 1280, this value has no effect."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:210
+#: src/libnmc-setting/settings-docs.h.in:211
 msgid ""
 "A timeout for waiting Router Advertisements in seconds. If zero (the "
 "default), a globally configured default is used. If still unspecified, the "
@@ -7259,23 +7272,23 @@ msgid ""
 "(MAXINT32) for infinity."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:214
+#: src/libnmc-setting/settings-docs.h.in:216
 msgid "Array of IP routes."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:216
+#: src/libnmc-setting/settings-docs.h.in:218
 msgid ""
 "Configure the token for draft-chown-6man-tokenised-ipv6-identifiers-02 IPv6 "
 "tokenized interface identifiers. Useful with eui64 addr-gen-mode."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:217
+#: src/libnmc-setting/settings-docs.h.in:219
 msgid ""
 "How many additional levels of encapsulation are permitted to be prepended to "
 "packets. This property applies only to IPv6 tunnels."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:218
+#: src/libnmc-setting/settings-docs.h.in:220
 msgid ""
 "Tunnel flags. Currently, the following values are supported: "
 "NM_IP_TUNNEL_FLAG_IP6_IGN_ENCAP_LIMIT (0x1), "
@@ -7286,105 +7299,105 @@ msgid ""
 "for IPv6 tunnels."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:219
+#: src/libnmc-setting/settings-docs.h.in:221
 msgid ""
 "The flow label to assign to tunnel packets. This property applies only to "
 "IPv6 tunnels."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:220
+#: src/libnmc-setting/settings-docs.h.in:222
 msgid ""
 "The fwmark value to assign to tunnel packets. This property can be set to a "
 "non zero value only on VTI and VTI6 tunnels."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:221
+#: src/libnmc-setting/settings-docs.h.in:223
 msgid ""
 "The key used for tunnel input packets; the property is valid only for "
 "certain tunnel modes (GRE, IP6GRE). If empty, no key is used."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:222
+#: src/libnmc-setting/settings-docs.h.in:224
 msgid ""
 "The local endpoint of the tunnel; the value can be empty, otherwise it must "
 "contain an IPv4 or IPv6 address."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:223
+#: src/libnmc-setting/settings-docs.h.in:225
 msgid ""
 "The tunneling mode, for example NM_IP_TUNNEL_MODE_IPIP (1) or "
 "NM_IP_TUNNEL_MODE_GRE (2)."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:224
+#: src/libnmc-setting/settings-docs.h.in:226
 msgid ""
 "If non-zero, only transmit packets of the specified size or smaller, "
 "breaking larger packets up into multiple fragments."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:225
+#: src/libnmc-setting/settings-docs.h.in:227
 msgid ""
 "The key used for tunnel output packets; the property is valid only for "
 "certain tunnel modes (GRE, IP6GRE). If empty, no key is used."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:226
+#: src/libnmc-setting/settings-docs.h.in:228
 msgid ""
 "If given, specifies the parent interface name or parent connection UUID the "
 "new device will be bound to so that tunneled packets will only be routed via "
 "that interface."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:227
+#: src/libnmc-setting/settings-docs.h.in:229
 msgid "Whether to enable Path MTU Discovery on this tunnel."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:228
+#: src/libnmc-setting/settings-docs.h.in:230
 msgid ""
 "The remote endpoint of the tunnel; the value must contain an IPv4 or IPv6 "
 "address."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:229
+#: src/libnmc-setting/settings-docs.h.in:231
 msgid ""
 "The type of service (IPv4) or traffic class (IPv6) field to be set on "
 "tunneled packets."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:230
+#: src/libnmc-setting/settings-docs.h.in:232
 msgid ""
 "The TTL to assign to tunneled packets. 0 is a special value meaning that "
 "packets inherit the TTL value."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:231
+#: src/libnmc-setting/settings-docs.h.in:233
 msgid "Whether the transmitted traffic must be encrypted."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:232
+#: src/libnmc-setting/settings-docs.h.in:234
 msgid ""
 "The pre-shared CAK (Connectivity Association Key) for MACsec Key Agreement. "
 "Must be a string of 32 hexadecimal characters."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:233
+#: src/libnmc-setting/settings-docs.h.in:235
 msgid "Flags indicating how to handle the \"mka-cak\" property."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:234
+#: src/libnmc-setting/settings-docs.h.in:236
 msgid ""
 "The pre-shared CKN (Connectivity-association Key Name) for MACsec Key "
 "Agreement. Must be a string of hexadecimal characters with a even length "
 "between 2 and 64."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:235
+#: src/libnmc-setting/settings-docs.h.in:237
 msgid ""
 "Specifies how the CAK (Connectivity Association Key) for MKA (MACsec Key "
 "Agreement) is obtained."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:236
+#: src/libnmc-setting/settings-docs.h.in:238
 msgid ""
 "If given, specifies the parent interface name or parent connection UUID from "
 "which this MACSEC interface should be created.  If this property is not "
@@ -7392,29 +7405,29 @@ msgid ""
 "\"mac-address\" property."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:237
+#: src/libnmc-setting/settings-docs.h.in:239
 msgid ""
 "The port component of the SCI (Secure Channel Identifier), between 1 and "
 "65534."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:238
+#: src/libnmc-setting/settings-docs.h.in:240
 msgid ""
 "Specifies whether the SCI (Secure Channel Identifier) is included in every "
 "packet."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:239
+#: src/libnmc-setting/settings-docs.h.in:241
 msgid "Specifies the validation mode for incoming frames."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:240
+#: src/libnmc-setting/settings-docs.h.in:242
 msgid ""
 "The macvlan mode, which specifies the communication mechanism between "
 "multiple macvlans on the same lower device."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:241
+#: src/libnmc-setting/settings-docs.h.in:243
 msgid ""
 "If given, specifies the parent interface name or parent connection UUID from "
 "which this MAC-VLAN interface should be created.  If this property is not "
@@ -7422,15 +7435,15 @@ msgid ""
 "\"mac-address\" property."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:242
+#: src/libnmc-setting/settings-docs.h.in:244
 msgid "Whether the interface should be put in promiscuous mode."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:243
+#: src/libnmc-setting/settings-docs.h.in:245
 msgid "Whether the interface should be a MACVTAP."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:244
+#: src/libnmc-setting/settings-docs.h.in:246
 msgid ""
 "A list of driver names to match. Each element is a shell wildcard pattern. "
 "See NMSettingMatch:interface-name for how special characters '|', '&', '!' "
@@ -7438,7 +7451,7 @@ msgid ""
 "pattern."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:245
+#: src/libnmc-setting/settings-docs.h.in:247
 msgid ""
 "A list of interface names to match. Each element is a shell wildcard "
 "pattern. An element can be prefixed with a pipe symbol (|) or an ampersand "
@@ -7455,7 +7468,7 @@ msgid ""
 "For example, \"&\\!a\" is an mandatory match for literally \"!a\"."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:246
+#: src/libnmc-setting/settings-docs.h.in:248
 msgid ""
 "A list of kernel command line arguments to match. This may be used to check "
 "whether a specific kernel command line option is set (or unset, if prefixed "
@@ -7468,7 +7481,7 @@ msgid ""
 "and '\\' are used for optional and mandatory matches and inverting the match."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:247
+#: src/libnmc-setting/settings-docs.h.in:249
 msgid ""
 "A list of paths to match against the ID_PATH udev property of devices. "
 "ID_PATH represents the topological persistent path of a device. It typically "
@@ -7483,52 +7496,52 @@ msgid ""
 "'\\' are used for optional and mandatory matches and inverting the pattern."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:248
+#: src/libnmc-setting/settings-docs.h.in:250
 msgid "Channel on which the mesh network to join is located."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:249
+#: src/libnmc-setting/settings-docs.h.in:251
 msgid ""
 "Anycast DHCP MAC address used when requesting an IP address via DHCP. The "
 "specific anycast address used determines which DHCP server class answers the "
 "request. This is currently only implemented by dhclient DHCP plugin."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:250
+#: src/libnmc-setting/settings-docs.h.in:252
 msgid "SSID of the mesh network to join."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:251
+#: src/libnmc-setting/settings-docs.h.in:253
 msgid "The data path type. One of \"system\", \"netdev\" or empty."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:252
+#: src/libnmc-setting/settings-docs.h.in:254
 msgid "The bridge failure mode. One of \"secure\", \"standalone\" or empty."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:253
+#: src/libnmc-setting/settings-docs.h.in:255
 msgid "Enable or disable multicast snooping."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:254
+#: src/libnmc-setting/settings-docs.h.in:256
 msgid "Enable or disable RSTP."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:255
+#: src/libnmc-setting/settings-docs.h.in:257
 msgid "Enable or disable STP."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:256
+#: src/libnmc-setting/settings-docs.h.in:258
 msgid "Open vSwitch DPDK device arguments."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:257
+#: src/libnmc-setting/settings-docs.h.in:259
 msgid ""
 "Open vSwitch DPDK number of rx queues. Defaults to zero which means to leave "
 "the parameter in OVS unspecified and effectively configures one queue."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:258
+#: src/libnmc-setting/settings-docs.h.in:260
 msgid ""
 "The rx queue size (number of rx descriptors) for DPDK ports. Must be zero or "
 "a power of 2 between 1 and 4096, and supported by the hardware. Defaults to "
@@ -7536,7 +7549,7 @@ msgid ""
 "configures 2048 descriptors."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:259
+#: src/libnmc-setting/settings-docs.h.in:261
 msgid ""
 "The tx queue size (number of tx descriptors) for DPDK ports. Must be zero or "
 "a power of 2 between 1 and 4096, and supported by the hardware. Defaults to "
@@ -7544,7 +7557,7 @@ msgid ""
 "configures 2048 descriptors."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:260
+#: src/libnmc-setting/settings-docs.h.in:262
 msgid ""
 "Open vSwitch openflow port number. Defaults to zero which means that port "
 "number will not be specified and it will be chosen randomly by ovs. OpenFlow "
@@ -7553,67 +7566,67 @@ msgid ""
 "to each other via their OpenFlow ports."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:261
+#: src/libnmc-setting/settings-docs.h.in:263
 msgid ""
 "The interface type. Either \"internal\", \"system\", \"patch\", \"dpdk\", or "
 "empty."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:262
+#: src/libnmc-setting/settings-docs.h.in:264
 msgid ""
 "Specifies the name of the interface for the other side of the patch. The "
 "patch on the other side must also set this interface as peer."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:263
+#: src/libnmc-setting/settings-docs.h.in:265
 msgid "The time port must be inactive in order to be considered down."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:264
+#: src/libnmc-setting/settings-docs.h.in:266
 msgid ""
 "Bonding mode. One of \"active-backup\", \"balance-slb\", or \"balance-tcp\"."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:265
+#: src/libnmc-setting/settings-docs.h.in:267
 msgid "The time port must be active before it starts forwarding traffic."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:266
+#: src/libnmc-setting/settings-docs.h.in:268
 msgid "LACP mode. One of \"active\", \"off\", or \"passive\"."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:267
+#: src/libnmc-setting/settings-docs.h.in:269
 msgid "The VLAN tag in the range 0-4095."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:268
+#: src/libnmc-setting/settings-docs.h.in:270
 msgid ""
 "A list of VLAN ranges that this port trunks. The property is valid only for "
 "ports with mode \"trunk\", \"native-tagged\", or \"native-untagged port\". "
 "If it is empty, the port trunks all VLANs."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:269
+#: src/libnmc-setting/settings-docs.h.in:271
 msgid ""
 "The VLAN mode. One of \"access\", \"native-tagged\", \"native-untagged\", "
 "\"trunk\", \"dot1q-tunnel\" or unset."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:270
+#: src/libnmc-setting/settings-docs.h.in:272
 msgid ""
 "If non-zero, instruct pppd to set the serial port to the specified "
 "baudrate.  This value should normally be left as 0 to automatically choose "
 "the speed."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:271
+#: src/libnmc-setting/settings-docs.h.in:273
 msgid ""
 "If TRUE, specify that pppd should set the serial port to use hardware flow "
 "control with RTS and CTS signals.  This value should normally be set to "
 "FALSE."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:272
+#: src/libnmc-setting/settings-docs.h.in:274
 msgid ""
 "If non-zero, instruct pppd to presume the connection to the peer has failed "
 "if the specified number of LCP echo-requests go unanswered by the peer.  The "
@@ -7621,7 +7634,7 @@ msgid ""
 "property is used."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:273
+#: src/libnmc-setting/settings-docs.h.in:275
 msgid ""
 "If non-zero, instruct pppd to send an LCP echo-request frame to the peer "
 "every n seconds (where n is the specified value).  Note that some PPP peers "
@@ -7629,78 +7642,78 @@ msgid ""
 "autodetect this."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:274
+#: src/libnmc-setting/settings-docs.h.in:276
 msgid ""
 "If TRUE, stateful MPPE is used.  See pppd documentation for more information "
 "on stateful MPPE."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:275
+#: src/libnmc-setting/settings-docs.h.in:277
 msgid ""
 "If non-zero, instruct pppd to request that the peer send packets no larger "
 "than the specified size.  If non-zero, the MRU should be between 128 and "
 "16384."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:276
+#: src/libnmc-setting/settings-docs.h.in:278
 msgid ""
 "If non-zero, instruct pppd to send packets no larger than the specified size."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:277
+#: src/libnmc-setting/settings-docs.h.in:279
 msgid "If TRUE, Van Jacobsen TCP header compression will not be requested."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:278
+#: src/libnmc-setting/settings-docs.h.in:280
 msgid ""
 "If TRUE, do not require the other side (usually the PPP server) to "
 "authenticate itself to the client.  If FALSE, require authentication from "
 "the remote side.  In almost all cases, this should be TRUE."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:279
+#: src/libnmc-setting/settings-docs.h.in:281
 msgid "If TRUE, BSD compression will not be requested."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:280
+#: src/libnmc-setting/settings-docs.h.in:282
 msgid "If TRUE, \"deflate\" compression will not be requested."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:281
+#: src/libnmc-setting/settings-docs.h.in:283
 msgid "If TRUE, the CHAP authentication method will not be used."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:282
+#: src/libnmc-setting/settings-docs.h.in:284
 msgid "If TRUE, the EAP authentication method will not be used."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:283
+#: src/libnmc-setting/settings-docs.h.in:285
 msgid "If TRUE, the MSCHAP authentication method will not be used."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:284
+#: src/libnmc-setting/settings-docs.h.in:286
 msgid "If TRUE, the MSCHAPv2 authentication method will not be used."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:285
+#: src/libnmc-setting/settings-docs.h.in:287
 msgid "If TRUE, the PAP authentication method will not be used."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:286
+#: src/libnmc-setting/settings-docs.h.in:288
 msgid ""
 "If TRUE, MPPE (Microsoft Point-to-Point Encryption) will be required for the "
 "PPP session.  If either 64-bit or 128-bit MPPE is not available the session "
 "will fail.  Note that MPPE is not used on mobile broadband connections."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:287
+#: src/libnmc-setting/settings-docs.h.in:289
 msgid ""
 "If TRUE, 128-bit MPPE (Microsoft Point-to-Point Encryption) will be required "
 "for the PPP session, and the \"require-mppe\" property must also be set to "
 "TRUE.  If 128-bit MPPE is not available the session will fail."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:288
+#: src/libnmc-setting/settings-docs.h.in:290
 msgid ""
 "If given, specifies the parent interface name on which this PPPoE connection "
 "should be created.  If this property is not specified, the connection is "
@@ -7708,11 +7721,11 @@ msgid ""
 "NMSettingConnection."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:289
+#: src/libnmc-setting/settings-docs.h.in:291
 msgid "Password used to authenticate with the PPPoE service."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:291
+#: src/libnmc-setting/settings-docs.h.in:293
 msgid ""
 "If specified, instruct PPPoE to only initiate sessions with access "
 "concentrators that provide the specified service.  For most providers, this "
@@ -7720,20 +7733,20 @@ msgid ""
 "concentrators or a specific service is known to be required."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:292
+#: src/libnmc-setting/settings-docs.h.in:294
 msgid "Username used to authenticate with the PPPoE service."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:293
+#: src/libnmc-setting/settings-docs.h.in:295
 msgid "Whether the proxy configuration is for browser only."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:294
+#: src/libnmc-setting/settings-docs.h.in:296
 msgid ""
 "Method for proxy configuration, Default is NM_SETTING_PROXY_METHOD_NONE (0)"
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:295
+#: src/libnmc-setting/settings-docs.h.in:297
 msgid ""
 "The PAC script. In the profile this must be an UTF-8 encoded javascript code "
 "that defines a FindProxyForURL() function. When setting the property in "
@@ -7742,36 +7755,36 @@ msgid ""
 "supported to explicitly differentiate between the two."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:296
+#: src/libnmc-setting/settings-docs.h.in:298
 msgid "PAC URL for obtaining PAC file."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:297
+#: src/libnmc-setting/settings-docs.h.in:299
 msgid ""
 "Speed to use for communication over the serial port.  Note that this value "
 "usually has no effect for mobile broadband modems as they generally ignore "
 "speed settings and use the highest available speed."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:298
+#: src/libnmc-setting/settings-docs.h.in:300
 msgid "Byte-width of the serial communication. The 8 in \"8n1\" for example."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:299
+#: src/libnmc-setting/settings-docs.h.in:301
 msgid "Parity setting of the serial port."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:300
+#: src/libnmc-setting/settings-docs.h.in:302
 msgid "Time to delay between each byte sent to the modem, in microseconds."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:301
+#: src/libnmc-setting/settings-docs.h.in:303
 msgid ""
 "Number of stop bits for communication on the serial port.  Either 1 or 2. "
 "The 1 in \"8n1\" for example."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:302
+#: src/libnmc-setting/settings-docs.h.in:304
 msgid ""
 "Whether to autoprobe virtual functions by a compatible driver. If set to "
 "NM_TERNARY_TRUE (1), the kernel will try to bind VFs to a compatible driver "
@@ -7782,7 +7795,7 @@ msgid ""
 "assumed to be NM_TERNARY_TRUE (1)."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:303
+#: src/libnmc-setting/settings-docs.h.in:305
 msgid ""
 "The total number of virtual functions to create. Note that when the sriov "
 "setting is present NetworkManager enforces the number of virtual functions "
@@ -7791,7 +7804,7 @@ msgid ""
 "setting to the connection."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:304
+#: src/libnmc-setting/settings-docs.h.in:306
 msgid ""
 "Array of virtual function descriptors. Each VF descriptor is a dictionary "
 "mapping attribute names to GVariant values. The 'index' entry is mandatory "
@@ -7805,7 +7818,7 @@ msgid ""
 "default) or 'ad' for 802.1ad."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:305
+#: src/libnmc-setting/settings-docs.h.in:307
 msgid ""
 "Array of TC queueing disciplines. When the \"tc\" setting is present, qdiscs "
 "from this property are applied upon activation. If the property is empty, "
@@ -7815,7 +7828,7 @@ msgid ""
 "present on the interface."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:306
+#: src/libnmc-setting/settings-docs.h.in:308
 msgid ""
 "Array of TC traffic filters. When the \"tc\" setting is present, filters "
 "from this property are applied upon activation. If the property is empty, "
@@ -7823,7 +7836,7 @@ msgid ""
 "present, NetworkManager doesn't touch the filters present on the interface."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:307
+#: src/libnmc-setting/settings-docs.h.in:309
 msgid ""
 "The JSON configuration for the team network interface.  The property should "
 "contain raw JSON configuration data suitable for teamd, because the value is "
@@ -7831,8 +7844,8 @@ msgid ""
 "used.  See man teamd.conf for the format details."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:308
-#: src/libnmc-setting/settings-docs.h.in:326
+#: src/libnmc-setting/settings-docs.h.in:310
+#: src/libnmc-setting/settings-docs.h.in:328
 msgid ""
 "Link watchers configuration for the connection: each link watcher is defined "
 "by a dictionary, whose keys depend upon the selected link watcher. Available "
@@ -7844,65 +7857,65 @@ msgid ""
 "for more details."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:309
+#: src/libnmc-setting/settings-docs.h.in:311
 msgid "Corresponds to the teamd mcast_rejoin.count."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:310
+#: src/libnmc-setting/settings-docs.h.in:312
 msgid "Corresponds to the teamd mcast_rejoin.interval."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:311
+#: src/libnmc-setting/settings-docs.h.in:313
 msgid "Corresponds to the teamd notify_peers.count."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:312
+#: src/libnmc-setting/settings-docs.h.in:314
 msgid "Corresponds to the teamd notify_peers.interval."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:313
+#: src/libnmc-setting/settings-docs.h.in:315
 msgid ""
 "Corresponds to the teamd runner.name. Permitted values are: \"roundrobin\", "
 "\"broadcast\", \"activebackup\", \"loadbalance\", \"lacp\", \"random\"."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:314
+#: src/libnmc-setting/settings-docs.h.in:316
 msgid "Corresponds to the teamd runner.active."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:315
+#: src/libnmc-setting/settings-docs.h.in:317
 msgid "Corresponds to the teamd runner.agg_select_policy."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:316
+#: src/libnmc-setting/settings-docs.h.in:318
 msgid "Corresponds to the teamd runner.fast_rate."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:317
+#: src/libnmc-setting/settings-docs.h.in:319
 msgid "Corresponds to the teamd runner.hwaddr_policy."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:318
+#: src/libnmc-setting/settings-docs.h.in:320
 msgid "Corresponds to the teamd runner.min_ports."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:319
+#: src/libnmc-setting/settings-docs.h.in:321
 msgid "Corresponds to the teamd runner.sys_prio."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:320
+#: src/libnmc-setting/settings-docs.h.in:322
 msgid "Corresponds to the teamd runner.tx_balancer.name."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:321
+#: src/libnmc-setting/settings-docs.h.in:323
 msgid "Corresponds to the teamd runner.tx_balancer.interval."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:322
+#: src/libnmc-setting/settings-docs.h.in:324
 msgid "Corresponds to the teamd runner.tx_hash."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:323
+#: src/libnmc-setting/settings-docs.h.in:325
 msgid ""
 "The JSON configuration for the team port. The property should contain raw "
 "JSON configuration data suitable for teamd, because the value is passed "
@@ -7910,67 +7923,67 @@ msgid ""
 "man teamd.conf for the format details."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:324
+#: src/libnmc-setting/settings-docs.h.in:326
 msgid "Corresponds to the teamd ports.PORTIFNAME.lacp_key."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:325
+#: src/libnmc-setting/settings-docs.h.in:327
 msgid "Corresponds to the teamd ports.PORTIFNAME.lacp_prio."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:327
+#: src/libnmc-setting/settings-docs.h.in:329
 msgid "Corresponds to the teamd ports.PORTIFNAME.prio."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:328
+#: src/libnmc-setting/settings-docs.h.in:330
 msgid ""
 "Corresponds to the teamd ports.PORTIFNAME.queue_id. When set to -1 means the "
 "parameter is skipped from the json config."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:329
+#: src/libnmc-setting/settings-docs.h.in:331
 msgid "Corresponds to the teamd ports.PORTIFNAME.sticky."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:330
+#: src/libnmc-setting/settings-docs.h.in:332
 msgid ""
 "The group ID which will own the device. If set to NULL everyone will be able "
 "to use the device."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:331
+#: src/libnmc-setting/settings-docs.h.in:333
 msgid ""
 "The operating mode of the virtual device. Allowed values are "
 "NM_SETTING_TUN_MODE_TUN (1) to create a layer 3 device and "
 "NM_SETTING_TUN_MODE_TAP (2) to create an Ethernet-like layer 2 one."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:332
+#: src/libnmc-setting/settings-docs.h.in:334
 msgid ""
 "If the property is set to TRUE, the interface will support multiple file "
 "descriptors (queues) to parallelize packet sending or receiving. Otherwise, "
 "the interface will only support a single queue."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:333
+#: src/libnmc-setting/settings-docs.h.in:335
 msgid ""
 "The user ID which will own the device. If set to NULL everyone will be able "
 "to use the device."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:334
+#: src/libnmc-setting/settings-docs.h.in:336
 msgid ""
 "If TRUE the interface will prepend a 4 byte header describing the physical "
 "interface to the packets."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:335
+#: src/libnmc-setting/settings-docs.h.in:337
 msgid ""
 "If TRUE the IFF_VNET_HDR the tunnel packets will include a virtio network "
 "header."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:336
+#: src/libnmc-setting/settings-docs.h.in:338
 msgid ""
 "A dictionary of key/value pairs with user data. This data is ignored by "
 "NetworkManager and can be used at the users discretion. The keys only "
@@ -7978,14 +7991,14 @@ msgid ""
 "up to a certain length."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:337
+#: src/libnmc-setting/settings-docs.h.in:339
 msgid ""
 "For outgoing packets, a list of mappings from Linux SKB priorities to 802.1p "
 "priorities.  The mapping is given in the format \"from:to\" where both "
 "\"from\" and \"to\" are unsigned integers, ie \"7:3\"."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:338
+#: src/libnmc-setting/settings-docs.h.in:340
 msgid ""
 "One or more flags which control the behavior and features of the VLAN "
 "interface.  Flags include NM_VLAN_FLAG_REORDER_HEADERS (0x1) (reordering of "
@@ -7998,20 +8011,20 @@ msgid ""
 "missing property on D-Bus is still considered as 0."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:339
+#: src/libnmc-setting/settings-docs.h.in:341
 msgid ""
 "The VLAN identifier that the interface created by this connection should be "
 "assigned. The valid range is from 0 to 4094, without the reserved id 4095."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:340
+#: src/libnmc-setting/settings-docs.h.in:342
 msgid ""
 "For incoming packets, a list of mappings from 802.1p priorities to Linux SKB "
 "priorities.  The mapping is given in the format \"from:to\" where both "
 "\"from\" and \"to\" are unsigned integers, ie \"7:3\"."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:341
+#: src/libnmc-setting/settings-docs.h.in:343
 msgid ""
 "If given, specifies the parent interface name or parent connection UUID from "
 "which this VLAN interface should be created.  If this property is not "
@@ -8019,38 +8032,38 @@ msgid ""
 "\"mac-address\" property."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:342
+#: src/libnmc-setting/settings-docs.h.in:344
 msgid ""
 "Specifies the VLAN protocol to use for encapsulation. Supported values are: "
 "'802.1Q', '802.1ad'. If not specified the default value is '802.1Q'."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:343
+#: src/libnmc-setting/settings-docs.h.in:345
 msgid ""
 "Dictionary of key/value pairs of VPN plugin specific data.  Both keys and "
 "values must be strings."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:344
+#: src/libnmc-setting/settings-docs.h.in:346
 msgid ""
 "If the VPN service supports persistence, and this property is TRUE, the VPN "
 "will attempt to stay connected across link changes and outages, until "
 "explicitly disconnected."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:345
+#: src/libnmc-setting/settings-docs.h.in:347
 msgid ""
 "Dictionary of key/value pairs of VPN plugin specific secrets like passwords "
 "or private keys.  Both keys and values must be strings."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:346
+#: src/libnmc-setting/settings-docs.h.in:348
 msgid ""
 "D-Bus service name of the VPN plugin that this setting uses to connect to "
 "its network.  i.e. org.freedesktop.NetworkManager.vpnc for the vpnc plugin."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:347
+#: src/libnmc-setting/settings-docs.h.in:349
 msgid ""
 "Timeout for the VPN service to establish the connection. Some services may "
 "take quite a long time to connect. Value of 0 means a default timeout, which "
@@ -8058,7 +8071,7 @@ msgid ""
 "Values greater than zero mean timeout in seconds."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:348
+#: src/libnmc-setting/settings-docs.h.in:350
 msgid ""
 "If the VPN connection requires a user name for authentication, that name "
 "should be provided here.  If the connection is available to more than one "
@@ -8068,96 +8081,96 @@ msgid ""
 "connection."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:349
+#: src/libnmc-setting/settings-docs.h.in:351
 msgid "The routing table for this VRF."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:350
+#: src/libnmc-setting/settings-docs.h.in:352
 msgid "Specifies the lifetime in seconds of FDB entries learnt by the kernel."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:351
+#: src/libnmc-setting/settings-docs.h.in:353
 msgid ""
 "Specifies the UDP destination port to communicate to the remote VXLAN tunnel "
 "endpoint."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:352
+#: src/libnmc-setting/settings-docs.h.in:354
 msgid ""
 "Specifies the VXLAN Network Identifier (or VXLAN Segment Identifier) to use."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:353
+#: src/libnmc-setting/settings-docs.h.in:355
 msgid "Specifies whether netlink LL ADDR miss notifications are generated."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:354
+#: src/libnmc-setting/settings-docs.h.in:356
 msgid "Specifies whether netlink IP ADDR miss notifications are generated."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:355
+#: src/libnmc-setting/settings-docs.h.in:357
 msgid ""
 "Specifies whether unknown source link layer addresses and IP addresses are "
 "entered into the VXLAN device forwarding database."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:356
+#: src/libnmc-setting/settings-docs.h.in:358
 msgid ""
 "Specifies the maximum number of FDB entries. A value of zero means that the "
 "kernel will store unlimited entries."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:357
+#: src/libnmc-setting/settings-docs.h.in:359
 msgid "If given, specifies the source IP address to use in outgoing packets."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:358
+#: src/libnmc-setting/settings-docs.h.in:360
 msgid ""
 "If given, specifies the parent interface name or parent connection UUID."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:359
+#: src/libnmc-setting/settings-docs.h.in:361
 msgid "Specifies whether ARP proxy is turned on."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:360
+#: src/libnmc-setting/settings-docs.h.in:362
 msgid ""
 "Specifies the unicast destination IP address to use in outgoing packets when "
 "the destination link layer address is not known in the VXLAN device "
 "forwarding database, or the multicast IP address to join."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:361
+#: src/libnmc-setting/settings-docs.h.in:363
 msgid "Specifies whether route short circuit is turned on."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:362
+#: src/libnmc-setting/settings-docs.h.in:364
 msgid ""
 "Specifies the maximum UDP source port to communicate to the remote VXLAN "
 "tunnel endpoint."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:363
+#: src/libnmc-setting/settings-docs.h.in:365
 msgid ""
 "Specifies the minimum UDP source port to communicate to the remote VXLAN "
 "tunnel endpoint."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:364
+#: src/libnmc-setting/settings-docs.h.in:366
 msgid "Specifies the TOS value to use in outgoing packets."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:365
+#: src/libnmc-setting/settings-docs.h.in:367
 msgid "Specifies the time-to-live value to use in outgoing packets."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:366
+#: src/libnmc-setting/settings-docs.h.in:368
 msgid ""
 "The P2P device that should be connected to. Currently, this is the only way "
 "to create or join a group."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:367
+#: src/libnmc-setting/settings-docs.h.in:369
 msgid ""
 "The Wi-Fi Display (WFD) Information Elements (IEs) to set. Wi-Fi Display "
 "requires a protocol specific information element to be set in certain Wi-Fi "
@@ -8166,27 +8179,27 @@ msgid ""
 "client."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:368
+#: src/libnmc-setting/settings-docs.h.in:370
 msgid ""
 "Flags indicating which mode of WPS is to be used. There's little point in "
 "changing the default setting as NetworkManager will automatically determine "
 "the best method to use."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:369
+#: src/libnmc-setting/settings-docs.h.in:371
 msgid ""
 "If specified, this connection will only apply to the WiMAX device whose MAC "
 "address matches. This property does not change the MAC address of the device "
 "(known as MAC spoofing)."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:370
+#: src/libnmc-setting/settings-docs.h.in:372
 msgid ""
 "Network Service Provider (NSP) name of the WiMAX network this connection "
 "should use."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:371
+#: src/libnmc-setting/settings-docs.h.in:373
 msgid ""
 "When TRUE, setup the interface to accept packets for all MAC addresses. This "
 "is enabling the kernel interface flag IFF_PROMISC. When FALSE, the interface "
@@ -8194,7 +8207,7 @@ msgid ""
 "broadcast."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:372
+#: src/libnmc-setting/settings-docs.h.in:374
 msgid ""
 "When TRUE, enforce auto-negotiation of speed and duplex mode. If \"speed\" "
 "and \"duplex\" properties are both specified, only that single mode will be "
@@ -8205,7 +8218,7 @@ msgid ""
 "will be skipped."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:373
+#: src/libnmc-setting/settings-docs.h.in:375
 msgid ""
 "If specified, request that the device use this MAC address instead. This is "
 "known as MAC cloning or spoofing. Beside explicitly specifying a MAC "
@@ -8222,7 +8235,7 @@ msgid ""
 "deprecated \"cloned-mac-address\"."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:374
+#: src/libnmc-setting/settings-docs.h.in:376
 msgid ""
 "When a value is set, either \"half\" or \"full\", configures the device to "
 "use the specified duplex mode. If \"auto-negotiate\" is \"yes\" the "
@@ -8237,8 +8250,8 @@ msgid ""
 "your device supports it."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:375
-#: src/libnmc-setting/settings-docs.h.in:399
+#: src/libnmc-setting/settings-docs.h.in:377
+#: src/libnmc-setting/settings-docs.h.in:401
 msgid ""
 "With \"cloned-mac-address\" setting \"random\" or \"stable\", by default all "
 "bits of the MAC address are scrambled and a locally-administered, unicast "
@@ -8265,29 +8278,29 @@ msgid ""
 "administered."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:376
+#: src/libnmc-setting/settings-docs.h.in:378
 msgid ""
 "If specified, this connection will only apply to the Ethernet device whose "
 "permanent MAC address matches. This property does not change the MAC address "
 "of the device (i.e. MAC spoofing)."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:377
+#: src/libnmc-setting/settings-docs.h.in:379
 msgid ""
 "If specified, this connection will never apply to the Ethernet device whose "
 "permanent MAC address matches an address in the list.  Each MAC address is "
 "in the standard hex-digits-and-colons notation (00:11:22:33:44:55)."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:378
-#: src/libnmc-setting/settings-docs.h.in:405
-#: src/libnmc-setting/settings-docs.h.in:442
+#: src/libnmc-setting/settings-docs.h.in:380
+#: src/libnmc-setting/settings-docs.h.in:407
+#: src/libnmc-setting/settings-docs.h.in:444
 msgid ""
 "If non-zero, only transmit packets of the specified size or smaller, "
 "breaking larger packets up into multiple Ethernet frames."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:379
+#: src/libnmc-setting/settings-docs.h.in:381
 msgid ""
 "Specific port type to use if the device supports multiple attachment "
 "methods.  One of \"tp\" (Twisted Pair), \"aui\" (Attachment Unit Interface), "
@@ -8295,13 +8308,13 @@ msgid ""
 "device supports only one port type, this setting is ignored."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:380
+#: src/libnmc-setting/settings-docs.h.in:382
 msgid ""
 "s390 network device type; one of \"qeth\", \"lcs\", or \"ctc\", representing "
 "the different types of virtual network devices available on s390 systems."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:381
+#: src/libnmc-setting/settings-docs.h.in:383
 msgid ""
 "Dictionary of key/value pairs of s390-specific device options.  Both keys "
 "and values must be strings.  Allowed keys include \"portno\", \"layer2\", "
@@ -8311,7 +8324,7 @@ msgid ""
 "which parses this information and applies it to the interface."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:382
+#: src/libnmc-setting/settings-docs.h.in:384
 msgid ""
 "Identifies specific subchannels that this network device uses for "
 "communication with z/VM or s390 host.  Like the \"mac-address\" property for "
@@ -8321,7 +8334,7 @@ msgid ""
 "hexadecimal characters and the period (.) character."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:383
+#: src/libnmc-setting/settings-docs.h.in:385
 msgid ""
 "When a value greater than 0 is set, configures the device to use the "
 "specified speed. If \"auto-negotiate\" is \"yes\" the specified speed will "
@@ -8336,7 +8349,7 @@ msgid ""
 "sure your device supports it."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:384
+#: src/libnmc-setting/settings-docs.h.in:386
 msgid ""
 "The NMSettingWiredWakeOnLan options to enable. Not all devices support all "
 "options. May be any combination of NM_SETTING_WIRED_WAKE_ON_LAN_PHY (0x2), "
@@ -8349,14 +8362,14 @@ msgid ""
 "disable management of Wake-on-LAN in NetworkManager)."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:385
+#: src/libnmc-setting/settings-docs.h.in:387
 msgid ""
 "If specified, the password used with magic-packet-based Wake-on-LAN, "
 "represented as an Ethernet MAC address.  If NULL, no password will be "
 "required."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:386
+#: src/libnmc-setting/settings-docs.h.in:388
 msgid ""
 "The use of fwmark is optional and is by default off. Setting it to 0 "
 "disables it. Otherwise, it is a 32-bit fwmark for outgoing packets. Note "
@@ -8364,7 +8377,7 @@ msgid ""
 "implies to automatically choose a fwmark."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:387
+#: src/libnmc-setting/settings-docs.h.in:389
 msgid ""
 "Whether to enable special handling of the IPv4 default route. If enabled, "
 "the IPv4 default route from wireguard.peer-routes will be placed to a "
@@ -8382,17 +8395,17 @@ msgid ""
 "want to configure your own routing and rules."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:388
+#: src/libnmc-setting/settings-docs.h.in:390
 msgid "Like ip4-auto-default-route, but for the IPv6 default route."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:389
+#: src/libnmc-setting/settings-docs.h.in:391
 msgid ""
 "The listen-port. If listen-port is not specified, the port will be chosen "
 "randomly when the interface comes up."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:390
+#: src/libnmc-setting/settings-docs.h.in:392
 msgid ""
 "If non-zero, only transmit packets of the specified size or smaller, "
 "breaking larger packets up into multiple fragments. If zero a default MTU is "
@@ -8400,7 +8413,7 @@ msgid ""
 "account the current routes at the time of activation."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:391
+#: src/libnmc-setting/settings-docs.h.in:393
 msgid ""
 "Whether to automatically add routes for the AllowedIPs ranges of the peers. "
 "If TRUE (the default), NetworkManager will automatically add routes in the "
@@ -8413,15 +8426,15 @@ msgid ""
 "be added automatically."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:392
+#: src/libnmc-setting/settings-docs.h.in:394
 msgid "The 256 bit private-key in base64 encoding."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:393
+#: src/libnmc-setting/settings-docs.h.in:395
 msgid "Flags indicating how to handle the \"private-key\" property."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:394
+#: src/libnmc-setting/settings-docs.h.in:396
 msgid ""
 "Configures AP isolation, which prevents communication between wireless "
 "devices connected to this AP. This property can be set to a value different "
@@ -8436,7 +8449,7 @@ msgid ""
 "(0)."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:395
+#: src/libnmc-setting/settings-docs.h.in:397
 msgid ""
 "802.11 frequency band of the network.  One of \"a\" for 5GHz 802.11a or "
 "\"bg\" for 2.4GHz 802.11.  This will lock associations to the Wi-Fi network "
@@ -8446,7 +8459,7 @@ msgid ""
 "and may not work with all drivers."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:396
+#: src/libnmc-setting/settings-docs.h.in:398
 msgid ""
 "If specified, directs the device to only associate with the given access "
 "point.  This capability is highly driver dependent and not supported by all "
@@ -8456,7 +8469,7 @@ msgid ""
 "scanning. That can be useful, if there is only one access point for the SSID."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:397
+#: src/libnmc-setting/settings-docs.h.in:399
 msgid ""
 "Wireless channel to use for the Wi-Fi connection.  The device will only join "
 "(or create for Ad-Hoc networks) a Wi-Fi network on the specified channel.  "
@@ -8464,7 +8477,7 @@ msgid ""
 "the \"band\" property to be set."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:398
+#: src/libnmc-setting/settings-docs.h.in:400
 msgid ""
 "If specified, request that the device use this MAC address instead. This is "
 "known as MAC cloning or spoofing. Beside explicitly specifying a MAC "
@@ -8480,7 +8493,7 @@ msgid ""
 "mac-address\" or the deprecated \"cloned-mac-address\"."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:400
+#: src/libnmc-setting/settings-docs.h.in:402
 msgid ""
 "If TRUE, indicates that the network is a non-broadcasting network that hides "
 "its SSID. This works both in infrastructure and AP mode. In infrastructure "
@@ -8493,21 +8506,21 @@ msgid ""
 "mode), as the explicit probe-scans are distinctly recognizable on the air."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:401
+#: src/libnmc-setting/settings-docs.h.in:403
 msgid ""
 "If specified, this connection will only apply to the Wi-Fi device whose "
 "permanent MAC address matches. This property does not change the MAC address "
 "of the device (i.e. MAC spoofing)."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:402
+#: src/libnmc-setting/settings-docs.h.in:404
 msgid ""
 "A list of permanent MAC addresses of Wi-Fi devices to which this connection "
 "should never apply.  Each MAC address should be given in the standard hex-"
 "digits-and-colons notation (eg \"00:11:22:33:44:55\")."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:403
+#: src/libnmc-setting/settings-docs.h.in:405
 msgid ""
 "One of NM_SETTING_MAC_RANDOMIZATION_DEFAULT (0) (never randomize unless the "
 "user has set a global default to randomize and the supplicant supports "
@@ -8516,13 +8529,13 @@ msgid ""
 "the MAC address)."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:404
+#: src/libnmc-setting/settings-docs.h.in:406
 msgid ""
 "Wi-Fi network mode; one of \"infrastructure\", \"mesh\", \"adhoc\" or "
 "\"ap\".  If blank, infrastructure is assumed."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:406
+#: src/libnmc-setting/settings-docs.h.in:408
 msgid ""
 "One of NM_SETTING_WIRELESS_POWERSAVE_DISABLE (2) (disable Wi-Fi power "
 "saving), NM_SETTING_WIRELESS_POWERSAVE_ENABLE (3) (enable Wi-Fi power "
@@ -8531,7 +8544,7 @@ msgid ""
 "globally configured value). All other values are reserved."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:407
+#: src/libnmc-setting/settings-docs.h.in:409
 msgid ""
 "If non-zero, directs the device to only use the specified bitrate for "
 "communication with the access point.  Units are in Kb/s, ie 5500 = 5.5 Mbit/"
@@ -8539,7 +8552,7 @@ msgid ""
 "setting a static bitrate."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:408
+#: src/libnmc-setting/settings-docs.h.in:410
 msgid ""
 "A list of BSSIDs (each BSSID formatted as a MAC address like "
 "\"00:11:22:33:44:55\") that have been detected as part of the Wi-Fi "
@@ -8548,18 +8561,18 @@ msgid ""
 "NetworkManager. The changes you make to this property will not be preserved."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:409
+#: src/libnmc-setting/settings-docs.h.in:411
 msgid "SSID of the Wi-Fi network. Must be specified."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:410
+#: src/libnmc-setting/settings-docs.h.in:412
 msgid ""
 "If non-zero, directs the device to use the specified transmit power. Units "
 "are dBm.  This property is highly driver dependent and not all devices "
 "support setting a static transmit power."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:411
+#: src/libnmc-setting/settings-docs.h.in:413
 msgid ""
 "The NMSettingWirelessWakeOnWLan options to enable. Not all devices support "
 "all options. May be any combination of NM_SETTING_WIRELESS_WAKE_ON_WLAN_ANY "
@@ -8575,7 +8588,7 @@ msgid ""
 "Wake-on-LAN in NetworkManager)."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:412
+#: src/libnmc-setting/settings-docs.h.in:414
 msgid ""
 "When WEP is used (ie, key-mgmt = \"none\" or \"ieee8021x\") indicate the "
 "802.11 authentication algorithm required by the AP here.  One of \"open\" "
@@ -8584,7 +8597,7 @@ msgid ""
 "the \"leap-username\" and \"leap-password\" properties must be specified."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:413
+#: src/libnmc-setting/settings-docs.h.in:415
 msgid ""
 "Indicates whether Fast Initial Link Setup (802.11ai) must be enabled for the "
 "connection.  One of NM_SETTING_WIRELESS_SECURITY_FILS_DEFAULT (0) (use "
@@ -8596,7 +8609,7 @@ msgid ""
 "no global default is set, FILS will be optionally enabled."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:414
+#: src/libnmc-setting/settings-docs.h.in:416
 msgid ""
 "A list of group/broadcast encryption algorithms which prevents connections "
 "to Wi-Fi networks that do not utilize one of the algorithms in the list.  "
@@ -8604,7 +8617,7 @@ msgid ""
 "be one of \"wep40\", \"wep104\", \"tkip\", or \"ccmp\"."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:415
+#: src/libnmc-setting/settings-docs.h.in:417
 msgid ""
 "Key management used for the connection. One of \"none\" (WEP or no password "
 "protection), \"ieee8021x\" (Dynamic WEP), \"owe\" (Opportunistic Wireless "
@@ -8614,23 +8627,23 @@ msgid ""
 "uses security."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:416
+#: src/libnmc-setting/settings-docs.h.in:418
 msgid ""
 "The login password for legacy LEAP connections (ie, key-mgmt = \"ieee8021x\" "
 "and auth-alg = \"leap\")."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:417
+#: src/libnmc-setting/settings-docs.h.in:419
 msgid "Flags indicating how to handle the \"leap-password\" property."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:418
+#: src/libnmc-setting/settings-docs.h.in:420
 msgid ""
 "The login username for legacy LEAP connections (ie, key-mgmt = \"ieee8021x\" "
 "and auth-alg = \"leap\")."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:419
+#: src/libnmc-setting/settings-docs.h.in:421
 msgid ""
 "A list of pairwise encryption algorithms which prevents connections to Wi-Fi "
 "networks that do not utilize one of the algorithms in the list. For maximum "
@@ -8638,7 +8651,7 @@ msgid ""
 "\"tkip\" or \"ccmp\"."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:420
+#: src/libnmc-setting/settings-docs.h.in:422
 msgid ""
 "Indicates whether Protected Management Frames (802.11w) must be enabled for "
 "the connection.  One of NM_SETTING_WIRELESS_SECURITY_PMF_DEFAULT (0) (use "
@@ -8650,14 +8663,14 @@ msgid ""
 "global default is set, PMF will be optionally enabled."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:421
+#: src/libnmc-setting/settings-docs.h.in:423
 msgid ""
 "List of strings specifying the allowed WPA protocol versions to use. Each "
 "element may be one \"wpa\" (allow WPA) or \"rsn\" (allow WPA2/RSN).  If not "
 "specified, both WPA and RSN connections are allowed."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:422
+#: src/libnmc-setting/settings-docs.h.in:424
 msgid ""
 "Pre-Shared-Key for WPA networks. For WPA-PSK, it's either an ASCII "
 "passphrase of 8 to 63 characters that is (as specified in the 802.11i "
@@ -8666,17 +8679,17 @@ msgid ""
 "length for SAE authentication."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:423
+#: src/libnmc-setting/settings-docs.h.in:425
 msgid "Flags indicating how to handle the \"psk\" property."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:424
+#: src/libnmc-setting/settings-docs.h.in:426
 msgid ""
 "Flags indicating how to handle the \"wep-key0\", \"wep-key1\", \"wep-key2\", "
 "and \"wep-key3\" properties."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:425
+#: src/libnmc-setting/settings-docs.h.in:427
 msgid ""
 "Controls the interpretation of WEP keys.  Allowed values are "
 "NM_WEP_KEY_TYPE_KEY (1), in which case the key is either a 10- or 26-"
@@ -8686,31 +8699,31 @@ msgid ""
 "actual WEP key."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:426
+#: src/libnmc-setting/settings-docs.h.in:428
 msgid ""
 "Index 0 WEP key.  This is the WEP key used in most networks.  See the \"wep-"
 "key-type\" property for a description of how this key is interpreted."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:427
+#: src/libnmc-setting/settings-docs.h.in:429
 msgid ""
 "Index 1 WEP key.  This WEP index is not used by most networks.  See the "
 "\"wep-key-type\" property for a description of how this key is interpreted."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:428
+#: src/libnmc-setting/settings-docs.h.in:430
 msgid ""
 "Index 2 WEP key.  This WEP index is not used by most networks.  See the "
 "\"wep-key-type\" property for a description of how this key is interpreted."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:429
+#: src/libnmc-setting/settings-docs.h.in:431
 msgid ""
 "Index 3 WEP key.  This WEP index is not used by most networks.  See the "
 "\"wep-key-type\" property for a description of how this key is interpreted."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:430
+#: src/libnmc-setting/settings-docs.h.in:432
 msgid ""
 "When static WEP is used (ie, key-mgmt = \"none\") and a non-default WEP key "
 "index is used by the AP, put that WEP key index here.  Valid values are 0 "
@@ -8718,7 +8731,7 @@ msgid ""
 "Linksys WRT54G) number the keys 1 - 4."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:431
+#: src/libnmc-setting/settings-docs.h.in:433
 msgid ""
 "Flags indicating which mode of WPS is to be used if any. There's little "
 "point in changing the default setting as NetworkManager will automatically "
@@ -8727,39 +8740,39 @@ msgid ""
 "of 1."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:432
+#: src/libnmc-setting/settings-docs.h.in:434
 msgid ""
 "IEEE 802.15.4 channel. A positive integer or -1, meaning \"do not set, use "
 "whatever the device is already set to\"."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:433
+#: src/libnmc-setting/settings-docs.h.in:435
 msgid ""
 "If specified, this connection will only apply to the IEEE 802.15.4 (WPAN) "
 "MAC layer device whose permanent MAC address matches."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:434
+#: src/libnmc-setting/settings-docs.h.in:436
 msgid ""
 "IEEE 802.15.4 channel page. A positive integer or -1, meaning \"do not set, "
 "use whatever the device is already set to\"."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:435
+#: src/libnmc-setting/settings-docs.h.in:437
 msgid "IEEE 802.15.4 Personal Area Network (PAN) identifier."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:436
+#: src/libnmc-setting/settings-docs.h.in:438
 msgid "Short IEEE 802.15.4 address to be used within a restricted environment."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:437
+#: src/libnmc-setting/settings-docs.h.in:439
 msgid ""
 "The queue ID of this bond port. The maximum value of queue ID is the number "
 "of TX queues currently active in device."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:438
+#: src/libnmc-setting/settings-docs.h.in:440
 msgid ""
 "Whether the system hostname can be determined from DHCP on this connection. "
 "When set to NM_TERNARY_DEFAULT (-1), the value from global configuration is "
@@ -8767,7 +8780,7 @@ msgid ""
 "NetworkManager assumes the value to be NM_TERNARY_TRUE (1)."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:439
+#: src/libnmc-setting/settings-docs.h.in:441
 msgid ""
 "Whether the system hostname can be determined from reverse DNS lookup of "
 "addresses on this device. When set to NM_TERNARY_DEFAULT (-1), the value "
@@ -8776,7 +8789,7 @@ msgid ""
 "NM_TERNARY_TRUE (1)."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:440
+#: src/libnmc-setting/settings-docs.h.in:442
 msgid ""
 "If set to NM_TERNARY_TRUE (1), NetworkManager attempts to get the hostname "
 "via DHCPv4/DHCPv6 or reverse DNS lookup on this device only when the device "
@@ -8788,7 +8801,7 @@ msgid ""
 "NM_TERNARY_FALSE (0)."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:441
+#: src/libnmc-setting/settings-docs.h.in:443
 msgid ""
 "The relative priority of this connection to determine the system hostname. A "
 "lower numerical value is better (higher priority).  A connection with higher "
@@ -8802,18 +8815,18 @@ msgid ""
 "hostname."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:443
+#: src/libnmc-setting/settings-docs.h.in:445
 msgid "A dictionary of key/value pairs with external-ids for OVS."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:444
+#: src/libnmc-setting/settings-docs.h.in:446
 msgid ""
 "A dictionary of key/value pairs with other_config settings for OVS. See also "
 "\"other_config\" in the \"ovs-vswitchd.conf.db\" manual for the keys that "
 "OVS supports."
 msgstr ""
 
-#: src/libnmc-setting/settings-docs.h.in:445
+#: src/libnmc-setting/settings-docs.h.in:447
 msgid ""
 "This property specifies the peer interface name of the veth. This property "
 "is mandatory."

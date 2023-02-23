@@ -30,6 +30,7 @@
 <link linkend="gdbus-property-org-freedesktop-NetworkManager-Connection-Active.Ip6Config">Ip6Config</link>       readable   o
 <link linkend="gdbus-property-org-freedesktop-NetworkManager-Connection-Active.Dhcp6Config">Dhcp6Config</link>     readable   o
 <link linkend="gdbus-property-org-freedesktop-NetworkManager-Connection-Active.Vpn">Vpn</link>             readable   b
+<link linkend="gdbus-property-org-freedesktop-NetworkManager-Connection-Active.Controller">Controller</link>      readable   o
 <link linkend="gdbus-property-org-freedesktop-NetworkManager-Connection-Active.Master">Master</link>          readable   o
 </synopsis>
   </refsect1>
@@ -253,6 +254,17 @@ Vpn  readable   b
 Whether this active connection is also a VPN connection.
 </para>
 </refsect2>
+<refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Connection-Active.Controller">
+  <title>The "Controller" property</title>
+  <indexterm zone="gdbus-property-org-freedesktop-NetworkManager-Connection-Active.Controller"><primary sortas="ActiveConnection:Controller">org.freedesktop.NetworkManager.Connection.Active:Controller</primary></indexterm>
+<programlisting>
+Controller  readable   o
+</programlisting>
+<para>
+The path to the controller device if the connection is a port. This
+property replaces the deprecated 'Master' property.
+</para>
+</refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Connection-Active.Master">
   <title>The "Master" property</title>
   <indexterm zone="gdbus-property-org-freedesktop-NetworkManager-Connection-Active.Master"><primary sortas="ActiveConnection:Master">org.freedesktop.NetworkManager.Connection.Active:Master</primary></indexterm>
@@ -260,7 +272,10 @@ Whether this active connection is also a VPN connection.
 Master  readable   o
 </programlisting>
 <para>
-The path to the master device if the connection is a slave.
+The path to the controller device if the connection is a port.
+</para><para>
+This property is deprecated in favor of the 'Controller'
+property since 1.44 and 1.42.2.
 </para>
 </refsect2>
 </refsect1>

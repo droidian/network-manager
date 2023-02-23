@@ -572,7 +572,7 @@ with this function.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>connections</p></td>
-<td class="parameter_description"><p>an array of <a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html#NMConnection-struct"><span class="type">NMConnections</span></a> to
+<td class="parameter_description"><p>an array of <span class="type">NMConnections</span> to
 filter. </p></td>
 <td class="parameter_annotations"><span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMConnection]</span></td>
 </tr>
@@ -582,7 +582,7 @@ filter. </p></td>
 <div class="refsect3">
 <a name="nm-wifi-p2p-peer-filter-connections.returns"></a><h4>Returns</h4>
 <p>an array of
-<a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html#NMConnection-struct"><span class="type">NMConnections</span></a> that could be activated with the given <em class="parameter"><code>peer</code></em>
+<span class="type">NMConnections</span> that could be activated with the given <em class="parameter"><code>peer</code></em>
 . The array should
 be freed with <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#g-ptr-array-unref"><code class="function">g_ptr_array_unref()</code></a> when it is no longer required. </p>
 <p><span class="annotation">[<acronym title="The caller owns the data container, but not the data inside it."><span class="acronym">transfer container</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMConnection]</span></p>
@@ -594,7 +594,7 @@ be freed with <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Ar
 <a name="nm-wifi-p2p-peer-connection-valid"></a><h3>nm_wifi_p2p_peer_connection_valid ()</h3>
 <pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 nm_wifi_p2p_peer_connection_valid (<em class="parameter"><code><a class="link" href="NMWifiP2PPeer.html" title="NMWifiP2PPeer"><span class="type">NMWifiP2PPeer</span></a> *peer</code></em>,
-                                   <em class="parameter"><code><a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html#NMConnection-struct"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
+                                   <em class="parameter"><code><a class="link" href="NMConnection.html" title="NMConnection"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
 <p>Validates a given connection against a given Wi-Fi P2P peer to ensure that
 the connection may be activated with that peer. The connection must match the
 <em class="parameter"><code>peer</code></em>
@@ -616,7 +616,7 @@ against</p></td>
 </tr>
 <tr>
 <td class="parameter_name"><p>connection</p></td>
-<td class="parameter_description"><p>an <a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html#NMConnection-struct"><span class="type">NMConnection</span></a> to validate against <em class="parameter"><code>peer</code></em>
+<td class="parameter_description"><p>an <a class="link" href="NMConnection.html" title="NMConnection"><span class="type">NMConnection</span></a> to validate against <em class="parameter"><code>peer</code></em>
 </p></td>
 <td class="parameter_annotations"> </td>
 </tr>

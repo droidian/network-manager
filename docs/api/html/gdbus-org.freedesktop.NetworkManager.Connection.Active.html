@@ -58,6 +58,7 @@
 <a class="link" href="gdbus-org.freedesktop.NetworkManager.Connection.Active.html#gdbus-property-org-freedesktop-NetworkManager-Connection-Active.Ip6Config" title='The "Ip6Config" property'>Ip6Config</a>       readable   o
 <a class="link" href="gdbus-org.freedesktop.NetworkManager.Connection.Active.html#gdbus-property-org-freedesktop-NetworkManager-Connection-Active.Dhcp6Config" title='The "Dhcp6Config" property'>Dhcp6Config</a>     readable   o
 <a class="link" href="gdbus-org.freedesktop.NetworkManager.Connection.Active.html#gdbus-property-org-freedesktop-NetworkManager-Connection-Active.Vpn" title='The "Vpn" property'>Vpn</a>             readable   b
+<a class="link" href="gdbus-org.freedesktop.NetworkManager.Connection.Active.html#gdbus-property-org-freedesktop-NetworkManager-Connection-Active.Controller" title='The "Controller" property'>Controller</a>      readable   o
 <a class="link" href="gdbus-org.freedesktop.NetworkManager.Connection.Active.html#gdbus-property-org-freedesktop-NetworkManager-Connection-Active.Master" title='The "Master" property'>Master</a>          readable   o
 </pre>
 </div>
@@ -289,12 +290,27 @@ Whether this active connection is also a VPN connection.
 </div>
 <hr>
 <div class="refsect2">
+<a name="gdbus-property-org-freedesktop-NetworkManager-Connection-Active.Controller"></a><h3>The "Controller" property</h3>
+<pre class="programlisting">
+Controller  readable   o
+</pre>
+<p>
+The path to the controller device if the connection is a port. This
+property replaces the deprecated 'Master' property.
+</p>
+</div>
+<hr>
+<div class="refsect2">
 <a name="gdbus-property-org-freedesktop-NetworkManager-Connection-Active.Master"></a><h3>The "Master" property</h3>
 <pre class="programlisting">
 Master  readable   o
 </pre>
 <p>
-The path to the master device if the connection is a slave.
+The path to the controller device if the connection is a port.
+</p>
+<p>
+This property is deprecated in favor of the 'Controller'
+property since 1.44 and 1.42.2.
 </p>
 </div>
 </div>

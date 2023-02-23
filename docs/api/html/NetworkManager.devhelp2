@@ -434,6 +434,7 @@
     <keyword type="property" name="The &quot;Ip6Config&quot; property" link="gdbus-org.freedesktop.NetworkManager.Connection.Active.html#gdbus-property-org-freedesktop-NetworkManager-Connection-Active.Ip6Config"/>
     <keyword type="property" name="The &quot;Dhcp6Config&quot; property" link="gdbus-org.freedesktop.NetworkManager.Connection.Active.html#gdbus-property-org-freedesktop-NetworkManager-Connection-Active.Dhcp6Config"/>
     <keyword type="property" name="The &quot;Vpn&quot; property" link="gdbus-org.freedesktop.NetworkManager.Connection.Active.html#gdbus-property-org-freedesktop-NetworkManager-Connection-Active.Vpn"/>
+    <keyword type="property" name="The &quot;Controller&quot; property" link="gdbus-org.freedesktop.NetworkManager.Connection.Active.html#gdbus-property-org-freedesktop-NetworkManager-Connection-Active.Controller"/>
     <keyword type="property" name="The &quot;Master&quot; property" link="gdbus-org.freedesktop.NetworkManager.Connection.Active.html#gdbus-property-org-freedesktop-NetworkManager-Connection-Active.Master"/>
     <keyword type="signal" name="The &quot;VpnStateChanged&quot; signal" link="gdbus-org.freedesktop.NetworkManager.VPN.Connection.html#gdbus-signal-org-freedesktop-NetworkManager-VPN-Connection.VpnStateChanged"/>
     <keyword type="property" name="The &quot;VpnState&quot; property" link="gdbus-org.freedesktop.NetworkManager.VPN.Connection.html#gdbus-property-org-freedesktop-NetworkManager-VPN-Connection.VpnState"/>

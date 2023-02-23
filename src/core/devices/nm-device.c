@@ -312,7 +312,7 @@ typedef struct {
 
 typedef enum {
     RESOLVER_WAIT_ADDRESS = 0,
-    RESOLVER_IN_PROGRESS,
+    RESOLVER_STARTED,
     RESOLVER_DONE,
 } ResolverState;
 
@@ -1810,6 +1810,7 @@ _prop_get_ipvx_dhcp_iaid(NMDevice     *self,
     const char        *iface;
     const char        *fail_reason;
     gboolean           is_explicit = TRUE;
+    gint64             i64;
 
     s_ip     = nm_connection_get_setting_ip_config(connection, addr_family);
     iaid_str = nm_setting_ip_config_get_dhcp_iaid(s_ip);
@@ -1868,7 +1869,7 @@ _prop_get_ipvx_dhcp_iaid(NMDevice     *self,
 
         iaid = unaligned_read_be32(&hwaddr_buf[hwaddr_len - 4]);
         goto out_good;
-    } else if (nm_streq(iaid_str, "stable")) {
+    } else if (nm_streq(iaid_str, NM_IAID_STABLE)) {
         nm_auto_free_checksum GChecksum *sum = NULL;
         guint8                           digest[NM_UTILS_CHECKSUM_LENGTH_SHA1];
         NMUtilsStableType                stable_type;
@@ -1891,14 +1892,21 @@ _prop_get_ipvx_dhcp_iaid(NMDevice     *self,
 
         iaid = unaligned_read_be32(digest);
         goto out_good;
-    } else if ((iaid = _nm_utils_ascii_str_to_int64(iaid_str, 10, 0, G_MAXUINT32, -1)) != -1) {
-        goto out_good;
-    } else {
+    } else if (nm_streq(iaid_str, NM_IAID_IFNAME)) {
         iface = nm_device_get_ip_iface(self);
         iaid  = nm_utils_create_dhcp_iaid(TRUE, (const guint8 *) iface, strlen(iface));
         goto out_good;
+    } else if (_nm_utils_iaid_verify(iaid_str, &i64)) {
+        if (i64 < 0) {
+            fail_reason = nm_assert_unreachable_val("bug handling iaid value");
+            goto out_fail;
+        }
+        nm_assert(i64 <= G_MAXUINT32);
+        iaid = (guint32) i64;
+        goto out_good;
     }
 
+    fail_reason = nm_assert_unreachable_val("bug handling iaid code");
 out_fail:
     nm_assert(fail_reason);
     if (!log_silent) {
@@ -1912,11 +1920,13 @@ out_fail:
     iaid        = nm_utils_create_dhcp_iaid(TRUE, (const guint8 *) iface, strlen(iface));
 out_good:
     if (!log_silent) {
+        char buf[NM_DHCP_IAID_TO_HEXSTR_BUF_LEN];
+
         _LOGD(LOGD_DEVICE | LOGD_DHCPX(IS_IPv4) | LOGD_IPX(IS_IPv4),
-              "ipv%c.dhcp-iaid: using %u (0x%08x) IAID (str: '%s', explicit %d)",
+              "ipv%c.dhcp-iaid: using %u (%s) IAID (str: '%s', explicit %d)",
               nm_utils_addr_family_to_char(addr_family),
               iaid,
-              iaid,
+              nm_dhcp_iaid_to_hexstr(iaid, buf),
               iaid_str,
               is_explicit);
     }
@@ -7168,6 +7178,9 @@ nm_device_update_from_platform_link(NMDevice *self, const NMPlatformLink *plink)
 
     ifindex_changed = _set_ifindex(self, plink ? plink->ifindex : 0, FALSE);
 
+    nm_device_update_hw_address(self);
+    nm_device_update_permanent_hw_address(self, FALSE);
+
     if (ifindex_changed)
         NM_DEVICE_GET_CLASS(self)->link_changed(self, plink);
 
@@ -8581,6 +8594,7 @@ nm_device_generate_connection(NMDevice *self,
                         nm_device_get_iface(master),
                         local->message);
             g_error_free(local);
+            NM_SET_OUT(out_maybe_later, TRUE);
             return NULL;
         }
     } else {
@@ -9640,6 +9654,18 @@ _routing_rules_sync(NMDevice *self, NMTernary set_mode)
                                               10,
                                               user_tag_1,
                                               NMP_GLOBAL_TRACKER_EXTERN_WEAKLY_TRACKED_USER_TAG);
+            }
+
+            if (nm_setting_ip_config_get_replace_local_rule(s_ip) == NM_TERNARY_TRUE) {
+                /* The user specified that the local rule should be replaced.
+                 * In order to do that, we track the local rule with negative
+                 * priority. */
+                nmp_global_tracker_track_local_rule(
+                    global_tracker,
+                    addr_family,
+                    -5,
+                    user_tag_1,
+                    NMP_GLOBAL_TRACKER_EXTERN_WEAKLY_TRACKED_USER_TAG);
             }
         }
 
@@ -17093,6 +17119,21 @@ nm_device_auth_retries_try_next(NMDevice *self)
     return TRUE;
 }
 
+static const char *
+_resolver_state_to_string(ResolverState state)
+{
+    switch (state) {
+    case RESOLVER_WAIT_ADDRESS:
+        return "WAIT-ADDRESS";
+    case RESOLVER_STARTED:
+        return "STARTED";
+    case RESOLVER_DONE:
+        return "DONE";
+    }
+    nm_assert_not_reached();
+    return "UNKNOWN";
+}
+
 static void
 hostname_dns_lookup_callback(GObject *source, GAsyncResult *result, gpointer user_data)
 {
@@ -17112,7 +17153,9 @@ hostname_dns_lookup_callback(GObject *source, GAsyncResult *result, gpointer use
 
     if (error) {
         _LOGD(LOGD_DNS,
-              "hostname-from-dns: lookup error for %s: %s",
+              "hostname-from-dns: ipv%c resolver %s: lookup error for %s: %s",
+              nm_utils_addr_family_to_char(resolver->addr_family),
+              _resolver_state_to_string(RESOLVER_DONE),
               (addr_str = g_inet_address_to_string(resolver->address)),
               error->message);
     } else {
@@ -17122,7 +17165,9 @@ hostname_dns_lookup_callback(GObject *source, GAsyncResult *result, gpointer use
         valid              = nm_utils_validate_hostname(resolver->hostname);
 
         _LOGD(LOGD_DNS,
-              "hostname-from-dns: lookup done for %s, result %s%s%s%s",
+              "hostname-from-dns: ipv%c resolver %s: lookup successful for %s, result %s%s%s%s",
+              nm_utils_addr_family_to_char(resolver->addr_family),
+              _resolver_state_to_string(RESOLVER_DONE),
               (addr_str = g_inet_address_to_string(resolver->address)),
               NM_PRINT_FMT_QUOTE_STRING(resolver->hostname),
               valid ? "" : " (invalid)");
@@ -17148,8 +17193,9 @@ hostname_dns_address_timeout(gpointer user_data)
     nm_assert(!resolver->cancellable);
 
     _LOGT(LOGD_DNS,
-          "hostname-from-dns: timed out while waiting IPv%c address",
-          nm_utils_addr_family_to_char(resolver->addr_family));
+          "hostname-from-dns: ipv%c state %s: timed out while waiting for address",
+          nm_utils_addr_family_to_char(resolver->addr_family),
+          _resolver_state_to_string(RESOLVER_DONE));
 
     resolver->timeout_id = 0;
     resolver->state      = RESOLVER_DONE;
@@ -17158,30 +17204,16 @@ hostname_dns_address_timeout(gpointer user_data)
     return G_SOURCE_REMOVE;
 }
 
-static const char *
-_resolver_state_to_string(ResolverState state)
-{
-    switch (state) {
-    case RESOLVER_WAIT_ADDRESS:
-        return "wait-address";
-    case RESOLVER_IN_PROGRESS:
-        return "in-progress";
-    case RESOLVER_DONE:
-        return "done";
-    default:
-        nm_assert_not_reached();
-        return "unknown";
-    }
-}
-
 void
-nm_device_clear_dns_lookup_data(NMDevice *self)
+nm_device_clear_dns_lookup_data(NMDevice *self, const char *reason)
 {
     NMDevicePrivate *priv = NM_DEVICE_GET_PRIVATE(self);
-    guint            i;
 
-    for (i = 0; i < 2; i++)
-        nm_clear_pointer(&priv->hostname_resolver_x[i], _hostname_resolver_free);
+    if (priv->hostname_resolver_4 || priv->hostname_resolver_6) {
+        _LOGT(LOGD_DNS, "hostname-from-dns: resetting (%s)", reason);
+        nm_clear_pointer(&priv->hostname_resolver_4, _hostname_resolver_free);
+        nm_clear_pointer(&priv->hostname_resolver_6, _hostname_resolver_free);
+    }
 }
 
 gboolean
@@ -17221,6 +17253,9 @@ get_address_for_hostname_dns_lookup(NMDevice *self, int addr_family)
                     continue;
                 return g_inet_address_new_from_bytes(addr->ax.address_ptr, G_SOCKET_FAMILY_IPV4);
             }
+
+            if (addr->ax.n_ifa_flags & IFA_F_TENTATIVE)
+                continue;
 
             /* For IPv6 prefer, in order:
              * - !link-local, !deprecated
@@ -17315,29 +17350,35 @@ nm_device_get_hostname_from_dns_lookup(NMDevice *self, int addr_family, gboolean
     } else if (new_address != resolver->address)
         address_changed = TRUE;
 
+    if (address_changed) {
+        /* set new state before logging */
+        if (new_address)
+            resolver->state = RESOLVER_STARTED;
+        else
+            resolver->state = RESOLVER_WAIT_ADDRESS;
+    }
+
     {
         gs_free char *old_str = NULL;
         gs_free char *new_str = NULL;
 
-        _LOGT(LOGD_DNS,
-              "hostname-from-dns: ipv%c resolver state %s, old address %s, new address %s",
-              nm_utils_addr_family_to_char(resolver->addr_family),
-              _resolver_state_to_string(resolver->state),
-              resolver->address ? (old_str = g_inet_address_to_string(resolver->address))
-                                : "(null)",
-              new_address ? (new_str = g_inet_address_to_string(new_address)) : "(null)");
+        if (address_changed) {
+            _LOGT(LOGD_DNS,
+                  "hostname-from-dns: ipv%c resolver %s, address changed from %s to %s",
+                  nm_utils_addr_family_to_char(resolver->addr_family),
+                  _resolver_state_to_string(resolver->state),
+                  resolver->address ? (old_str = g_inet_address_to_string(resolver->address))
+                                    : "(null)",
+                  new_address ? (new_str = g_inet_address_to_string(new_address)) : "(null)");
+        }
     }
 
-    /* In every state, if the address changed, we restart
-     * the resolution with the new address */
     if (address_changed) {
         nm_clear_g_cancellable(&resolver->cancellable);
         g_clear_object(&resolver->address);
-        resolver->state = RESOLVER_WAIT_ADDRESS;
     }
 
     if (address_changed && new_address) {
-        resolver->state       = RESOLVER_IN_PROGRESS;
         resolver->cancellable = g_cancellable_new();
         resolver->address     = g_steal_pointer(&new_address);
 
@@ -17355,7 +17396,7 @@ nm_device_get_hostname_from_dns_lookup(NMDevice *self, int addr_family, gboolean
             resolver->timeout_id = g_timeout_add(30000, hostname_dns_address_timeout, resolver);
         NM_SET_OUT(out_wait, TRUE);
         return NULL;
-    case RESOLVER_IN_PROGRESS:
+    case RESOLVER_STARTED:
         NM_SET_OUT(out_wait, TRUE);
         return NULL;
     case RESOLVER_DONE:

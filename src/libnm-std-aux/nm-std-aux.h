@@ -219,36 +219,16 @@ typedef uint64_t _nm_bitwise nm_be64_t;
 #define NM_MORE_ASSERTS 0
 #endif
 
-#if NM_MORE_ASSERTS == 0
-/* The string with the assertion check and the function name blows up the
- * binary size. In production mode, let's drop those, similar to
- * g_assertion_message_expr.
- *
- * Note that <assert.h> can be included multiple times. We can thus
- * not redefine __assert_fail(...). Instead, just redefine the name
- * __assert_fail. */
-_nm_noreturn static inline void
-_nm_assert_fail_internal(const char  *assertion,
-                         const char  *file,
-                         unsigned int line,
-                         const char  *function)
-{
-    __assert_fail("<dropped>", file, line, "<unknown-fcn>");
-}
-#define __assert_fail _nm_assert_fail_internal
-#endif
-
 #ifndef NDEBUG
 #define _NM_ASSERT_FAIL_ENABLED 1
-#define _nm_assert_fail(msg)    __assert_fail((msg), __FILE__, __LINE__, __func__)
+#define _nm_assert_fail(msg)                                     \
+    __assert_fail(((NM_MORE_ASSERTS) ? "" msg "" : "<dropped>"), \
+                  __FILE__,                                      \
+                  __LINE__,                                      \
+                  ((NM_MORE_ASSERTS) ? __func__ : "<unknown-fcn>"))
 #else
 #define _NM_ASSERT_FAIL_ENABLED 0
-#define _nm_assert_fail(msg)                 \
-    do {                                     \
-        _nm_unused const char *_msg = (msg); \
-                                             \
-        _nm_unreachable_code();              \
-    } while (0)
+#define _nm_assert_fail(msg)    ((void) ("" msg ""), _nm_unreachable_code())
 #endif
 
 #define NM_MORE_ASSERTS_EFFECTIVE (_NM_ASSERT_FAIL_ENABLED ? NM_MORE_ASSERTS : 0)

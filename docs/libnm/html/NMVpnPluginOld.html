@@ -417,7 +417,7 @@ an applet when the applet calls the authentication dialog of the VPN plugin.</p>
 <pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 nm_vpn_plugin_old_get_secret_flags (<em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Hash-Tables.html#GHashTable"><span class="type">GHashTable</span></a> *data</code></em>,
                                     <em class="parameter"><code>const <span class="type">char</span> *secret_name</code></em>,
-                                    <em class="parameter"><code><a class="link" href="libnm-NMSetting.html#NMSettingSecretFlags" title="enum NMSettingSecretFlags"><span class="type">NMSettingSecretFlags</span></a> *out_flags</code></em>);</pre>
+                                    <em class="parameter"><code><a class="link" href="NMSetting.html#NMSettingSecretFlags" title="enum NMSettingSecretFlags"><span class="type">NMSettingSecretFlags</span></a> *out_flags</code></em>);</pre>
 <div class="warning">
 <p><code class="literal">nm_vpn_plugin_old_get_secret_flags</code> has been deprecated since version 1.2 and should not be used in newly-written code.</p>
 <p>Replaced by NMVpnServicePlugin.</p>
@@ -425,7 +425,7 @@ nm_vpn_plugin_old_get_secret_flags (<em class="parameter"><code><a href="https:/
 <p>Given a VPN secret key name, attempts to find the corresponding flags data
 item in <em class="parameter"><code>data</code></em>
 .  If found, converts the flags data item to
-<a class="link" href="libnm-NMSetting.html#NMSettingSecretFlags" title="enum NMSettingSecretFlags"><span class="type">NMSettingSecretFlags</span></a> and returns it.</p>
+<a class="link" href="NMSetting.html#NMSettingSecretFlags" title="enum NMSettingSecretFlags"><span class="type">NMSettingSecretFlags</span></a> and returns it.</p>
 <div class="refsect3">
 <a name="nm-vpn-plugin-old-get-secret-flags.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">

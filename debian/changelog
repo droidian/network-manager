@@ -1,3 +1,11 @@
+network-manager (1.42.2-1) unstable; urgency=medium
+
+  * New upstream version 1.42.2
+  * Drop patches merged upstream
+  * Update symbols file for libnm0
+
+ -- Michael Biebl <biebl@debian.org>  Thu, 23 Feb 2023 17:53:42 +0100
+
 network-manager (1.42.0-1ubuntu1) lunar; urgency=medium
 
   * Resynchronize on Debian, remaining changes:
