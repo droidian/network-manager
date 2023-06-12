@@ -1,8 +1,11 @@
-network-manager (1.42.6-1) UNRELEASED; urgency=medium
+network-manager (1.42.6-1) unstable; urgency=medium
 
   * New upstream version 1.42.6
+  * Rebase patches
+  * Use Build-Depends on polkitd and libpolkit-gobject-1-dev for polkit.its.
+    The obsolete policykit-1 package is going away. (Closes: #1025606)
 
- -- Michael Biebl <biebl@debian.org>  Mon, 12 Jun 2023 11:29:52 +0200
+ -- Michael Biebl <biebl@debian.org>  Mon, 12 Jun 2023 14:48:14 +0200
 
 network-manager (1.42.4-1) unstable; urgency=medium
 
