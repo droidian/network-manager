@@ -2,12 +2,12 @@
 .\"     Title: nm-settings-dbus
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 03/09/2023
+.\"      Date: 04/20/2023
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.42.4
+.\"    Source: NetworkManager 1.42.6
 .\"  Language: English
 .\"
-.TH "NM\-SETTINGS\-DBUS" "5" "" "NetworkManager 1\&.42\&.4" "Configuration"
+.TH "NM\-SETTINGS\-DBUS" "5" "" "NetworkManager 1\&.42\&.6" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -2256,7 +2256,7 @@ Array of DNS options as described in man 5 resolv\&.conf\&.
 
 NULL means that the options are unset and left at the default\&. In this case NetworkManager will use default options\&. This is distinct from an empty list of properties\&.
 
-The currently supported options are "attempts", "debug", "edns0", "inet6", "ip6\-bytestring", "ip6\-dotint", "ndots", "no\-check\-names", "no\-ip6\-dotint", "no\-reload", "no\-tld\-query", "rotate", "single\-request", "single\-request\-reopen", "timeout", "trust\-ad", "use\-vc"\&.
+The currently supported options are "attempts", "debug", "edns0", "inet6", "ip6\-bytestring", "ip6\-dotint", "ndots", "no\-aaaa", "no\-check\-names", "no\-ip6\-dotint", "no\-reload", "no\-tld\-query", "rotate", "single\-request", "single\-request\-reopen", "timeout", "trust\-ad", "use\-vc"\&.
 
 The "trust\-ad" setting is only honored if the profile contributes name servers to resolv\&.conf, and if all contributing profiles have "trust\-ad" enabled\&.
 
@@ -2679,7 +2679,7 @@ Array of DNS options as described in man 5 resolv\&.conf\&.
 
 NULL means that the options are unset and left at the default\&. In this case NetworkManager will use default options\&. This is distinct from an empty list of properties\&.
 
-The currently supported options are "attempts", "debug", "edns0", "inet6", "ip6\-bytestring", "ip6\-dotint", "ndots", "no\-check\-names", "no\-ip6\-dotint", "no\-reload", "no\-tld\-query", "rotate", "single\-request", "single\-request\-reopen", "timeout", "trust\-ad", "use\-vc"\&.
+The currently supported options are "attempts", "debug", "edns0", "inet6", "ip6\-bytestring", "ip6\-dotint", "ndots", "no\-aaaa", "no\-check\-names", "no\-ip6\-dotint", "no\-reload", "no\-tld\-query", "rotate", "single\-request", "single\-request\-reopen", "timeout", "trust\-ad", "use\-vc"\&.
 
 The "trust\-ad" setting is only honored if the profile contributes name servers to resolv\&.conf, and if all contributing profiles have "trust\-ad" enabled\&.
 
@@ -2946,7 +2946,7 @@ uint32
 T}:T{
 0
 T}:T{
-How many additional levels of encapsulation are permitted to be prepended to packets\&. This property applies only to IPv6 tunnels\&.
+How many additional levels of encapsulation are permitted to be prepended to packets\&. This property applies only to IPv6 tunnels\&. To disable this option, add NM_IP_TUNNEL_FLAG_IP6_IGN_ENCAP_LIMIT (0x1) to ip\-tunnel flags\&.
 T}
 T{
 flags

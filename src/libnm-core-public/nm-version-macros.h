@@ -30,7 +30,7 @@
  * Evaluates to the micro version number of NetworkManager which this source
  * compiled against.
  */
-#define NM_MICRO_VERSION (4)
+#define NM_MICRO_VERSION (6)
 
 /**
  * NM_CHECK_VERSION:

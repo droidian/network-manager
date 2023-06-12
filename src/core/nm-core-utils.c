@@ -3673,9 +3673,7 @@ _hw_addr_eth_complete(struct ether_addr *addr,
 
     nm_assert((ouis == NULL) ^ (ouis_len != 0));
     if (ouis) {
-        /* g_random_int() is good enough here. It uses a static GRand instance
-         * that is seeded from /dev/urandom. */
-        oui = ouis[g_random_int() % ouis_len];
+        oui = ouis[nm_random_u64_range(ouis_len)];
         g_free(ouis);
     } else {
         if (!nm_utils_hwaddr_aton(current_mac_address, &oui, ETH_ALEN))
@@ -5156,11 +5154,11 @@ nm_utils_spawn_helper(const char *const  *args,
     g_source_attach(info->timeout_source, g_main_context_get_thread_default());
 
     /* Set file descriptors as non-blocking */
-    fd_flags = fcntl(info->child_stdin, F_GETFD, 0);
+    fd_flags = fcntl(info->child_stdin, F_GETFL, 0);
     fcntl(info->child_stdin, F_SETFL, fd_flags | O_NONBLOCK);
-    fd_flags = fcntl(info->child_stdout, F_GETFD, 0);
+    fd_flags = fcntl(info->child_stdout, F_GETFL, 0);
     fcntl(info->child_stdout, F_SETFL, fd_flags | O_NONBLOCK);
-    fd_flags = fcntl(info->child_stderr, F_GETFD, 0);
+    fd_flags = fcntl(info->child_stderr, F_GETFL, 0);
     fcntl(info->child_stderr, F_SETFL, fd_flags | O_NONBLOCK);
 
     /* Watch process stdin */

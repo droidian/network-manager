@@ -187,9 +187,9 @@ _bad_random_init_seed(BadRandSeed *seed)
     int           seed_idx;
     GRand        *rand;
 
-    /* g_rand_new() reads /dev/urandom, but we already noticed that
+    /* g_rand_new() reads /dev/urandom too, but we already know that
      * /dev/urandom fails to give us good randomness (which is why
-     * we hit the "bad randomness" code path). So this may not be as
+     * we hit the "bad random" code path). So this may not be as
      * good as we wish, but let's hope that it it does something smart
      * to give some extra entropy... */
     rand = g_rand_new();
@@ -231,14 +231,14 @@ _bad_random_bytes(guint8 *buf, gsize n)
      * to give us good randomness. Try our best.
      *
      * Our ability to get entropy for the CPRNG is very limited and thus the overall
-     * result will not be good randomness. See _bad_random_init_seed().
+     * result will be bad randomness.
      *
      * Once we have some seed material, we combine GRand (which is not a cryptographically
      * secure PRNG) with some iterative sha256 hashing. It would be nice if we had
      * easy access to chacha20, but it's probably more cumbersome to fork those
      * implementations than hack a bad CPRNG by using sha256 hashing. After all, this
-     * is fallback code to get *some* randomness. And with the inability to get a good
-     * seed, the CPRNG is not going to give us truly good randomness. */
+     * is fallback code to get *some* bad randomness. And with the inability to get a good
+     * seed, any CPRNG can only give us bad randomness. */
 
     {
         static BadRandState gl_state;
@@ -277,11 +277,11 @@ _bad_random_bytes(guint8 *buf, gsize n)
             nm_utils_checksum_get_digest(sum, gl_state.sha_digest.full);
 
             /* gl_state.sha_digest.full and gl_state.rand_vals contain now our
-             * random values, but they are also the state for the next iteration.
+             * bad random values, but they are also the state for the next iteration.
              * We must not directly expose that state to the caller, so XOR the values.
              *
-             * That means, per iteration we can generate 16 bytes of randomness. That
-             * is for example required to generate a random UUID. */
+             * That means, per iteration we can generate 16 bytes of bad randomness. That
+             * is suitable to initialize a random UUID. */
             for (i = 0; i < (int) (NM_UTILS_CHECKSUM_LENGTH_SHA256 / 2); i++) {
                 nm_assert(n > 0);
                 buf[0] = gl_state.sha_digest.half_1[i] ^ gl_state.sha_digest.half_2[i]
@@ -446,4 +446,56 @@ again_getrandom:
         return -errno;
 
     return nm_utils_fd_read_loop_exact(fd, p, n, FALSE);
+}
+
+/*****************************************************************************/
+
+guint64
+nm_random_u64_range_full(guint64 begin, guint64 end, gboolean crypto_bytes)
+{
+    gboolean bad_crypto_bytes = FALSE;
+    guint64  remainder;
+    guint64  maxvalue;
+    guint64  x;
+    guint64  m;
+
+    /* Returns a random #guint64 equally distributed in the range [@begin..@end-1].
+     *
+     * The function always set errno. It either sets it to zero or to EAGAIN
+     * (if crypto_bytes were requested but not obtained). In any case, the function
+     * will always return a random number in the requested range (worst case, it's
+     * not crypto_bytes despite being requested). Check errno if you care. */
+
+    if (begin >= end) {
+        /* systemd's random_u64_range(0) is an alias for nm_random_u64().
+         * Not for us. It's a caller error to request an element from an empty range. */
+        return nm_assert_unreachable_val(begin);
+    }
+
+    m = end - begin;
+
+    if (m == 1) {
+        x = 0;
+        goto out;
+    }
+
+    remainder = G_MAXUINT64 % m;
+    maxvalue  = G_MAXUINT64 - remainder;
+
+    do
+        if (crypto_bytes) {
+            if (nm_random_get_crypto_bytes(&x, sizeof(x)) < 0) {
+                /* Cannot get good crypto numbers. We will try our best, but fail
+                 * and set errno below. */
+                crypto_bytes     = FALSE;
+                bad_crypto_bytes = TRUE;
+                continue;
+            }
+        } else
+            nm_random_get_bytes(&x, sizeof(x));
+    while (x >= maxvalue);
+
+out:
+    errno = bad_crypto_bytes ? EAGAIN : 0;
+    return begin + (x % m);
 }
