@@ -2143,7 +2143,7 @@
 <td>
 <p>Array of DNS options as described in man 5 resolv.conf.</p>
 <p>NULL means that the options are unset and left at the default. In this case NetworkManager will use default options. This is distinct from an empty list of properties.</p>
-<p>The currently supported options are "attempts", "debug", "edns0", "inet6", "ip6-bytestring", "ip6-dotint", "ndots", "no-check-names", "no-ip6-dotint", "no-reload", "no-tld-query", "rotate", "single-request", "single-request-reopen", "timeout", "trust-ad", "use-vc".</p>
+<p>The currently supported options are "attempts", "debug", "edns0", "inet6", "ip6-bytestring", "ip6-dotint", "ndots", "no-aaaa", "no-check-names", "no-ip6-dotint", "no-reload", "no-tld-query", "rotate", "single-request", "single-request-reopen", "timeout", "trust-ad", "use-vc".</p>
 <p>The "trust-ad" setting is only honored if the profile contributes name servers to resolv.conf, and if all contributing profiles have "trust-ad" enabled.</p>
 <p>When using a caching DNS plugin (dnsmasq or systemd-resolved in NetworkManager.conf) then "edns0" and "trust-ad" are automatically added.</p>
 <p>
@@ -2476,7 +2476,7 @@ Example: <code class="literal">priority 5 from 192.167.4.0/24 table 45</code>
 <td>
 <p>Array of DNS options as described in man 5 resolv.conf.</p>
 <p>NULL means that the options are unset and left at the default. In this case NetworkManager will use default options. This is distinct from an empty list of properties.</p>
-<p>The currently supported options are "attempts", "debug", "edns0", "inet6", "ip6-bytestring", "ip6-dotint", "ndots", "no-check-names", "no-ip6-dotint", "no-reload", "no-tld-query", "rotate", "single-request", "single-request-reopen", "timeout", "trust-ad", "use-vc".</p>
+<p>The currently supported options are "attempts", "debug", "edns0", "inet6", "ip6-bytestring", "ip6-dotint", "ndots", "no-aaaa", "no-check-names", "no-ip6-dotint", "no-reload", "no-tld-query", "rotate", "single-request", "single-request-reopen", "timeout", "trust-ad", "use-vc".</p>
 <p>The "trust-ad" setting is only honored if the profile contributes name servers to resolv.conf, and if all contributing profiles have "trust-ad" enabled.</p>
 <p>When using a caching DNS plugin (dnsmasq or systemd-resolved in NetworkManager.conf) then "edns0" and "trust-ad" are automatically added.</p>
 <p>
@@ -2717,7 +2717,7 @@ Example: <code class="literal">priority 5 from 1:2:3::5/128 table 45</code>
 <tr>
 <td><p><span class="term"><code class="option"><a name="nm-settings-nmcli.property.ip-tunnel.encapsulation-limit"></a>encapsulation-limit</code></span></p></td>
 <td>
-<p>How many additional levels of encapsulation are permitted to be prepended to packets. This property applies only to IPv6 tunnels.</p>
+<p>How many additional levels of encapsulation are permitted to be prepended to packets. This property applies only to IPv6 tunnels. To disable this option, add NM_IP_TUNNEL_FLAG_IP6_IGN_ENCAP_LIMIT (0x1) to ip-tunnel flags.</p>
 <p>
             Format: uint32</p>
 </td>

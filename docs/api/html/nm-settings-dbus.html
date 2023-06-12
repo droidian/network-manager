@@ -1791,7 +1791,7 @@ Set to 2147483647 (MAXINT32) for infinity.</td>
 
 NULL means that the options are unset and left at the default. In this case NetworkManager will use default options. This is distinct from an empty list of properties.
 
-The currently supported options are "attempts", "debug", "edns0", "inet6", "ip6-bytestring", "ip6-dotint", "ndots", "no-check-names", "no-ip6-dotint", "no-reload", "no-tld-query", "rotate", "single-request", "single-request-reopen", "timeout", "trust-ad", "use-vc".
+The currently supported options are "attempts", "debug", "edns0", "inet6", "ip6-bytestring", "ip6-dotint", "ndots", "no-aaaa", "no-check-names", "no-ip6-dotint", "no-reload", "no-tld-query", "rotate", "single-request", "single-request-reopen", "timeout", "trust-ad", "use-vc".
 
 The "trust-ad" setting is only honored if the profile contributes name servers to resolv.conf, and if all contributing profiles have "trust-ad" enabled.
 
@@ -2121,7 +2121,7 @@ Set to 2147483647 (MAXINT32) for infinity.</td>
 
 NULL means that the options are unset and left at the default. In this case NetworkManager will use default options. This is distinct from an empty list of properties.
 
-The currently supported options are "attempts", "debug", "edns0", "inet6", "ip6-bytestring", "ip6-dotint", "ndots", "no-check-names", "no-ip6-dotint", "no-reload", "no-tld-query", "rotate", "single-request", "single-request-reopen", "timeout", "trust-ad", "use-vc".
+The currently supported options are "attempts", "debug", "edns0", "inet6", "ip6-bytestring", "ip6-dotint", "ndots", "no-aaaa", "no-check-names", "no-ip6-dotint", "no-reload", "no-tld-query", "rotate", "single-request", "single-request-reopen", "timeout", "trust-ad", "use-vc".
 
 The "trust-ad" setting is only honored if the profile contributes name servers to resolv.conf, and if all contributing profiles have "trust-ad" enabled.
 
@@ -2337,7 +2337,7 @@ Array of IPv6 route structures.  Each IPv6 route structure is composed of an IPv
 <a name="nm-settings-dbus.property.ip-tunnel.encapsulation-limit"></a>encapsulation-limit</td>
 <td align="left">uint32</td>
 <td align="left">0</td>
-<td>How many additional levels of encapsulation are permitted to be prepended to packets. This property applies only to IPv6 tunnels.</td>
+<td>How many additional levels of encapsulation are permitted to be prepended to packets. This property applies only to IPv6 tunnels. To disable this option, add NM_IP_TUNNEL_FLAG_IP6_IGN_ENCAP_LIMIT (0x1) to ip-tunnel flags.</td>
 </tr>
 <tr>
 <td align="left">

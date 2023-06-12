@@ -1451,6 +1451,7 @@
     <keyword type="macro" name="NM_SETTING_DNS_OPTION_USE_VC" link="NMSettingIPConfig.html#NM-SETTING-DNS-OPTION-USE-VC:CAPS"/>
     <keyword type="macro" name="NM_SETTING_DNS_OPTION_NO_RELOAD" link="NMSettingIPConfig.html#NM-SETTING-DNS-OPTION-NO-RELOAD:CAPS"/>
     <keyword type="macro" name="NM_SETTING_DNS_OPTION_TRUST_AD" link="NMSettingIPConfig.html#NM-SETTING-DNS-OPTION-TRUST-AD:CAPS"/>
+    <keyword type="macro" name="NM_SETTING_DNS_OPTION_NO_AAAA" link="NMSettingIPConfig.html#NM-SETTING-DNS-OPTION-NO-AAAA:CAPS"/>
     <keyword type="enum" name="enum NMDhcpHostnameFlags" link="NMSettingIPConfig.html#NMDhcpHostnameFlags" since="1.22"/>
     <keyword type="function" name="nm_setting_ip_tunnel_new ()" link="NMSettingIPTunnel.html#nm-setting-ip-tunnel-new" since="1.2"/>
     <keyword type="function" name="nm_setting_ip_tunnel_get_parent ()" link="NMSettingIPTunnel.html#nm-setting-ip-tunnel-get-parent" since="1.2"/>
