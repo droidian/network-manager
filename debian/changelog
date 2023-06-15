@@ -1,3 +1,10 @@
+network-manager (1.42.6-2) unstable; urgency=medium
+
+  * Stop installing deprecated polkit pkla file.
+    The pkla backend has been superseded by the JS based backend.
+
+ -- Michael Biebl <biebl@debian.org>  Thu, 15 Jun 2023 23:08:24 +0200
+
 network-manager (1.42.6-1) unstable; urgency=medium
 
   * New upstream version 1.42.6
