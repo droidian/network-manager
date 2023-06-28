@@ -8,7 +8,7 @@ dnl    "shared/nm-version-macros.h.in"
 dnl  - update number in meson.build
 m4_define([nm_major_version], [1])
 m4_define([nm_minor_version], [42])
-m4_define([nm_micro_version], [6])
+m4_define([nm_micro_version], [8])
 m4_define([nm_version],
           [nm_major_version.nm_minor_version.nm_micro_version])
 
@@ -754,13 +754,23 @@ fi
 AC_SUBST(DBUS_SYS_DIR)
 
 # pppd
+NM_PPP_VERSION_2_5_OR_NEWER=0
+PPPD_VERSION=2.4.9
+PKG_CHECK_EXISTS([pppd], [
+	PPPD_VERSION=`$PKG_CONFIG --modversion pppd`
+	PPPD_CFLAGS=`$PKG_CONFIG --cflags pppd`
+	NM_PPP_VERSION_2_5_OR_NEWER=1
+])
+
 AC_ARG_ENABLE(ppp,
               AS_HELP_STRING([--enable-ppp], [enable PPP/PPPoE support]),
               [enable_ppp=${enableval}], [enable_ppp=yes])
 if test "${enable_ppp}" = "yes"; then
-	AC_CHECK_HEADERS(pppd/pppd.h,,
-	                 AC_MSG_ERROR("couldn't find pppd.h. pppd development headers are required."))
-
+	if test -z "$PPPD_CFLAGS" ; then
+		AC_CHECK_HEADERS(pppd/pppd.h,,
+		                 AC_MSG_ERROR("couldn't find pppd.h. pppd development headers are required."),)
+	fi
+	AC_SUBST(PPPD_CFLAGS, ["$PPPD_CFLAGS"])
 	AC_DEFINE(WITH_PPP, 1, [Define if you have PPP support])
 else
 	AC_DEFINE(WITH_PPP, 0, [Define if you have PPP support])
@@ -769,13 +779,13 @@ AM_CONDITIONAL(WITH_PPP, test "${enable_ppp}" = "yes")
 
 AC_ARG_WITH([pppd-plugin-dir],
             AS_HELP_STRING([--with-pppd-plugin-dir=DIR], [path to the pppd plugins directory]))
-
 if test -n "$with_pppd_plugin_dir" ; then
 	PPPD_PLUGIN_DIR="$with_pppd_plugin_dir"
 else
-	PPPD_PLUGIN_DIR="${libdir}/pppd/2.4.5"
+	PPPD_PLUGIN_DIR="${libdir}/pppd/$PPPD_VERSION"
 fi
 AC_SUBST(PPPD_PLUGIN_DIR)
+AC_DEFINE_UNQUOTED(NM_PPP_VERSION_2_5_OR_NEWER, $NM_PPP_VERSION_2_5_OR_NEWER, [The detected ppp API version])
 
 AC_ARG_WITH(pppd, AS_HELP_STRING([--with-pppd=/path/to/pppd], [path to pppd binary]))
 if test "x${with_pppd}" = x; then

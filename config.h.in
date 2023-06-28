@@ -216,6 +216,9 @@
 /* Define if more debug logging is enabled */
 #undef NM_MORE_LOGGING
 
+/* The detected ppp API version */
+#undef NM_PPP_VERSION_2_5_OR_NEWER
+
 /* Name of package */
 #undef PACKAGE
 

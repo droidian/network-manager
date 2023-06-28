@@ -2,12 +2,12 @@
 .\"     Title: nm-settings-ifcfg-rh
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 04/20/2023
+.\"      Date: 06/28/2023
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.42.6
+.\"    Source: NetworkManager 1.42.8
 .\"  Language: English
 .\"
-.TH "NM\-SETTINGS\-IFCFG\-RH" "5" "" "NetworkManager 1\&.42\&.6" "Configuration"
+.TH "NM\-SETTINGS\-IFCFG\-RH" "5" "" "NetworkManager 1\&.42\&.8" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -1512,17 +1512,29 @@ T}:T{
 Description
 T}
 .T&
+l l l l
 l l l l.
 T{
 queue\-id
 T}:T{
-BONDING_OPTS: queue\-id=
+BOND_PORT_QUEUE_ID\fI(+)\fR
 T}:T{
 0
 T}:T{
 Queue ID\&.\fB
 
 Allowed values: \fR0 \- 65535
+T}
+T{
+prio
+T}:T{
+BOND_PORT_PRIO\fI(+)\fR
+T}:T{
+0
+T}:T{
+Port priority\&.\fB
+
+Allowed values: \fR\-2147483648 \- 2147483647
 T}
 .TE
 .sp 1
@@ -2599,11 +2611,11 @@ T}
 T{
 p\-key
 T}:T{
-PKEY_ID (and PKEY=yes)
+PKEY_ID or PKEY_ID_NM(*) (requires PKEY=yes)
 T}:T{
 PKEY=no
 T}:T{
-InfiniBand P_Key\&. The value can be a hex number prefixed with "0x" or a decimal number\&. When PKEY_ID is specified, PHYSDEV and DEVICE also must be specified\&.\fB
+InfiniBand P_Key\&. The value can be a hex number prefixed with "0x" or a decimal number\&. When PKEY_ID is specified, PHYSDEV must be specified\&. Note that ifcfg\-rh format will always automatically set the full membership flag 0x8000 for the PKEY_ID variable\&. To express IDs without the full membership flag, use PKEY_ID_NM\&. Note that kernel internally treats the interface as having the full membership flag set, this mainly affects the interface name\&. For the ifcfg file to be supported by initscripts\*(Aq ifup\-ib, the DEVICE= must always be set\&. NetworkManager does not require that\&.\fB
 
 Example: \fRPKEY=yes PKEY_ID=2 PHYSDEV=mlx4_ib0 DEVICE=mlx4_ib0\&.8002
 T}

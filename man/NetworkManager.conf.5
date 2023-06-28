@@ -2,12 +2,12 @@
 .\"     Title: NetworkManager.conf
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 04/20/2023
+.\"      Date: 06/28/2023
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.42.6
+.\"    Source: NetworkManager 1.42.8
 .\"  Language: English
 .\"
-.TH "NETWORKMANAGER\&.CONF" "5" "" "NetworkManager 1\&.42\&.6" "Configuration"
+.TH "NETWORKMANAGER\&.CONF" "5" "" "NetworkManager 1\&.42\&.8" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -1372,7 +1372,7 @@ NM_CONFIG_ENABLE_TAG, like:
 .RS 4
 .\}
 .nf
-# always skip loading the file when running NetworkManager with
+# only load the file when running NetworkManager with
 # environment variable "NM_CONFIG_ENABLE_TAG=TAG1"
 [\&.config]
 enable=env:TAG1

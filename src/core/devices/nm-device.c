@@ -11691,7 +11691,18 @@ _dev_ipac6_start(NMDevice *self)
     }
 
     if (nm_ndisc_get_node_type(priv->ipac6_data.ndisc) == NM_NDISC_NODE_TYPE_ROUTER) {
-        nm_device_sysctl_ip_conf_set(self, AF_INET6, "forwarding", "1");
+        gs_free char *sysctl_value = NULL;
+
+        sysctl_value = nm_device_sysctl_ip_conf_get(self, AF_INET6, "forwarding");
+        if (!nm_streq0(sysctl_value, "1")) {
+            if (sysctl_value && !g_hash_table_contains(priv->ip6_saved_properties, "forwarding")) {
+                g_hash_table_insert(priv->ip6_saved_properties,
+                                    "forwarding",
+                                    g_steal_pointer(&sysctl_value));
+            }
+            nm_device_sysctl_ip_conf_set(self, AF_INET6, "forwarding", "1");
+        }
+
         priv->needs_ip6_subnet = TRUE;
         g_signal_emit(self, signals[IP6_SUBNET_NEEDED], 0);
     }
@@ -11749,7 +11760,6 @@ _dev_sysctl_save_ip6_properties(NMDevice *self)
 {
     static const char *const ip6_properties_to_save[] = {
         "accept_ra",
-        "forwarding",
         "disable_ipv6",
         "hop_limit",
         "use_tempaddr",
@@ -12892,6 +12902,7 @@ check_and_reapply_connection(NMDevice            *self,
     NMConnection                  *con_old;
     NMConnection                  *con_new;
     GHashTableIter                 iter;
+    NMSettingsConnection          *sett_conn;
 
     if (priv->state < NM_DEVICE_STATE_PREPARE || priv->state > NM_DEVICE_STATE_ACTIVATED) {
         g_set_error_literal(error,
@@ -13063,6 +13074,14 @@ check_and_reapply_connection(NMDevice            *self,
 
     if (priv->state >= NM_DEVICE_STATE_ACTIVATED)
         nm_device_update_metered(self);
+
+    sett_conn = nm_device_get_settings_connection(self);
+    if (sett_conn) {
+        nm_settings_connection_autoconnect_blocked_reason_set(
+            sett_conn,
+            NM_SETTINGS_AUTO_CONNECT_BLOCKED_REASON_USER_REQUEST,
+            FALSE);
+    }
 
     /* Notify dispatcher when re-applied */
     _LOGD(LOGD_DEVICE, "Notifying re-apply complete");
@@ -15649,7 +15668,6 @@ ip6_managed_setup(NMDevice *self)
     _dev_sysctl_set_disable_ipv6(self, FALSE);
     nm_device_sysctl_ip_conf_set(self, AF_INET6, "accept_ra", "0");
     nm_device_sysctl_ip_conf_set(self, AF_INET6, "use_tempaddr", "0");
-    nm_device_sysctl_ip_conf_set(self, AF_INET6, "forwarding", "0");
 }
 
 static void

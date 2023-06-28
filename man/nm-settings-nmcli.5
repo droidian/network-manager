@@ -2,12 +2,12 @@
 .\"     Title: nm-settings-nmcli
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 04/20/2023
+.\"      Date: 06/28/2023
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.42.6
+.\"    Source: NetworkManager 1.42.8
 .\"  Language: English
 .\"
-.TH "NM\-SETTINGS\-NMCLI" "5" "" "NetworkManager 1\&.42\&.6" "Configuration"
+.TH "NM\-SETTINGS\-NMCLI" "5" "" "NetworkManager 1\&.42\&.8" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -1735,7 +1735,11 @@ Format: uint32
 .RS 4
 Alias: p\-key
 .sp
-The InfiniBand P_Key to use for this device\&. A value of \-1 means to use the default P_Key (aka "the P_Key at index 0")\&. Otherwise, it is a 16\-bit unsigned integer, whose high bit is set if it is a "full membership" P_Key\&.
+The InfiniBand p\-key to use for this device\&. A value of \-1 means to use the default p\-key (aka "the p\-key at index 0")\&. Otherwise, it is a 16\-bit unsigned integer, whose high bit 0x8000 is set if it is a "full membership" p\-key\&. The values 0 and 0x8000 are not allowed\&.
+.sp
+With the p\-key set, the interface name is always "$parent\&.$p_key"\&. Setting "connection\&.interface\-name" to another name is not supported\&.
+.sp
+Note that kernel will internally always set the full membership bit, although the interface name does not reflect that\&. Usually the user would want to configure a full membership p\-key with 0x8000 flag set\&.
 .sp
 Format: int32
 .RE
@@ -4984,6 +4988,15 @@ Format: uint32
 Bond Port Settings\&.
 .PP
 Properties:
+.PP
+\fBprio\fR
+.RS 4
+Alias: prio
+.sp
+The port priority for bond active port re\-selection during failover\&. A higher number means a higher priority in selection\&. The primary port has the highest priority\&. This option is only compatible with active\-backup, balance\-tlb and balance\-alb modes\&.
+.sp
+Format: int32
+.RE
 .PP
 \fBqueue\-id\fR
 .RS 4

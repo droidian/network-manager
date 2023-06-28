@@ -1609,7 +1609,11 @@ This property is deprecated since version 1.16.User-provided values for this set
 <a name="nm-settings-dbus.property.infiniband.p-key"></a>p-key</td>
 <td align="left">int32</td>
 <td align="left">-1</td>
-<td>The InfiniBand P_Key to use for this device. A value of -1 means to use the default P_Key (aka "the P_Key at index 0"). Otherwise, it is a 16-bit unsigned integer, whose high bit is set if it is a "full membership" P_Key.</td>
+<td>The InfiniBand p-key to use for this device. A value of -1 means to use the default p-key (aka "the p-key at index 0"). Otherwise, it is a 16-bit unsigned integer, whose high bit 0x8000 is set if it is a "full membership" p-key. The values 0 and 0x8000 are not allowed.
+
+With the p-key set, the interface name is always "$parent.$p_key". Setting "connection.interface-name" to another name is not supported.
+
+Note that kernel will internally always set the full membership bit, although the interface name does not reflect that. Usually the user would want to configure a full membership p-key with 0x8000 flag set.</td>
 </tr>
 <tr>
 <td align="left">
@@ -4672,13 +4676,22 @@ WPS can be disabled by setting this property to a value of 1.</td>
 <th>Default Value</th>
 <th>Value Description</th>
 </tr></thead>
-<tbody><tr>
+<tbody>
+<tr>
+<td align="left">
+<a name="nm-settings-dbus.property.bond-port.prio"></a>prio</td>
+<td align="left">int32</td>
+<td align="left">0</td>
+<td>The port priority for bond active port re-selection during failover. A higher number means a higher priority in selection. The primary port has the highest priority. This option is only compatible with active-backup, balance-tlb and balance-alb modes.</td>
+</tr>
+<tr>
 <td align="left">
 <a name="nm-settings-dbus.property.bond-port.queue-id"></a>queue-id</td>
 <td align="left">uint32</td>
 <td align="left">0</td>
 <td>The queue ID of this bond port. The maximum value of queue ID is the number of TX queues currently active in device.</td>
-</tr></tbody>
+</tr>
+</tbody>
 </table></div>
 </div>
 <hr>
