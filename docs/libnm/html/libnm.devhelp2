@@ -982,8 +982,10 @@
     <keyword type="macro" name="NM_SETTING_BLUETOOTH_TYPE_NAP" link="NMSettingBluetooth.html#NM-SETTING-BLUETOOTH-TYPE-NAP:CAPS"/>
     <keyword type="function" name="nm_setting_bond_port_new ()" link="NMSettingBondPort.html#nm-setting-bond-port-new" since="1.34"/>
     <keyword type="function" name="nm_setting_bond_port_get_queue_id ()" link="NMSettingBondPort.html#nm-setting-bond-port-get-queue-id" since="1.34"/>
+    <keyword type="function" name="nm_setting_bond_port_get_prio ()" link="NMSettingBondPort.html#nm-setting-bond-port-get-prio" since="1.44, 1.42.8"/>
     <keyword type="macro" name="NM_SETTING_BOND_PORT_SETTING_NAME" link="NMSettingBondPort.html#NM-SETTING-BOND-PORT-SETTING-NAME:CAPS"/>
     <keyword type="macro" name="NM_SETTING_BOND_PORT_QUEUE_ID" link="NMSettingBondPort.html#NM-SETTING-BOND-PORT-QUEUE-ID:CAPS"/>
+    <keyword type="macro" name="NM_SETTING_BOND_PORT_PRIO" link="NMSettingBondPort.html#NM-SETTING-BOND-PORT-PRIO:CAPS"/>
     <keyword type="function" name="nm_setting_bond_new ()" link="NMSettingBond.html#nm-setting-bond-new"/>
     <keyword type="function" name="nm_setting_bond_get_num_options ()" link="NMSettingBond.html#nm-setting-bond-get-num-options"/>
     <keyword type="function" name="nm_setting_bond_get_option ()" link="NMSettingBond.html#nm-setting-bond-get-option"/>
@@ -3247,6 +3249,7 @@
     <keyword type="macro" name="NM_DEPRECATED_IN_1_42" link="libnm-nm-version.html#NM-DEPRECATED-IN-1-42:CAPS"/>
     <keyword type="macro" name="NM_AVAILABLE_IN_1_42" link="libnm-nm-version.html#NM-AVAILABLE-IN-1-42:CAPS"/>
     <keyword type="macro" name="NM_AVAILABLE_IN_1_42_2" link="libnm-nm-version.html#NM-AVAILABLE-IN-1-42-2:CAPS"/>
+    <keyword type="macro" name="NM_AVAILABLE_IN_1_42_8" link="libnm-nm-version.html#NM-AVAILABLE-IN-1-42-8:CAPS"/>
     <keyword type="macro" name="NM_CHECK_VERSION()" link="libnm-nm-version-macros.html#NM-CHECK-VERSION:CAPS"/>
     <keyword type="macro" name="NM_ENCODE_VERSION()" link="libnm-nm-version-macros.html#NM-ENCODE-VERSION:CAPS"/>
     <keyword type="macro" name="NM_MAJOR_VERSION" link="libnm-nm-version-macros.html#NM-MAJOR-VERSION:CAPS"/>
@@ -3277,6 +3280,7 @@
     <keyword type="macro" name="NM_VERSION_1_40" link="libnm-nm-version-macros.html#NM-VERSION-1-40:CAPS"/>
     <keyword type="macro" name="NM_VERSION_1_42" link="libnm-nm-version-macros.html#NM-VERSION-1-42:CAPS"/>
     <keyword type="macro" name="NM_VERSION_1_42_2" link="libnm-nm-version-macros.html#NM-VERSION-1-42-2:CAPS"/>
+    <keyword type="macro" name="NM_VERSION_1_42_8" link="libnm-nm-version-macros.html#NM-VERSION-1-42-8:CAPS"/>
     <keyword type="macro" name="NM_API_VERSION" link="libnm-nm-version-macros.html#NM-API-VERSION:CAPS"/>
     <keyword type="macro" name="NM_VERSION_CUR_STABLE" link="libnm-nm-version-macros.html#NM-VERSION-CUR-STABLE:CAPS"/>
     <keyword type="macro" name="NM_VERSION_NEXT_STABLE" link="libnm-nm-version-macros.html#NM-VERSION-NEXT-STABLE:CAPS"/>

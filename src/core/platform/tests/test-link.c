@@ -112,7 +112,7 @@ software_add(NMLinkType link_type, const char *name)
         gboolean bond0_exists = !!nm_platform_link_get_by_ifname(NM_PLATFORM_GET, "bond0");
         int      r;
         const NMPlatformLnkBond nm_platform_lnk_bond_default = {
-            .mode = 3,
+            .mode = nmtst_rand_select(3, 1),
         };
 
         r = nm_platform_link_bond_add(NM_PLATFORM_GET, name, &nm_platform_lnk_bond_default, NULL);
@@ -262,6 +262,38 @@ test_slave(int master, int type, SignalData *master_changed)
         g_assert(nm_platform_link_is_up(NM_PLATFORM_GET, ifindex));
     else
         g_assert(!nm_platform_link_is_up(NM_PLATFORM_GET, ifindex));
+
+    if (NM_IN_SET(link_type, NM_LINK_TYPE_BOND)) {
+        NMPlatformLinkBondPort   bond_port;
+        gboolean                 prio_has;
+        gboolean                 prio_supported;
+        const NMPlatformLink    *link;
+        const NMPlatformLnkBond *lnk;
+
+        link = nmtstp_link_get_typed(NM_PLATFORM_GET, 0, SLAVE_NAME, NM_LINK_TYPE_DUMMY);
+        g_assert(link);
+
+        lnk = nm_platform_link_get_lnk_bond(NM_PLATFORM_GET, master, NULL);
+        g_assert(lnk);
+
+        g_assert(NM_IN_SET(lnk->mode, 3, 1));
+        prio_supported = (lnk->mode == 1);
+        prio_has       = nmtst_get_rand_bool() && prio_supported;
+
+        bond_port = (NMPlatformLinkBondPort){
+            .queue_id = 5,
+            .prio_has = prio_has,
+            .prio     = prio_has ? 6 : 0,
+        };
+
+        g_assert(nm_platform_link_change(NM_PLATFORM_GET, ifindex, &bond_port));
+        accept_signals(link_changed, 1, 3);
+
+        link = nmtstp_link_get(NM_PLATFORM_GET, ifindex, SLAVE_NAME);
+        g_assert(link);
+        g_assert_cmpint(link->port_data.bond.queue_id, ==, 5);
+        g_assert(link->port_data.bond.prio_has || link->port_data.bond.prio == 0);
+    }
 
     test_link_changed_signal_arg1 = FALSE;
     test_link_changed_signal_arg2 = FALSE;
@@ -3349,7 +3381,9 @@ test_netns_bind_to_path(gpointer fixture, gconstpointer test_data)
     nm_auto_pop_netns NMPNetns *netns_pop  = NULL;
     NMPlatform                 *platforms[3];
     NMPNetns                   *netns;
+    int                         errsv;
     int                         i;
+    int                         r;
 
     if (_test_netns_check_skip())
         return;
@@ -3379,7 +3413,15 @@ test_netns_bind_to_path(gpointer fixture, gconstpointer test_data)
     g_assert(nmp_netns_bind_to_path(netns, P_VAR_RUN_NETNS_BINDNAME, NULL));
 
     g_assert(g_file_test(P_VAR_RUN_NETNS_BINDNAME, G_FILE_TEST_EXISTS));
-    g_assert_cmpint(nmtstp_run_command("ip netns exec " P_NETNS_BINDNAME " true"), ==, 0);
+
+    r = nmtstp_run_command("ip netns exec " P_NETNS_BINDNAME " true");
+    if (r != 0) {
+        gs_free char *msg = g_strdup_printf("`ip netns exec` fails with code %d. Skip test", r);
+
+        g_test_skip(msg);
+        return;
+    }
+
     g_assert_cmpint(
         nmtstp_run_command("ip netns exec " P_NETNS_BINDNAME " ip link show dummy2b 1>/dev/null"),
         ==,
@@ -3392,7 +3434,12 @@ test_netns_bind_to_path(gpointer fixture, gconstpointer test_data)
                     !=,
                     0);
 
-    g_assert_cmpint(umount(P_VAR_RUN), ==, 0);
+    r = umount(P_VAR_RUN);
+    if (r != 0) {
+        errsv = errno;
+        g_assert_cmpint(errsv, ==, 0);
+        g_assert_cmpint(r, ==, 0);
+    }
 }
 
 /*****************************************************************************/

@@ -30,7 +30,7 @@
  * Evaluates to the micro version number of NetworkManager which this source
  * compiled against.
  */
-#define NM_MICRO_VERSION (6)
+#define NM_MICRO_VERSION (8)
 
 /**
  * NM_CHECK_VERSION:
@@ -73,6 +73,7 @@
 #define NM_VERSION_1_40   (NM_ENCODE_VERSION(1, 40, 0))
 #define NM_VERSION_1_42   (NM_ENCODE_VERSION(1, 42, 0))
 #define NM_VERSION_1_42_2 (NM_ENCODE_VERSION(1, 42, 2))
+#define NM_VERSION_1_42_8 (NM_ENCODE_VERSION(1, 42, 8))
 
 /* For releases, NM_API_VERSION is equal to NM_VERSION.
  *

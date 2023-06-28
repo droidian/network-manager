@@ -1023,7 +1023,10 @@ write_wireless_setting(NMConnection *connection,
 }
 
 static gboolean
-write_infiniband_setting(NMConnection *connection, shvarFile *ifcfg, GError **error)
+write_infiniband_setting(NMConnection *connection,
+                         shvarFile    *ifcfg,
+                         char        **out_interface_name,
+                         GError      **error)
 {
     NMSettingInfiniband *s_infiniband;
     const char          *mac, *transport_mode, *parent;
@@ -1052,11 +1055,23 @@ write_infiniband_setting(NMConnection *connection, shvarFile *ifcfg, GError **er
     p_key = nm_setting_infiniband_get_p_key(s_infiniband);
     if (p_key != -1) {
         svSetValueStr(ifcfg, "PKEY", "yes");
+
         svSetValueInt64(ifcfg, "PKEY_ID", p_key);
 
+        if (!NM_FLAGS_HAS(p_key, 0x8000)) {
+            /* initscripts' ifup-ib used to always interpret the PKEY_ID with
+             * the full membership flag (0x8000) set. For compatibility, we do
+             * interpret PKEY_ID as having that flag set.
+             *
+             * However, now we want to persist a p-key which doesn't have the
+             * flag. Use a NetworkManager specific variable for that. This configuration
+             * is not supported by initscripts' ifup-ib.
+             */
+            svSetValueInt64(ifcfg, "PKEY_ID_NM", p_key);
+        }
+
         parent = nm_setting_infiniband_get_parent(s_infiniband);
-        if (parent)
-            svSetValueStr(ifcfg, "PHYSDEV", parent);
+        svSetValueStr(ifcfg, "PHYSDEV", parent);
     }
 
     svSetValueStr(ifcfg, "TYPE", TYPE_INFINIBAND);
@@ -1911,8 +1926,10 @@ write_bond_port_setting(NMConnection *connection, shvarFile *ifcfg)
     NMSettingBondPort *s_port;
 
     s_port = _nm_connection_get_setting(connection, NM_TYPE_SETTING_BOND_PORT);
-    if (s_port)
+    if (s_port) {
         svSetValueInt64(ifcfg, "BOND_PORT_QUEUE_ID", nm_setting_bond_port_get_queue_id(s_port));
+        svSetValueInt64(ifcfg, "BOND_PORT_PRIO", nm_setting_bond_port_get_prio(s_port));
+    }
 }
 
 static gboolean
@@ -2093,7 +2110,7 @@ write_dcb_setting(NMConnection *connection, shvarFile *ifcfg, GError **error)
 }
 
 static void
-write_connection_setting(NMSettingConnection *s_con, shvarFile *ifcfg)
+write_connection_setting(NMSettingConnection *s_con, shvarFile *ifcfg, const char *interface_name)
 {
     guint32                       n, i;
     nm_auto_free_gstring GString *str = NULL;
@@ -2110,7 +2127,9 @@ write_connection_setting(NMSettingConnection *s_con, shvarFile *ifcfg)
     svSetValueStr(ifcfg, "NAME", nm_setting_connection_get_id(s_con));
     svSetValueStr(ifcfg, "UUID", nm_setting_connection_get_uuid(s_con));
     svSetValueStr(ifcfg, "STABLE_ID", nm_setting_connection_get_stable_id(s_con));
-    svSetValueStr(ifcfg, "DEVICE", nm_setting_connection_get_interface_name(s_con));
+    svSetValueStr(ifcfg,
+                  "DEVICE",
+                  interface_name ?: nm_setting_connection_get_interface_name(s_con));
     svSetValueBoolean(ifcfg, "ONBOOT", nm_setting_connection_get_autoconnect(s_con));
 
     vint = nm_setting_connection_get_autoconnect_priority(s_con);
@@ -3308,6 +3327,7 @@ do_write_construct(NMConnection                   *connection,
     nm_auto_shvar_file_close shvarFile *route_content_svformat = NULL;
     nm_auto_free_gstring GString       *route_content          = NULL;
     nm_auto_free_gstring GString       *route6_content         = NULL;
+    gs_free char                       *interface_name         = NULL;
 
     nm_assert(NM_IS_CONNECTION(connection));
     nm_assert(_nm_connection_verify(connection, NULL) == NM_SETTING_VERIFY_SUCCESS);
@@ -3413,7 +3433,7 @@ do_write_construct(NMConnection                   *connection,
         if (!write_wireless_setting(connection, ifcfg, secrets, &no_8021x, error))
             return FALSE;
     } else if (!strcmp(type, NM_SETTING_INFINIBAND_SETTING_NAME)) {
-        if (!write_infiniband_setting(connection, ifcfg, error))
+        if (!write_infiniband_setting(connection, ifcfg, &interface_name, error))
             return FALSE;
     } else if (!strcmp(type, NM_SETTING_BOND_SETTING_NAME)) {
         if (!write_bond_setting(connection, ifcfg, &wired, error))
@@ -3518,7 +3538,7 @@ do_write_construct(NMConnection                   *connection,
 
     write_ip_routing_rules(connection, ifcfg, route_ignore);
 
-    write_connection_setting(s_con, ifcfg);
+    write_connection_setting(s_con, ifcfg, interface_name);
 
     NM_SET_OUT(out_ifcfg, g_steal_pointer(&ifcfg));
     NM_SET_OUT(out_blobs, g_steal_pointer(&blobs));

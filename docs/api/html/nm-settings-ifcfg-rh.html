@@ -1101,14 +1101,26 @@ Example: </strong></span>BONDING_OPTS="miimon=100 mode=broadcast"</td>
 <th>Default</th>
 <th>Description</th>
 </tr></thead>
-<tbody><tr>
+<tbody>
+<tr>
 <td align="left">queue-id</td>
-<td align="left">BONDING_OPTS: queue-id=</td>
+<td align="left">BOND_PORT_QUEUE_ID<span class="emphasis"><em>(+)</em></span>
+</td>
 <td align="left">0</td>
 <td align="left">Queue ID.<span class="bold"><strong>
 
 Allowed values: </strong></span>0 - 65535</td>
-</tr></tbody>
+</tr>
+<tr>
+<td align="left">prio</td>
+<td align="left">BOND_PORT_PRIO<span class="emphasis"><em>(+)</em></span>
+</td>
+<td align="left">0</td>
+<td align="left">Port priority.<span class="bold"><strong>
+
+Allowed values: </strong></span>-2147483648 - 2147483647</td>
+</tr>
+</tbody>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
@@ -1892,9 +1904,9 @@ Example: </strong></span>HWADDR=01:02:03:04:05:06:07:08:09:0A:01:02:03:04:05:06:
 </tr>
 <tr>
 <td align="left">p-key</td>
-<td align="left">PKEY_ID (and PKEY=yes)</td>
+<td align="left">PKEY_ID or PKEY_ID_NM(*) (requires PKEY=yes)</td>
 <td align="left">PKEY=no</td>
-<td align="left">InfiniBand P_Key. The value can be a hex number prefixed with "0x" or a decimal number. When PKEY_ID is specified, PHYSDEV and DEVICE also must be specified.<span class="bold"><strong>
+<td align="left">InfiniBand P_Key. The value can be a hex number prefixed with "0x" or a decimal number. When PKEY_ID is specified, PHYSDEV must be specified. Note that ifcfg-rh format will always automatically set the full membership flag 0x8000 for the PKEY_ID variable. To express IDs without the full membership flag, use PKEY_ID_NM. Note that kernel internally treats the interface as having the full membership flag set, this mainly affects the interface name. For the ifcfg file to be supported by initscripts' ifup-ib, the DEVICE= must always be set. NetworkManager does not require that.<span class="bold"><strong>
 
 Example: </strong></span>PKEY=yes PKEY_ID=2 PHYSDEV=mlx4_ib0 DEVICE=mlx4_ib0.8002</td>
 </tr>

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN" "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd">
-<refentry id="nm-settings-nmcli"><refentryinfo><title>nm-settings-nmcli</title><author>NetworkManager developers</author></refentryinfo><refmeta><refentrytitle>nm-settings-nmcli</refentrytitle><manvolnum>5</manvolnum><refmiscinfo class="source">NetworkManager</refmiscinfo><refmiscinfo class="manual">Configuration</refmiscinfo><refmiscinfo class="version">1.42.6</refmiscinfo></refmeta><refnamediv><refname>nm-settings-nmcli</refname><refpurpose>Description of settings and properties of NetworkManager connection profiles for nmcli</refpurpose></refnamediv><refsect1 id="description"><title>Description</title><para>
+<refentry id="nm-settings-nmcli"><refentryinfo><title>nm-settings-nmcli</title><author>NetworkManager developers</author></refentryinfo><refmeta><refentrytitle>nm-settings-nmcli</refentrytitle><manvolnum>5</manvolnum><refmiscinfo class="source">NetworkManager</refmiscinfo><refmiscinfo class="manual">Configuration</refmiscinfo><refmiscinfo class="version">1.42.8</refmiscinfo></refmeta><refnamediv><refname>nm-settings-nmcli</refname><refpurpose>Description of settings and properties of NetworkManager connection profiles for nmcli</refpurpose></refnamediv><refsect1 id="description"><title>Description</title><para>
           NetworkManager is based on a concept of connection profiles, sometimes referred to as
           connections only. These connection profiles contain a network configuration. When
           NetworkManager activates a connection profile on a network device the configuration will
@@ -251,7 +251,7 @@
             Format: byte array</para></listitem></varlistentry><varlistentry><term><option id="nm-settings-nmcli.property.infiniband.mtu">mtu</option></term><listitem><para>
             Alias: mtu</para><para>If non-zero, only transmit packets of the specified size or smaller, breaking larger packets up into multiple frames.</para><para>
             Format: uint32</para></listitem></varlistentry><varlistentry><term><option id="nm-settings-nmcli.property.infiniband.p-key">p-key</option></term><listitem><para>
-            Alias: p-key</para><para>The InfiniBand P_Key to use for this device. A value of -1 means to use the default P_Key (aka "the P_Key at index 0"). Otherwise, it is a 16-bit unsigned integer, whose high bit is set if it is a "full membership" P_Key.</para><para>
+            Alias: p-key</para><para>The InfiniBand p-key to use for this device. A value of -1 means to use the default p-key (aka "the p-key at index 0"). Otherwise, it is a 16-bit unsigned integer, whose high bit 0x8000 is set if it is a "full membership" p-key. The values 0 and 0x8000 are not allowed.</para><para>With the p-key set, the interface name is always "$parent.$p_key". Setting "connection.interface-name" to another name is not supported.</para><para>Note that kernel will internally always set the full membership bit, although the interface name does not reflect that. Usually the user would want to configure a full membership p-key with 0x8000 flag set.</para><para>
             Format: int32</para></listitem></varlistentry><varlistentry><term><option id="nm-settings-nmcli.property.infiniband.parent">parent</option></term><listitem><para>
             Alias: parent</para><para>The interface name of the parent device of this device. Normally NULL, but if the "p_key" property is set, then you must specify the base device by setting either this property or "mac-address".</para><para>
             Format: string</para></listitem></varlistentry><varlistentry><term><option id="nm-settings-nmcli.property.infiniband.transport-mode">transport-mode</option></term><listitem><para>
@@ -1200,7 +1200,9 @@ Linux traffic control subsystem
             Alias: short-addr</para><para>Short IEEE 802.15.4 address to be used within a restricted environment.</para><para>
             Format: uint32</para></listitem></varlistentry></variablelist></para></refsect2><refsect2><title>bond-port setting</title><para>Bond Port Settings.</para><para>
         Properties:
-        <variablelist><varlistentry><term><option id="nm-settings-nmcli.property.bond-port.queue-id">queue-id</option></term><listitem><para>
+        <variablelist><varlistentry><term><option id="nm-settings-nmcli.property.bond-port.prio">prio</option></term><listitem><para>
+            Alias: prio</para><para>The port priority for bond active port re-selection during failover. A higher number means a higher priority in selection. The primary port has the highest priority. This option is only compatible with active-backup, balance-tlb and balance-alb modes.</para><para>
+            Format: int32</para></listitem></varlistentry><varlistentry><term><option id="nm-settings-nmcli.property.bond-port.queue-id">queue-id</option></term><listitem><para>
             Alias: queue-id</para><para>The queue ID of this bond port. The maximum value of queue ID is the number of TX queues currently active in device.</para><para>
             Format: uint32</para></listitem></varlistentry></variablelist></para></refsect2><refsect2><title>hostname setting</title><para>Hostname settings.</para><para>
         Properties:
