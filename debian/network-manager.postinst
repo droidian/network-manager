@@ -41,14 +41,6 @@ case "$1" in
             fi
         fi
 
-        if dpkg --compare-versions "$2" lt-nl "1.20.4-2"; then
-            if [ -f /var/lib/NetworkManager/secret_key ]; then
-                chmod 0600 /var/lib/NetworkManager/secret_key
-            fi
-        fi
-        if dpkg --compare-versions "$2" lt-nl "1.25.91-1"; then
-            update-rc.d -f network-manager remove || true
-        fi
         if dpkg --compare-versions "$2" lt-nl "1.35.91-1"; then
             deb-systemd-helper purge "nm-priv-helper.service" || true
         fi
