@@ -72,7 +72,7 @@ nm_setting_bond_port_get_queue_id(NMSettingBondPort *setting)
  *
  * Returns: the #NMSettingBondPort:prio property of the setting
  *
- * Since: 1.44, 1.42.8
+ * Since: 1.44
  **/
 gint32
 nm_setting_bond_port_get_prio(NMSettingBondPort *setting)
@@ -190,7 +190,7 @@ nm_setting_bond_port_class_init(NMSettingBondPortClass *klass)
      * the highest priority. This option is only compatible with active-backup,
      * balance-tlb and balance-alb modes.
      *
-     * Since: 1.44, 1.42.8
+     * Since: 1.44
      **/
     /* ---ifcfg-rh---
      * property: prio

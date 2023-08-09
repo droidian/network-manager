@@ -778,6 +778,34 @@ nm_setting_ip4_config_class_init(NMSettingIP4ConfigClass *klass)
      * ---end---
      */
 
+    /* ---nmcli---
+     * property: dns-options
+     * format: a comma separated list of DNS options
+     * description:
+     *   DNS options for /etc/resolv.conf as described in resolv.conf(5) manual.
+     *
+     *   The currently supported options are "attempts", "debug", "edns0",
+     *   "ndots", "no-aaaa", "no-check-names", "no-reload", "no-tld-query",
+     *   "rotate", "single-request", "single-request-reopen", "timeout",
+     *   "trust-ad", "use-vc". See the resolv.conf(5) manual.
+     *
+     *   Note that there is a distinction between an unset (default) list
+     *   and an empty list. In nmcli, to unset the list set the value to
+     *   "". To set an empty list, set it to " ". Currently, an unset list
+     *   has the same meaning as an empty list. That might change in the future.
+     *
+     *   The "trust-ad" setting is only honored if the profile contributes
+     *   name servers to resolv.conf, and if all contributing profiles have
+     *   "trust-ad" enabled.
+     *
+     *   When using a caching DNS plugin (dnsmasq or systemd-resolved in
+     *   NetworkManager.conf) then "edns0" and "trust-ad" are automatically
+     *   added.
+     *
+     *   The valid "ipv4.dns-options" and "ipv6.dns-options" get merged together.
+     * ---end---
+     */
+
     /* ---ifcfg-rh---
      * property: dns-options
      * variable: RES_OPTIONS(+)
@@ -1220,6 +1248,36 @@ nm_setting_ip4_config_class_init(NMSettingIP4ConfigClass *klass)
      *   </para>
      *   <para>
      *   Example: <literal>priority 5 from 192.167.4.0/24 table 45</literal>
+     *   </para>
+     * ---end---
+     */
+
+    /* ---nmcli---
+     * property: method
+     * format: string
+     * description: The IPv4 connection method.
+     * description-docbook:
+     *   <para>
+     *     Sets the IPv4 connection method. You can set one of the following values:
+     *   </para>
+     *   <para>
+     *     <itemizedlist>
+     *        <listitem>
+     *          <para><literal>"auto"</literal> - Enables automatic IPv4 address assignment from DHCP, PPP, or similar services.</para>
+     *        </listitem>
+     *        <listitem>
+     *          <para><literal>"manual"</literal> - Enables the configuration of static IPv4 addresses on the interface. Note that you must set at least one IP address and subnet mask in the "ipv4.addresses" property.</para>
+     *        </listitem>
+     *        <listitem>
+     *          <para><literal>"disabled"</literal> - Disables the IPv4 protocol in this connection profile.</para>
+     *        </listitem>
+     *        <listitem>
+     *          <para><literal>"shared"</literal> - Provides network access to other computers. If you do not specify an IP address and subnet mask in "ipv4.addresses", NetworkManager assigns 10.42.x.1/24 to the interface. Additionally, NetworkManager starts a DHCP server and DNS forwarder. Hosts that connect to this interface will then receive an IP address from the configured range, and NetworkManager configures NAT to map client addresses to the one of the current default network connection.</para>
+     *        </listitem>
+     *        <listitem>
+     *          <para><literal>"link-local"</literal> - Enables link-local addresses according to RFC 3927. NetworkManager assigns a random link-local address from the 169.254.0.0/16 subnet to the interface.</para>
+     *        </listitem>
+     *     </itemizedlist>
      *   </para>
      * ---end---
      */

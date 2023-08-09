@@ -334,7 +334,7 @@ DEVICETYPE=TeamPort
 
   <xsl:template match="setting">
     <xsl:variable name="setting_name" select="../@name"/>
-    <xsl:variable name="unsupported" select="'802-11-olpc-mesh, adsl, bluetooth, cdma, dummy, generic, gsm, ip-tunnel, macsec, macvlan, ppp, pppoe, serial, tun, vpn, vxlan, wimax'"/>
+    <xsl:variable name="unsupported" select="'6lowpan, 802-11-olpc-mesh, adsl, bluetooth, cdma, dummy, generic, gsm, ip-tunnel, link, loopback, macsec, macvlan, ovs-bridge, ovs-dpdk, ovs-interface, ovs-patch, ovs-port, ppp, pppoe, serial, tun, veth, vpn, vrf, vxlan, wifi-p2p, wimax, wireguard, wpan'"/>
       <xsl:if test="not (contains(concat(' ', $unsupported, ','), concat(' ', @name, ',')))">
         <table>
           <title><xsl:value-of select="@name"/> setting</title>
@@ -381,7 +381,7 @@ DEVICETYPE=TeamPort
       </entry>
       <entry align="left"><xsl:value-of select="@default"/></entry>
       <entry align="left">
-        <xsl:value-of select="@description"/><xsl:if test="@format = 'NMSettingSecretFlags'"> (see <xref linkend="secrets-flags"/> for _FLAGS values)</xsl:if>
+        <xsl:value-of select="description"/><xsl:if test="@format = 'NMSettingSecretFlags'"> (see <xref linkend="secrets-flags"/> for _FLAGS values)</xsl:if>
 
         <xsl:if test="string-length(@example)">
         <emphasis role="bold">

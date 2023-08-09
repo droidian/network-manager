@@ -93,19 +93,19 @@ struct nla_policy {
 
 /* static asserts that @tb and @policy are suitable arguments to nla_parse(). */
 #if _NM_CC_SUPPORT_GENERIC
-#define _nl_static_assert_tb(tb, policy)                                                   \
-    G_STMT_START                                                                           \
-    {                                                                                      \
-        G_STATIC_ASSERT_EXPR(G_N_ELEMENTS(tb) > 0);                                        \
-                                                                                           \
+#define _nl_static_assert_tb(tb, policy)                                                 \
+    G_STMT_START                                                                         \
+    {                                                                                    \
+        G_STATIC_ASSERT_EXPR(G_N_ELEMENTS(tb) > 0);                                      \
+                                                                                         \
         /* We allow @policy to be either a C array or NULL. The sizeof()
          * must either match the expected array size or we check that
          * "policy" has typeof(NULL). This isn't a perfect compile time check,
-         * but good enough. */                   \
-        G_STATIC_ASSERT_EXPR(                                                              \
-            _Generic((policy), typeof(NULL) : 1, default                                   \
-                     : (sizeof(policy) == G_N_ELEMENTS(tb) * sizeof(struct nla_policy)))); \
-    }                                                                                      \
+         * but good enough. */                 \
+        G_STATIC_ASSERT_EXPR(_Generic((policy),                                          \
+            typeof(NULL): 1,                                                             \
+            default: (sizeof(policy) == G_N_ELEMENTS(tb) * sizeof(struct nla_policy)))); \
+    }                                                                                    \
     G_STMT_END
 #else
 #define _nl_static_assert_tb(tb, policy) G_STATIC_ASSERT_EXPR(G_N_ELEMENTS(tb) > 0)
@@ -238,10 +238,36 @@ nla_get_be64(const struct nlattr *nla)
 static inline char *
 nla_get_string(const struct nlattr *nla)
 {
-    return nla_data(nla);
+    char *s;
+
+    /* nla_get_string() requires that nla contains a NUL terminated string.
+     * It cannot return NULL. Only use it with attributes that validate as NLA_STRING. */
+
+    nm_assert(nla_len(nla) > 0);
+
+    s = nla_data(nla);
+
+    nm_assert(memchr(s, 0, nla_len(nla)));
+
+    return s;
 }
 
-size_t nla_strlcpy(char *dst, const struct nlattr *nla, size_t dstsize);
+size_t
+_nla_strlcpy_full(char *dst, const struct nlattr *nla, size_t dstsize, gboolean wipe_remainder);
+
+static inline size_t
+nla_strlcpy(char *dst, const struct nlattr *nla, size_t dstsize)
+{
+    return _nla_strlcpy_full(dst, nla, dstsize, FALSE);
+}
+
+static inline size_t
+nla_strlcpy_wipe(char *dst, const struct nlattr *nla, size_t dstsize)
+{
+    /* Behaves exactly like nla_strlcpy(), but (similar to strncpy()) it fills the
+     * remaining @dstsize bytes with NUL. */
+    return _nla_strlcpy_full(dst, nla, dstsize, TRUE);
+}
 
 size_t nla_memcpy(void *dst, const struct nlattr *nla, size_t dstsize);
 
@@ -263,6 +289,17 @@ size_t nla_memcpy(void *dst, const struct nlattr *nla, size_t dstsize);
         }                                                                \
     }                                                                    \
     G_STMT_END
+
+static inline struct in6_addr
+nla_get_in6_addr(const struct nlattr *nla)
+{
+    struct in6_addr in6;
+
+    nm_assert(nla_len(nla) >= sizeof(struct in6_addr));
+
+    nla_memcpy(&in6, nla, sizeof(in6));
+    return in6;
+}
 
 int nla_put(struct nl_msg *msg, int attrtype, int datalen, const void *data);
 
@@ -567,8 +604,6 @@ int nl_socket_set_buffer_size(struct nl_sock *sk, int rxbuf, int txbuf);
 int nl_socket_set_passcred(struct nl_sock *sk, int state);
 
 int nl_socket_set_pktinfo(struct nl_sock *sk, int state);
-
-int nl_socket_set_nonblocking(const struct nl_sock *sk);
 
 uint32_t nl_socket_get_local_port(const struct nl_sock *sk);
 

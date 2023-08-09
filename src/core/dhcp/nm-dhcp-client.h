@@ -103,6 +103,10 @@ typedef struct {
 
     const char *iface;
 
+    /* Interface type for logging; only set for some devices whose names can be
+     * ambiguous. */
+    const char *iface_type_log;
+
     /* The hardware address */
     GBytes *hwaddr;
 
@@ -173,6 +177,10 @@ typedef struct {
 
             /* Number to prefixes (IA_PD) to request */
             guint needed_prefixes;
+
+            /* A hint to send to server for prefix delegation (IA_PD). */
+            struct in6_addr pd_hint_addr;
+            guint8          pd_hint_length;
 
             /* Use Information-request to get stateless configuration
              * parameters (don't request a IA_NA) */
@@ -260,6 +268,7 @@ gboolean nm_dhcp_client_server_id_is_rejected(NMDhcpClient *self, gconstpointer 
 
 int                nm_dhcp_client_get_addr_family(NMDhcpClient *self);
 const char        *nm_dhcp_client_get_iface(NMDhcpClient *self);
+const char        *nm_dhcp_client_get_iface_type_for_log(NMDhcpClient *self);
 NMDedupMultiIndex *nm_dhcp_client_get_multi_idx(NMDhcpClient *self);
 int                nm_dhcp_client_get_ifindex(NMDhcpClient *self);
 

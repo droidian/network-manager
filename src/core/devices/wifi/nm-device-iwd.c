@@ -159,7 +159,7 @@ ap_add_remove(NMDeviceIwd *self,
     }
 
     if (priv->enabled && !priv->iwd_autoconnect)
-        nm_device_emit_recheck_auto_activate(NM_DEVICE(self));
+        nm_device_recheck_auto_activate_schedule(NM_DEVICE(self));
 
     if (recheck_available_connections)
         nm_device_recheck_available_connections(NM_DEVICE(self));
@@ -208,7 +208,7 @@ remove_all_aps(NMDeviceIwd *self)
         ap_add_remove(self, FALSE, ap, FALSE);
 
     if (!priv->iwd_autoconnect)
-        nm_device_emit_recheck_auto_activate(NM_DEVICE(self));
+        nm_device_recheck_auto_activate_schedule(NM_DEVICE(self));
 
     nm_device_recheck_available_connections(NM_DEVICE(self));
 }
@@ -401,7 +401,7 @@ get_ordered_networks_cb(GObject *source, GAsyncResult *res, gpointer user_data)
 
     if (changed) {
         if (!priv->iwd_autoconnect)
-            nm_device_emit_recheck_auto_activate(NM_DEVICE(self));
+            nm_device_recheck_auto_activate_schedule(NM_DEVICE(self));
 
         nm_device_recheck_available_connections(NM_DEVICE(self));
     }
@@ -723,7 +723,10 @@ is_ap_known_network(NMIwdManager *manager, NMWifiAP *ap)
 }
 
 static gboolean
-check_connection_compatible(NMDevice *device, NMConnection *connection, GError **error)
+check_connection_compatible(NMDevice     *device,
+                            NMConnection *connection,
+                            gboolean      check_properties,
+                            GError      **error)
 {
     NMDeviceIwd         *self = NM_DEVICE_IWD(device);
     NMDeviceIwdPrivate  *priv = NM_DEVICE_IWD_GET_PRIVATE(self);
@@ -739,7 +742,7 @@ check_connection_compatible(NMDevice *device, NMConnection *connection, GError *
     gsize                ssid_len;
 
     if (!NM_DEVICE_CLASS(nm_device_iwd_parent_class)
-             ->check_connection_compatible(device, connection, error))
+             ->check_connection_compatible(device, connection, check_properties, error))
         return FALSE;
 
     s_wireless = nm_connection_get_setting_wireless(connection);
@@ -1682,7 +1685,7 @@ failed:
 
         if (!priv->nm_autoconnect) {
             priv->nm_autoconnect = true;
-            nm_device_emit_recheck_auto_activate(device);
+            nm_device_recheck_auto_activate_schedule(device);
         }
     }
     g_variant_unref(value);
@@ -2302,9 +2305,10 @@ act_stage2_config(NMDevice *device, NMDeviceStateReason *out_failure_reason)
          * to reset the retry count so we set no timeout.
          */
         if (priv->iwd_autoconnect) {
-            NMSettingsConnection *sett_conn = nm_act_request_get_settings_connection(req);
-
-            nm_settings_connection_autoconnect_retries_set(sett_conn, 0);
+            nm_manager_devcon_autoconnect_retries_set(nm_device_get_manager(device),
+                                                      device,
+                                                      nm_act_request_get_settings_connection(req),
+                                                      0);
         }
 
         /* With priv->iwd_autoconnect, if we're assuming a connection because
@@ -2908,7 +2912,7 @@ state_changed(NMDeviceIwd *self, const char *new_state)
     if (!priv->iwd_autoconnect && NM_IN_STRSET(new_state, "disconnected")) {
         priv->nm_autoconnect = TRUE;
         if (!can_connect)
-            nm_device_emit_recheck_auto_activate(device);
+            nm_device_recheck_auto_activate_schedule(device);
     }
 }
 
@@ -3104,12 +3108,12 @@ config_changed(NMConfig           *config,
     NMDeviceIwdPrivate *priv       = NM_DEVICE_IWD_GET_PRIVATE(self);
     gboolean            old_iwd_ac = priv->iwd_autoconnect;
 
-    priv->iwd_autoconnect =
-        nm_config_data_get_device_config_boolean(config_data,
-                                                 NM_CONFIG_KEYFILE_KEY_DEVICE_WIFI_IWD_AUTOCONNECT,
-                                                 NM_DEVICE(self),
-                                                 TRUE,
-                                                 TRUE);
+    priv->iwd_autoconnect = nm_config_data_get_device_config_boolean_by_device(
+        config_data,
+        NM_CONFIG_KEYFILE_KEY_DEVICE_WIFI_IWD_AUTOCONNECT,
+        NM_DEVICE(self),
+        TRUE,
+        TRUE);
 
     if (old_iwd_ac != priv->iwd_autoconnect && priv->dbus_station_proxy && !priv->current_ap) {
         gs_unref_variant GVariant *value = NULL;

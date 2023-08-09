@@ -659,8 +659,11 @@ nm_active_connection_get_state_reason (<em class="parameter"><code><a class="lin
 <a name="nm-active-connection-get-master"></a><h3>nm_active_connection_get_master ()</h3>
 <pre class="programlisting">struct <a class="link" href="NMDevice.html" title="NMDevice"><span class="returnvalue">_NMDevice</span></a> *
 nm_active_connection_get_master (<em class="parameter"><code><a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a> *connection</code></em>);</pre>
+<div class="warning">
+<p><code class="literal">nm_active_connection_get_master</code> has been deprecated since version 1.44 and should not be used in newly-written code.</p>
+<p>Use <a class="link" href="NMActiveConnection.html#nm-active-connection-get-controller" title="nm_active_connection_get_controller ()"><code class="function">nm_active_connection_get_controller()</code></a> instead.</p>
+</div>
 <p>Gets the master <a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a> of the connection.</p>
-<p>This is replaced by <a class="link" href="NMActiveConnection.html#nm-active-connection-get-controller" title="nm_active_connection_get_controller ()"><code class="function">nm_active_connection_get_controller()</code></a> since 1.44 and 1.42.2.</p>
 <div class="refsect3">
 <a name="nm-active-connection-get-master.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
@@ -709,7 +712,7 @@ deprecated <a class="link" href="NMActiveConnection.html#nm-active-connection-ge
 <p>the controller <a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a> of the <a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a>. </p>
 <p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
-<p class="since">Since: 1.44, 1.42.2</p>
+<p class="since">Since: 1.44</p>
 </div>
 <hr>
 <div class="refsect2">
@@ -1034,7 +1037,7 @@ nm_active_connection_get_vpn (<em class="parameter"><code><a class="link" href="
 "master" property.</p>
 <p>Owner: NMActiveConnection</p>
 <p>Flags: Read</p>
-<p class="since">Since: 1.44, 1.42.2</p>
+<p class="since">Since: 1.44</p>
 </div>
 <hr>
 <div class="refsect2">
@@ -1108,8 +1111,8 @@ nm_active_connection_get_vpn (<em class="parameter"><code><a class="link" href="
 <div class="refsect2">
 <a name="NMActiveConnection--master"></a><h3>The <code class="literal">“master”</code> property</h3>
 <pre class="programlisting">  “master”                   <a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a> *</pre>
-<p>The master device if one exists. Replaced by the "controller" property
-since 1.44 and 1.42.2.</p>
+<p>The master device if one exists. Replaced by the "controller" property.</p>
+<div class="warning"><p><code class="literal">NMActiveConnection:master</code> has been deprecated since version 1.44 and should not be used in newly-written code.</p></div>
 <p>Owner: NMActiveConnection</p>
 <p>Flags: Read</p>
 </div>

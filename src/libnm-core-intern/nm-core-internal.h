@@ -43,6 +43,7 @@
 #include "nm-setting-ip-tunnel.h"
 #include "nm-setting-ip4-config.h"
 #include "nm-setting-ip6-config.h"
+#include "nm-setting-link.h"
 #include "nm-setting-loopback.h"
 #include "nm-setting-macsec.h"
 #include "nm-setting-macvlan.h"
@@ -322,8 +323,6 @@ typedef gpointer (*NMUtilsCopyFunc)(gpointer);
 const char **
 _nm_ip_address_get_attribute_names(const NMIPAddress *addr, gboolean sorted, guint *out_length);
 
-char *nm_setting_infiniband_create_virtual_interface_name(const char *parent, int p_key);
-
 #define NM_SETTING_WIRED_S390_OPTION_MAX_LEN 200u
 
 void     _nm_setting_wired_clear_s390_options(NMSettingWired *setting);
@@ -456,6 +455,20 @@ _nm_connection_get_setting(NMConnection *connection, GType type)
     return (gpointer) nm_connection_get_setting(connection, type);
 }
 
+gpointer _nm_connection_get_setting_by_metatype_unsafe(NMConnection     *connection,
+                                                       NMMetaSettingType meta_type);
+
+/* This variant is the most efficient one, because it does not require resolving a
+ * name/GType first. The NMMetaSettingType enum allows for a direct lookup. */
+#define _nm_connection_get_setting_by_metatype(connection, meta_type)                       \
+    ({                                                                                      \
+        /* Static assert that meta_type is in the valid range. If you don't want that,
+         * because the argument is no a compile time constant, use  _nm_connection_get_setting_by_metatype_unsafe(). */      \
+        G_STATIC_ASSERT((meta_type) < _NM_META_SETTING_TYPE_NUM && ((int) meta_type) >= 0); \
+                                                                                            \
+        _nm_connection_get_setting_by_metatype_unsafe((connection), (meta_type));           \
+    })
+
 NMSettingIPConfig *nm_connection_get_setting_ip_config(NMConnection *connection, int addr_family);
 
 /*****************************************************************************/
@@ -472,6 +485,7 @@ typedef enum {
     NM_BOND_OPTION_TYPE_INT,
     NM_BOND_OPTION_TYPE_BOTH,
     NM_BOND_OPTION_TYPE_IP,
+    NM_BOND_OPTION_TYPE_IP6,
     NM_BOND_OPTION_TYPE_MAC,
     NM_BOND_OPTION_TYPE_IFNAME,
 } NMBondOptionType;
@@ -1022,6 +1036,8 @@ _nm_connection_serialize_secrets(NMConnectionSerializationFlags flags,
 
 void _nm_connection_clear_secrets_by_secret_flags(NMConnection        *self,
                                                   NMSettingSecretFlags filter_flags);
+
+typedef gboolean (*_NMConnectionForEachSecretFunc)(NMSettingSecretFlags flags, gpointer user_data);
 
 GVariant *_nm_connection_for_each_secret(NMConnection                  *self,
                                          GVariant                      *secrets,

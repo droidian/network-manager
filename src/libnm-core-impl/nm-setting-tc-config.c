@@ -359,7 +359,7 @@ nm_tc_qdisc_get_attribute(NMTCQdisc *qdisc, const char *name)
  * nm_tc_qdisc_set_attribute:
  * @qdisc: the #NMTCQdisc
  * @name: the name of an qdisc attribute
- * @value: (transfer none) (allow-none): the value
+ * @value: (transfer none) (nullable): the value
  *
  * Sets or clears the named attribute on @qdisc to the given value.
  *
@@ -634,7 +634,7 @@ nm_tc_action_get_attribute(NMTCAction *action, const char *name)
  * nm_tc_action_set_attribute:
  * @action: the #NMTCAction
  * @name: the name of an action attribute
- * @value: (transfer none) (allow-none): the value
+ * @value: (transfer none) (nullable): the value
  *
  * Sets or clears the named attribute on @action to the given value.
  *
@@ -1794,6 +1794,12 @@ nm_setting_tc_config_class_init(NMSettingTCConfigClass *klass)
     /* ---nmcli---
      * property: qdiscs
      * format: GPtrArray(NMTCQdisc)
+     * description: Array of TC queueing disciplines. When the "tc" setting is
+     *   present, qdiscs from this property are applied upon activation. If the
+     *   property is empty, all qdiscs are removed and the device will only have
+     *   the default qdisc assigned by kernel according to the
+     *   "net.core.default_qdisc" sysctl. If the "tc" setting is not present,
+     *   NetworkManager doesn't touch the qdiscs present on the interface.
      * description-docbook:
      *  <para>
      *  Array of TC queueing disciplines. qdisc is a basic block in the
@@ -2106,6 +2112,11 @@ nm_setting_tc_config_class_init(NMSettingTCConfigClass *klass)
     /* ---nmcli---
      * property: tfilters
      * format: GPtrArray(NMTCTfilter)
+     * description: Array of TC traffic filters. When the "tc" setting is
+     *   present, filters from this property are applied upon activation. If the
+     *   property is empty, NetworkManager removes all the filters. If the "tc"
+     *   setting is not present, NetworkManager doesn't touch the filters present
+     *   on the interface.
      * description-docbook:
      *  <para>
      *   Array of TC traffic filters. Traffic control can manage the packet content during

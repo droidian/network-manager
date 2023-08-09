@@ -155,7 +155,7 @@ nmcs_provider_detect(NMCSProvider       *self,
     env = g_getenv(NMCS_PROVIDER_GET_CLASS(self)->_env_provider_enabled);
     if (!_nm_utils_ascii_str_to_bool(env, FALSE)) {
         g_task_return_error(task,
-                            nm_utils_error_new(NM_UTILS_ERROR_UNKNOWN, "provider is disabled"));
+                            nm_utils_error_new(NM_UTILS_ERROR_NOT_READY, "provider is disabled"));
         return;
     }
 
@@ -216,7 +216,7 @@ _iface_data_free(gpointer data)
     NMCSProviderGetConfigIfaceData *iface_data = data;
 
     g_free(iface_data->ipv4s_arr);
-    g_free(iface_data->iproutes_arr);
+    nm_g_ptr_array_unref(iface_data->iproutes);
     g_free((char *) iface_data->hwaddr);
 
     nm_g_slice_free(iface_data);

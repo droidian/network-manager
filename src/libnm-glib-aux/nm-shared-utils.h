@@ -79,7 +79,7 @@ G_STATIC_ASSERT(sizeof(int) == sizeof(gint32));
     ({                                             \
         _nm_unused typeof(value) _value = (value); \
                                                    \
-        _Generic((value), int : TRUE);             \
+        _Generic((value), int: TRUE);              \
     })
 #else
 #define _NM_INT_LE_MAXINT32(value)                   \
@@ -208,12 +208,13 @@ typedef struct {
 
 #define NM_ETHER_ADDR_INIT(...) ((NMEtherAddr) _NM_ETHER_ADDR_INIT(__VA_ARGS__))
 
-struct _NMIPAddr;
-extern const struct _NMIPAddr nm_ip_addr_zero;
+union _NMIPAddr;
+
+extern const union _NMIPAddr nm_ip_addr_zero;
 
 /* Let's reuse nm_ip_addr_zero also for nm_ether_addr_zero. It's a union that
  * also contains a NMEtherAddr field. */
-#define nm_ether_addr_zero (*((const NMEtherAddr *) ((gconstpointer) &nm_ip_addr_zero)))
+#define nm_ether_addr_zero (*((const NMEtherAddr *) &nm_ip_addr_zero))
 
 static inline int
 nm_ether_addr_cmp(const NMEtherAddr *a, const NMEtherAddr *b)
@@ -1251,12 +1252,16 @@ typedef enum {
      * It will backslash escape ascii characters according to nm_ascii_is_non_ascii(). */
     NM_UTILS_STR_UTF8_SAFE_FLAG_ESCAPE_NON_ASCII = 0x0002,
 
+    /* Escape '"' as ASCII "\\042". This is useful when escaping a string so that
+     * it can be unescaped with `echo -e $PASTE_TEXT`. */
+    NM_UTILS_STR_UTF8_SAFE_FLAG_ESCAPE_DOUBLE_QUOTE = 0x0004,
+
     /* This flag only has an effect during escaping to ensure we
      * don't leak secrets in memory. Note that during unescape we
      * know the maximum result size from the beginning, and no
      * reallocation happens. Thus, unescape always avoids leaking
      * secrets already. */
-    NM_UTILS_STR_UTF8_SAFE_FLAG_SECRET = 0x0004,
+    NM_UTILS_STR_UTF8_SAFE_FLAG_SECRET = 0x0008,
 
     /* This flag only has an effect during unescaping. It means
      * that non-escaped whitespaces (g_ascii_isspace()) will be
@@ -1264,7 +1269,7 @@ typedef enum {
      * this flag is only useful for gracefully accepting user input
      * with spaces. With this flag, escape and unescape may no longer
      * yield the original input. */
-    NM_UTILS_STR_UTF8_SAFE_UNESCAPE_STRIP_SPACES = 0x0008,
+    NM_UTILS_STR_UTF8_SAFE_UNESCAPE_STRIP_SPACES = 0x0010,
 } NMUtilsStrUtf8SafeFlags;
 
 const char *nm_utils_buf_utf8safe_escape(gconstpointer           buf,
@@ -1351,10 +1356,6 @@ nm_g_variant_new_au(const guint32 *data, gsize len)
 {
     return g_variant_new_fixed_array(G_VARIANT_TYPE_UINT32, data, len, sizeof(guint32));
 }
-
-struct _NMIPAddr;
-
-extern const struct _NMIPAddr nm_ip_addr_zero;
 
 static inline GVariant *
 nm_g_variant_new_ay_inaddr(int addr_family, gconstpointer addr)
@@ -1553,6 +1554,12 @@ nm_g_timeout_add_source(guint timeout_msec, GSourceFunc func, gpointer user_data
         nm_g_timeout_source_new(timeout_msec, G_PRIORITY_DEFAULT, func, user_data, NULL),
         NULL);
 }
+
+gboolean nm_g_timeout_reschedule(GSource   **src,
+                                 gint64     *p_expiry_msec,
+                                 gint64      expiry_msec,
+                                 GSourceFunc func,
+                                 gpointer    user_data);
 
 static inline GSource *
 nm_g_timeout_add_seconds_source(guint timeout_sec, GSourceFunc func, gpointer user_data)
@@ -2724,7 +2731,7 @@ guint8 *nm_utils_hexstr2bin_alloc(const char *hexstr,
  * can parse addresses of any length. That is, you don't need
  * to know the length before-hand.
  *
- * Return value: @buffer, or %NULL if @asc couldn't be parsed.
+ * Returns: @buffer, or %NULL if @asc couldn't be parsed.
  */
 static inline guint8 *
 _nm_utils_hwaddr_aton(const char *asc, gpointer buffer, gsize buffer_length, gsize *out_length)
@@ -3249,5 +3256,32 @@ nm_path_startswith(const char *path, const char *prefix)
 /*****************************************************************************/
 
 gboolean nm_hostname_is_valid(const char *s, gboolean trailing_dot);
+
+/*****************************************************************************/
+
+typedef void (*NMUtilsPollProbeRegisterObjectFcn)(GObject *object, gpointer user_data);
+
+typedef void (*NMUtilsPollProbeStartFcn)(GCancellable       *cancellable,
+                                         gpointer            probe_user_data,
+                                         GAsyncReadyCallback callback,
+                                         gpointer            user_data);
+
+typedef gboolean (*NMUtilsPollProbeFinishFcn)(GObject      *source,
+                                              GAsyncResult *result,
+                                              gpointer      probe_user_data,
+                                              GError      **error);
+
+void nm_utils_poll(int                               poll_timeout_ms,
+                   int                               ratelimit_timeout_ms,
+                   int                               sleep_timeout_ms,
+                   NMUtilsPollProbeRegisterObjectFcn probe_register_object_fcn,
+                   NMUtilsPollProbeStartFcn          probe_start_fcn,
+                   NMUtilsPollProbeFinishFcn         probe_finish_fcn,
+                   gpointer                          probe_user_data,
+                   GCancellable                     *cancellable,
+                   GAsyncReadyCallback               callback,
+                   gpointer                          user_data);
+
+gboolean nm_utils_poll_finish(GAsyncResult *result, gpointer *probe_user_data, GError **error);
 
 #endif /* __NM_SHARED_UTILS_H__ */

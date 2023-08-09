@@ -66,8 +66,9 @@ NMActiveConnectionStateReason nm_active_connection_get_state_reason(NMActiveConn
 
 struct _NMDevice;
 
+_NM_DEPRECATED_INCLUSIVE_LANGUAGE_1_44
 struct _NMDevice *nm_active_connection_get_master(NMActiveConnection *connection);
-NM_AVAILABLE_IN_1_42_2
+NM_AVAILABLE_IN_1_44
 struct _NMDevice *nm_active_connection_get_controller(NMActiveConnection *connection);
 
 gboolean      nm_active_connection_get_default(NMActiveConnection *connection);

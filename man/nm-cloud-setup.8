@@ -2,12 +2,12 @@
 .\"     Title: nm-cloud-setup
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 06/28/2023
+.\"      Date: 08/09/2023
 .\"    Manual: Automatic Network Configuration in Cloud with NetworkManager
-.\"    Source: NetworkManager 1.42.8
+.\"    Source: NetworkManager 1.44.0
 .\"  Language: English
 .\"
-.TH "NM\-CLOUD\-SETUP" "8" "" "NetworkManager 1\&.42\&.8" "Automatic Network Configuratio"
+.TH "NM\-CLOUD\-SETUP" "8" "" "NetworkManager 1\&.44\&.0" "Automatic Network Configuratio"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -119,7 +119,8 @@ WARN,
 ERR
 or
 OFF\&. The program will print message on stdout and the default level is
-WARN\&.
+WARN\&. When run as systemd service, the log will be collected by journald can can be seen with
+\fBjournalctl\fR\&.
 .RE
 .sp
 .RS 4
@@ -169,6 +170,23 @@ no\&.
 NM_CLOUD_SETUP_ALIYUN: boolean, whether Alibaba Cloud (Aliyun) support is enabled\&. Defaults to
 no\&.
 .RE
+.SH "DEBUGGING"
+.PP
+Enable debug logging by setting
+NM_CLOUD_SETUP_LOG
+environment variable to
+TRACE\&.
+.PP
+In the common case where nm\-cloud\-setup is running as systemd service, this can be done via
+\fBsystemctl edit nm\-cloud\-setup\&.service\fR
+and add
+Environment=NM_CLOUD_SETUP_LOG=TRACE
+to the
+[Service]
+section\&. Afterwards, the log can be found in syslog via
+journalctl\&. You may also want to enable debug logging in NetworkManager as descibed in the DEBUGGING section in
+\fBNetworkManager\fR(5)
+manual\&. When sharing logs, it\*(Aqs best to share complete logs and not preemptively filter for NetworkManager or nm\-cloud\-setup logs\&.
 .SH "EXAMPLE SETUP FOR CONFIGURING AND PREDEPLOYING NM\-CLOUD\-SETUP"
 .PP
 As detailed before, nm\-cloud\-setup needs to be explicitly enabled\&. As it runs as a systemd service and timer, that basically means to enable and configure those\&. This can be done by dropping the correct files and symlinks to disk\&.

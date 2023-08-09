@@ -383,9 +383,9 @@ nm_active_connection_get_vpn(NMActiveConnection *connection)
  *
  * Gets the master #NMDevice of the connection.
  *
- * This is replaced by nm_active_connection_get_controller() since 1.44 and 1.42.2.
- *
  * Returns: (transfer none): the master #NMDevice of the #NMActiveConnection.
+ *
+ * Deprecated: 1.44: Use nm_active_connection_get_controller() instead.
  **/
 NMDevice *
 nm_active_connection_get_master(NMActiveConnection *connection)
@@ -402,7 +402,7 @@ nm_active_connection_get_master(NMActiveConnection *connection)
  *
  * Returns: (transfer none): the controller #NMDevice of the #NMActiveConnection.
  *
- * Since: 1.44, 1.42.2
+ * Since: 1.44
  **/
 NMDevice *
 nm_active_connection_get_controller(NMActiveConnection *connection)
@@ -880,8 +880,9 @@ nm_active_connection_class_init(NMActiveConnectionClass *klass)
     /**
      * NMActiveConnection:master:
      *
-     * The master device if one exists. Replaced by the "controller" property
-     * since 1.44 and 1.42.2.
+     * The master device if one exists. Replaced by the "controller" property.
+     *
+     * Deprecated: 1.44
      **/
     obj_properties[PROP_MASTER] = g_param_spec_object(NM_ACTIVE_CONNECTION_MASTER,
                                                       "",
@@ -895,7 +896,7 @@ nm_active_connection_class_init(NMActiveConnectionClass *klass)
      * The controller device if one exists. This replaces the deprecated
      * "master" property.
      *
-     * Since: 1.44, 1.42.2
+     * Since: 1.44
      **/
     obj_properties[PROP_CONTROLLER] =
         g_param_spec_object(NM_ACTIVE_CONNECTION_CONTROLLER,

@@ -468,7 +468,7 @@ _kc_invoke_callback(pid_t                   pid,
  * @log_name: for logging, the name of the processes to kill
  * @wait_before_kill_msec: Waittime in milliseconds before sending %SIGKILL signal. Set this value
  * to zero, not to send %SIGKILL. If @sig is already %SIGKILL, this parameter is ignored.
- * @callback: (allow-none): callback after the child terminated. This function will always
+ * @callback: (nullable): callback after the child terminated. This function will always
  *   be invoked asynchronously.
  * @user_data: passed on to callback
  *
@@ -507,16 +507,13 @@ nm_utils_kill_child_async(pid_t                   pid,
         return;
     } else if (ret != 0) {
         errsv = errno;
-        /* ECHILD means, the process is not a child/does not exist or it has SIGCHILD blocked. */
-        if (errsv != ECHILD) {
-            nm_log_err(LOGD_CORE | log_domain,
-                       LOG_NAME_FMT ": unexpected error while waitpid: %s (%d)",
-                       LOG_NAME_ARGS,
-                       nm_strerror_native(errsv),
-                       errsv);
-            _kc_invoke_callback(pid, log_domain, log_name, callback, user_data, FALSE, -1);
-            return;
-        }
+        nm_log_err(LOGD_CORE | log_domain,
+                   LOG_NAME_FMT ": unexpected error while waitpid: %s (%d)",
+                   LOG_NAME_ARGS,
+                   nm_strerror_native(errsv),
+                   errsv);
+        _kc_invoke_callback(pid, log_domain, log_name, callback, user_data, FALSE, -1);
+        return;
     }
 
     /* send the first signal. */
@@ -601,7 +598,7 @@ _sleep_duration_convert_ms_to_us(guint32 sleep_duration_msec)
  * @log_domain: log debug information for this domain. Errors and warnings are logged both
  * as %LOGD_CORE and @log_domain.
  * @log_name: name of the process to kill for logging.
- * @child_status: (out) (allow-none): return the exit status of the child, if no error occurred.
+ * @child_status: (out) (optional): return the exit status of the child, if no error occurred.
  * @wait_before_kill_msec: Waittime in milliseconds before sending %SIGKILL signal. Set this value
  * to zero, not to send %SIGKILL. If @sig is already %SIGKILL, this parameter has not effect.
  * @sleep_duration_msec: the synchronous function sleeps repeatedly waiting for the child to terminate.
@@ -647,15 +644,12 @@ nm_utils_kill_child_sync(pid_t       pid,
         goto out;
     } else if (ret != 0) {
         errsv = errno;
-        /* ECHILD means, the process is not a child/does not exist or it has SIGCHILD blocked. */
-        if (errsv != ECHILD) {
-            nm_log_err(LOGD_CORE | log_domain,
-                       LOG_NAME_FMT ": unexpected error while waitpid: %s (%d)",
-                       LOG_NAME_ARGS,
-                       nm_strerror_native(errsv),
-                       errsv);
-            goto out;
-        }
+        nm_log_err(LOGD_CORE | log_domain,
+                   LOG_NAME_FMT ": unexpected error while waitpid: %s (%d)",
+                   LOG_NAME_ARGS,
+                   nm_strerror_native(errsv),
+                   errsv);
+        goto out;
     }
 
     /* send first signal @sig */
@@ -1154,25 +1148,26 @@ nm_utils_read_link_absolute(const char *link_file, GError **error)
 #define MATCH_TAG_CONFIG_ENV            "env:"
 
 typedef struct {
-    const char *interface_name;
-    const char *device_type;
-    const char *driver;
-    const char *driver_version;
-    const char *dhcp_plugin;
+    /* This struct contains pre-processed data from NMMatchSpecDeviceData so
+     * we only need to parse it once. */
+    const NMMatchSpecDeviceData *data;
+    const char                  *device_type;
+    const char                  *driver;
+    const char                  *driver_version;
+    const char                  *dhcp_plugin;
     struct {
-        const char *value;
-        gboolean    is_parsed;
-        guint       len;
-        guint8      bin[_NM_UTILS_HWADDR_LEN_MAX];
+        gboolean is_parsed;
+        guint    len;
+        guint8   bin[_NM_UTILS_HWADDR_LEN_MAX];
     } hwaddr;
     struct {
-        const char *value;
-        gboolean    is_parsed;
-        guint32     a;
-        guint32     b;
-        guint32     c;
+        gboolean is_parsed;
+        gboolean is_good;
+        guint32  a;
+        guint32  b;
+        guint32  c;
     } s390_subchannels;
-} MatchDeviceData;
+} MatchSpecDeviceData;
 
 static gboolean
 match_device_s390_subchannels_parse(const char *s390_subchannels,
@@ -1240,22 +1235,25 @@ match_device_s390_subchannels_parse(const char *s390_subchannels,
 }
 
 static gboolean
-match_data_s390_subchannels_eval(const char *spec_str, MatchDeviceData *match_data)
+match_data_s390_subchannels_eval(const char *spec_str, MatchSpecDeviceData *match_data)
 {
-    guint32 a, b, c;
+    guint32 a;
+    guint32 b;
+    guint32 c;
 
     if (G_UNLIKELY(!match_data->s390_subchannels.is_parsed)) {
+        nm_assert(!match_data->s390_subchannels.is_good);
         match_data->s390_subchannels.is_parsed = TRUE;
 
-        if (!match_data->s390_subchannels.value
-            || !match_device_s390_subchannels_parse(match_data->s390_subchannels.value,
+        if (!match_data->data->s390_subchannels
+            || !match_device_s390_subchannels_parse(match_data->data->s390_subchannels,
                                                     &match_data->s390_subchannels.a,
                                                     &match_data->s390_subchannels.b,
                                                     &match_data->s390_subchannels.c)) {
-            match_data->s390_subchannels.value = NULL;
             return FALSE;
         }
-    } else if (!match_data->s390_subchannels.value)
+        match_data->s390_subchannels.is_good = TRUE;
+    } else if (!match_data->s390_subchannels.is_good)
         return FALSE;
 
     if (!match_device_s390_subchannels_parse(spec_str, &a, &b, &c))
@@ -1265,15 +1263,16 @@ match_data_s390_subchannels_eval(const char *spec_str, MatchDeviceData *match_da
 }
 
 static gboolean
-match_device_hwaddr_eval(const char *spec_str, MatchDeviceData *match_data)
+match_device_hwaddr_eval(const char *spec_str, MatchSpecDeviceData *match_data)
 {
     if (G_UNLIKELY(!match_data->hwaddr.is_parsed)) {
         match_data->hwaddr.is_parsed = TRUE;
+        nm_assert(match_data->hwaddr.len == 0);
 
-        if (match_data->hwaddr.value) {
+        if (match_data->data->hwaddr) {
             gsize l;
 
-            if (!_nm_utils_hwaddr_aton(match_data->hwaddr.value,
+            if (!_nm_utils_hwaddr_aton(match_data->data->hwaddr,
                                        match_data->hwaddr.bin,
                                        sizeof(match_data->hwaddr.bin),
                                        &l))
@@ -1281,7 +1280,7 @@ match_device_hwaddr_eval(const char *spec_str, MatchDeviceData *match_data)
             match_data->hwaddr.len = l;
         } else
             return FALSE;
-    } else if (!match_data->hwaddr.len)
+    } else if (match_data->hwaddr.len == 0)
         return FALSE;
 
     return nm_utils_hwaddr_matches(spec_str, -1, match_data->hwaddr.bin, match_data->hwaddr.len);
@@ -1336,7 +1335,7 @@ match_except(const char *spec_str, gboolean *out_except)
 }
 
 static gboolean
-match_device_eval(const char *spec_str, gboolean allow_fuzzy, MatchDeviceData *match_data)
+match_device_eval(const char *spec_str, gboolean allow_fuzzy, MatchSpecDeviceData *match_data)
 {
     if (spec_str[0] == '*' && spec_str[1] == '\0')
         return TRUE;
@@ -1359,10 +1358,10 @@ match_device_eval(const char *spec_str, gboolean allow_fuzzy, MatchDeviceData *m
             use_pattern = TRUE;
         }
 
-        if (match_data->interface_name) {
-            if (nm_streq(spec_str, match_data->interface_name))
+        if (match_data->data->interface_name) {
+            if (nm_streq(spec_str, match_data->data->interface_name))
                 return TRUE;
-            if (use_pattern && g_pattern_match_simple(spec_str, match_data->interface_name))
+            if (use_pattern && g_pattern_match_simple(spec_str, match_data->data->interface_name))
                 return TRUE;
         }
         return FALSE;
@@ -1408,7 +1407,8 @@ match_device_eval(const char *spec_str, gboolean allow_fuzzy, MatchDeviceData *m
     if (allow_fuzzy) {
         if (match_device_hwaddr_eval(spec_str, match_data))
             return TRUE;
-        if (match_data->interface_name && nm_streq(spec_str, match_data->interface_name))
+        if (match_data->data->interface_name
+            && nm_streq(spec_str, match_data->data->interface_name))
             return TRUE;
     }
 
@@ -1416,41 +1416,39 @@ match_device_eval(const char *spec_str, gboolean allow_fuzzy, MatchDeviceData *m
 }
 
 NMMatchSpecMatchType
-nm_match_spec_device(const GSList *specs,
-                     const char   *interface_name,
-                     const char   *device_type,
-                     const char   *driver,
-                     const char   *driver_version,
-                     const char   *hwaddr,
-                     const char   *s390_subchannels,
-                     const char   *dhcp_plugin)
+nm_match_spec_device(const GSList *specs, const NMMatchSpecDeviceData *data)
 {
-    const GSList   *iter;
-    gboolean        has_match        = FALSE;
-    gboolean        has_match_except = FALSE;
-    gboolean        has_except       = FALSE;
-    gboolean        has_not_except   = FALSE;
-    const char     *spec_str;
-    MatchDeviceData match_data = {
-        .interface_name = interface_name,
-        .device_type    = nm_str_not_empty(device_type),
-        .driver         = nm_str_not_empty(driver),
-        .driver_version = nm_str_not_empty(driver_version),
-        .dhcp_plugin    = nm_str_not_empty(dhcp_plugin),
-        .hwaddr =
-            {
-                .value = hwaddr,
-            },
-        .s390_subchannels =
-            {
-                .value = s390_subchannels,
-            },
-    };
+    const GSList       *iter;
+    gboolean            has_match        = FALSE;
+    gboolean            has_match_except = FALSE;
+    gboolean            has_except       = FALSE;
+    gboolean            has_not_except   = FALSE;
+    const char         *spec_str;
+    MatchSpecDeviceData match_data;
 
-    nm_assert(!hwaddr || nm_utils_hwaddr_valid(hwaddr, -1));
+    nm_assert(data);
+    nm_assert(!data->hwaddr || nm_utils_hwaddr_valid(data->hwaddr, -1));
 
     if (!specs)
         return NM_MATCH_SPEC_NO_MATCH;
+
+    match_data = (MatchSpecDeviceData){
+        .data           = data,
+        .device_type    = nm_str_not_empty(data->device_type),
+        .driver         = nm_str_not_empty(data->driver),
+        .driver_version = nm_str_not_empty(data->driver_version),
+        .dhcp_plugin    = nm_str_not_empty(data->dhcp_plugin),
+        .hwaddr =
+            {
+                .is_parsed = FALSE,
+                .len       = 0,
+            },
+        .s390_subchannels =
+            {
+                .is_parsed = FALSE,
+                .is_good   = FALSE,
+            },
+    };
 
     for (iter = specs; iter; iter = iter->next) {
         gboolean except;
@@ -1482,6 +1480,20 @@ nm_match_spec_device(const GSList *specs,
     }
 
     return _match_result(has_except, has_not_except, has_match, has_match_except);
+}
+
+int
+nm_match_spec_match_type_to_bool(NMMatchSpecMatchType m, int no_match_value)
+{
+    switch (m) {
+    case NM_MATCH_SPEC_MATCH:
+        return TRUE;
+    case NM_MATCH_SPEC_NEG_MATCH:
+        return FALSE;
+    case NM_MATCH_SPEC_NO_MATCH:
+        return no_match_value;
+    }
+    return nm_assert_unreachable_val(no_match_value);
 }
 
 typedef struct {
@@ -3366,7 +3378,7 @@ nm_utils_stable_id_generated_complete(const char *stable_id_generated)
 }
 
 static void
-_stable_id_append(GString *str, const char *substitution)
+_stable_id_append(NMStrBuf *str, const char *substitution)
 {
     if (!substitution) {
         /* Would have been nicer to append "=NIL;" to differentiate between
@@ -3375,7 +3387,7 @@ _stable_id_append(GString *str, const char *substitution)
          * Can't do that now, as it would change behavior. */
         substitution = "";
     }
-    g_string_append_printf(str, "=%zu{%s}", strlen(substitution), substitution);
+    nm_str_buf_append_printf(str, "=%zu{%s}", strlen(substitution), substitution);
 }
 
 NMUtilsStableType
@@ -3386,12 +3398,21 @@ nm_utils_stable_id_parse(const char *stable_id,
                          const char *uuid,
                          char      **out_generated)
 {
-    gsize    i, idx_start;
-    GString *str = NULL;
+    nm_auto_str_buf NMStrBuf str = NM_STR_BUF_INIT_A(NM_UTILS_GET_NEXT_REALLOC_SIZE_232, FALSE);
+    gsize                    i;
+    gsize                    idx_start;
 
     g_return_val_if_fail(out_generated, NM_UTILS_STABLE_TYPE_RANDOM);
 
     if (!stable_id) {
+        *out_generated = NULL;
+        return NM_UTILS_STABLE_TYPE_UUID;
+    }
+
+    if (nm_streq(stable_id, "default${CONNECTION}")) {
+        /* This changed behavior in 1.44. Explicitly setting "default${CONNECTION}"
+         * the same as the built-in default that we get by not configuring
+         * the property. */
         *out_generated = NULL;
         return NM_UTILS_STABLE_TYPE_UUID;
     }
@@ -3403,7 +3424,7 @@ nm_utils_stable_id_parse(const char *stable_id,
      * In contrast however, the process is unambiguous so that the resulting
      * effective id differs if:
      *  - the original, untranslated stable-id differs
-     *  - or any of the subsitutions differs.
+     *  - or any of the substitution differs.
      *
      * The reason for that is, for example if you specify "${CONNECTION}" in the
      * stable-id, then the resulting ID should be always(!) unique for this connection.
@@ -3440,28 +3461,26 @@ nm_utils_stable_id_parse(const char *stable_id,
             continue;
         }
 
-#define CHECK_PREFIX(prefix)                                                  \
-    ({                                                                        \
-        gboolean _match = FALSE;                                              \
-                                                                              \
-        if (NM_STR_HAS_PREFIX(&stable_id[i], "" prefix "")) {                 \
-            _match = TRUE;                                                    \
-            if (!str)                                                         \
-                str = g_string_sized_new(256);                                \
-            i += NM_STRLEN(prefix);                                           \
-            g_string_append_len(str, &(stable_id)[idx_start], i - idx_start); \
-            idx_start = i;                                                    \
-        }                                                                     \
-        _match;                                                               \
+#define CHECK_PREFIX(prefix)                                                     \
+    ({                                                                           \
+        gboolean _match = FALSE;                                                 \
+                                                                                 \
+        if (NM_STR_HAS_PREFIX(&stable_id[i], "" prefix "")) {                    \
+            _match = TRUE;                                                       \
+            i += NM_STRLEN(prefix);                                              \
+            nm_str_buf_append_len(&str, &(stable_id)[idx_start], i - idx_start); \
+            idx_start = i;                                                       \
+        }                                                                        \
+        _match;                                                                  \
     })
         if (CHECK_PREFIX("${CONNECTION}"))
-            _stable_id_append(str, uuid);
+            _stable_id_append(&str, uuid);
         else if (CHECK_PREFIX("${BOOT}"))
-            _stable_id_append(str, bootid);
+            _stable_id_append(&str, bootid);
         else if (CHECK_PREFIX("${DEVICE}"))
-            _stable_id_append(str, deviceid);
+            _stable_id_append(&str, deviceid);
         else if (CHECK_PREFIX("${MAC}"))
-            _stable_id_append(str, hwaddr);
+            _stable_id_append(&str, hwaddr);
         else if (g_str_has_prefix(&stable_id[i], "${RANDOM}")) {
             /* RANDOM makes not so much sense for cloned-mac-address
              * as the result is similar to specifying "cloned-mac-address=random".
@@ -3474,8 +3493,6 @@ nm_utils_stable_id_parse(const char *stable_id,
              * by toggling only the stable-id property of the connection.
              * With RANDOM being the most short-lived, ~non-stable~ variant.
              */
-            if (str)
-                g_string_free(str, TRUE);
             *out_generated = NULL;
             return NM_UTILS_STABLE_TYPE_RANDOM;
         } else {
@@ -3494,14 +3511,14 @@ nm_utils_stable_id_parse(const char *stable_id,
     }
 #undef CHECK_PREFIX
 
-    if (!str) {
+    if (str.len == 0) {
         *out_generated = NULL;
         return NM_UTILS_STABLE_TYPE_STABLE_ID;
     }
 
     if (idx_start < i)
-        g_string_append_len(str, &stable_id[idx_start], i - idx_start);
-    *out_generated = g_string_free(str, FALSE);
+        nm_str_buf_append_len(&str, &stable_id[idx_start], i - idx_start);
+    *out_generated = nm_str_buf_finalize(&str, NULL);
     return NM_UTILS_STABLE_TYPE_GENERATED;
 }
 
@@ -4877,25 +4894,25 @@ typedef struct {
     gsize    out_buffer_offset;
 } HelperInfo;
 
-#define _NMLOG_PREFIX_NAME "helper"
-#define _NMLOG_DOMAIN      LOGD_CORE
-#define _NMLOG2(level, info, ...)                                                   \
-    G_STMT_START                                                                    \
-    {                                                                               \
-        if (nm_logging_enabled((level), (_NMLOG_DOMAIN))) {                         \
-            HelperInfo *_info = (info);                                             \
-                                                                                    \
-            _nm_log((level),                                                        \
-                    (_NMLOG_DOMAIN),                                                \
-                    0,                                                              \
-                    NULL,                                                           \
-                    NULL,                                                           \
-                    _NMLOG_PREFIX_NAME "[" NM_HASH_OBFUSCATE_PTR_FMT                \
-                                       ",%d]: " _NM_UTILS_MACRO_FIRST(__VA_ARGS__), \
-                    NM_HASH_OBFUSCATE_PTR(_info),                                   \
-                    _info->pid _NM_UTILS_MACRO_REST(__VA_ARGS__));                  \
-        }                                                                           \
-    }                                                                               \
+#define _NMLOG2_PREFIX_NAME "nm-daemon-helper"
+#define _NMLOG2_DOMAIN      LOGD_CORE
+#define _NMLOG2(level, info, ...)                                                    \
+    G_STMT_START                                                                     \
+    {                                                                                \
+        if (nm_logging_enabled((level), (_NMLOG2_DOMAIN))) {                         \
+            HelperInfo *_info = (info);                                              \
+                                                                                     \
+            _nm_log((level),                                                         \
+                    (_NMLOG2_DOMAIN),                                                \
+                    0,                                                               \
+                    NULL,                                                            \
+                    NULL,                                                            \
+                    _NMLOG2_PREFIX_NAME "[" NM_HASH_OBFUSCATE_PTR_FMT                \
+                                        ",%d]: " _NM_UTILS_MACRO_FIRST(__VA_ARGS__), \
+                    NM_HASH_OBFUSCATE_PTR(_info),                                    \
+                    _info->pid _NM_UTILS_MACRO_REST(__VA_ARGS__));                   \
+        }                                                                            \
+    }                                                                                \
     G_STMT_END
 
 static void
@@ -4913,17 +4930,13 @@ helper_info_free(gpointer data)
     nm_clear_g_source_inst(&info->input_source);
     nm_clear_g_source_inst(&info->output_source);
     nm_clear_g_source_inst(&info->error_source);
-
-    if (info->child_stdout != -1)
-        nm_close(info->child_stdout);
-    if (info->child_stdin != -1)
-        nm_close(info->child_stdin);
-    if (info->child_stderr != -1)
-        nm_close(info->child_stderr);
+    nm_clear_fd(&info->child_stdout);
+    nm_clear_fd(&info->child_stdin);
+    nm_clear_fd(&info->child_stderr);
 
     if (info->pid != -1) {
         nm_assert(info->pid > 1);
-        nm_utils_kill_child_async(info->pid, SIGKILL, LOGD_CORE, _NMLOG_PREFIX_NAME, 0, NULL, NULL);
+        nm_utils_kill_child_async(info->pid, SIGKILL, LOGD_CORE, "nm-daemon-helper", 0, NULL, NULL);
     }
 
     g_free(info);
@@ -5015,8 +5028,7 @@ helper_have_data(int fd, GIOCondition condition, gpointer user_data)
         return G_SOURCE_CONTINUE;
 
     nm_clear_g_source_inst(&info->input_source);
-    nm_close(info->child_stdout);
-    info->child_stdout = -1;
+    nm_clear_fd(&info->child_stdout);
 
     _LOG2T(info, "stdout closed");
 
@@ -5044,9 +5056,7 @@ helper_have_err_data(int fd, GIOCondition condition, gpointer user_data)
         return G_SOURCE_CONTINUE;
 
     nm_clear_g_source_inst(&info->error_source);
-    nm_close(info->child_stderr);
-    info->child_stderr = -1;
-
+    nm_clear_fd(&info->child_stderr);
     return G_SOURCE_CONTINUE;
 }
 
@@ -5103,23 +5113,21 @@ nm_utils_spawn_helper(const char *const  *args,
     gs_free_error GError *error    = NULL;
     gs_free char         *commands = NULL;
     HelperInfo           *info;
-    int                   fd_flags;
     const char *const    *arg;
+    GMainContext         *context;
+    gsize                 n;
 
     nm_assert(args && args[0]);
 
     info  = g_new(HelperInfo, 1);
     *info = (HelperInfo){
-        .task         = nm_g_task_new(NULL, cancellable, nm_utils_spawn_helper, callback, cb_data),
-        .child_stdin  = -1,
-        .child_stdout = -1,
-        .pid          = -1,
+        .task = nm_g_task_new(NULL, cancellable, nm_utils_spawn_helper, callback, cb_data),
     };
 
     if (!g_spawn_async_with_pipes("/",
                                   (char **) NM_MAKE_STRV(LIBEXECDIR "/nm-daemon-helper"),
                                   (char **) NM_MAKE_STRV(),
-                                  G_SPAWN_DO_NOT_REAP_CHILD,
+                                  G_SPAWN_CLOEXEC_PIPES | G_SPAWN_DO_NOT_REAP_CHILD,
                                   NULL,
                                   NULL,
                                   &info->pid,
@@ -5142,27 +5150,45 @@ nm_utils_spawn_helper(const char *const  *args,
 
     _LOG2D(info, "spawned process with args: %s", (commands = g_strjoinv(" ", (char **) args)));
 
-    info->child_watch_source = g_child_watch_source_new(info->pid);
-    g_source_set_callback(info->child_watch_source,
-                          G_SOURCE_FUNC(helper_child_terminated),
-                          info,
-                          NULL);
-    g_source_attach(info->child_watch_source, g_main_context_get_thread_default());
+    context = g_task_get_context(info->task);
+
+    /* The async function makes a lukewarm attempt to honor the current thread default
+     * context. However, it later uses nm_utils_kill_child_async() which always uses
+     * g_main_context_default(). For now, the function really can only be used with the
+     * main context. */
+    nm_assert(context == g_main_context_default());
+
+    /* We are using a GChildWatchSource in combination with kill()/waitpid()
+     * (where helper_info_free() clears the source and calls
+     * nm_utils_kill_child_async()). That leads to races where glib might have
+     * already reaped the process and our waitpid() call fails with:
+     *
+     *   <error> [TIMESTAMP] kill child process 'nm-daemon-helper' (PID): failed due to unexpected return value -1 by waitpid (No child processes, 10) after sending SIGKILL (9)
+     *
+     * This is a bug in glib, addressed by [1].  Maybe there should be a
+     * workaround here, and not using the child watcher?
+     *
+     * [1] https://gitlab.gnome.org/GNOME/glib/-/merge_requests/3353
+     */
+    info->child_watch_source = nm_g_child_watch_source_new(info->pid,
+                                                           G_PRIORITY_DEFAULT,
+                                                           helper_child_terminated,
+                                                           info,
+                                                           NULL);
+    g_source_attach(info->child_watch_source, context);
 
     info->timeout_source =
         nm_g_timeout_source_new_seconds(20, G_PRIORITY_DEFAULT, helper_timeout, info, NULL);
-    g_source_attach(info->timeout_source, g_main_context_get_thread_default());
+    g_source_attach(info->timeout_source, context);
 
-    /* Set file descriptors as non-blocking */
-    fd_flags = fcntl(info->child_stdin, F_GETFL, 0);
-    fcntl(info->child_stdin, F_SETFL, fd_flags | O_NONBLOCK);
-    fd_flags = fcntl(info->child_stdout, F_GETFL, 0);
-    fcntl(info->child_stdout, F_SETFL, fd_flags | O_NONBLOCK);
-    fd_flags = fcntl(info->child_stderr, F_GETFL, 0);
-    fcntl(info->child_stderr, F_SETFL, fd_flags | O_NONBLOCK);
+    nm_io_fcntl_setfl_update_nonblock(info->child_stdin);
+    nm_io_fcntl_setfl_update_nonblock(info->child_stdout);
+    nm_io_fcntl_setfl_update_nonblock(info->child_stderr);
 
     /* Watch process stdin */
-    info->out_buffer = NM_STR_BUF_INIT(NM_UTILS_GET_NEXT_REALLOC_SIZE_40, TRUE);
+    for (n = 1, arg = args; *arg; arg++)
+        n += strlen(*arg) + 1u;
+    info->out_buffer = NM_STR_BUF_INIT(n, TRUE);
     for (arg = args; *arg; arg++) {
         nm_str_buf_append(&info->out_buffer, *arg);
         nm_str_buf_append_c(&info->out_buffer, '\0');
@@ -5173,7 +5199,7 @@ nm_utils_spawn_helper(const char *const  *args,
                                                   helper_can_write,
                                                   info,
                                                   NULL);
-    g_source_attach(info->output_source, g_main_context_get_thread_default());
+    g_source_attach(info->output_source, context);
 
     /* Watch process stdout */
     info->in_buffer    = NM_STR_BUF_INIT(0, FALSE);
@@ -5183,7 +5209,7 @@ nm_utils_spawn_helper(const char *const  *args,
                                                  helper_have_data,
                                                  info,
                                                  NULL);
-    g_source_attach(info->input_source, g_main_context_get_thread_default());
+    g_source_attach(info->input_source, context);
 
     /* Watch process stderr */
     info->err_buffer   = NM_STR_BUF_INIT(0, FALSE);
@@ -5193,7 +5219,7 @@ nm_utils_spawn_helper(const char *const  *args,
                                                  helper_have_err_data,
                                                  info,
                                                  NULL);
-    g_source_attach(info->error_source, g_main_context_get_thread_default());
+    g_source_attach(info->error_source, context);
 
     if (cancellable) {
         gulong signal_id;

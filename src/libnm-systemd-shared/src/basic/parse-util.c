@@ -53,7 +53,6 @@ int parse_pid(const char *s, pid_t* ret_pid) {
         int r;
 
         assert(s);
-        assert(ret_pid);
 
         r = safe_atolu(s, &ul);
         if (r < 0)
@@ -67,7 +66,8 @@ int parse_pid(const char *s, pid_t* ret_pid) {
         if (!pid_is_valid(pid))
                 return -ERANGE;
 
-        *ret_pid = pid;
+        if (ret_pid)
+                *ret_pid = pid;
         return 0;
 }
 
@@ -261,6 +261,26 @@ int parse_size(const char *t, uint64_t base, uint64_t *size) {
         return 0;
 }
 
+int parse_sector_size(const char *t, uint64_t *ret) {
+        int r;
+
+        assert(t);
+        assert(ret);
+
+        uint64_t ss;
+
+        r = safe_atou64(t, &ss);
+        if (r < 0)
+                return log_error_errno(r, "Failed to parse sector size parameter %s", t);
+        if (ss < 512 || ss > 4096) /* Allow up to 4K due to dm-crypt support and 4K alignment by the homed LUKS backend */
+                return log_error_errno(SYNTHETIC_ERRNO(ERANGE), "Sector size not between 512 and 4096: %s", t);
+        if (!ISPOWEROF2(ss))
+                return log_error_errno(SYNTHETIC_ERRNO(EINVAL), "Sector size not power of 2: %s", t);
+
+        *ret = ss;
+        return 0;
+}
+
 int parse_range(const char *t, unsigned *lower, unsigned *upper) {
         _cleanup_free_ char *word = NULL;
         unsigned l, u;
@@ -318,6 +338,21 @@ int parse_errno(const char *t) {
         return e;
 }
 #endif /* NM_IGNORED */
+
+int parse_fd(const char *t) {
+        int r, fd;
+
+        assert(t);
+
+        r = safe_atoi(t, &fd);
+        if (r < 0)
+                return r;
+
+        if (fd < 0)
+                return -EBADF;
+
+        return fd;
+}
 
 static const char *mangle_base(const char *s, unsigned *base) {
         const char *k;

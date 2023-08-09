@@ -1000,11 +1000,11 @@ No values are returned, only key names.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>out_settings</p></td>
-<td class="parameter_description"><p>if the
-connections differ, on return a hash table mapping setting names to
-second-level GHashTable (utf8 to guint32), which contains the key names that
-differ mapped to one or more of <a class="link" href="NMSetting.html#NMSettingDiffResult" title="enum NMSettingDiffResult"><code class="literal">NMSettingDiffResult</code></a> as a bitfield. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> utf8 GLib.HashTable]</span></td>
+<td class="parameter_description"><p>if the connections differ, on return a hash table
+mapping setting names to second-level GHashTable (utf8 to guint32), which
+contains the key names that differ mapped to one or more of
+<a class="link" href="NMSetting.html#NMSettingDiffResult" title="enum NMSettingDiffResult"><code class="literal">NMSettingDiffResult</code></a> as a bitfield. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> utf8 GLib.HashTable(utf8,uint32)][<acronym title="NULL may be passed instead of a pointer to a location."><span class="acronym">optional</span></acronym>][<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
 </tr>
 </tbody>
 </table></div>
@@ -1129,12 +1129,12 @@ normalization parameters to allow customization of the normalization by providin
 specific arguments. Unknown arguments will be ignored and the default will be
 used. The keys must be strings compared with <a href="https://developer.gnome.org/glib/unstable/glib-Hash-Tables.html#g-str-equal"><code class="function">g_str_equal()</code></a> function.
 The values are opaque and depend on the parameter name. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> utf8 gpointer]</span></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> utf8 gpointer]</span></td>
 </tr>
 <tr>
 <td class="parameter_name"><p>modified</p></td>
 <td class="parameter_description"><p>outputs whether any settings were modified. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>][<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>][<acronym title="NULL may be passed instead of a pointer to a location."><span class="acronym">optional</span></acronym>]</span></td>
 </tr>
 <tr>
 <td class="parameter_name"><p>error</p></td>
@@ -1182,15 +1182,16 @@ return points to an allocated <a href="https://developer.gnome.org/glib/unstable
 secrets of the <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> which may be required; the caller owns the array
 and must free the array itself with <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#g-ptr-array-free"><code class="function">g_ptr_array_free()</code></a>, but not free its
 elements. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> utf8][<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>][<acronym title="The caller owns the data container, but not the data inside it."><span class="acronym">transfer container</span></acronym>]</span></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> utf8][<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>][<acronym title="The caller owns the data container, but not the data inside it."><span class="acronym">transfer container</span></acronym>]</span></td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
 <a name="nm-connection-need-secrets.returns"></a><h4>Returns</h4>
-<p> the setting name of the <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> object which has invalid or
-missing secrets</p>
+<p>the setting name of the <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> object which has
+invalid or missing secrets. </p>
+<p><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -1244,7 +1245,7 @@ nm_connection_clear_secrets_with_flags
 <td class="parameter_name"><p>func</p></td>
 <td class="parameter_description"><p>function to be called to determine whether a
 specific secret should be cleared or not. If <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>, all secrets are cleared. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="The callback is valid only during the call to the method."><span class="acronym">scope call</span></acronym>][<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="The callback is valid only during the call to the method."><span class="acronym">scope call</span></acronym>][<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
 </tr>
 <tr>
 <td class="parameter_name"><p>user_data</p></td>
@@ -1505,7 +1506,7 @@ nm_connection_get_settings (<em class="parameter"><code><a class="link" href="NM
 <tr>
 <td class="parameter_name"><p>out_length</p></td>
 <td class="parameter_description"><p>the length of the returned array. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>][<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>]</span></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>][<acronym title="NULL may be passed instead of a pointer to a location."><span class="acronym">optional</span></acronym>]</span></td>
 </tr>
 </tbody>
 </table></div>
@@ -1513,11 +1514,10 @@ nm_connection_get_settings (<em class="parameter"><code><a class="link" href="NM
 <div class="refsect3">
 <a name="nm-connection-get-settings.returns"></a><h4>Returns</h4>
 <p>a
-<a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated array containing every setting of
-<em class="parameter"><code>connection</code></em>
+<a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated array containing every setting of <em class="parameter"><code>connection</code></em>
 .
 If the connection has no settings, <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> is returned. </p>
-<p><span class="annotation">[<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> length=out_length][<acronym title="The caller owns the data container, but not the data inside it."><span class="acronym">transfer container</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> length=out_length][<acronym title="The caller owns the data container, but not the data inside it."><span class="acronym">transfer container</span></acronym>][<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.10</p>
 </div>

@@ -807,6 +807,10 @@ nm_setting_connection_get_timestamp (<em class="parameter"><code><a class="link"
 <a name="nm-setting-connection-get-read-only"></a><h3>nm_setting_connection_get_read_only ()</h3>
 <pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 nm_setting_connection_get_read_only (<em class="parameter"><code><a class="link" href="NMSettingConnection.html" title="NMSettingConnection"><span class="type">NMSettingConnection</span></a> *setting</code></em>);</pre>
+<div class="warning">
+<p><code class="literal">nm_setting_connection_get_read_only</code> has been deprecated since version 1.44 and should not be used in newly-written code.</p>
+<p>This property is deprecated and has no meaning.</p>
+</div>
 <p>Returns the <span class="type">“read-only”</span> property of the connection.</p>
 <div class="refsect3">
 <a name="nm-setting-connection-get-read-only.parameters"></a><h4>Parameters</h4>
@@ -1015,7 +1019,7 @@ the "user" permission type is supported, and <em class="parameter"><code>pitem</
 <tr>
 <td class="parameter_name"><p>detail</p></td>
 <td class="parameter_description"><p>unused at this time; must be <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
 </tr>
 </tbody>
 </table></div>
@@ -1104,7 +1108,7 @@ be a username. See <span class="type">“permissions”</span>: for more details
 <tr>
 <td class="parameter_name"><p>detail</p></td>
 <td class="parameter_description"><p>unused at this time; must be <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
 </tr>
 </tbody>
 </table></div>

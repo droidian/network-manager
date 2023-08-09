@@ -853,6 +853,7 @@ static const ConfigGroup config_groups[] = {
                              NM_CONFIG_KEYFILE_KEY_MAIN_HOSTNAME_MODE,
                              NM_CONFIG_KEYFILE_KEY_MAIN_IGNORE_CARRIER,
                              NM_CONFIG_KEYFILE_KEY_MAIN_IWD_CONFIG_PATH,
+                             NM_CONFIG_KEYFILE_KEY_MAIN_MIGRATE_IFCFG_RH,
                              NM_CONFIG_KEYFILE_KEY_MAIN_MONITOR_CONNECTION_FILES,
                              NM_CONFIG_KEYFILE_KEY_MAIN_NO_AUTO_DEFAULT,
                              NM_CONFIG_KEYFILE_KEY_MAIN_PLUGINS,
@@ -878,6 +879,7 @@ static const ConfigGroup config_groups[] = {
         .group = NM_CONFIG_KEYFILE_GROUP_KEYFILE,
         .keys  = NM_MAKE_STRV(NM_CONFIG_KEYFILE_KEY_KEYFILE_HOSTNAME,
                              NM_CONFIG_KEYFILE_KEY_KEYFILE_PATH,
+                             NM_CONFIG_KEYFILE_KEY_KEYFILE_RENAME,
                              NM_CONFIG_KEYFILE_KEY_KEYFILE_UNMANAGED_DEVICES, ),
     },
     {
@@ -1531,7 +1533,7 @@ nm_config_keyfile_has_global_dns_config(GKeyFile *keyfile, gboolean internal)
  * intern_config_read:
  * @filename: the filename where to store the internal config
  * @keyfile_conf: the merged configuration from user (/etc/NM/NetworkManager.conf).
- * @out_needs_rewrite: (allow-none): whether the read keyfile contains inconsistent
+ * @out_needs_rewrite: (out) (optional): whether the read keyfile contains inconsistent
  *   data (compared to @keyfile_conf). If %TRUE, you might want to rewrite
  *   the file.
  *
@@ -2058,7 +2060,7 @@ nm_config_set_connectivity_check_enabled(NMConfig *self, gboolean enabled)
 /**
  * nm_config_set_values:
  * @self: the NMConfig instance
- * @keyfile_intern_new: (allow-none): the new internal settings to set.
+ * @keyfile_intern_new: (nullable): the new internal settings to set.
  *   If %NULL, it is equal to an empty keyfile.
  * @allow_write: only if %TRUE, allow writing the changes to file. Otherwise,
  *   do the changes in-memory only.

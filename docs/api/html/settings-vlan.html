@@ -38,7 +38,7 @@
             Properties
         </h2>
 <div class="table">
-<a name="id-1.3.3.39.2.2.1"></a><p class="title"><b>Table 85. </b></p>
+<a name="id-1.3.3.39.2.2.1"></a><p class="title"><b>Table 73. </b></p>
 <div class="table-contents"><table class="table" border="1">
 <colgroup>
 <col>
@@ -57,43 +57,47 @@
 <td><pre class="screen">egress-priority-map</pre></td>
 <td><pre class="screen">array of string</pre></td>
 <td><pre class="screen"></pre></td>
-<td> </td>
+<td>For outgoing packets, a list of mappings from Linux SKB priorities to 802.1p priorities.  The mapping is given in the format "from:to" where both "from" and "to" are unsigned integers, ie "7:3".</td>
 </tr>
 <tr>
 <td><pre class="screen">flags</pre></td>
 <td><pre class="screen">NMVlanFlags (uint32)</pre></td>
 <td><pre class="screen"></pre></td>
-<td> </td>
+<td>One or more flags which control the behavior and features of the VLAN interface.  Flags include NM_VLAN_FLAG_REORDER_HEADERS (0x1) (reordering of output packet headers), NM_VLAN_FLAG_GVRP (0x2) (use of the GVRP protocol), and NM_VLAN_FLAG_LOOSE_BINDING (0x4) (loose binding of the interface to its master device's operating state). NM_VLAN_FLAG_MVRP (0x8) (use of the MVRP protocol).
+
+The default value of this property is NM_VLAN_FLAG_REORDER_HEADERS, but it used to be 0. To preserve backward compatibility, the default-value in the D-Bus API continues to be 0 and a missing property on D-Bus is still considered as 0.</td>
 </tr>
 <tr>
 <td><pre class="screen">id</pre></td>
 <td><pre class="screen">uint32</pre></td>
 <td><pre class="screen">0</pre></td>
-<td> </td>
+<td>The VLAN identifier that the interface created by this connection should be assigned. The valid range is from 0 to 4094, without the reserved id 4095.</td>
 </tr>
 <tr>
 <td><pre class="screen">ingress-priority-map</pre></td>
 <td><pre class="screen">array of string</pre></td>
 <td><pre class="screen"></pre></td>
-<td> </td>
+<td>For incoming packets, a list of mappings from 802.1p priorities to Linux SKB priorities.  The mapping is given in the format "from:to" where both "from" and "to" are unsigned integers, ie "7:3".</td>
 </tr>
 <tr>
 <td><pre class="screen">interface-name</pre></td>
 <td><pre class="screen">string</pre></td>
 <td><pre class="screen"></pre></td>
-<td> </td>
+<td>Deprecated in favor of connection.interface-name, but can be used for backward-compatibility with older daemons, to set the vlan's interface name.</td>
 </tr>
 <tr>
 <td><pre class="screen">parent</pre></td>
 <td><pre class="screen">string</pre></td>
 <td><pre class="screen"></pre></td>
-<td> </td>
+<td>If given, specifies the parent interface name or parent connection UUID from which this VLAN interface should be created.  If this property is not specified, the connection must contain an "802-3-ethernet" setting with a "mac-address" property.</td>
 </tr>
 <tr>
 <td><pre class="screen">protocol</pre></td>
 <td><pre class="screen">string</pre></td>
 <td><pre class="screen"></pre></td>
-<td> </td>
+<td>Specifies the VLAN protocol to use for encapsulation.
+
+Supported values are: '802.1Q', '802.1ad'. If not specified the default value is '802.1Q'.</td>
 </tr>
 </tbody>
 </table></div>

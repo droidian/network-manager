@@ -635,12 +635,6 @@ vpn_openconnect_get_secrets(NMConnection *connection, GPtrArray *secrets)
 {
     GError       *error = NULL;
     NMSettingVpn *s_vpn;
-    const char   *gw, *port;
-    gs_free char *cookie  = NULL;
-    gs_free char *gateway = NULL;
-    gs_free char *gwcert  = NULL;
-    int           status  = 0;
-    int           i;
     gboolean      ret;
 
     if (!connection)
@@ -653,52 +647,13 @@ vpn_openconnect_get_secrets(NMConnection *connection, GPtrArray *secrets)
     if (!nm_streq0(nm_setting_vpn_get_service_type(s_vpn), NM_SECRET_AGENT_VPN_TYPE_OPENCONNECT))
         return FALSE;
 
-    /* Get gateway and port */
-    gw   = nm_setting_vpn_get_data_item(s_vpn, "gateway");
-    port = gw ? strrchr(gw, ':') : NULL;
-
     /* Interactively authenticate to OpenConnect server and get secrets */
-    ret = nm_vpn_openconnect_authenticate_helper(gw, &cookie, &gateway, &gwcert, &status, &error);
+    ret = nm_vpn_openconnect_authenticate_helper(s_vpn, secrets, &error);
+
     if (!ret) {
         nmc_printerr(_("Error: openconnect failed: %s\n"), error->message);
         g_clear_error(&error);
         return FALSE;
-    }
-
-    if (WIFEXITED(status)) {
-        if (WEXITSTATUS(status) != 0)
-            nmc_printerr(_("Error: openconnect failed with status %d\n"), WEXITSTATUS(status));
-    } else if (WIFSIGNALED(status))
-        nmc_printerr(_("Error: openconnect failed with signal %d\n"), WTERMSIG(status));
-
-    /* Append port to the host value */
-    if (gateway && port) {
-        gs_free char *tmp = gateway;
-
-        gateway = g_strdup_printf("%s%s", tmp, port);
-    }
-
-    /* Fill secrets to the array */
-    for (i = 0; i < secrets->len; i++) {
-        NMSecretAgentSimpleSecret *secret = secrets->pdata[i];
-
-        if (secret->secret_type != NM_SECRET_AGENT_SECRET_TYPE_VPN_SECRET)
-            continue;
-        if (!nm_streq0(secret->vpn_type, NM_SECRET_AGENT_VPN_TYPE_OPENCONNECT))
-            continue;
-
-        if (nm_streq0(secret->entry_id, NM_SECRET_AGENT_ENTRY_ID_PREFX_VPN_SECRETS "cookie")) {
-            g_free(secret->value);
-            secret->value = g_steal_pointer(&cookie);
-        } else if (nm_streq0(secret->entry_id,
-                             NM_SECRET_AGENT_ENTRY_ID_PREFX_VPN_SECRETS "gateway")) {
-            g_free(secret->value);
-            secret->value = g_steal_pointer(&gateway);
-        } else if (nm_streq0(secret->entry_id,
-                             NM_SECRET_AGENT_ENTRY_ID_PREFX_VPN_SECRETS "gwcert")) {
-            g_free(secret->value);
-            secret->value = g_steal_pointer(&gwcert);
-        }
     }
 
     return TRUE;
@@ -925,7 +880,8 @@ read_again:
     rl_got_line = FALSE;
     rl_callback_handler_install(prompt, readline_cb);
 
-    while (!rl_got_line && g_main_loop_is_running(loop) && !nmc_seen_sigint())
+    while (!rl_got_line && (g_main_loop_is_running(loop) || nmc_config->offline)
+           && !nmc_seen_sigint())
         g_main_context_iteration(NULL, TRUE);
 
     /* If Ctrl-C was detected, complete the line */
@@ -954,7 +910,7 @@ read_again:
         }
     } else if (!rl_string) {
         /* Ctrl-D, exit */
-        if (g_main_loop_is_running(loop))
+        if (g_main_loop_is_running(loop) || nmc_config->offline)
             nmc_exit();
     }
 
@@ -1294,6 +1250,7 @@ got_client(GObject *source_object, GAsyncResult *res, gpointer user_data)
                                 error->message);
     } else {
         nmc->client = NM_CLIENT(source_object);
+        nmc_warn_if_version_mismatch(nmc->client);
         call_cmd(nmc,
                  g_steal_pointer(&task),
                  call->cmd,
@@ -1416,7 +1373,7 @@ call_cmd(NmCli *nmc, GTask *task, const NMCCommand *cmd, int argc, const char *c
 {
     CmdCall *call;
 
-    if (nmc->offline) {
+    if (nmc->nmc_config.offline) {
         if (!cmd->supports_offline) {
             g_task_return_new_error(task,
                                     NMCLI_ERROR,

@@ -222,7 +222,7 @@ _sett_conn_entry_get_conn(SettConnEntry *sett_conn_entry)
  * _sett_conn_entry_storage_find_conflicting_storage:
  * @sett_conn_entry: the list of settings-storages for the given UUID.
  * @target_plugin: the settings plugin to check
- * @storage_check_including: (allow-none): optionally compare against this storage.
+ * @storage_check_including: (nullable): optionally compare against this storage.
  * @plugins: the list of plugins sorted in descending priority. This determines
  *   the priority and whether a storage conflicts.
  *
@@ -451,6 +451,16 @@ static void _startup_complete_check(NMSettings *self, gint64 now_msec);
 
 /*****************************************************************************/
 
+NMManager *
+nm_settings_get_manager(NMSettings *self)
+{
+    g_return_val_if_fail(NM_IS_SETTINGS(self), NULL);
+
+    return NM_SETTINGS_GET_PRIVATE(self)->manager;
+}
+
+/*****************************************************************************/
+
 static void
 _emit_connection_added(NMSettings *self, NMSettingsConnection *sett_conn)
 {
@@ -525,7 +535,7 @@ _startup_complete_check_is_ready(NMSettings           *self,
         /* Check that device is compatible with the device. We are also happy
          * with a device compatible but for which the connection is disallowed
          * by NM configuration. */
-        if (!nm_device_check_connection_compatible(device, conn, &error)
+        if (!nm_device_check_connection_compatible(device, conn, TRUE, &error)
             && !g_error_matches(error,
                                 NM_UTILS_ERROR,
                                 NM_UTILS_ERROR_CONNECTION_AVAILABLE_DISALLOWED))
@@ -1080,11 +1090,13 @@ _connection_changed_update(NMSettings                      *self,
 
     is_new = c_list_is_empty(&sett_conn->_connections_lst);
 
-    _LOGT("update[%s]: %s connection \"%s\" (" NM_SETTINGS_STORAGE_PRINT_FMT ")",
+    _LOGT("update[%s]: %s connection \"%s\" (" NM_SETTINGS_STORAGE_PRINT_FMT "), "
+          "new version-id %" G_GUINT64_FORMAT,
           nm_settings_storage_get_uuid(storage),
           is_new ? "adding" : "updating",
           nm_connection_get_id(connection),
-          NM_SETTINGS_STORAGE_PRINT_ARG(storage));
+          NM_SETTINGS_STORAGE_PRINT_ARG(storage),
+          (nm_settings_connection_get_version_id(sett_conn) + 1u));
 
     _nm_settings_connection_set_storage(sett_conn, storage);
 
@@ -1109,7 +1121,7 @@ _connection_changed_update(NMSettings                      *self,
     if (NM_FLAGS_HAS(update_reason, NM_SETTINGS_CONNECTION_UPDATE_REASON_BLOCK_AUTOCONNECT)) {
         nm_settings_connection_autoconnect_blocked_reason_set(
             sett_conn,
-            NM_SETTINGS_AUTO_CONNECT_BLOCKED_REASON_USER_REQUEST,
+            NM_SETTINGS_AUTOCONNECT_BLOCKED_REASON_USER_REQUEST,
             TRUE);
     }
 
@@ -1155,6 +1167,8 @@ _connection_changed_update(NMSettings                      *self,
                                      "++ ",
                                      path);
     }
+
+    nm_settings_connection_bump_version_id(sett_conn);
 
     if (is_new) {
         nm_dbus_object_emit_signal(NM_DBUS_OBJECT(self),
@@ -1236,6 +1250,8 @@ _connection_changed_delete(NMSettings           *self,
                                          | NM_SETTINGS_CONNECTION_INT_FLAGS_VOLATILE
                                          | NM_SETTINGS_CONNECTION_INT_FLAGS_EXTERNAL,
                                      FALSE);
+
+    nm_manager_notify_delete_settings_connections(priv->manager, sett_conn);
 
     _emit_connection_removed(self, sett_conn);
 
@@ -1453,10 +1469,16 @@ static void
 _plugin_connections_reload(NMSettings *self)
 {
     NMSettingsPrivate *priv = NM_SETTINGS_GET_PRIVATE(self);
-    GSList            *iter;
+    GSList            *iter_plugin;
+    GHashTableIter     iter_entry;
+    SettConnEntry     *entry;
+    gboolean           warned = FALSE;
+    gboolean           migrate;
 
-    for (iter = priv->plugins; iter; iter = iter->next) {
-        nm_settings_plugin_reload_connections(iter->data, _plugin_connections_reload_cb, self);
+    for (iter_plugin = priv->plugins; iter_plugin; iter_plugin = iter_plugin->next) {
+        nm_settings_plugin_reload_connections(iter_plugin->data,
+                                              _plugin_connections_reload_cb,
+                                              self);
     }
 
     _connection_changed_process_all_dirty(
@@ -1469,8 +1491,53 @@ _plugin_connections_reload(NMSettings *self)
             | NM_SETTINGS_CONNECTION_UPDATE_REASON_RESET_AGENT_SECRETS
             | NM_SETTINGS_CONNECTION_UPDATE_REASON_UPDATE_NON_SECRET);
 
-    for (iter = priv->plugins; iter; iter = iter->next)
-        nm_settings_plugin_load_connections_done(iter->data);
+    for (iter_plugin = priv->plugins; iter_plugin; iter_plugin = iter_plugin->next)
+        nm_settings_plugin_load_connections_done(iter_plugin->data);
+
+    migrate = nm_config_data_get_value_boolean(nm_config_get_data(priv->config),
+                                               NM_CONFIG_KEYFILE_GROUP_MAIN,
+                                               NM_CONFIG_KEYFILE_KEY_MAIN_MIGRATE_IFCFG_RH,
+                                               NM_CONFIG_DEFAULT_MAIN_MIGRATE_IFCFG_RH_BOOL);
+
+    g_hash_table_iter_init(&iter_entry, priv->sce_idx);
+    while (g_hash_table_iter_next(&iter_entry, (gpointer *) &entry, NULL)) {
+        const char *plugin;
+
+        plugin = nm_settings_plugin_get_plugin_name(nm_settings_storage_get_plugin(entry->storage));
+
+        if (nm_streq0(plugin, "ifcfg-rh")) {
+            if (!warned) {
+                if (migrate) {
+                    nm_log_warn(
+                        LOGD_SETTINGS,
+                        "Warning: connections were found in ifcfg-rh format and the "
+                        "\"main.migrate-ifcfg-rh\" option is enabled. Those connections will be "
+                        "migrated to keyfile. To convert them back, disable the option and then "
+                        "run \"nmcli connection migrate --plugin ifcfg-rh $UUID\"");
+                } else {
+                    nm_log_info(
+                        LOGD_SETTINGS,
+                        "Warning: the ifcfg-rh plugin is deprecated, please migrate connections "
+                        "to the keyfile format using \"nmcli connection migrate\"");
+                }
+                warned = TRUE;
+            }
+            if (migrate) {
+                _LOGW("migrating connection %s ('%s') from ifcfg-rh to keyfile",
+                      entry->uuid,
+                      nm_settings_connection_get_id(entry->sett_conn));
+                nm_settings_connection_update(entry->sett_conn,
+                                              "keyfile",
+                                              NULL,
+                                              NM_SETTINGS_CONNECTION_PERSIST_MODE_KEEP,
+                                              NM_SETTINGS_CONNECTION_INT_FLAGS_NONE,
+                                              NM_SETTINGS_CONNECTION_INT_FLAGS_NONE,
+                                              NM_SETTINGS_CONNECTION_UPDATE_REASON_NONE,
+                                              "migrate-ifcfg-rh",
+                                              NULL);
+            }
+        }
+    }
 }
 
 /*****************************************************************************/
@@ -1728,7 +1795,8 @@ _set_nmmeta_tombstone(NMSettings *self,
  * @persist_mode: the persist-mode for this profile.
  * @add_reason: the add-reason flags.
  * @sett_flags: the settings flags to set.
- * @out_sett_conn: (allow-none) (transfer none): the added settings connection on success.
+ * @out_sett_conn: (out) (optional) (nullable) (transfer none): the added
+ *   settings connection on success.
  * @error: on return, a location to store any errors that may occur
  *
  * Creates a new #NMSettingsConnection for the given source @connection.
@@ -2000,9 +2068,10 @@ nm_settings_update_connection(NMSettings                      *self,
     gs_unref_object NMConnection      *new_connection_cloned = NULL;
     gs_unref_object NMConnection      *new_connection        = NULL;
     NMConnection                      *new_connection_real;
-    gs_unref_object NMSettingsStorage *cur_storage  = NULL;
-    gs_unref_object NMSettingsStorage *new_storage  = NULL;
-    NMSettingsStorage                 *drop_storage = NULL;
+    gs_unref_object NMSettingsStorage *cur_storage         = NULL;
+    gs_unref_object NMSettingsStorage *new_storage         = NULL;
+    NMSettingsStorage                 *drop_storage        = NULL;
+    NMSettingsStorage                 *prev_update_storage = NULL;
     SettConnEntry                     *sett_conn_entry;
     gboolean                           cur_in_memory;
     gboolean                           new_in_memory;
@@ -2246,16 +2315,17 @@ nm_settings_update_connection(NMSettings                      *self,
                                                       drop_storage,
                                                       &local);
         } else {
-            success = _update_connection_to_plugin(self,
-                                                   update_storage,
-                                                   connection,
-                                                   new_flags,
-                                                   update_reason,
-                                                   new_shadowed_storage_filename,
-                                                   new_shadowed_owned,
-                                                   &new_storage,
-                                                   &new_connection,
-                                                   &local);
+            success = _update_connection_to_plugin(
+                self,
+                update_storage,
+                connection,
+                new_flags,
+                NM_FLAGS_HAS(update_reason, NM_SETTINGS_CONNECTION_UPDATE_REASON_FORCE_RENAME),
+                new_shadowed_storage_filename,
+                new_shadowed_owned,
+                &new_storage,
+                &new_connection,
+                &local);
         }
         if (!success) {
             gboolean ignore_failure;
@@ -2306,6 +2376,9 @@ nm_settings_update_connection(NMSettings                      *self,
                 nm_assert_not_reached();
                 new_connection_real = new_connection;
             }
+
+            if (update_storage && new_storage != update_storage)
+                prev_update_storage = update_storage;
         }
     }
 
@@ -2313,6 +2386,12 @@ nm_settings_update_connection(NMSettings                      *self,
     nm_assert(NM_IS_CONNECTION(new_connection_real));
 
     _connection_changed_track(self, new_storage, new_connection_real, TRUE);
+
+    if (prev_update_storage) {
+        /* The storage was swapped by the update call. The old one needs
+         * to be dropped, which we do by setting the connection to NULL. */
+        _connection_changed_track(self, prev_update_storage, NULL, FALSE);
+    }
 
     if (drop_storage && drop_storage != new_storage) {
         gs_free_error GError *local = NULL;
@@ -3102,7 +3181,7 @@ error:
 /**
  * nm_settings_get_connections:
  * @self: the #NMSettings
- * @out_len: (out) (allow-none): returns the number of returned
+ * @out_len: (out) (optional): returns the number of returned
  *   connections.
  *
  * Returns: (transfer none): a list of NMSettingsConnections. The list is
@@ -3205,10 +3284,10 @@ nm_settings_get_connections_sorted_by_autoconnect_priority(NMSettings *self, gui
 /**
  * nm_settings_get_connections_clone:
  * @self: the #NMSetting
- * @out_len: (allow-none): optional output argument
+ * @out_len: (optional): optional output argument
  * @func: caller-supplied function for filtering connections
  * @func_data: caller-supplied data passed to @func
- * @sort_compare_func: (allow-none): optional function pointer for
+ * @sort_compare_func: (nullable): optional function pointer for
  *   sorting the returned list.
  * @sort_data: user data for @sort_compare_func.
  *
@@ -3629,7 +3708,7 @@ have_connection_for_device(NMSettings *self, NMDevice *device)
     c_list_for_each_entry (sett_conn, &priv->connections_lst_head, _connections_lst) {
         NMConnection *connection = nm_settings_connection_get_connection(sett_conn);
 
-        if (!nm_device_check_connection_compatible(device, connection, NULL))
+        if (!nm_device_check_connection_compatible(device, connection, TRUE, NULL))
             continue;
 
         if (nm_settings_connection_default_wired_get_device(sett_conn))

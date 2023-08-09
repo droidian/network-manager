@@ -38,7 +38,7 @@
             Properties
         </h2>
 <div class="table">
-<a name="id-1.3.3.30.2.2.1"></a><p class="title"><b>Table 76. </b></p>
+<a name="id-1.3.3.30.2.2.1"></a><p class="title"><b>Table 64. </b></p>
 <div class="table-contents"><table class="table" border="1">
 <colgroup>
 <col>
@@ -57,31 +57,31 @@
 <td><pre class="screen">parent</pre></td>
 <td><pre class="screen">string</pre></td>
 <td><pre class="screen"></pre></td>
-<td> </td>
+<td>If given, specifies the parent interface name on which this PPPoE connection should be created.  If this property is not specified, the connection is activated on the interface specified in "interface-name" of NMSettingConnection.</td>
 </tr>
 <tr>
 <td><pre class="screen">password</pre></td>
 <td><pre class="screen">string</pre></td>
 <td><pre class="screen"></pre></td>
-<td> </td>
+<td>Password used to authenticate with the PPPoE service.</td>
 </tr>
 <tr>
 <td><pre class="screen">password-flags</pre></td>
 <td><pre class="screen">NMSettingSecretFlags (uint32)</pre></td>
 <td><pre class="screen"></pre></td>
-<td> </td>
+<td>Flags indicating how to handle the "password" property.</td>
 </tr>
 <tr>
 <td><pre class="screen">service</pre></td>
 <td><pre class="screen">string</pre></td>
 <td><pre class="screen"></pre></td>
-<td> </td>
+<td>If specified, instruct PPPoE to only initiate sessions with access concentrators that provide the specified service.  For most providers, this should be left blank.  It is only required if there are multiple access concentrators or a specific service is known to be required.</td>
 </tr>
 <tr>
 <td><pre class="screen">username</pre></td>
 <td><pre class="screen">string</pre></td>
 <td><pre class="screen"></pre></td>
-<td> </td>
+<td>Username used to authenticate with the PPPoE service.</td>
 </tr>
 </tbody>
 </table></div>

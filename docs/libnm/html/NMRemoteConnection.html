@@ -185,6 +185,14 @@
 <a class="link" href="NMRemoteConnection.html#nm-remote-connection-get-visible" title="nm_remote_connection_get_visible ()">nm_remote_connection_get_visible</a> <span class="c_punctuation">()</span>
 </td>
 </tr>
+<tr>
+<td class="function_type">
+<a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint64"><span class="returnvalue">guint64</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="NMRemoteConnection.html#nm-remote-connection-get-version-id" title="nm_remote_connection_get_version_id ()">nm_remote_connection_get_version_id</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
 </tbody>
 </table></div>
 </div>
@@ -211,6 +219,11 @@
 <tr>
 <td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></td>
 <td class="property_name"><a class="link" href="NMRemoteConnection.html#NMRemoteConnection--unsaved" title="The “unsaved” property">unsaved</a></td>
+<td class="property_flags">Read</td>
+</tr>
+<tr>
+<td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint64"><span class="type">guint64</span></a></td>
+<td class="property_name"><a class="link" href="NMRemoteConnection.html#NMRemoteConnection--version-id" title="The “version-id” property">version-id</a></td>
 <td class="property_flags">Read</td>
 </tr>
 <tr>
@@ -248,6 +261,10 @@
 <tr>
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMRemoteConnection.html#NM-REMOTE-CONNECTION-FILENAME:CAPS" title="NM_REMOTE_CONNECTION_FILENAME">NM_REMOTE_CONNECTION_FILENAME</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMRemoteConnection.html#NM-REMOTE-CONNECTION-VERSION-ID:CAPS" title="NM_REMOTE_CONNECTION_VERSION_ID">NM_REMOTE_CONNECTION_VERSION_ID</a></td>
 </tr>
 <tr>
 <td class="define_keyword">#define</td>
@@ -308,7 +325,7 @@ nm_remote_connection_update2 (<em class="parameter"><code><a class="link" href="
 <tr>
 <td class="parameter_name"><p>settings</p></td>
 <td class="parameter_description"><p>optional connection to update the settings. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
 </tr>
 <tr>
 <td class="parameter_name"><p>flags</p></td>
@@ -318,7 +335,7 @@ nm_remote_connection_update2 (<em class="parameter"><code><a class="link" href="
 <tr>
 <td class="parameter_name"><p>args</p></td>
 <td class="parameter_description"><p>optional arguments. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
 </tr>
 <tr>
 <td class="parameter_name"><p>cancellable</p></td>
@@ -1058,6 +1075,33 @@ reference to it.)</p>
 user, <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> if not.</p>
 </div>
 </div>
+<hr>
+<div class="refsect2">
+<a name="nm-remote-connection-get-version-id"></a><h3>nm_remote_connection_get_version_id ()</h3>
+<pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint64"><span class="returnvalue">guint64</span></a>
+nm_remote_connection_get_version_id (<em class="parameter"><code><a class="link" href="NMRemoteConnection.html" title="NMRemoteConnection"><span class="type">NMRemoteConnection</span></a> *connection</code></em>);</pre>
+<div class="refsect3">
+<a name="nm-remote-connection-get-version-id.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>connection</p></td>
+<td class="parameter_description"><p>the <a class="link" href="NMRemoteConnection.html" title="NMRemoteConnection"><span class="type">NMRemoteConnection</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="nm-remote-connection-get-version-id.returns"></a><h4>Returns</h4>
+<p> the version-id of the profile. This ID is incremented
+whenever the profile is modified.</p>
+</div>
+<p class="since">Since: 1.44</p>
+</div>
 </div>
 <div class="refsect1">
 <a name="NMRemoteConnection.other_details"></a><h2>Types and Values</h2>
@@ -1088,6 +1132,12 @@ user, <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.ht
 <div class="refsect2">
 <a name="NM-REMOTE-CONNECTION-FILENAME:CAPS"></a><h3>NM_REMOTE_CONNECTION_FILENAME</h3>
 <pre class="programlisting">#define NM_REMOTE_CONNECTION_FILENAME        "filename"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-REMOTE-CONNECTION-VERSION-ID:CAPS"></a><h3>NM_REMOTE_CONNECTION_VERSION_ID</h3>
+<pre class="programlisting">#define NM_REMOTE_CONNECTION_VERSION_ID      "version-id"
 </pre>
 </div>
 <hr>
@@ -1134,6 +1184,17 @@ to disk, <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros
 <p>Owner: NMRemoteConnection</p>
 <p>Flags: Read</p>
 <p>Default value: FALSE</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMRemoteConnection--version-id"></a><h3>The <code class="literal">“version-id”</code> property</h3>
+<pre class="programlisting">  “version-id”               <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint64"><span class="type">guint64</span></a></pre>
+<p>The version ID of the profile that is incremented when the profile gets modified.
+This can be used to track concurrent modifications of the profile.</p>
+<p>Owner: NMRemoteConnection</p>
+<p>Flags: Read</p>
+<p>Default value: 0</p>
+<p class="since">Since: 1.44</p>
 </div>
 <hr>
 <div class="refsect2">

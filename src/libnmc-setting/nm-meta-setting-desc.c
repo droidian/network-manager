@@ -2474,7 +2474,9 @@ _get_fcn_bond_options(ARGS_GET_FCN)
 
         nm_setting_bond_get_option(s_bond, i, &key, &val);
 
-        if (nm_streq(key, NM_SETTING_BOND_OPTION_ARP_IP_TARGET)) {
+        if (NM_IN_STRSET(key,
+                         NM_SETTING_BOND_OPTION_ARP_IP_TARGET,
+                         NM_SETTING_BOND_OPTION_NS_IP6_TARGET)) {
             val_tmp = g_strdup(val);
             for (p = val_tmp; p && *p; p++) {
                 if (*p == ',')
@@ -2516,7 +2518,8 @@ _nm_meta_setting_bond_add_option(NMSetting  *setting,
         value = nmc_bond_validate_mode(value, error);
         if (!value)
             return FALSE;
-    } else if (nm_streq(name, NM_SETTING_BOND_OPTION_ARP_IP_TARGET)) {
+    } else if (nm_streq(name, NM_SETTING_BOND_OPTION_ARP_IP_TARGET)
+               || nm_streq(name, NM_SETTING_BOND_OPTION_NS_IP6_TARGET)) {
         value = tmp_value = g_strdup(value);
         for (p = tmp_value; p && *p; p++)
             if (*p == ' ')
@@ -3097,7 +3100,7 @@ dcb_parse_uint_array(const char *val,
 
 static void
 dcb_check_feature_enabled(const NMMetaEnvironment *environment,
-                          gpointer                *environment_user_data,
+                          gpointer                 environment_user_data,
                           NMSettingDcb            *s_dcb,
                           const char              *flags_prop)
 {
@@ -5534,9 +5537,6 @@ static const NMMetaPropertyInfo *const property_infos_CONNECTION[] = {
     PROPERTY_INFO_WITH_DESC (NM_SETTING_CONNECTION_TIMESTAMP,
         .property_type =                &_pt_gobject_readonly,
     ),
-    PROPERTY_INFO_WITH_DESC (NM_SETTING_CONNECTION_READ_ONLY,
-        .property_type =                &_pt_gobject_readonly,
-    ),
     PROPERTY_INFO_WITH_DESC (NM_SETTING_CONNECTION_PERMISSIONS,
         .describe_message =
              N_("Enter a list of user permissions. This is a list of user names formatted as:\n"
@@ -5606,7 +5606,7 @@ static const NMMetaPropertyInfo *const property_infos_CONNECTION[] = {
                 .remove_by_idx_fcn_u32 = MULTILIST_REMOVE_BY_IDX_FCN_U32 (NMSettingConnection, nm_setting_connection_remove_secondary),
                 .remove_by_value_fcn =  MULTILIST_REMOVE_BY_VALUE_FCN (NMSettingConnection, nm_setting_connection_remove_secondary_by_value),
                 .validate2_fcn =        _multilist_validate2_fcn_uuid,
-                .strsplit_plain =       TRUE,
+                .strsplit_with_spaces = TRUE,
             ),
         ),
     ),
@@ -5976,6 +5976,12 @@ static const NMMetaPropertyInfo *const property_infos_GSM[] = {
         .property_typ_data = DEFINE_PROPERTY_TYP_DATA_SUBTYPE (mtu,
             .get_fcn =                  MTU_GET_FCN (NMSettingGsm, nm_setting_gsm_get_mtu),
         ),
+    ),
+    PROPERTY_INFO_WITH_DESC (NM_SETTING_GSM_INITIAL_EPS_BEARER_CONFIGURE,
+        .property_type =                &_pt_gobject_bool,
+    ),
+    PROPERTY_INFO_WITH_DESC (NM_SETTING_GSM_INITIAL_EPS_BEARER_APN,
+        .property_type =                &_pt_gobject_string,
     ),
     NULL
 };
@@ -6521,6 +6527,9 @@ static const NMMetaPropertyInfo *const property_infos_IP6_CONFIG[] = {
             .get_fcn =                  MTU_GET_FCN (NMSettingIP6Config, nm_setting_ip6_config_get_mtu),
         ),
     ),
+    PROPERTY_INFO (NM_SETTING_IP6_CONFIG_DHCP_PD_HINT, DESCRIBE_DOC_NM_SETTING_IP6_CONFIG_DHCP_PD_HINT,
+        .property_type =                &_pt_gobject_string,
+    ),
     PROPERTY_INFO (NM_SETTING_IP6_CONFIG_DHCP_DUID, DESCRIBE_DOC_NM_SETTING_IP6_CONFIG_DHCP_DUID,
         .property_type =                &_pt_gobject_string,
     ),
@@ -6643,6 +6652,56 @@ static const NMMetaPropertyInfo *const property_infos_LOOPBACK[] = {
         .property_type =                &_pt_gobject_mtu,
         .property_typ_data = DEFINE_PROPERTY_TYP_DATA_SUBTYPE (mtu,
             .get_fcn =                  MTU_GET_FCN (NMSettingLoopback, nm_setting_loopback_get_mtu),
+        ),
+    ),
+    NULL
+};
+
+#undef  _CURRENT_NM_META_SETTING_TYPE
+#define _CURRENT_NM_META_SETTING_TYPE NM_META_SETTING_TYPE_LINK
+static const NMMetaPropertyInfo *const property_infos_LINK[] = {
+    PROPERTY_INFO_WITH_DESC (NM_SETTING_LINK_GSO_MAX_SEGMENTS,
+        .property_type =                &_pt_gobject_int,
+        .property_typ_data = DEFINE_PROPERTY_TYP_DATA_SUBTYPE (gobject_int,
+            .value_infos =              INT_VALUE_INFOS (
+                {
+                    .value.i64 = -1,
+                    .nick = "default",
+                },
+            ),
+        ),
+    ),
+    PROPERTY_INFO_WITH_DESC (NM_SETTING_LINK_GSO_MAX_SIZE,
+        .property_type =                &_pt_gobject_int,
+        .property_typ_data = DEFINE_PROPERTY_TYP_DATA_SUBTYPE (gobject_int,
+            .value_infos =              INT_VALUE_INFOS (
+                {
+                    .value.i64 = -1,
+                    .nick = "default",
+                },
+            ),
+        ),
+    ),
+    PROPERTY_INFO_WITH_DESC (NM_SETTING_LINK_GRO_MAX_SIZE,
+        .property_type =                &_pt_gobject_int,
+        .property_typ_data = DEFINE_PROPERTY_TYP_DATA_SUBTYPE (gobject_int,
+            .value_infos =              INT_VALUE_INFOS (
+                {
+                    .value.i64 = -1,
+                    .nick = "default",
+                },
+            ),
+        ),
+    ),
+    PROPERTY_INFO_WITH_DESC (NM_SETTING_LINK_TX_QUEUE_LENGTH,
+        .property_type =                &_pt_gobject_int,
+        .property_typ_data = DEFINE_PROPERTY_TYP_DATA_SUBTYPE (gobject_int,
+            .value_infos =              INT_VALUE_INFOS (
+                {
+                    .value.i64 = -1,
+                    .nick = "default",
+                },
+            ),
         ),
     ),
     NULL
@@ -7974,14 +8033,6 @@ static const NMMetaPropertyInfo *const property_infos_WIRELESS[] = {
     PROPERTY_INFO_WITH_DESC (NM_SETTING_WIRELESS_BSSID,
         .property_type =                &_pt_gobject_mac,
     ),
-    PROPERTY_INFO_WITH_DESC (NM_SETTING_WIRELESS_RATE,
-        /* Do not allow setting 'rate'. It is not implemented in NM core. */
-        .property_type =                &_pt_gobject_readonly,
-    ),
-    PROPERTY_INFO_WITH_DESC (NM_SETTING_WIRELESS_TX_POWER,
-        /* Do not allow setting 'tx-power'. It is not implemented in NM core. */
-        .property_type =                &_pt_gobject_readonly,
-    ),
     PROPERTY_INFO_WITH_DESC (NM_SETTING_WIRELESS_MAC_ADDRESS,
         .property_type =                &_pt_gobject_mac,
         .is_cli_option =                TRUE,
@@ -8427,6 +8478,7 @@ _setting_init_fcn_wireless (ARGS_SETTING_INIT_FCN)
 #define SETTING_PRETTY_NAME_IP4_CONFIG          N_("IPv4 protocol")
 #define SETTING_PRETTY_NAME_IP6_CONFIG          N_("IPv6 protocol")
 #define SETTING_PRETTY_NAME_IP_TUNNEL           N_("IP-tunnel settings")
+#define SETTING_PRETTY_NAME_LINK                N_("Link settings")
 #define SETTING_PRETTY_NAME_LOOPBACK            N_("Loopback settings")
 #define SETTING_PRETTY_NAME_MACSEC              N_("MACsec connection")
 #define SETTING_PRETTY_NAME_MACVLAN             N_("macvlan connection")
@@ -8588,6 +8640,7 @@ const NMMetaSettingInfoEditor nm_meta_setting_infos_editor[] = {
             NM_META_SETTING_VALID_PART_ITEM (ETHTOOL,               FALSE),
         ),
     ),
+    SETTING_INFO (LINK),
     SETTING_INFO (LOOPBACK,
         .valid_parts = NM_META_SETTING_VALID_PARTS (
             NM_META_SETTING_VALID_PART_ITEM (CONNECTION,            TRUE),
@@ -8802,6 +8855,7 @@ static const NMMetaSettingValidPartItem *const valid_settings_noslave[] = {
     NM_META_SETTING_VALID_PART_ITEM(IP4_CONFIG, FALSE),
     NM_META_SETTING_VALID_PART_ITEM(IP6_CONFIG, FALSE),
     NM_META_SETTING_VALID_PART_ITEM(HOSTNAME, FALSE),
+    NM_META_SETTING_VALID_PART_ITEM(LINK, FALSE),
     NM_META_SETTING_VALID_PART_ITEM(TC_CONFIG, FALSE),
     NM_META_SETTING_VALID_PART_ITEM(PROXY, FALSE),
     NULL,
@@ -8809,11 +8863,15 @@ static const NMMetaSettingValidPartItem *const valid_settings_noslave[] = {
 
 static const NMMetaSettingValidPartItem *const valid_settings_slave_bond[] = {
     NM_META_SETTING_VALID_PART_ITEM(BOND_PORT, TRUE),
+    NM_META_SETTING_VALID_PART_ITEM(LINK, FALSE),
+    NM_META_SETTING_VALID_PART_ITEM(MATCH, FALSE),
     NULL,
 };
 
 static const NMMetaSettingValidPartItem *const valid_settings_slave_bridge[] = {
     NM_META_SETTING_VALID_PART_ITEM(BRIDGE_PORT, TRUE),
+    NM_META_SETTING_VALID_PART_ITEM(LINK, FALSE),
+    NM_META_SETTING_VALID_PART_ITEM(MATCH, FALSE),
     NULL,
 };
 
@@ -8823,11 +8881,15 @@ static const NMMetaSettingValidPartItem *const valid_settings_slave_ovs_bridge[]
 };
 
 static const NMMetaSettingValidPartItem *const valid_settings_slave_ovs_port[] = {
+    NM_META_SETTING_VALID_PART_ITEM(LINK, FALSE),
+    NM_META_SETTING_VALID_PART_ITEM(MATCH, FALSE),
     NM_META_SETTING_VALID_PART_ITEM(OVS_INTERFACE, FALSE),
     NULL,
 };
 
 static const NMMetaSettingValidPartItem *const valid_settings_slave_team[] = {
+    NM_META_SETTING_VALID_PART_ITEM(LINK, FALSE),
+    NM_META_SETTING_VALID_PART_ITEM(MATCH, FALSE),
     NM_META_SETTING_VALID_PART_ITEM(TEAM_PORT, TRUE),
     NULL,
 };

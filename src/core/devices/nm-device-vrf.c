@@ -142,16 +142,19 @@ create_and_realize(NMDevice              *device,
 }
 
 static gboolean
-check_connection_compatible(NMDevice *device, NMConnection *connection, GError **error)
+check_connection_compatible(NMDevice     *device,
+                            NMConnection *connection,
+                            gboolean      check_properties,
+                            GError      **error)
 {
     NMDeviceVrfPrivate *priv = NM_DEVICE_VRF_GET_PRIVATE(device);
     NMSettingVrf       *s_vrf;
 
     if (!NM_DEVICE_CLASS(nm_device_vrf_parent_class)
-             ->check_connection_compatible(device, connection, error))
+             ->check_connection_compatible(device, connection, check_properties, error))
         return FALSE;
 
-    if (nm_device_is_real(device)) {
+    if (check_properties && nm_device_is_real(device)) {
         s_vrf = _nm_connection_get_setting(connection, NM_TYPE_SETTING_VRF);
 
         if (priv->props.table != nm_setting_vrf_get_table(s_vrf)) {
@@ -238,8 +241,13 @@ attach_port(NMDevice                  *device,
     return TRUE;
 }
 
-static void
-detach_port(NMDevice *device, NMDevice *port, gboolean configure)
+static NMTernary
+detach_port(NMDevice                  *device,
+            NMDevice                  *port,
+            gboolean                   configure,
+            GCancellable              *cancellable,
+            NMDeviceAttachPortCallback callback,
+            gpointer                   user_data)
 {
     NMDeviceVrf *self = NM_DEVICE_VRF(device);
     gboolean     success;
@@ -274,6 +282,8 @@ detach_port(NMDevice *device, NMDevice *port, gboolean configure)
             _LOGI(LOGD_DEVICE, "VRF port %s was detached", nm_device_get_ip_iface(port));
         }
     }
+
+    return TRUE;
 }
 
 /*****************************************************************************/

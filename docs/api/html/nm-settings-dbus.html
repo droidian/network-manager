@@ -291,7 +291,9 @@ At this time only the "user" [type] is allowed.  Any other values are ignored an
 <a name="nm-settings-dbus.property.connection.read-only"></a>read-only</td>
 <td align="left">boolean</td>
 <td align="left">FALSE</td>
-<td>FALSE if the connection can be modified using the provided settings service's D-Bus interface with the right privileges, or TRUE if the connection is read-only and cannot be modified.</td>
+<td>This property is deprecated and has no meaning.
+
+This property is deprecated since version 1.44.This property is deprecated and has no meaning.</td>
 </tr>
 <tr>
 <td align="left">
@@ -314,13 +316,13 @@ At this time only the "user" [type] is allowed.  Any other values are ignored an
 <td align="left"> </td>
 <td>This represents the identity of the connection used for various purposes. It allows to configure multiple profiles to share the identity. Also, the stable-id can contain placeholders that are substituted dynamically and deterministically depending on the context.
 
-The stable-id is used for generating IPv6 stable private addresses with ipv6.addr-gen-mode=stable-privacy. It is also used to seed the generated cloned MAC address for ethernet.cloned-mac-address=stable and wifi.cloned-mac-address=stable. It is also used as DHCP client identifier with ipv4.dhcp-client-id=stable and to derive the DHCP DUID with ipv6.dhcp-duid=stable-[llt,ll,uuid].
+The stable-id is used for generating IPv6 stable private addresses with ipv6.addr-gen-mode=stable-privacy. It is also used to seed the generated cloned MAC address for ethernet.cloned-mac-address=stable and wifi.cloned-mac-address=stable. It is also used to derive the DHCP client identifier with ipv4.dhcp-client-id=stable, the DHCPv6 DUID with ipv6.dhcp-duid=stable-[llt,ll,uuid] and the DHCP IAID with ipv4.iaid=stable and ipv6.iaid=stable.
 
 Note that depending on the context where it is used, other parameters are also seeded into the generation algorithm. For example, a per-host key is commonly also included, so that different systems end up generating different IDs. Or with ipv6.addr-gen-mode=stable-privacy, also the device's name is included, so that different interfaces yield different addresses. The per-host key is the identity of your machine and stored in /var/lib/NetworkManager/secret_key. See NetworkManager(8) manual about the secret-key and the host identity.
 
-The '$' character is treated special to perform dynamic substitutions at runtime. Currently, supported are "${CONNECTION}", "${DEVICE}", "${MAC}", "${BOOT}", "${RANDOM}". These effectively create unique IDs per-connection, per-device, per-boot, or every time. Note that "${DEVICE}" corresponds to the interface name of the device and "${MAC}" is the permanent MAC address of the device. Any unrecognized patterns following '$' are treated verbatim, however are reserved for future use. You are thus advised to avoid '$' or escape it as "$$". For example, set it to "${CONNECTION}-${BOOT}-${DEVICE}" to create a unique id for this connection that changes with every reboot and differs depending on the interface where the profile activates.
+The '$' character is treated special to perform dynamic substitutions at activation time. Currently, supported are "${CONNECTION}", "${DEVICE}", "${MAC}", "${BOOT}", "${RANDOM}".  These effectively create unique IDs per-connection, per-device, per-boot, or every time. The "${CONNECTION}" uses the profile's connection.uuid, the "${DEVICE}" uses the interface name of the device and "${MAC}" the permanent MAC address of the device. Any unrecognized patterns following '$' are treated verbatim, however are reserved for future use. You are thus advised to avoid '$' or escape it as "$$".  For example, set it to "${CONNECTION}-${BOOT}-${DEVICE}" to create a unique id for this connection that changes with every reboot and differs depending on the interface where the profile activates.
 
-If the value is unset, a global connection default is consulted. If the value is still unset, the default is similar to "${CONNECTION}" and uses a unique, fixed ID for the connection.</td>
+If the value is unset, a global connection default is consulted. If the value is still unset, the default is "default${CONNECTION}" go generate an ID unique per connection profile.</td>
 </tr>
 <tr>
 <td align="left">
@@ -1499,6 +1501,20 @@ Since 1.34, NULL is the default and means "fabric". Before 1.34, NULL was reject
 </tr>
 <tr>
 <td align="left">
+<a name="nm-settings-dbus.property.gsm.initial-eps-bearer-apn"></a>initial-eps-bearer-apn</td>
+<td align="left">string</td>
+<td align="left"> </td>
+<td>For LTE modems, this sets the APN for the initial EPS bearer that is set up when attaching to the network.  Setting this parameter implies initial-eps-bearer-configure to be TRUE.</td>
+</tr>
+<tr>
+<td align="left">
+<a name="nm-settings-dbus.property.gsm.initial-eps-bearer-configure"></a>initial-eps-bearer-configure</td>
+<td align="left">boolean</td>
+<td align="left">FALSE</td>
+<td>For LTE modems, this setting determines whether the initial EPS bearer shall be configured when bringing up the connection.  It is inferred TRUE if initial-eps-bearer-apn is set.</td>
+</tr>
+<tr>
+<td align="left">
 <a name="nm-settings-dbus.property.gsm.mtu"></a>mtu</td>
 <td align="left">uint32</td>
 <td align="left">0</td>
@@ -1730,7 +1746,7 @@ When this property is set to the default value NM_DHCP_HOSTNAME_FLAG_NONE (0x0),
 <a name="nm-settings-dbus.property.ipv4.dhcp-iaid"></a>dhcp-iaid</td>
 <td align="left">string</td>
 <td align="left"> </td>
-<td>A string containing the "Identity Association Identifier" (IAID) used by the DHCP client. The string can be a 32-bit number (either decimal, hexadecimal or or as colon separated hexadecimal numbers). Alternatively it can be set to the special values "mac", "perm-mac", "ifname" or "stable". When set to "mac" (or "perm-mac"), the last 4 bytes of the current (or permanent) MAC address are used as IAID. When set to "ifname", the IAID is computed by hashing the interface name. The special value "stable" can be used to generate an IAID based on the stable-id (see connection.stable-id), a per-host key and the interface name. When the property is unset, the value from global configuration is used; if no global default is set then the IAID is assumed to be "ifname".
+<td>A string containing the "Identity Association Identifier" (IAID) used by the DHCP client. The string can be a 32-bit number (either decimal, hexadecimal or as colon separated hexadecimal numbers). Alternatively it can be set to the special values "mac", "perm-mac", "ifname" or "stable". When set to "mac" (or "perm-mac"), the last 4 bytes of the current (or permanent) MAC address are used as IAID. When set to "ifname", the IAID is computed by hashing the interface name. The special value "stable" can be used to generate an IAID based on the stable-id (see connection.stable-id), a per-host key and the interface name. When the property is unset, the value from global configuration is used; if no global default is set then the IAID is assumed to be "ifname".
 
 For DHCPv4, the IAID is only used with "ipv4.dhcp-client-id" values "duid" and "ipv6-duid" to generate the client-id.
 
@@ -1984,15 +2000,17 @@ Array of IPv4 route structures.  Each IPv4 route structure is composed of 4 32-b
 <a name="nm-settings-dbus.property.ipv6.addr-gen-mode"></a>addr-gen-mode</td>
 <td align="left">int32</td>
 <td align="left">3</td>
-<td>Configure method for creating the address for use with RFC4862 IPv6 Stateless Address Autoconfiguration. The permitted values are: NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_EUI64 (0), NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_STABLE_PRIVACY (1). NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_DEFAULT_OR_EUI64 (2) or NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_DEFAULT (3).
+<td>Configure the method for creating the IPv6 interface identifier of addresses for RFC4862 IPv6 Stateless Address Autoconfiguration and IPv6 Link Local.
 
-If the property is set to EUI64, the addresses will be generated using the interface tokens derived from hardware address. This makes the host part of the address to stay constant, making it possible to track host's presence when it changes networks. The address changes when the interface hardware is replaced.
+The permitted values are: NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_EUI64 (0), NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_STABLE_PRIVACY (1). NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_DEFAULT_OR_EUI64 (2) or NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_DEFAULT (3).
 
-The value of stable-privacy enables use of cryptographically secure hash of a secret host-specific key along with the connection's stable-id and the network address as specified by RFC7217. This makes it impossible to use the address track host's presence, and makes the address stable when the network interface hardware is replaced.
+If the property is set to "eui64", the addresses will be generated using the interface token derived from the hardware address. This makes the host part of the address constant, making it possible to track the host's presence when it changes networks. The address changes when the interface hardware is replaced. If a duplicate address is detected, there is no fallback to generate another address. When configured, the "ipv6.token" is used instead of the MAC address to generate addresses for stateless autoconfiguration.
 
-The special values "default" and "default-or-eui64" will fallback to the global connection default in as documented in NetworkManager.conf(5) manual. If the global default is not specified, the fallback value is "stable-privacy" or "eui64", respectively.
+If the property is set to "stable-privacy", the interface identifier is generated as specified by RFC7217. This works by hashing a host specific key (see NetworkManager(8) manual), the interface name, the connection's "connection.stable-id" property and the address prefix.  This improves privacy by making it harder to use the address to track the host's presence as every prefix and network has a different identifier. Also, the address is stable when the network interface hardware is replaced.
 
-For libnm, the property defaults to "default" since 1.40. Previously it defaulted to "stable-privacy". On D-Bus, the absence of an addr-gen-mode setting equals "default". For keyfile plugin, the absence of the setting on disk means "default-or-eui64" so that the property doesn't change on upgrade from older versions.
+The special values "default" and "default-or-eui64" will fallback to the global connection default as documented in the NetworkManager.conf(5) manual. If the global default is not specified, the fallback value is "stable-privacy" or "eui64", respectively.
+
+For libnm, the property defaults to "default" since 1.40.  Previously it used to default to "stable-privacy".  On D-Bus, the absence of an addr-gen-mode setting equals "default". For keyfile plugin, the absence of the setting on disk means "default-or-eui64" so that the property doesn't change on upgrade from older versions.
 
 Note that this setting is distinct from the Privacy Extensions as configured by "ip6-privacy" property and it does not affect the temporary addresses configured with this option.</td>
 </tr>
@@ -2067,13 +2085,20 @@ When this property is set to the default value NM_DHCP_HOSTNAME_FLAG_NONE (0x0),
 <a name="nm-settings-dbus.property.ipv6.dhcp-iaid"></a>dhcp-iaid</td>
 <td align="left">string</td>
 <td align="left"> </td>
-<td>A string containing the "Identity Association Identifier" (IAID) used by the DHCP client. The string can be a 32-bit number (either decimal, hexadecimal or or as colon separated hexadecimal numbers). Alternatively it can be set to the special values "mac", "perm-mac", "ifname" or "stable". When set to "mac" (or "perm-mac"), the last 4 bytes of the current (or permanent) MAC address are used as IAID. When set to "ifname", the IAID is computed by hashing the interface name. The special value "stable" can be used to generate an IAID based on the stable-id (see connection.stable-id), a per-host key and the interface name. When the property is unset, the value from global configuration is used; if no global default is set then the IAID is assumed to be "ifname".
+<td>A string containing the "Identity Association Identifier" (IAID) used by the DHCP client. The string can be a 32-bit number (either decimal, hexadecimal or as colon separated hexadecimal numbers). Alternatively it can be set to the special values "mac", "perm-mac", "ifname" or "stable". When set to "mac" (or "perm-mac"), the last 4 bytes of the current (or permanent) MAC address are used as IAID. When set to "ifname", the IAID is computed by hashing the interface name. The special value "stable" can be used to generate an IAID based on the stable-id (see connection.stable-id), a per-host key and the interface name. When the property is unset, the value from global configuration is used; if no global default is set then the IAID is assumed to be "ifname".
 
 For DHCPv4, the IAID is only used with "ipv4.dhcp-client-id" values "duid" and "ipv6-duid" to generate the client-id.
 
 For DHCPv6, note that at the moment this property is only supported by the "internal" DHCPv6 plugin. The "dhclient" DHCPv6 plugin always derives the IAID from the MAC address.
 
 The actually used DHCPv6 IAID for a currently activated interface is exposed in the lease information of the device.</td>
+</tr>
+<tr>
+<td align="left">
+<a name="nm-settings-dbus.property.ipv6.dhcp-pd-hint"></a>dhcp-pd-hint</td>
+<td align="left">string</td>
+<td align="left"> </td>
+<td>A IPv6 address followed by a slash and a prefix length. If set, the value is sent to the DHCPv6 server as hint indicating the prefix delegation (IA_PD) we want to receive. To only hint a prefix length without prefix, set the address part to the zero address (for example "::/60").</td>
 </tr>
 <tr>
 <td align="left">
@@ -2313,7 +2338,9 @@ Array of IPv6 route structures.  Each IPv6 route structure is composed of an IPv
 <a name="nm-settings-dbus.property.ipv6.token"></a>token</td>
 <td align="left">string</td>
 <td align="left"> </td>
-<td>Configure the token for draft-chown-6man-tokenised-ipv6-identifiers-02 IPv6 tokenized interface identifiers. Useful with eui64 addr-gen-mode.</td>
+<td>Configure the token for draft-chown-6man-tokenised-ipv6-identifiers-02 IPv6 tokenized interface identifiers. Useful with eui64 addr-gen-mode.
+
+When set, the token is used as IPv6 interface identifier instead of the hardware address. This only applies to addresses from stateless autoconfiguration, not to IPv6 link local addresses.</td>
 </tr>
 </tbody>
 </table></div>
@@ -4396,21 +4423,25 @@ This property is deprecated since version 1.4.Use the "cloned-mac-address" prope
 <a name="nm-settings-dbus.property.802-11-wireless.rate"></a>rate</td>
 <td align="left">uint32</td>
 <td align="left">0</td>
-<td>If non-zero, directs the device to only use the specified bitrate for communication with the access point.  Units are in Kb/s, ie 5500 = 5.5 Mbit/s.  This property is highly driver dependent and not all devices support setting a static bitrate.</td>
+<td>This property is not implemented and has no effect.
+
+This property is deprecated since version 1.44.This property is not implemented and has no effect.</td>
 </tr>
 <tr>
 <td align="left">
 <a name="nm-settings-dbus.property.802-11-wireless.security"></a>security</td>
 <td align="left"> </td>
 <td align="left"> </td>
-<td>This property is deprecated, but can be set to the value '802-11-wireless-security' when a wireless security setting is also present in the connection dictionary, for compatibility with very old NetworkManager daemons.</td>
+<td>This property is deprecated and has no effect. For backwards compatibility, it can be set to "802-11-wireless-security" if the profile has a wireless security setting.</td>
 </tr>
 <tr>
 <td align="left">
 <a name="nm-settings-dbus.property.802-11-wireless.seen-bssids"></a>seen-bssids</td>
 <td align="left">array of string</td>
 <td align="left"> </td>
-<td>A list of BSSIDs (each BSSID formatted as a MAC address like "00:11:22:33:44:55") that have been detected as part of the Wi-Fi network.  NetworkManager internally tracks previously seen BSSIDs. The property is only meant for reading and reflects the BSSID list of NetworkManager. The changes you make to this property will not be preserved.</td>
+<td>A list of BSSIDs (each BSSID formatted as a MAC address like "00:11:22:33:44:55") that have been detected as part of the Wi-Fi network.  NetworkManager internally tracks previously seen BSSIDs. The property is only meant for reading and reflects the BSSID list of NetworkManager. The changes you make to this property will not be preserved.
+
+This is not a regular property that the user would configure. Instead, NetworkManager automatically sets the seen BSSIDs and tracks them internally in "/var/lib/NetworkManager/seen-bssids" file.</td>
 </tr>
 <tr>
 <td align="left">
@@ -4424,7 +4455,9 @@ This property is deprecated since version 1.4.Use the "cloned-mac-address" prope
 <a name="nm-settings-dbus.property.802-11-wireless.tx-power"></a>tx-power</td>
 <td align="left">uint32</td>
 <td align="left">0</td>
-<td>If non-zero, directs the device to use the specified transmit power. Units are dBm.  This property is highly driver dependent and not all devices support setting a static transmit power.</td>
+<td>This property is not implemented and has no effect.
+
+This property is deprecated since version 1.44.This property is not implemented and has no effect.</td>
 </tr>
 <tr>
 <td align="left">
@@ -4757,7 +4790,56 @@ Negative values have the special effect of excluding other connections with a gr
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.53"></a><h3>loopback setting</h3>
+<a name="id-1.2.9.4.53"></a><h3>link setting</h3>
+<p>Link settings.</p>
+<div class="informaltable"><table class="informaltable" border="1">
+<colgroup>
+<col>
+<col>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>Key Name</th>
+<th>Value Type</th>
+<th>Default Value</th>
+<th>Value Description</th>
+</tr></thead>
+<tbody>
+<tr>
+<td align="left">
+<a name="nm-settings-dbus.property.link.gro-max-size"></a>gro-max-size</td>
+<td align="left">int64</td>
+<td align="left">-1</td>
+<td>The maximum size of a packet built by the Generic Receive Offload stack for this device. The value must be between 0 and 4294967295. When set to -1, the existing value is preserved.</td>
+</tr>
+<tr>
+<td align="left">
+<a name="nm-settings-dbus.property.link.gso-max-segments"></a>gso-max-segments</td>
+<td align="left">int64</td>
+<td align="left">-1</td>
+<td>The maximum segments of a Generic Segment Offload packet the device should accept. The value must be between 0 and 4294967295. When set to -1, the existing value is preserved.</td>
+</tr>
+<tr>
+<td align="left">
+<a name="nm-settings-dbus.property.link.gso-max-size"></a>gso-max-size</td>
+<td align="left">int64</td>
+<td align="left">-1</td>
+<td>The maximum size of a Generic Segment Offload packet the device should accept. The value must be between 0 and 4294967295. When set to -1, the existing value is preserved.</td>
+</tr>
+<tr>
+<td align="left">
+<a name="nm-settings-dbus.property.link.tx-queue-length"></a>tx-queue-length</td>
+<td align="left">int64</td>
+<td align="left">-1</td>
+<td>The size of the transmit queue for the device, in number of packets. The value must be between 0 and 4294967295. When set to -1, the existing value is preserved.</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="id-1.2.9.4.54"></a><h3>loopback setting</h3>
 <p>Loopback Link Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -4783,7 +4865,7 @@ Negative values have the special effect of excluding other connections with a gr
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.54"></a><h3>ovs-external-ids setting</h3>
+<a name="id-1.2.9.4.55"></a><h3>ovs-external-ids setting</h3>
 <p>OVS External IDs Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -4809,7 +4891,7 @@ Negative values have the special effect of excluding other connections with a gr
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.55"></a><h3>ovs-other-config setting</h3>
+<a name="id-1.2.9.4.56"></a><h3>ovs-other-config setting</h3>
 <p>OVS Other Config Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -4835,7 +4917,7 @@ Negative values have the special effect of excluding other connections with a gr
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.56"></a><h3>veth setting</h3>
+<a name="id-1.2.9.4.57"></a><h3>veth setting</h3>
 <p>Veth Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>

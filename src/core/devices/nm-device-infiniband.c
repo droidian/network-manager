@@ -87,7 +87,7 @@ act_stage1_prepare(NMDevice *device, NMDeviceStateReason *out_failure_reason)
     /* With some drivers the interface must be down to set transport mode */
     nm_device_take_down(device, TRUE);
     ok = nm_platform_sysctl_set(nm_device_get_platform(device),
-                                NMP_SYSCTL_PATHID_NETDIR(dirfd, ifname_verified, "mode"),
+                                NMP_SYSCTL_PATHID_NETDIR_A(dirfd, ifname_verified, "mode"),
                                 transport_mode);
     nm_device_bring_up(device);
 
@@ -108,15 +108,18 @@ get_configured_mtu(NMDevice *device, NMDeviceMtuSource *out_source, gboolean *ou
 }
 
 static gboolean
-check_connection_compatible(NMDevice *device, NMConnection *connection, GError **error)
+check_connection_compatible(NMDevice     *device,
+                            NMConnection *connection,
+                            gboolean      check_properties,
+                            GError      **error)
 {
     NMSettingInfiniband *s_infiniband;
 
     if (!NM_DEVICE_CLASS(nm_device_infiniband_parent_class)
-             ->check_connection_compatible(device, connection, error))
+             ->check_connection_compatible(device, connection, check_properties, error))
         return FALSE;
 
-    if (nm_device_is_real(device)) {
+    if (check_properties && nm_device_is_real(device)) {
         const char *mac;
         const char *hw_addr;
 

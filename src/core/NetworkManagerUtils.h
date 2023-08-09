@@ -89,6 +89,20 @@ NMConnection *nm_utils_match_connection(NMConnection *const   *connections,
                                         NMUtilsMatchFilterFunc match_filter_func,
                                         gpointer               match_filter_data);
 
+/*****************************************************************************/
+
+struct _NMMatchSpecDeviceData;
+
+const struct _NMMatchSpecDeviceData *
+nm_match_spec_device_data_init_from_device(struct _NMMatchSpecDeviceData *out_data,
+                                           NMDevice                      *device);
+
+const struct _NMMatchSpecDeviceData *
+nm_match_spec_device_data_init_from_platform(struct _NMMatchSpecDeviceData *out_data,
+                                             const NMPlatformLink          *pllink,
+                                             const char                    *match_device_type,
+                                             const char                    *match_dhcp_plugin);
+
 int nm_match_spec_device_by_pllink(const NMPlatformLink *pllink,
                                    const char           *match_device_type,
                                    const char           *match_dhcp_plugin,
@@ -225,6 +239,26 @@ void nm_utils_ip_routes_to_dbus(int                          addr_family,
                                 const NMDedupMultiHeadEntry *head_entry,
                                 GVariant                   **out_route_data,
                                 GVariant                   **out_routes);
+
+/*****************************************************************************/
+
+typedef enum _nm_packed {
+    NM_SETTINGS_AUTOCONNECT_BLOCKED_REASON_NONE = 0,
+
+    NM_SETTINGS_AUTOCONNECT_BLOCKED_REASON_USER_REQUEST = (1LL << 0),
+    NM_SETTINGS_AUTOCONNECT_BLOCKED_REASON_FAILED       = (1LL << 1),
+    NM_SETTINGS_AUTOCONNECT_BLOCKED_REASON_NO_SECRETS   = (1LL << 2),
+
+    NM_SETTINGS_AUTOCONNECT_BLOCKED_REASON_ALL =
+        (NM_SETTINGS_AUTOCONNECT_BLOCKED_REASON_USER_REQUEST
+         | NM_SETTINGS_AUTOCONNECT_BLOCKED_REASON_FAILED
+         | NM_SETTINGS_AUTOCONNECT_BLOCKED_REASON_NO_SECRETS),
+} NMSettingsAutoconnectBlockedReason;
+
+const char *
+nm_settings_autoconnect_blocked_reason_to_string(NMSettingsAutoconnectBlockedReason reason,
+                                                 char                              *buf,
+                                                 gsize                              len);
 
 /*****************************************************************************/
 

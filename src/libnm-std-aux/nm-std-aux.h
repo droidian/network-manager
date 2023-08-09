@@ -327,9 +327,9 @@ typedef uint64_t _nm_bitwise nm_be64_t;
      *
      * It's useful to check the let the compiler ensure that @value is
      * of a certain type. */
-#define _NM_ENSURE_TYPE(type, value) (_Generic((value), type : (value)))
+#define _NM_ENSURE_TYPE(type, value) (_Generic((value), type: (value)))
 #define _NM_ENSURE_TYPE_CONST(type, value) \
-    (_Generic((value), const type : ((const type)(value)), type : ((const type)(value))))
+    (_Generic((value), const type: ((const type)(value)), type: ((const type)(value))))
 #else
 #define _NM_ENSURE_TYPE(type, value)       (value)
 #define _NM_ENSURE_TYPE_CONST(type, value) ((const type)(value))
@@ -348,7 +348,7 @@ typedef uint64_t _nm_bitwise nm_be64_t;
 
 #if _NM_CC_SUPPORT_GENERIC && (!defined(__clang__) || __clang_major__ > 3)
 #define NM_STRUCT_OFFSET_ENSURE_TYPE(type, container, field) \
-    (_Generic((&(((container *) NULL)->field))[0], type : nm_offsetof(container, field)))
+    (_Generic((&(((container *) NULL)->field))[0], type: nm_offsetof(container, field)))
 #else
 #define NM_STRUCT_OFFSET_ENSURE_TYPE(type, container, field) nm_offsetof(container, field)
 #endif
@@ -1367,6 +1367,12 @@ nm_ptr_to_uintptr(const void *p)
 
 /*****************************************************************************/
 
+/* IFNAMSIZ is both defined in <linux/if.h> and <net/if.h>. In the past, these
+ * headers conflicted, so we cannot simply include either of them in a header-file.*/
+#define NM_IFNAMSIZ 16
+
+/*****************************************************************************/
+
 #define NM_AF_UNSPEC 0  /* AF_UNSPEC */
 #define NM_AF_INET   2  /* AF_INET   */
 #define NM_AF_INET6  10 /* AF_INET6  */
@@ -1419,6 +1425,9 @@ nm_utils_addr_family_to_char(int addr_family)
         (NM_UNIQ_T(_addr_family, uniq) == NM_AF_INET);           \
     })
 
+/* NM_IS_IPv4() is guaranteed to give either 0 or 1! That is an important
+ * guarantee, because we often use that value to index a 2-array (where at
+ * position zero is IPv6 and at position 1 IPv4). */
 #define NM_IS_IPv4(addr_family) _NM_IS_IPv4(NM_UNIQ, addr_family)
 
 static inline int

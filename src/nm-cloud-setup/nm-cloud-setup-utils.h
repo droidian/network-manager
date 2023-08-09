@@ -7,9 +7,20 @@
 
 /*****************************************************************************/
 
-/* mark names for  variables that can be used as configuration. Search
- * for NMCS_ENV_VARIABLE() to find all honored environment variables. */
-#define NMCS_ENV_VARIABLE(var) "" var ""
+/* Environment variables for configuring nm-cloud-setup */
+#define NMCS_ENV_NM_CLOUD_SETUP_ALIYUN "NM_CLOUD_SETUP_ALIYUN"
+#define NMCS_ENV_NM_CLOUD_SETUP_AZURE  "NM_CLOUD_SETUP_AZURE"
+#define NMCS_ENV_NM_CLOUD_SETUP_EC2    "NM_CLOUD_SETUP_EC2"
+#define NMCS_ENV_NM_CLOUD_SETUP_GCP    "NM_CLOUD_SETUP_GCP"
+#define NMCS_ENV_NM_CLOUD_SETUP_LOG    "NM_CLOUD_SETUP_LOG"
+
+/* Undocumented/internal environment variables for configuring nm-cloud-setup.
+ * These are mainly for testing/debugging. */
+#define NMCS_ENV_NM_CLOUD_SETUP_ALIYUN_HOST    "NM_CLOUD_SETUP_ALIYUN_HOST"
+#define NMCS_ENV_NM_CLOUD_SETUP_AZURE_HOST     "NM_CLOUD_SETUP_AZURE_HOST"
+#define NMCS_ENV_NM_CLOUD_SETUP_EC2_HOST       "NM_CLOUD_SETUP_EC2_HOST"
+#define NMCS_ENV_NM_CLOUD_SETUP_GCP_HOST       "NM_CLOUD_SETUP_GCP_HOST"
+#define NMCS_ENV_NM_CLOUD_SETUP_MAP_INTERFACES "NM_CLOUD_SETUP_MAP_INTERFACES"
 
 /*****************************************************************************/
 
@@ -37,30 +48,6 @@
 gpointer nmcs_wait_for_objects_register(gpointer target);
 
 gboolean nmcs_wait_for_objects_iterate_until_done(GMainContext *context, int timeout_msec);
-
-/*****************************************************************************/
-
-typedef void (*NMCSUtilsPollProbeStartFcn)(GCancellable       *cancellable,
-                                           gpointer            probe_user_data,
-                                           GAsyncReadyCallback callback,
-                                           gpointer            user_data);
-
-typedef gboolean (*NMCSUtilsPollProbeFinishFcn)(GObject      *source,
-                                                GAsyncResult *result,
-                                                gpointer      probe_user_data,
-                                                GError      **error);
-
-void nmcs_utils_poll(int                         poll_timeout_ms,
-                     int                         ratelimit_timeout_ms,
-                     int                         sleep_timeout_ms,
-                     NMCSUtilsPollProbeStartFcn  probe_start_fcn,
-                     NMCSUtilsPollProbeFinishFcn probe_finish_fcn,
-                     gpointer                    probe_user_data,
-                     GCancellable               *cancellable,
-                     GAsyncReadyCallback         callback,
-                     gpointer                    user_data);
-
-gboolean nmcs_utils_poll_finish(GAsyncResult *result, gpointer *probe_user_data, GError **error);
 
 /*****************************************************************************/
 
@@ -101,6 +88,38 @@ nmcs_utils_ipaddr_normalize_gbytes(int addr_family, GBytes *addr)
 const char *nmcs_utils_parse_memmem(GBytes *mem, const char *needle);
 
 const char *nmcs_utils_parse_get_full_line(GBytes *mem, const char *needle);
+
+/*****************************************************************************/
+
+#define NMCS_DEFINE_HOST_BASE(base_fcn, nmcs_env_host, default_host)               \
+    static const char *base_fcn(void)                                              \
+    {                                                                              \
+        static const char *base_cached = NULL;                                     \
+        const char        *base;                                                   \
+                                                                                   \
+again:                                                                             \
+        base = g_atomic_pointer_get(&base_cached);                                 \
+        if (G_UNLIKELY(!base)) {                                                   \
+            /* The base URI can be set via environment variable. \
+             * This is mainly for testing, it's not usually supposed to be configured. \
+             * Consider this private API! */                 \
+            base = g_getenv("" nmcs_env_host "");                                  \
+            base = nmcs_utils_uri_complete_interned(base) ?: ("" default_host ""); \
+                                                                                   \
+            if (!g_atomic_pointer_compare_and_exchange(&base_cached, NULL, base))  \
+                goto again;                                                        \
+                                                                                   \
+            if (!nm_streq(base, ("" default_host ""))) {                           \
+                _LOGD("test: mock %s=\"%s\" (default \"%s\")",                     \
+                      "" nmcs_env_host "",                                         \
+                      base,                                                        \
+                      "" default_host "");                                         \
+            }                                                                      \
+        }                                                                          \
+                                                                                   \
+        return base;                                                               \
+    }                                                                              \
+    _NM_DUMMY_STRUCT_FOR_TRAILING_SEMICOLON
 
 /*****************************************************************************/
 

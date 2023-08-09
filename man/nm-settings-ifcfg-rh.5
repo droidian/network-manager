@@ -2,12 +2,12 @@
 .\"     Title: nm-settings-ifcfg-rh
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 06/28/2023
+.\"      Date: 08/09/2023
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.42.8
+.\"    Source: NetworkManager 1.44.0
 .\"  Language: English
 .\"
-.TH "NM\-SETTINGS\-IFCFG\-RH" "5" "" "NetworkManager 1\&.42\&.8" "Configuration"
+.TH "NM\-SETTINGS\-IFCFG\-RH" "5" "" "NetworkManager 1\&.44\&.0" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -347,7 +347,7 @@ are NetworkManager specific extensions not understood by traditional initscripts
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&1.\ \&6lowpan setting
+.B Table\ \&1.\ \&802\-11\-wireless setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -361,29 +361,6 @@ T}:T{
 Description
 T}
 .T&
-.
-.TE
-.sp 1
-.sp
-.it 1 an-trap
-.nr an-no-space-flag 1
-.nr an-break-flag 1
-.br
-.B Table\ \&2.\ \&802\-11\-wireless setting
-.TS
-allbox tab(:);
-lB lB lB lB.
-T{
-Property
-T}:T{
-Ifcfg\-rh Variable
-T}:T{
-Default
-T}:T{
-Description
-T}
-.T&
-l l l l
 l l l l
 l l l l
 l l l l
@@ -465,7 +442,7 @@ T}:T{
 T}:T{
 \ \&
 T}:T{
-This property is not handled by ifcfg\-rh plugin\&.
+This property is deprecated and not handled by ifcfg\-rh plugin\&.
 T}
 T{
 tx\-power
@@ -474,7 +451,7 @@ T}:T{
 T}:T{
 \ \&
 T}:T{
-This property is not handled by ifcfg\-rh plugin\&.
+This property is deprecated and not handled by ifcfg\-rh plugin\&.
 T}
 T{
 mac\-address
@@ -519,7 +496,7 @@ T}:T{
 T}:T{
 \ \&
 T}:T{
-This property is not handled by ifcfg\-rh plugin\&.
+This is not a regular property that would be configured by the user\&. It is not handled by ifcfg\-rh plugin\&.
 T}
 T{
 mtu
@@ -566,15 +543,6 @@ Example: \fRMAC_ADDRESS_RANDOMIZATION=always\fB
 Allowed values: \fRdefault, never, always
 T}
 T{
-security
-T}:T{
-(none)
-T}:T{
-\ \&
-T}:T{
-This property is deprecated and not handled by ifcfg\-rh\-plugin\&.
-T}
-T{
 ap\-isolation
 T}:T{
 AP_ISOLATION\fI(+)\fR
@@ -592,7 +560,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&3.\ \&802\-11\-wireless\-security setting
+.B Table\ \&2.\ \&802\-11\-wireless\-security setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -839,7 +807,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&4.\ \&802\-1x setting
+.B Table\ \&3.\ \&802\-1x setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -1284,7 +1252,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&5.\ \&802\-3\-ethernet setting
+.B Table\ \&4.\ \&802\-3\-ethernet setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -1465,7 +1433,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&6.\ \&bond setting
+.B Table\ \&5.\ \&bond setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -1498,7 +1466,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&7.\ \&bond\-port setting
+.B Table\ \&6.\ \&bond\-port setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -1543,7 +1511,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&8.\ \&bridge setting
+.B Table\ \&7.\ \&bridge setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -1874,7 +1842,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&9.\ \&bridge\-port setting
+.B Table\ \&8.\ \&bridge\-port setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -1941,7 +1909,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&10.\ \&connection setting
+.B Table\ \&9.\ \&connection setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2274,7 +2242,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&11.\ \&dcb setting
+.B Table\ \&10.\ \&dcb setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2469,7 +2437,7 @@ All DCB related configuration is a NetworkManager extension\&. DCB=yes must be u
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&12.\ \&ethtool setting
+.B Table\ \&11.\ \&ethtool setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2491,7 +2459,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&13.\ \&hostname setting
+.B Table\ \&12.\ \&hostname setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2560,7 +2528,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&14.\ \&infiniband setting
+.B Table\ \&13.\ \&infiniband setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2637,7 +2605,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&15.\ \&ipv4 setting
+.B Table\ \&14.\ \&ipv4 setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2934,7 +2902,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&16.\ \&ipv6 setting
+.B Table\ \&15.\ \&ipv6 setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2948,6 +2916,7 @@ T}:T{
 Description
 T}
 .T&
+l l l l
 l l l l
 l l l l
 l l l l
@@ -3214,36 +3183,16 @@ A string sent to the DHCPv6 server to identify the local machine\&. Apart from t
 
 Example: \fRDHCPV6_DUID=LL; DHCPV6_DUID=0301deadbeef0001; DHCPV6_DUID=03:01:de:ad:be:ef:00:01
 T}
-.TE
-.sp 1
-.sp
-.it 1 an-trap
-.nr an-no-space-flag 1
-.nr an-break-flag 1
-.br
-.B Table\ \&17.\ \&loopback setting
-.TS
-allbox tab(:);
-lB lB lB lB.
 T{
-Property
+dhcp\-pd\-hint
 T}:T{
-Ifcfg\-rh Variable
-T}:T{
-Default
-T}:T{
-Description
-T}
-.T&
-l l l l.
-T{
-mtu
-T}:T{
-MTU
+DHCPV6_PD_HINT\fI(+)\fR
 T}:T{
 \ \&
 T}:T{
-MTU of the interface\&.
+Hint for DHCPv6 prefix delegation\fB
+
+Example: \fRDHCPV6_PD_HINT=2001:db8:1111:2220::/60 DHCPV6_PD_HINT=::/60
 T}
 .TE
 .sp 1
@@ -3252,7 +3201,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&18.\ \&match setting
+.B Table\ \&16.\ \&match setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -3285,7 +3234,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&19.\ \&ovs\-bridge setting
+.B Table\ \&17.\ \&ovs\-external\-ids setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -3307,7 +3256,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&20.\ \&ovs\-dpdk setting
+.B Table\ \&18.\ \&ovs\-other\-config setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -3329,117 +3278,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&21.\ \&ovs\-external\-ids setting
-.TS
-allbox tab(:);
-lB lB lB lB.
-T{
-Property
-T}:T{
-Ifcfg\-rh Variable
-T}:T{
-Default
-T}:T{
-Description
-T}
-.T&
-.
-.TE
-.sp 1
-.sp
-.it 1 an-trap
-.nr an-no-space-flag 1
-.nr an-break-flag 1
-.br
-.B Table\ \&22.\ \&ovs\-interface setting
-.TS
-allbox tab(:);
-lB lB lB lB.
-T{
-Property
-T}:T{
-Ifcfg\-rh Variable
-T}:T{
-Default
-T}:T{
-Description
-T}
-.T&
-.
-.TE
-.sp 1
-.sp
-.it 1 an-trap
-.nr an-no-space-flag 1
-.nr an-break-flag 1
-.br
-.B Table\ \&23.\ \&ovs\-other\-config setting
-.TS
-allbox tab(:);
-lB lB lB lB.
-T{
-Property
-T}:T{
-Ifcfg\-rh Variable
-T}:T{
-Default
-T}:T{
-Description
-T}
-.T&
-.
-.TE
-.sp 1
-.sp
-.it 1 an-trap
-.nr an-no-space-flag 1
-.nr an-break-flag 1
-.br
-.B Table\ \&24.\ \&ovs\-patch setting
-.TS
-allbox tab(:);
-lB lB lB lB.
-T{
-Property
-T}:T{
-Ifcfg\-rh Variable
-T}:T{
-Default
-T}:T{
-Description
-T}
-.T&
-.
-.TE
-.sp 1
-.sp
-.it 1 an-trap
-.nr an-no-space-flag 1
-.nr an-break-flag 1
-.br
-.B Table\ \&25.\ \&ovs\-port setting
-.TS
-allbox tab(:);
-lB lB lB lB.
-T{
-Property
-T}:T{
-Ifcfg\-rh Variable
-T}:T{
-Default
-T}:T{
-Description
-T}
-.T&
-.
-.TE
-.sp 1
-.sp
-.it 1 an-trap
-.nr an-no-space-flag 1
-.nr an-break-flag 1
-.br
-.B Table\ \&26.\ \&proxy setting
+.B Table\ \&19.\ \&proxy setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -3506,7 +3345,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&27.\ \&sriov setting
+.B Table\ \&20.\ \&sriov setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -3563,7 +3402,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&28.\ \&tc setting
+.B Table\ \&21.\ \&tc setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -3608,7 +3447,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&29.\ \&team setting
+.B Table\ \&22.\ \&team setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -3639,7 +3478,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&30.\ \&team\-port setting
+.B Table\ \&23.\ \&team\-port setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -3670,7 +3509,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&31.\ \&user setting
+.B Table\ \&24.\ \&user setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -3703,29 +3542,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&32.\ \&veth setting
-.TS
-allbox tab(:);
-lB lB lB lB.
-T{
-Property
-T}:T{
-Ifcfg\-rh Variable
-T}:T{
-Default
-T}:T{
-Description
-T}
-.T&
-.
-.TE
-.sp 1
-.sp
-.it 1 an-trap
-.nr an-no-space-flag 1
-.nr an-break-flag 1
-.br
-.B Table\ \&33.\ \&vlan setting
+.B Table\ \&25.\ \&vlan setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -3821,100 +3638,12 @@ Example: \fRPHYSDEV=eth0, VLAN_ID=12; or DEVICE=eth0\&.12
 T}
 .TE
 .sp 1
-.sp
-.it 1 an-trap
-.nr an-no-space-flag 1
-.nr an-break-flag 1
-.br
-.B Table\ \&34.\ \&vrf setting
-.TS
-allbox tab(:);
-lB lB lB lB.
-T{
-Property
-T}:T{
-Ifcfg\-rh Variable
-T}:T{
-Default
-T}:T{
-Description
-T}
-.T&
-.
-.TE
-.sp 1
-.sp
-.it 1 an-trap
-.nr an-no-space-flag 1
-.nr an-break-flag 1
-.br
-.B Table\ \&35.\ \&wifi\-p2p setting
-.TS
-allbox tab(:);
-lB lB lB lB.
-T{
-Property
-T}:T{
-Ifcfg\-rh Variable
-T}:T{
-Default
-T}:T{
-Description
-T}
-.T&
-.
-.TE
-.sp 1
-.sp
-.it 1 an-trap
-.nr an-no-space-flag 1
-.nr an-break-flag 1
-.br
-.B Table\ \&36.\ \&wireguard setting
-.TS
-allbox tab(:);
-lB lB lB lB.
-T{
-Property
-T}:T{
-Ifcfg\-rh Variable
-T}:T{
-Default
-T}:T{
-Description
-T}
-.T&
-.
-.TE
-.sp 1
-.sp
-.it 1 an-trap
-.nr an-no-space-flag 1
-.nr an-break-flag 1
-.br
-.B Table\ \&37.\ \&wpan setting
-.TS
-allbox tab(:);
-lB lB lB lB.
-T{
-Property
-T}:T{
-Ifcfg\-rh Variable
-T}:T{
-Default
-T}:T{
-Description
-T}
-.T&
-.
-.TE
-.sp 1
 .PP
 The following settings are not supported by
 \fIifcfg\-rh\fR
 plugin:
 .PP
-802\-11\-olpc\-mesh, adsl, bluetooth, cdma, dummy, generic, gsm, ip\-tunnel, macsec, macvlan, ppp, pppoe, serial, tun, vpn, vxlan, wimax
+6lowpan, 802\-11\-olpc\-mesh, adsl, bluetooth, cdma, dummy, generic, gsm, ip\-tunnel, link, loopback, macsec, macvlan, ovs\-bridge, ovs\-dpdk, ovs\-interface, ovs\-patch, ovs\-port, ppp, pppoe, serial, tun, veth, vpn, vrf, vxlan, wifi\-p2p, wimax, wireguard, wpan
 .SS "Secret flags"
 .PP
 Each secret property in a NetworkManager setting has an associated

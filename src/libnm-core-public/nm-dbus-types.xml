@@ -750,7 +750,7 @@
             <row role="constant">
               <entry role="enum_member_name"><para>NM_DEVICE_MODEM_CAPABILITY_5GNR</para><para></para></entry>
               <entry role="enum_member_value"><para>= <literal>0x00000040</literal></para><para></para></entry>
-              <entry role="enum_member_description"><para>modem has 5GNR data capability (Since: 1.36)</para><para></para></entry>
+              <entry role="enum_member_description"><para>modem has 5GNR data capability. Since: 1.36.</para><para></para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -1638,7 +1638,7 @@
     <indexterm zone="NMCheckpointCreateFlags">
       <primary>NMCheckpointCreateFlags</primary>
     </indexterm>
-    <para><para>The flags for CheckpointCreate call</para><para>Since: 1.12 (public since 1.4, g-ir since 1.12)</para><para></para></para>
+    <para><para>The flags for CheckpointCreate call</para><para>Since: 1.12: Public since 1.4, g-ir since 1.12.</para><para></para></para>
     <refsect3 role="enum_members">
       <title>Values</title>
       <informaltable role="enum_members_table" pgwide="1" frame="none">

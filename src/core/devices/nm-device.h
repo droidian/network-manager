@@ -75,7 +75,6 @@
 #define NM_DEVICE_IP6_PREFIX_DELEGATED     "ip6-prefix-delegated"
 #define NM_DEVICE_IP6_SUBNET_NEEDED        "ip6-subnet-needed"
 #define NM_DEVICE_REMOVED                  "removed"
-#define NM_DEVICE_RECHECK_AUTO_ACTIVATE    "recheck-auto-activate"
 #define NM_DEVICE_RECHECK_ASSUME           "recheck-assume"
 #define NM_DEVICE_STATE_CHANGED            "state-changed"
 #define NM_DEVICE_LINK_INITIALIZED         "link-initialized"
@@ -144,6 +143,10 @@ struct _NMDevice {
     NMDBusObject             parent;
     struct _NMDevicePrivate *_priv;
     CList                    devices_lst;
+    CList                    devcon_dev_lst_head;
+
+    CList    policy_auto_activate_lst;
+    GSource *policy_auto_activate_idle_source;
 };
 
 /* The flags have an relaxing meaning, that means, specifying more flags, can make
@@ -294,7 +297,7 @@ typedef struct _NMDeviceClass {
     GPtrArray *(*get_extra_rules)(NMDevice *self);
 
     /* allow derived classes to override the result of nm_device_autoconnect_allowed().
-     * If the value changes, the class should call nm_device_emit_recheck_auto_activate(),
+     * If the value changes, the class should call nm_device_recheck_auto_activate_schedule(),
      * which emits NM_DEVICE_RECHECK_AUTO_ACTIVATE signal. */
     gboolean (*get_autoconnect_allowed)(NMDevice *self);
 
@@ -321,6 +324,7 @@ typedef struct _NMDeviceClass {
      */
     gboolean (*check_connection_compatible)(NMDevice     *self,
                                             NMConnection *connection,
+                                            gboolean      check_properties,
                                             GError      **error);
 
     /* Checks whether the connection is likely available to be activated,
@@ -387,7 +391,15 @@ typedef struct _NMDeviceClass {
                              GCancellable              *cancellable,
                              NMDeviceAttachPortCallback callback,
                              gpointer                   user_data);
-    void (*detach_port)(NMDevice *self, NMDevice *port, gboolean configure);
+    /* This works similarly to attach_port(). However, current
+     * implementations don't report errors and so the only possible
+     * return values are TRUE and DEFAULT. */
+    NMTernary (*detach_port)(NMDevice                  *self,
+                             NMDevice                  *port,
+                             gboolean                   configure,
+                             GCancellable              *cancellable,
+                             NMDeviceAttachPortCallback callback,
+                             gpointer                   user_data);
 
     void (*parent_changed_notify)(NMDevice *self,
                                   int       old_ifindex,
@@ -421,6 +433,10 @@ typedef struct _NMDeviceClass {
     const char *(*get_dhcp_anycast_address)(NMDevice *self);
 } NMDeviceClass;
 
+NMSettings *nm_device_get_settings(NMDevice *self);
+
+NMManager *nm_device_get_manager(NMDevice *self);
+
 GType nm_device_get_type(void);
 
 struct _NMDedupMultiIndex *nm_device_get_multi_index(NMDevice *self);
@@ -444,9 +460,11 @@ gboolean     nm_device_is_real(NMDevice *dev);
 const char  *nm_device_get_ip_iface(NMDevice *dev);
 const char  *nm_device_get_ip_iface_from_platform(NMDevice *dev);
 int          nm_device_get_ip_ifindex(const NMDevice *dev);
+const char  *nm_device_get_s390_subchannels(NMDevice *self);
 const char  *nm_device_get_driver(NMDevice *dev);
 const char  *nm_device_get_driver_version(NMDevice *dev);
 const char  *nm_device_get_type_desc(NMDevice *dev);
+const char  *nm_device_get_type_desc_for_log(NMDevice *dev);
 const char  *nm_device_get_type_description(NMDevice *dev);
 NMDeviceType nm_device_get_device_type(NMDevice *dev);
 NMLinkType   nm_device_get_link_type(NMDevice *dev);
@@ -526,8 +544,10 @@ gboolean nm_device_complete_connection(NMDevice            *device,
                                        NMConnection *const *existing_connections,
                                        GError             **error);
 
-gboolean
-nm_device_check_connection_compatible(NMDevice *device, NMConnection *connection, GError **error);
+gboolean nm_device_check_connection_compatible(NMDevice     *device,
+                                               NMConnection *connection,
+                                               gboolean      check_properties,
+                                               GError      **error);
 
 gboolean nm_device_check_slave_connection_compatible(NMDevice *device, NMConnection *connection);
 
@@ -608,9 +628,9 @@ typedef enum {
 } NMUnmanagedFlags;
 
 typedef enum {
-    NM_UNMAN_FLAG_OP_SET_MANAGED   = FALSE,
-    NM_UNMAN_FLAG_OP_SET_UNMANAGED = TRUE,
-    NM_UNMAN_FLAG_OP_FORGET        = 2,
+    NM_UNMAN_FLAG_OP_SET_MANAGED = 0,
+    NM_UNMAN_FLAG_OP_SET_UNMANAGED,
+    NM_UNMAN_FLAG_OP_FORGET,
 } NMUnmanFlagOp;
 
 const char *nm_unmanaged_flags2str(NMUnmanagedFlags flags, char *buf, gsize len);
@@ -631,6 +651,7 @@ void nm_device_set_unmanaged_by_user_settings(NMDevice *self, gboolean now);
 void nm_device_set_unmanaged_by_user_udev(NMDevice *self);
 void nm_device_set_unmanaged_by_user_conf(NMDevice *self);
 void nm_device_set_unmanaged_by_quitting(NMDevice *device);
+NMDeviceStateReason nm_device_get_manage_reason_external(NMDevice *self);
 
 gboolean nm_device_check_unrealized_device_managed(NMDevice *self);
 
@@ -701,7 +722,7 @@ nm_device_autoconnect_blocked_unset(NMDevice *device, NMDeviceAutoconnectBlocked
     nm_device_autoconnect_blocked_set_full(device, mask, NM_DEVICE_AUTOCONNECT_BLOCKED_NONE);
 }
 
-void nm_device_emit_recheck_auto_activate(NMDevice *device);
+void nm_device_recheck_auto_activate_schedule(NMDevice *device);
 
 NMDeviceSysIfaceState nm_device_sys_iface_state_get(NMDevice *device);
 
@@ -709,6 +730,10 @@ gboolean nm_device_sys_iface_state_is_external(NMDevice *self);
 gboolean nm_device_sys_iface_state_is_external_or_assume(NMDevice *self);
 
 void nm_device_sys_iface_state_set(NMDevice *device, NMDeviceSysIfaceState sys_iface_state);
+
+void nm_device_notify_sleeping(NMDevice *self);
+
+NMDeviceSysIfaceState nm_device_get_sys_iface_state_before_sleep(NMDevice *self);
 
 void nm_device_state_changed(NMDevice *device, NMDeviceState state, NMDeviceStateReason reason);
 

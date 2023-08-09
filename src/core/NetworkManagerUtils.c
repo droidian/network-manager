@@ -23,6 +23,7 @@
 #include "nm-setting-connection.h"
 #include "nm-setting-ip4-config.h"
 #include "nm-setting-ip6-config.h"
+#include "settings/nm-settings.h"
 #include "libnm-core-intern/nm-core-internal.h"
 #include "libnm-platform/nmp-object.h"
 
@@ -30,6 +31,7 @@
 #include "libnm-platform/nm-linux-platform.h"
 #include "libnm-platform/nm-platform-utils.h"
 #include "nm-auth-utils.h"
+#include "devices/nm-device.h"
 
 /*****************************************************************************/
 
@@ -684,6 +686,53 @@ check_connection_cloned_mac_address(NMConnection *orig,
 }
 
 static gboolean
+check_connection_controller(NMConnection *orig, NMConnection *candidate, GHashTable *settings)
+{
+    GHashTable           *props;
+    const char           *orig_controller = NULL, *cand_controller = NULL;
+    NMSettingConnection  *s_con_orig, *s_con_cand, *s_con_controller;
+    NMSettingsConnection *con_controller;
+
+    props = check_property_in_hash(settings,
+                                   NM_SETTING_CONNECTION_SETTING_NAME,
+                                   NM_SETTING_CONNECTION_MASTER);
+    if (!props)
+        return TRUE;
+
+    s_con_orig      = nm_connection_get_setting_connection(orig);
+    s_con_cand      = nm_connection_get_setting_connection(candidate);
+    orig_controller = nm_setting_connection_get_master(s_con_orig);
+    cand_controller = nm_setting_connection_get_master(s_con_cand);
+
+    /* A generated connection uses the UUID to specify the controller. Accept
+     * candidates that specify as controller an interface name matching that
+     * UUID */
+    if (orig_controller && cand_controller) {
+        if (nm_utils_is_uuid(orig_controller)) {
+            con_controller = nm_settings_get_connection_by_uuid(NM_SETTINGS_GET, orig_controller);
+            /* no connection found for that uuid */
+            if (!con_controller)
+                return FALSE;
+
+            s_con_controller =
+                nm_settings_connection_get_setting(con_controller, NM_META_SETTING_TYPE_CONNECTION);
+            if (nm_streq0(nm_setting_connection_get_interface_name(s_con_controller),
+                          cand_controller)) {
+                remove_from_hash(settings,
+                                 props,
+                                 NM_SETTING_CONNECTION_SETTING_NAME,
+                                 NM_SETTING_CONNECTION_MASTER);
+                return TRUE;
+            } else {
+                return FALSE;
+            }
+        }
+    }
+
+    return FALSE;
+}
+
+static gboolean
 check_connection_s390_props(NMConnection *orig, NMConnection *candidate, GHashTable *settings)
 {
     GHashTable     *props1, *props2, *props3;
@@ -764,8 +813,15 @@ check_possible_match(NMConnection *orig,
     if (!check_connection_cloned_mac_address(orig, candidate, settings))
         return NULL;
 
+    if (!check_connection_controller(orig, candidate, settings))
+        return NULL;
+
     if (!check_connection_s390_props(orig, candidate, settings))
         return NULL;
+
+    /* match properties are for matching from static to generated connections,
+     * so they are not really part of the difference. */
+    g_hash_table_remove(settings, NM_SETTING_MATCH_SETTING_NAME);
 
     if (g_hash_table_size(settings) == 0)
         return candidate;
@@ -896,6 +952,73 @@ nm_utils_match_connection(NMConnection *const   *connections,
 
 /*****************************************************************************/
 
+const struct _NMMatchSpecDeviceData *
+nm_match_spec_device_data_init_from_device(struct _NMMatchSpecDeviceData *out_data,
+                                           NMDevice                      *device)
+{
+    const char *hw_address;
+    gboolean    is_fake;
+
+    nm_assert(out_data);
+
+    if (!device) {
+        *out_data = (NMMatchSpecDeviceData){};
+        return out_data;
+    }
+
+    nm_assert(NM_IS_DEVICE(device));
+
+    hw_address = nm_device_get_permanent_hw_address_full(
+        device,
+        !nm_device_get_unmanaged_flags(device, NM_UNMANAGED_PLATFORM_INIT),
+        &is_fake);
+
+    /* Note that here we access various getters on @device, without cloning
+     * or taking ownership and return it to the caller.
+     *
+     * The returned data is only valid, until NMDevice gets modified again. */
+
+    *out_data = (NMMatchSpecDeviceData){
+        .interface_name   = nm_device_get_iface(device),
+        .device_type      = nm_device_get_type_description(device),
+        .driver           = nm_device_get_driver(device),
+        .driver_version   = nm_device_get_driver_version(device),
+        .hwaddr           = is_fake ? NULL : hw_address,
+        .s390_subchannels = nm_device_get_s390_subchannels(device),
+        .dhcp_plugin      = nm_dhcp_manager_get_config(nm_dhcp_manager_get()),
+    };
+
+    return out_data;
+}
+
+const NMMatchSpecDeviceData *
+nm_match_spec_device_data_init_from_platform(NMMatchSpecDeviceData *out_data,
+                                             const NMPlatformLink  *pllink,
+                                             const char            *match_device_type,
+                                             const char            *match_dhcp_plugin)
+{
+    nm_assert(out_data);
+
+    /* we can only match by certain properties that are available on the
+     * platform link (and even @pllink might be missing.
+     *
+     * It's still useful because of specs like "*" and "except:interface-name:eth0",
+     * which match even in that case. */
+
+    *out_data = (NMMatchSpecDeviceData){
+        .interface_name   = pllink ? pllink->name : NULL,
+        .device_type      = match_device_type,
+        .driver           = pllink ? pllink->driver : NULL,
+        .driver_version   = NULL,
+        .hwaddr           = NULL,
+        .s390_subchannels = NULL,
+        .dhcp_plugin      = match_dhcp_plugin,
+    };
+    return out_data;
+}
+
+/*****************************************************************************/
+
 int
 nm_match_spec_device_by_pllink(const NMPlatformLink *pllink,
                                const char           *match_device_type,
@@ -903,32 +1026,15 @@ nm_match_spec_device_by_pllink(const NMPlatformLink *pllink,
                                const GSList         *specs,
                                int                   no_match_value)
 {
-    NMMatchSpecMatchType m;
+    NMMatchSpecMatchType  m;
+    NMMatchSpecDeviceData data;
 
-    /* we can only match by certain properties that are available on the
-     * platform link (and even @pllink might be missing.
-     *
-     * It's still useful because of specs like "*" and "except:interface-name:eth0",
-     * which match even in that case. */
     m = nm_match_spec_device(specs,
-                             pllink ? pllink->name : NULL,
-                             match_device_type,
-                             pllink ? pllink->driver : NULL,
-                             NULL,
-                             NULL,
-                             NULL,
-                             match_dhcp_plugin);
-
-    switch (m) {
-    case NM_MATCH_SPEC_MATCH:
-        return TRUE;
-    case NM_MATCH_SPEC_NEG_MATCH:
-        return FALSE;
-    case NM_MATCH_SPEC_NO_MATCH:
-        return no_match_value;
-    }
-    nm_assert_not_reached();
-    return no_match_value;
+                             nm_match_spec_device_data_init_from_platform(&data,
+                                                                          pllink,
+                                                                          match_device_type,
+                                                                          match_dhcp_plugin));
+    return nm_match_spec_match_type_to_bool(m, no_match_value);
 }
 
 /*****************************************************************************/
@@ -1748,6 +1854,13 @@ nm_utils_platform_capture_ip_setting(NMPlatform *platform,
             method = maybe_ipv6_disabled ? NM_SETTING_IP6_CONFIG_METHOD_DISABLED
                                          : NM_SETTING_IP6_CONFIG_METHOD_IGNORE;
     }
+
+    /* The IPv6 method "ignore" and "disabled" are not supported for loopback */
+    if (ifindex == 1
+        && NM_IN_STRSET(method,
+                        NM_SETTING_IP6_CONFIG_METHOD_DISABLED,
+                        NM_SETTING_IP6_CONFIG_METHOD_IGNORE))
+        method = NM_SETTING_IP6_CONFIG_METHOD_AUTO;
     g_object_set(s_ip, NM_SETTING_IP_CONFIG_METHOD, method, NULL);
 
     nmp_lookup_init_object_by_ifindex(&lookup, NMP_OBJECT_TYPE_IP_ROUTE(IS_IPv4), ifindex);
@@ -1860,3 +1973,13 @@ nm_linux_platform_setup_with_tc_cache(void)
 {
     nm_platform_setup(nm_linux_platform_new(NULL, FALSE, FALSE, TRUE));
 }
+
+/*****************************************************************************/
+
+NM_UTILS_FLAGS2STR_DEFINE(
+    nm_settings_autoconnect_blocked_reason_to_string,
+    NMSettingsAutoconnectBlockedReason,
+    NM_UTILS_FLAGS2STR(NM_SETTINGS_AUTOCONNECT_BLOCKED_REASON_NONE, "none"),
+    NM_UTILS_FLAGS2STR(NM_SETTINGS_AUTOCONNECT_BLOCKED_REASON_USER_REQUEST, "user-request"),
+    NM_UTILS_FLAGS2STR(NM_SETTINGS_AUTOCONNECT_BLOCKED_REASON_FAILED, "failed"),
+    NM_UTILS_FLAGS2STR(NM_SETTINGS_AUTOCONNECT_BLOCKED_REASON_NO_SECRETS, "no-secrets"), );

@@ -38,7 +38,7 @@
             Properties
         </h2>
 <div class="table">
-<a name="id-1.3.3.36.2.2.1"></a><p class="title"><b>Table 82. </b></p>
+<a name="id-1.3.3.36.2.2.1"></a><p class="title"><b>Table 70. </b></p>
 <div class="table-contents"><table class="table" border="1">
 <colgroup>
 <col>
@@ -57,43 +57,43 @@
 <td><pre class="screen">config</pre></td>
 <td><pre class="screen">string</pre></td>
 <td><pre class="screen"></pre></td>
-<td> </td>
+<td>The JSON configuration for the team port. The property should contain raw JSON configuration data suitable for teamd, because the value is passed directly to teamd. If not specified, the default configuration is used. See man teamd.conf for the format details.</td>
 </tr>
 <tr>
 <td><pre class="screen">lacp-key</pre></td>
 <td><pre class="screen">int32</pre></td>
 <td><pre class="screen">-1</pre></td>
-<td> </td>
+<td>Corresponds to the teamd ports.PORTIFNAME.lacp_key.</td>
 </tr>
 <tr>
 <td><pre class="screen">lacp-prio</pre></td>
 <td><pre class="screen">int32</pre></td>
 <td><pre class="screen">-1</pre></td>
-<td> </td>
+<td>Corresponds to the teamd ports.PORTIFNAME.lacp_prio.</td>
 </tr>
 <tr>
 <td><pre class="screen">link-watchers</pre></td>
 <td><pre class="screen">array of vardict</pre></td>
 <td><pre class="screen"></pre></td>
-<td> </td>
+<td>Link watchers configuration for the connection: each link watcher is defined by a dictionary, whose keys depend upon the selected link watcher. Available link watchers are 'ethtool', 'nsna_ping' and 'arp_ping' and it is specified in the dictionary with the key 'name'. Available keys are:   ethtool: 'delay-up', 'delay-down', 'init-wait'; nsna_ping: 'init-wait', 'interval', 'missed-max', 'target-host'; arp_ping: all the ones in nsna_ping and 'source-host', 'validate-active', 'validate-inactive', 'send-always'. See teamd.conf man for more details.</td>
 </tr>
 <tr>
 <td><pre class="screen">prio</pre></td>
 <td><pre class="screen">int32</pre></td>
 <td><pre class="screen">0</pre></td>
-<td> </td>
+<td>Corresponds to the teamd ports.PORTIFNAME.prio.</td>
 </tr>
 <tr>
 <td><pre class="screen">queue-id</pre></td>
 <td><pre class="screen">int32</pre></td>
 <td><pre class="screen">-1</pre></td>
-<td> </td>
+<td>Corresponds to the teamd ports.PORTIFNAME.queue_id. When set to -1 means the parameter is skipped from the json config.</td>
 </tr>
 <tr>
 <td><pre class="screen">sticky</pre></td>
 <td><pre class="screen">boolean</pre></td>
 <td><pre class="screen">FALSE</pre></td>
-<td> </td>
+<td>Corresponds to the teamd ports.PORTIFNAME.sticky.</td>
 </tr>
 </tbody>
 </table></div>

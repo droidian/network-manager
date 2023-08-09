@@ -9,31 +9,8 @@
 #include <sys/sysmacros.h>
 #include <sys/types.h>
 
+#include "constants.h"
 #include "macro-fundamental.h"
-
-#if !defined(HAS_FEATURE_MEMORY_SANITIZER)
-#  if defined(__has_feature)
-#    if __has_feature(memory_sanitizer)
-#      define HAS_FEATURE_MEMORY_SANITIZER 1
-#    endif
-#  endif
-#  if !defined(HAS_FEATURE_MEMORY_SANITIZER)
-#    define HAS_FEATURE_MEMORY_SANITIZER 0
-#  endif
-#endif
-
-#if !defined(HAS_FEATURE_ADDRESS_SANITIZER)
-#  ifdef __SANITIZE_ADDRESS__
-#      define HAS_FEATURE_ADDRESS_SANITIZER 1
-#  elif defined(__has_feature)
-#    if __has_feature(address_sanitizer)
-#      define HAS_FEATURE_ADDRESS_SANITIZER 1
-#    endif
-#  endif
-#  if !defined(HAS_FEATURE_ADDRESS_SANITIZER)
-#    define HAS_FEATURE_ADDRESS_SANITIZER 0
-#  endif
-#endif
 
 /* Note: on GCC "no_sanitize_address" is a function attribute only, on llvm it may also be applied to global
  * variables. We define a specific macro which knows this. Note that on GCC we don't need this decorator so much, since
@@ -88,9 +65,13 @@
         _Pragma("GCC diagnostic push")
 #endif
 
-#define DISABLE_WARNING_TYPE_LIMITS \
+#define DISABLE_WARNING_TYPE_LIMITS                                     \
         _Pragma("GCC diagnostic push");                                 \
         _Pragma("GCC diagnostic ignored \"-Wtype-limits\"")
+
+#define DISABLE_WARNING_ADDRESS                                         \
+        _Pragma("GCC diagnostic push");                                 \
+        _Pragma("GCC diagnostic ignored \"-Waddress\"")
 
 #define REENABLE_WARNING                                                \
         _Pragma("GCC diagnostic pop")
@@ -203,12 +184,12 @@ static inline int __coverity_check_and_return__(int condition) {
 #define assert_message_se(expr, message)                                \
         do {                                                            \
                 if (_unlikely_(!(expr)))                                \
-                        log_assert_failed(message, PROJECT_FILE, __LINE__, __PRETTY_FUNCTION__); \
+                        log_assert_failed(message, PROJECT_FILE, __LINE__, __func__); \
         } while (false)
 
 #define assert_log(expr, message) ((_likely_(expr))                     \
         ? (true)                                                        \
-        : (log_assert_failed_return(message, PROJECT_FILE, __LINE__, __PRETTY_FUNCTION__), false))
+        : (log_assert_failed_return(message, PROJECT_FILE, __LINE__, __func__), false))
 
 #endif  /* __COVERITY__ */
 
@@ -223,7 +204,7 @@ static inline int __coverity_check_and_return__(int condition) {
 #endif
 
 #define assert_not_reached()                                            \
-        log_assert_failed_unreachable(PROJECT_FILE, __LINE__, __PRETTY_FUNCTION__)
+        log_assert_failed_unreachable(PROJECT_FILE, __LINE__, __func__)
 
 #define assert_return(expr, r)                                          \
         do {                                                            \
@@ -276,6 +257,11 @@ static inline int __coverity_check_and_return__(int condition) {
 #define char_array_0(x) x[sizeof(x)-1] = 0;
 
 #define sizeof_field(struct_type, member) sizeof(((struct_type *) 0)->member)
+#define endoffsetof_field(struct_type, member) (offsetof(struct_type, member) + sizeof_field(struct_type, member))
+
+/* Maximum buffer size needed for formatting an unsigned integer type as hex, including space for '0x'
+ * prefix and trailing NUL suffix. */
+#define HEXADECIMAL_STR_MAX(type) (2 + sizeof(type) * 2 + 1)
 
 /* Returns the number of chars needed to format variables of the specified type as a decimal string. Adds in
  * extra space for a negative '-' prefix for signed types. Includes space for the trailing NUL. */
@@ -324,19 +310,14 @@ static inline int __coverity_check_and_return__(int condition) {
              p != (typeof(p)) POINTER_MAX;                                               \
              p = *(++_l))
 
-/* Define C11 thread_local attribute even on older gcc compiler
- * version */
-#ifndef thread_local
-/*
- * Don't break on glibc < 2.16 that doesn't define __STDC_NO_THREADS__
- * see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=53769
- */
-#if __STDC_VERSION__ >= 201112L && !(defined(__STDC_NO_THREADS__) || (defined(__GNU_LIBRARY__) && __GLIBC__ == 2 && __GLIBC_MINOR__ < 16))
-#define thread_local _Thread_local
-#else
-#define thread_local __thread
-#endif
-#endif
+#define _FOREACH_ARRAY(i, array, num, m, end)                           \
+        for (typeof(array[0]) *i = (array), *end = ({                   \
+                                typeof(num) m = (num);                  \
+                                (i && m > 0) ? i + m : NULL;            \
+                        }); end && i < end; i++)
+
+#define FOREACH_ARRAY(i, array, num)                                    \
+        _FOREACH_ARRAY(i, array, num, UNIQ_T(m, UNIQ), UNIQ_T(end, UNIQ))
 
 #define DEFINE_TRIVIAL_DESTRUCTOR(name, type, func)             \
         static inline void name(type *p) {                      \
@@ -350,10 +331,14 @@ static inline int __coverity_check_and_return__(int condition) {
                         *p = func(*p);                          \
         }
 
-/* When func() doesn't return the appropriate type, set variable to empty afterwards */
+/* When func() doesn't return the appropriate type, set variable to empty afterwards.
+ * The func() may be provided by a dynamically loaded shared library, hence add an assertion. */
 #define DEFINE_TRIVIAL_CLEANUP_FUNC_FULL(type, func, empty)     \
         static inline void func##p(type *p) {                   \
                 if (*p != (empty)) {                            \
+                        DISABLE_WARNING_ADDRESS;                \
+                        assert(func);                           \
+                        REENABLE_WARNING;                       \
                         func(*p);                               \
                         *p = (empty);                           \
                 }                                               \
@@ -442,7 +427,7 @@ typedef struct {
 
 assert_cc(sizeof(dummy_t) == 0);
 
-/* A little helper for subtracting 1 off a pointer in a safe UB-free way. This is intended to be used for for
+/* A little helper for subtracting 1 off a pointer in a safe UB-free way. This is intended to be used for
  * loops that count down from a high pointer until some base. A naive loop would implement this like this:
  *
  * for (p = end-1; p >= base; p--) …
@@ -457,5 +442,14 @@ assert_cc(sizeof(dummy_t) == 0);
                 typeof(p) _q = (p);                      \
                 _q && _q > (base) ? &_q[-1] : NULL;      \
         })
+
+/* Iterate through each variadic arg. All must be the same type as 'entry' or must be implicitly
+ * convertible. The iteration variable 'entry' must already be defined. */
+#define VA_ARGS_FOREACH(entry, ...)                                     \
+        _VA_ARGS_FOREACH(entry, UNIQ_T(_entries_, UNIQ), UNIQ_T(_current_, UNIQ), ##__VA_ARGS__)
+#define _VA_ARGS_FOREACH(entry, _entries_, _current_, ...)         \
+        for (typeof(entry) _entries_[] = { __VA_ARGS__ }, *_current_ = _entries_; \
+             ((long)(_current_ - _entries_) < (long)ELEMENTSOF(_entries_)) && ({ entry = *_current_; true; }); \
+             _current_++)
 
 #include "log.h"

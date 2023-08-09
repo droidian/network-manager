@@ -511,7 +511,7 @@ nm_wireguard_peer_ref (<em class="parameter"><code><a class="link" href="NMSetti
 <tbody><tr>
 <td class="parameter_name"><p>self</p></td>
 <td class="parameter_description"><p>the <a class="link" href="NMSettingWireGuard.html#NMWireGuardPeer"><span class="type">NMWireGuardPeer</span></a> instance. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
 </tr></tbody>
 </table></div>
 </div>
@@ -544,7 +544,7 @@ the instance is freed and all associate data released.</p>
 <tbody><tr>
 <td class="parameter_name"><p>self</p></td>
 <td class="parameter_description"><p>the <a class="link" href="NMSettingWireGuard.html#NMWireGuardPeer"><span class="type">NMWireGuardPeer</span></a> instance. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
 </tr></tbody>
 </table></div>
 </div>
@@ -658,7 +658,7 @@ will be normalized (which may or may not modify the set value).</p>
 <td class="parameter_name"><p>public_key</p></td>
 <td class="parameter_description"><p>the new public
 key or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to clear the public key. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>][<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>][<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></td>
 </tr>
 <tr>
 <td class="parameter_name"><p>accept_invalid</p></td>
@@ -738,7 +738,7 @@ be accepted.</p>
 <td class="parameter_name"><p>preshared_key</p></td>
 <td class="parameter_description"><p>the new preshared
 key or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to clear the preshared key. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>][<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>][<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></td>
 </tr>
 <tr>
 <td class="parameter_name"><p>accept_invalid</p></td>
@@ -1016,7 +1016,7 @@ setting.
 This parameter is wrongly not marked as (out) argument, it is
 thus not accessible via introspection. This cannot be fixed without
 breaking API for introspection users. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
 </tr>
 </tbody>
 </table></div>
@@ -1027,7 +1027,7 @@ breaking API for introspection users. </p></td>
 .
 If <em class="parameter"><code>idx</code></em>
 is out of range, <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> will be returned. </p>
-<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>][<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.16</p>
 </div>
@@ -1220,12 +1220,12 @@ nm_wireguard_peer_cmp (<em class="parameter"><code>const <a class="link" href="N
 <tr>
 <td class="parameter_name"><p>a</p></td>
 <td class="parameter_description"><p>the <a class="link" href="NMSettingWireGuard.html#NMWireGuardPeer"><span class="type">NMWireGuardPeer</span></a> to compare. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
 </tr>
 <tr>
 <td class="parameter_name"><p>b</p></td>
 <td class="parameter_description"><p>the other <a class="link" href="NMSettingWireGuard.html#NMWireGuardPeer"><span class="type">NMWireGuardPeer</span></a> to compare. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
 </tr>
 <tr>
 <td class="parameter_name"><p>compare_flags</p></td>
@@ -1459,7 +1459,7 @@ peer.</p></td>
 <td class="parameter_description"><p>optional output argument
 for the index of the found peer. If no index is found,
 this is set to the <a class="link" href="NMSettingWireGuard.html#nm-setting-wireguard-get-peers-len" title="nm_setting_wireguard_get_peers_len ()"><code class="function">nm_setting_wireguard_get_peers_len()</code></a>. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>][<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>][<acronym title="NULL may be passed instead of a pointer to a location."><span class="acronym">optional</span></acronym>]</span></td>
 </tr>
 </tbody>
 </table></div>
@@ -1468,7 +1468,7 @@ this is set to the <a class="link" href="NMSettingWireGuard.html#nm-setting-wire
 <a name="nm-setting-wireguard-get-peer-by-public-key.returns"></a><h4>Returns</h4>
 <p>the <a class="link" href="NMSettingWireGuard.html#NMWireGuardPeer"><span class="type">NMWireGuardPeer</span></a> instance with a
 matching public key. If no such peer exists, <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> is returned. </p>
-<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>][<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.16</p>
 </div>

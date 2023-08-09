@@ -17,8 +17,10 @@
 #define NM_AZURE_METADATA_URL_BASE /* $NM_AZURE_BASE/$NM_AZURE_API_VERSION */ \
     "/metadata/instance/network/interface/"
 
+NMCS_DEFINE_HOST_BASE(_azure_base, NMCS_ENV_NM_CLOUD_SETUP_AZURE_HOST, NM_AZURE_BASE);
+
 #define _azure_uri_concat(...) \
-    nmcs_utils_uri_build_concat(NM_AZURE_BASE, __VA_ARGS__, NM_AZURE_API_VERSION)
+    nmcs_utils_uri_build_concat(_azure_base(), __VA_ARGS__, NM_AZURE_API_VERSION)
 #define _azure_uri_interfaces(...) _azure_uri_concat(NM_AZURE_METADATA_URL_BASE, ##__VA_ARGS__)
 
 /*****************************************************************************/
@@ -564,7 +566,7 @@ nmcs_provider_azure_class_init(NMCSProviderAzureClass *klass)
     NMCSProviderClass *provider_class = NMCS_PROVIDER_CLASS(klass);
 
     provider_class->_name                 = "azure";
-    provider_class->_env_provider_enabled = NMCS_ENV_VARIABLE("NM_CLOUD_SETUP_AZURE");
+    provider_class->_env_provider_enabled = NMCS_ENV_NM_CLOUD_SETUP_AZURE;
     provider_class->detect                = detect;
     provider_class->get_config            = get_config;
 }
