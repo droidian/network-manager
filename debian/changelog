@@ -1,8 +1,12 @@
-network-manager (1.44.0-1) UNRELEASED; urgency=medium
+network-manager (1.44.0-1) unstable; urgency=medium
 
   * New upstream version 1.44.0
+  * Explicitly set the modprobe path during configure
+  * Update symbols file for libnm0
+  * Rebase patches
+  * Remove obsolete maintscript code
 
- -- Michael Biebl <biebl@debian.org>  Wed, 09 Aug 2023 22:00:51 +0200
+ -- Michael Biebl <biebl@debian.org>  Wed, 09 Aug 2023 22:22:22 +0200
 
 network-manager (1.42.8-1) unstable; urgency=medium
 
