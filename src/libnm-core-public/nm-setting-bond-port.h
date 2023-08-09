@@ -42,7 +42,7 @@ NMSetting *nm_setting_bond_port_new(void);
 NM_AVAILABLE_IN_1_34
 guint32 nm_setting_bond_port_get_queue_id(NMSettingBondPort *setting);
 
-NM_AVAILABLE_IN_1_42_8
+NM_AVAILABLE_IN_1_44
 gint32 nm_setting_bond_port_get_prio(NMSettingBondPort *setting);
 
 G_END_DECLS

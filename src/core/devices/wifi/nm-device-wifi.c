@@ -483,7 +483,7 @@ _scan_notify_is_scanning(NMDeviceWifi *self)
 
     if (!_scan_is_scanning_eval(priv)) {
         if (state <= NM_DEVICE_STATE_DISCONNECTED || state > NM_DEVICE_STATE_ACTIVATED)
-            nm_device_emit_recheck_auto_activate(NM_DEVICE(self));
+            nm_device_recheck_auto_activate_schedule(NM_DEVICE(self));
         nm_device_remove_pending_action(NM_DEVICE(self), NM_PENDING_ACTION_WIFI_SCAN, FALSE);
     }
 
@@ -843,7 +843,7 @@ ap_add_remove(NMDeviceWifi *self,
         nm_dbus_object_clear_and_unexport(&ap);
     }
 
-    nm_device_emit_recheck_auto_activate(NM_DEVICE(self));
+    nm_device_recheck_auto_activate_schedule(NM_DEVICE(self));
     if (recheck_available_connections)
         nm_device_recheck_available_connections(NM_DEVICE(self));
 }
@@ -981,7 +981,10 @@ deactivate_reset_hw_addr(NMDevice *device)
 }
 
 static gboolean
-check_connection_compatible(NMDevice *device, NMConnection *connection, GError **error)
+check_connection_compatible(NMDevice     *device,
+                            NMConnection *connection,
+                            gboolean      check_properties,
+                            GError      **error)
 {
     NMDeviceWifi              *self = NM_DEVICE_WIFI(device);
     NMDeviceWifiPrivate       *priv = NM_DEVICE_WIFI_GET_PRIVATE(self);
@@ -995,7 +998,7 @@ check_connection_compatible(NMDevice *device, NMConnection *connection, GError *
     const char                *key_mgmt;
 
     if (!NM_DEVICE_CLASS(nm_device_wifi_parent_class)
-             ->check_connection_compatible(device, connection, error))
+             ->check_connection_compatible(device, connection, check_properties, error))
         return FALSE;
 
     s_wireless = nm_connection_get_setting_wireless(connection);
@@ -1395,7 +1398,7 @@ _hw_addr_set_scanning(NMDeviceWifi *self, gboolean do_reset)
 
     priv = NM_DEVICE_WIFI_GET_PRIVATE(self);
 
-    randomize = nm_config_data_get_device_config_boolean(
+    randomize = nm_config_data_get_device_config_boolean_by_device(
         NM_CONFIG_GET_DATA,
         NM_CONFIG_KEYFILE_KEY_DEVICE_WIFI_SCAN_RAND_MAC_ADDRESS,
         device,
@@ -1428,7 +1431,7 @@ _hw_addr_set_scanning(NMDeviceWifi *self, gboolean do_reset)
          * a new one.*/
         priv->hw_addr_scan_expire = now + SCAN_RAND_MAC_ADDRESS_EXPIRE_SEC;
 
-        generate_mac_address_mask = nm_config_data_get_device_config(
+        generate_mac_address_mask = nm_config_data_get_device_config_by_device(
             NM_CONFIG_GET_DATA,
             NM_CONFIG_KEYFILE_KEY_DEVICE_WIFI_SCAN_GENERATE_MAC_ADDRESS_MASK,
             device,

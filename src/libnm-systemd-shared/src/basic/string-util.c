@@ -11,16 +11,17 @@
 #include "alloc-util.h"
 #include "escape.h"
 #include "extract-word.h"
+#include "fd-util.h"
 #include "fileio.h"
 #include "gunicode.h"
 #include "locale-util.h"
 #include "macro.h"
 #include "memory-util.h"
+#include "memstream-util.h"
 #include "string-util.h"
 #include "strv.h"
 #include "terminal-util.h"
 #include "utf8.h"
-#include "util.h"
 
 char* first_word(const char *s, const char *word) {
         size_t sl, wl;
@@ -611,8 +612,8 @@ char *strip_tab_ansi(char **ibuf, size_t *_isz, size_t highlight[2]) {
                 STATE_CSI,
                 STATE_CSO,
         } state = STATE_OTHER;
-        char *obuf = NULL;
-        size_t osz = 0, isz, shift[2] = {}, n_carriage_returns = 0;
+        _cleanup_(memstream_done) MemStream m = {};
+        size_t isz, shift[2] = {}, n_carriage_returns = 0;
         FILE *f;
 
         assert(ibuf);
@@ -636,7 +637,7 @@ char *strip_tab_ansi(char **ibuf, size_t *_isz, size_t highlight[2]) {
 
         /* Note we turn off internal locking on f for performance reasons. It's safe to do so since we
          * created f here and it doesn't leave our scope. */
-        f = open_memstream_unlocked(&obuf, &osz);
+        f = memstream_init(&m);
         if (!f)
                 return NULL;
 
@@ -721,16 +722,11 @@ char *strip_tab_ansi(char **ibuf, size_t *_isz, size_t highlight[2]) {
                 }
         }
 
-        if (fflush_and_check(f) < 0) {
-                fclose(f);
-                return mfree(obuf);
-        }
-        fclose(f);
+        char *obuf;
+        if (memstream_finalize(&m, &obuf, _isz) < 0)
+                return NULL;
 
         free_and_replace(*ibuf, obuf);
-
-        if (_isz)
-                *_isz = osz;
 
         if (highlight) {
                 highlight[0] += shift[0];
@@ -739,6 +735,7 @@ char *strip_tab_ansi(char **ibuf, size_t *_isz, size_t highlight[2]) {
 
         return *ibuf;
 }
+#endif /* NM_IGNORED */
 
 char *strextend_with_separator_internal(char **x, const char *separator, ...) {
         size_t f, l, l_separator;
@@ -809,7 +806,6 @@ char *strextend_with_separator_internal(char **x, const char *separator, ...) {
 
         return p;
 }
-#endif /* NM_IGNORED */
 
 int strextendf_with_separator(char **x, const char *separator, const char *format, ...) {
         size_t m, a, l_separator;
@@ -964,8 +960,7 @@ int free_and_strdup(char **p, const char *s) {
         } else
                 t = NULL;
 
-        free(*p);
-        *p = t;
+        free_and_replace(*p, t);
 
         return 1;
 }
@@ -1197,6 +1192,49 @@ char *string_replace_char(char *str, char old_char, char new_char) {
         return str;
 }
 
+int make_cstring(const char *s, size_t n, MakeCStringMode mode, char **ret) {
+        char *b;
+
+        assert(s || n == 0);
+        assert(mode >= 0);
+        assert(mode < _MAKE_CSTRING_MODE_MAX);
+
+        /* Converts a sized character buffer into a NUL-terminated NUL string, refusing if there are embedded
+         * NUL bytes. Whether to expect a trailing NUL byte can be specified via 'mode' */
+
+        if (n == 0) {
+                if (mode == MAKE_CSTRING_REQUIRE_TRAILING_NUL)
+                        return -EINVAL;
+
+                if (!ret)
+                        return 0;
+
+                b = new0(char, 1);
+        } else {
+                const char *nul;
+
+                nul = memchr(s, 0, n);
+                if (nul) {
+                        if (nul < s + n - 1 || /* embedded NUL? */
+                            mode == MAKE_CSTRING_REFUSE_TRAILING_NUL)
+                                return -EINVAL;
+
+                        n--;
+                } else if (mode == MAKE_CSTRING_REQUIRE_TRAILING_NUL)
+                        return -EINVAL;
+
+                if (!ret)
+                        return 0;
+
+                b = memdup_suffix0(s, n);
+        }
+        if (!b)
+                return -ENOMEM;
+
+        *ret = b;
+        return 0;
+}
+
 size_t strspn_from_end(const char *str, const char *accept) {
         size_t n = 0;
 
@@ -1211,4 +1249,55 @@ size_t strspn_from_end(const char *str, const char *accept) {
 
         return n;
 }
+
+char *strdupspn(const char *a, const char *accept) {
+        if (isempty(a) || isempty(accept))
+                return strdup("");
+
+        return strndup(a, strspn(a, accept));
+}
+
+char *strdupcspn(const char *a, const char *reject) {
+        if (isempty(a))
+                return strdup("");
+        if (isempty(reject))
+                return strdup(a);
+
+        return strndup(a, strcspn(a, reject));
+}
+
+char *find_line_startswith(const char *haystack, const char *needle) {
+        char *p;
+
+        assert(haystack);
+        assert(needle);
+
+        /* Finds the first line in 'haystack' that starts with the specified string. Returns a pointer to the
+         * first character after it */
+
+        p = strstr(haystack, needle);
+        if (!p)
+                return NULL;
+
+        if (p > haystack)
+                while (p[-1] != '\n') {
+                        p = strstr(p + 1, needle);
+                        if (!p)
+                                return NULL;
+                }
+
+        return p + strlen(needle);
+}
 #endif /* NM_IGNORED */
+
+char *startswith_strv(const char *string, char **strv) {
+        char *found = NULL;
+
+        STRV_FOREACH(i, strv) {
+                found = startswith(string, *i);
+                if (found)
+                        break;
+        }
+
+        return found;
+}

@@ -297,11 +297,15 @@ The <code class="constant">args</code> argument accepts the following keys:
 <col>
 </colgroup>
 <tbody><tr>
-<td><p><span class="term"><code class="literal">plugin</code>:</span></p></td>
+<td><p><span class="term"><code class="literal">plugin</code>:, </span><span class="term"><code class="literal">version-id</code>:</span></p></td>
 <td>
 <p>The settings plugin the connection will be migrated to
 such as "keyfile" or "ifcfg-rh".</p>
 <p class="since">Since 1.38</p>
+<p>If specified, the update request is rejected if the
+profile's version-id does not match. This can be used to catch concurrent
+modifications. Zero means no version check.</p>
+<p class="since">Since 1.44</p>
 </td>
 </tr></tbody>
 </table></div>

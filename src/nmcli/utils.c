@@ -837,8 +837,8 @@ _output_selection_parse(const NMMetaAbstractInfo *const *fields,
  * @field_str: comma-separated field names to parse
  * @fields_array: array of allowed fields
  * @parse_groups: whether the fields can contain group prefix (e.g. general.driver)
- * @group_fields: (out) (allow-none): array of field names for particular groups
- * @error: (out) (allow-none): location to store error, or %NULL
+ * @group_fields: (out) (optional) (nullable): array of field names for particular groups
+ * @error: location to store error, or %NULL
  *
  * Parses comma separated fields in @fields_str according to @fields_array.
  * When @parse_groups is %TRUE, fields can be in the form 'group.field'. Then
@@ -1467,6 +1467,7 @@ nmc_terminal_spawn_pager(const NmcConfig *nmc_config)
     ev = g_get_environ();
     ev = g_environ_setenv(ev, "LESS", "FRSXMK", TRUE);
     ev = g_environ_setenv(ev, "LESSCHARSET", "utf-8", TRUE);
+    ev = g_environ_setenv(ev, "LESSSECURE", "1", FALSE);
 
     pager_pid = fork();
     if (pager_pid == -1) {
@@ -1819,5 +1820,21 @@ print_data(const NmcConfig     *nmc_config,
                               header_name,
                               indent,
                               field_values);
+    }
+}
+
+void
+nmc_warn_if_version_mismatch(NMClient *client)
+{
+    const char *nm_ver;
+
+    g_return_if_fail(client != NULL);
+
+    nm_ver = nm_client_get_version(client);
+    if (!nm_streq0(nm_ver, VERSION)) {
+        g_printerr(_("Warning: nmcli (%s) and NetworkManager (%s) versions don't match. "
+                     "Restarting NetworkManager is advised.\n"),
+                   VERSION,
+                   nm_ver ? nm_ver : _("Unknown"));
     }
 }

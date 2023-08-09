@@ -137,7 +137,9 @@
 <li class="listitem"><p><code class="literal">NM_CLOUD_SETUP_LOG</code>: control the logging verbosity. Set it
           to one of <code class="literal">TRACE</code>, <code class="literal">DEBUG</code>, <code class="literal">INFO</code>,
           <code class="literal">WARN</code>, <code class="literal">ERR</code> or <code class="literal">OFF</code>. The program
-          will print message on stdout and the default level is <code class="literal">WARN</code>.</p></li>
+          will print message on stdout and the default level is <code class="literal">WARN</code>. When
+          run as systemd service, the log will be collected by journald can can be seen with
+          <span class="command"><strong>journalctl</strong></span>.</p></li>
 <li class="listitem"><p><code class="literal">NM_CLOUD_SETUP_AZURE</code>: boolean, whether Microsoft Azure support is enabled. Defaults
           to <code class="literal">no</code>.</p></li>
 <li class="listitem"><p><code class="literal">NM_CLOUD_SETUP_EC2</code>: boolean, whether Amazon EC2 (AWS) support is enabled. Defaults
@@ -147,6 +149,15 @@
 <li class="listitem"><p><code class="literal">NM_CLOUD_SETUP_ALIYUN</code>: boolean, whether Alibaba Cloud (Aliyun) support is enabled. Defaults
           to <code class="literal">no</code>.</p></li>
 </ul></div>
+</div>
+<div class="refsect1">
+<a name="debugging"></a><h2>Debugging</h2>
+<p>Enable debug logging by setting <code class="literal">NM_CLOUD_SETUP_LOG</code> environment variable to <code class="literal">TRACE</code>.</p>
+<p>In the common case where nm-cloud-setup is running as systemd service, this can be done via <span class="command"><strong>systemctl edit nm-cloud-setup.service</strong></span>
+    and add <code class="literal">Environment=NM_CLOUD_SETUP_LOG=TRACE</code> to the <code class="literal">[Service]</code> section. Afterwards, the log can
+    be found in syslog via <code class="literal">journalctl</code>. You may also want to enable debug logging in NetworkManager as descibed
+    in the DEBUGGING section in <a class="link" href="NetworkManager.html" title="NetworkManager"><span class="citerefentry"><span class="refentrytitle">NetworkManager</span>(5)</span></a>
+    manual. When sharing logs, it's best to share complete logs and not preemptively filter for NetworkManager or nm-cloud-setup logs.</p>
 </div>
 <div class="refsect1">
 <a name="deploy"></a><h2>Example Setup for Configuring and Predeploying nm-cloud-setup</h2>
@@ -182,7 +193,7 @@ ln -s /etc/systemd/system/timers.target.wants/nm-cloud-setup.timer /usr/lib/syst
 <div class="refsect1">
 <a name="providers"></a><h2>Supported Cloud Providers</h2>
 <div class="refsect2">
-<a name="id-1.2.15.9.2"></a><h3>Amazon EC2 (AWS)</h3>
+<a name="id-1.2.15.10.2"></a><h3>Amazon EC2 (AWS)</h3>
 <p>For AWS, the tools tries to fetch configuration from <code class="literal">http://169.254.169.254/</code>. Currently, it only
       configures IPv4 and does nothing about IPv6. It will do the following.</p>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
@@ -239,7 +250,7 @@ ln -s /etc/systemd/system/timers.target.wants/nm-cloud-setup.timer /usr/lib/syst
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.15.9.3"></a><h3>Google Cloud Platform (GCP)</h3>
+<a name="id-1.2.15.10.3"></a><h3>Google Cloud Platform (GCP)</h3>
 <p>
         For GCP, the meta data is fetched from URIs starting with <code class="literal">http://metadata.google.internal/computeMetadata/v1/</code> with a
         HTTP header <code class="literal">"Metadata-Flavor: Google"</code>.
@@ -267,7 +278,7 @@ ln -s /etc/systemd/system/timers.target.wants/nm-cloud-setup.timer /usr/lib/syst
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.15.9.4"></a><h3>Microsoft Azure</h3>
+<a name="id-1.2.15.10.4"></a><h3>Microsoft Azure</h3>
 <p>
         For Azure, the meta data is fetched from URIs starting with <code class="literal">http://169.254.169.254/metadata/instance</code> with a
         URL parameter <code class="literal">"?format=text&amp;api-version=2017-04-02"</code> and a HTTP header <code class="literal">"Metadata:true"</code>.
@@ -299,7 +310,7 @@ ln -s /etc/systemd/system/timers.target.wants/nm-cloud-setup.timer /usr/lib/syst
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.15.9.5"></a><h3>Alibaba Cloud (Aliyun)</h3>
+<a name="id-1.2.15.10.5"></a><h3>Alibaba Cloud (Aliyun)</h3>
 <p>For Aliyun, the tools tries to fetch configuration from <code class="literal">http://100.100.100.200/</code>. Currently, it only
       configures IPv4 and does nothing about IPv6. It will do the following.</p>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
@@ -327,7 +338,7 @@ ln -s /etc/systemd/system/timers.target.wants/nm-cloud-setup.timer /usr/lib/syst
 </div>
 </div>
 <div class="refsect1">
-<a name="id-1.2.15.10"></a><h2>See Also</h2>
+<a name="id-1.2.15.11"></a><h2>See Also</h2>
 <p>
       <a class="link" href="NetworkManager.html" title="NetworkManager"><span class="citerefentry"><span class="refentrytitle">NetworkManager</span>(8)</span></a>
       <a class="link" href="nmcli.html" title="nmcli"><span class="citerefentry"><span class="refentrytitle">nmcli</span>(1)</span></a>

@@ -175,7 +175,7 @@ nm_sock_addr_endpoint_new(const char *endpoint)
 
 /**
  * nm_sock_addr_endpoint_ref:
- * @self: (allow-none): the #NMSockAddrEndpoint
+ * @self: (nullable): the #NMSockAddrEndpoint
  */
 NMSockAddrEndpoint *
 nm_sock_addr_endpoint_ref(NMSockAddrEndpoint *self)
@@ -193,7 +193,7 @@ nm_sock_addr_endpoint_ref(NMSockAddrEndpoint *self)
 
 /**
  * nm_sock_addr_endpoint_unref:
- * @self: (allow-none): the #NMSockAddrEndpoint
+ * @self: (nullable): the #NMSockAddrEndpoint
  */
 void
 nm_sock_addr_endpoint_unref(NMSockAddrEndpoint *self)
@@ -1380,7 +1380,7 @@ nm_utils_ip4_dns_from_variant(GVariant *value)
 /**
  * nm_utils_ip4_addresses_to_variant:
  * @addresses: (element-type NMIPAddress): an array of #NMIPAddress objects
- * @gateway: (allow-none): the gateway IP address
+ * @gateway: (nullable): the gateway IP address
  *
  * Utility function to convert a #GPtrArray of #NMIPAddress objects representing
  * IPv4 addresses into a #GVariant of type 'aau' representing an array of
@@ -1430,7 +1430,8 @@ nm_utils_ip4_addresses_to_variant(GPtrArray *addresses, const char *gateway)
 /**
  * nm_utils_ip4_addresses_from_variant:
  * @value: a #GVariant of type 'aau'
- * @out_gateway: (out) (allow-none) (transfer full): on return, will contain the IP gateway
+ * @out_gateway: (out) (optional) (nullable) (transfer full): on return, will
+ *   contain the IP gateway
  *
  * Utility function to convert a #GVariant of type 'aau' representing a list of
  * NetworkManager IPv4 addresses (which are tuples of address, prefix, and
@@ -1673,7 +1674,7 @@ nm_utils_ip6_dns_from_variant(GVariant *value)
 /**
  * nm_utils_ip6_addresses_to_variant:
  * @addresses: (element-type NMIPAddress): an array of #NMIPAddress objects
- * @gateway: (allow-none): the gateway IP address
+ * @gateway: (nullable): the gateway IP address
  *
  * Utility function to convert a #GPtrArray of #NMIPAddress objects representing
  * IPv6 addresses into a #GVariant of type 'a(ayuay)' representing an array of
@@ -1725,7 +1726,8 @@ nm_utils_ip6_addresses_to_variant(GPtrArray *addresses, const char *gateway)
 /**
  * nm_utils_ip6_addresses_from_variant:
  * @value: a #GVariant of type 'a(ayuay)'
- * @out_gateway: (out) (allow-none) (transfer full): on return, will contain the IP gateway
+ * @out_gateway: (out) (optional) (nullable) (transfer full): on return, will
+ *   contain the IP gateway
  *
  * Utility function to convert a #GVariant of type 'a(ayuay)' representing a
  * list of NetworkManager IPv6 addresses (which are tuples of address, prefix,
@@ -2821,7 +2823,7 @@ extern const NMVariantAttributeSpec *const _nm_sriov_vf_attribute_spec[];
  * nm_utils_sriov_vf_to_str:
  * @vf: the %NMSriovVF
  * @omit_index: if %TRUE, the VF index will be omitted from output string
- * @error: (out) (allow-none): location to store the error on failure
+ * @error: location to store the error on failure
  *
  * Converts a SR-IOV virtual function object to its string representation.
  *
@@ -2982,7 +2984,7 @@ _nm_sriov_vf_parse_vlans(NMSriovVF *vf, const char *str, GError **error)
 /**
  * nm_utils_sriov_vf_from_str:
  * @str: the input string
- * @error: (out) (allow-none): location to store the error on failure
+ * @error: location to store the error on failure
  *
  * Converts a string to a SR-IOV virtual function object.
  *
@@ -3210,17 +3212,17 @@ _nm_utils_check_module_file(const char               *name,
  * nm_utils_file_search_in_paths:
  * @progname: the helper program name, like "iptables"
  *   Must be a non-empty string, without path separator (/).
- * @try_first: (allow-none): a custom path to try first before searching.
+ * @try_first: (nullable): a custom path to try first before searching.
  *   It is silently ignored if it is empty or not an absolute path.
- * @paths: (allow-none): a %NULL terminated list of search paths.
+ * @paths: (nullable): a %NULL terminated list of search paths.
  *   Can be empty or %NULL, in which case only @try_first is checked.
  * @file_test_flags: the flags passed to g_file_test() when searching
  *   for @progname. Set it to 0 to skip the g_file_test().
  * @predicate: (scope call): if given, pass the file name to this function
  *   for additional checks. This check is performed after the check for
  *   @file_test_flags. You cannot omit both @file_test_flags and @predicate.
- * @user_data: (closure) (allow-none): user data for @predicate function.
- * @error: (allow-none): on failure, set a "not found" error %G_IO_ERROR %G_IO_ERROR_NOT_FOUND.
+ * @user_data: (closure) (nullable): user data for @predicate function.
+ * @error: on failure, set a "not found" error %G_IO_ERROR %G_IO_ERROR_NOT_FOUND.
  *
  * Searches for a @progname file in a list of search @paths.
  *
@@ -3595,7 +3597,7 @@ _nm_property_variant_to_gvalue(GVariant *src_value, GValue *dst_value)
  * Before 1.28, it was an error to call this function with any value other than
  * <literal>ARPHRD_ETHER</literal> or <literal>ARPHRD_INFINIBAND</literal>.
  *
- * Return value: the length or zero if the type is unrecognized.
+ * Returns: the length or zero if the type is unrecognized.
  */
 gsize
 nm_utils_hwaddr_len(int type)
@@ -3619,7 +3621,7 @@ nm_utils_hwaddr_len(int type)
  * eg "00:11" or "0:1".  Any "0x" at the beginning of @hex is ignored.  @hex
  * may not start or end with ':'.
  *
- * Return value: (transfer full): the converted bytes, or %NULL on error
+ * Returns: (transfer full): the converted bytes, or %NULL on error
  */
 GBytes *
 nm_utils_hexstr2bin(const char *hex)
@@ -3642,7 +3644,7 @@ nm_utils_hexstr2bin(const char *hex)
  * Parses @asc and converts it to binary form in a #GByteArray. See
  * nm_utils_hwaddr_aton() if you don't want a #GByteArray.
  *
- * Return value: (transfer full): a new #GByteArray, or %NULL if @asc couldn't
+ * Returns: (transfer full): a new #GByteArray, or %NULL if @asc couldn't
  * be parsed
  */
 GByteArray *
@@ -3674,7 +3676,7 @@ fail:
  * Parses @asc and converts it to binary form in @buffer.
  * Bytes in @asc can be separated by colons (:), or hyphens (-), but not mixed.
  *
- * Return value: @buffer, or %NULL if @asc couldn't be parsed
+ * Returns: @buffer, or %NULL if @asc couldn't be parsed
  *   or would be shorter or longer than @length.
  */
 guint8 *
@@ -3697,7 +3699,7 @@ nm_utils_hwaddr_aton(const char *asc, gpointer buffer, gsize length)
  * greater than -1, the returned string is terminated at that index
  * (returned_string[final_len] == '\0'),
  *
- * Return value: (transfer full): the textual form of @bytes
+ * Returns: (transfer full): the textual form of @bytes
  */
 char *
 nm_utils_bin2hexstr(gconstpointer src, gsize len, int final_len)
@@ -3718,7 +3720,7 @@ nm_utils_bin2hexstr(gconstpointer src, gsize len, int final_len)
  *
  * Converts @addr to textual form.
  *
- * Return value: (transfer full): the textual form of @addr
+ * Returns: (transfer full): the textual form of @addr
  */
 char *
 nm_utils_hwaddr_ntoa(gconstpointer addr, gsize length)
@@ -3738,7 +3740,7 @@ nm_utils_hwaddr_ntoa(gconstpointer addr, gsize length)
  * Parses @asc to see if it is a valid hardware address of the given
  * length.
  *
- * Return value: %TRUE if @asc appears to be a valid hardware address
+ * Returns: %TRUE if @asc appears to be a valid hardware address
  *   of the indicated length, %FALSE if not.
  */
 gboolean
@@ -3769,7 +3771,7 @@ nm_utils_hwaddr_valid(const char *asc, gssize length)
  * length, and if so, returns it in canonical form (uppercase, with
  * leading 0s as needed, and with colons rather than hyphens).
  *
- * Return value: (transfer full): the canonicalized address if @asc appears to
+ * Returns: (transfer full): the canonicalized address if @asc appears to
  *   be a valid hardware address of the indicated length, %NULL if not.
  */
 char *
@@ -3830,7 +3832,7 @@ _nm_utils_ipaddr_canonical_or_invalid(int addr_family, const char *ip, gboolean 
 /*
  * Determine if given Ethernet address is link-local
  *
- * Return value: %TRUE if @mac is link local
+ * Returns: %TRUE if @mac is link local
  * reserved addr (01:80:c2:00:00:0X) per IEEE 802.1Q 8.6.3 Frame filtering, %FALSE if not.
  */
 gboolean
@@ -3887,7 +3889,7 @@ _nm_utils_hwaddr_link_local_valid(const char *mac)
  * sanity-checked before comparing them against known good addresses; they are
  * guaranteed to not match if they are invalid.)
  *
- * Return value: %TRUE if @hwaddr1 and @hwaddr2 are equivalent, %FALSE if they are
+ * Returns: %TRUE if @hwaddr1 and @hwaddr2 are equivalent, %FALSE if they are
  *   different (or either of them is invalid).
  */
 gboolean
@@ -4296,7 +4298,7 @@ nm_utils_is_valid_iface_name_utf8safe(const char *utf8safe_name)
 
 /**
  * nm_utils_is_valid_iface_name:
- * @name: (allow-none): Name of interface
+ * @name: (nullable): Name of interface
  * @error: location to store the error occurring, or %NULL to ignore
  *
  * Validate the network interface name.
@@ -4321,7 +4323,7 @@ nm_utils_is_valid_iface_name(const char *name, GError **error)
 
 /**
  * nm_utils_iface_valid_name:
- * @name: (allow-none): Name of interface
+ * @name: (nullable): Name of interface
  *
  * Validate the network interface name.
  *
@@ -4340,7 +4342,7 @@ nm_utils_iface_valid_name(const char *name)
 
 /**
  * nm_utils_is_uuid:
- * @str: (allow-none): a string that might be a UUID
+ * @str: (nullable): a string that might be a UUID
  *
  * Checks if @str is a UUID
  *
@@ -4429,7 +4431,7 @@ nm_utils_inet6_ntop(const struct in6_addr *in6addr, char *dst)
  *
  * Checks if @ip contains a valid IP address of the given family.
  *
- * Return value: %TRUE or %FALSE
+ * Returns: %TRUE or %FALSE
  */
 gboolean
 nm_utils_ipaddr_valid(int family, const char *ip)
@@ -4446,7 +4448,7 @@ nm_utils_ipaddr_valid(int family, const char *ip)
  * Checks if @duid string contains either a special duid value ("ll",
  * "llt", "lease" or the "stable" variants) or a valid hex DUID.
  *
- * Return value: %TRUE or %FALSE
+ * Returns: %TRUE or %FALSE
  */
 gboolean
 _nm_utils_dhcp_duid_valid(const char *duid, GBytes **out_duid_bin)
@@ -4711,10 +4713,10 @@ validate_dns_option(const char                 *name,
 /**
  * _nm_utils_dns_option_validate:
  * @option: option string
- * @out_name: (out) (allow-none): the option name
- * @out_value: (out) (allow-none): the option value
+ * @out_name: (out) (optional) (nullable): the option name
+ * @out_value: (out) (optional): the option value
  * @ipv6: whether the option refers to a IPv6 configuration
- * @option_descs: (allow-none): an array of NMUtilsDNSOptionDesc which describes the
+ * @option_descs: (nullable): an array of NMUtilsDNSOptionDesc which describes the
  * valid options
  *
  * Parses a DNS option in the form "name" or "name:number" and, if
@@ -4834,8 +4836,9 @@ nm_utils_enum_to_str(GType type, int value)
  * nm_utils_enum_from_str:
  * @type: the %GType of the enum
  * @str: the input string
- * @out_value: (out) (allow-none): the output value
- * @err_token: (out) (allow-none) (transfer full): location to store the first unrecognized token
+ * @out_value: (out) (optional): the output value
+ * @err_token: (out) (optional) (nullable) (transfer full): location to store
+ *   the first unrecognized token
  *
  * Converts a string to the matching enum value.
  *
@@ -5030,7 +5033,7 @@ _nm_variant_attribute_spec_find_binary_search(const NMVariantAttributeSpec *cons
  * @key_value_separator: character separating key and values
  * @ignore_unknown: whether unknown attributes should be ignored
  * @spec: the attribute format specifiers
- * @error: (out) (allow-none): location to store the error on failure
+ * @error: location to store the error on failure
  *
  * Parse attributes from a string.
  *
@@ -5330,7 +5333,7 @@ NM_UTILS_FLAGS2STR_DEFINE(nm_bluetooth_capability_to_string,
  * @base64_key: the (possibly invalid) base64 encode key.
  * @required_key_len: the expected (binary) length of the key after
  *   decoding. If the length does not match, the validation fails.
- * @out_key: (allow-none): (out): an optional output buffer for the binary
+ * @out_key: (out) (optional): an optional output buffer for the binary
  *   key. If given, it will be filled with exactly @required_key_len
  *   bytes.
  *

@@ -38,7 +38,7 @@
             Properties
         </h2>
 <div class="table">
-<a name="id-1.3.3.40.2.2.1"></a><p class="title"><b>Table 86. </b></p>
+<a name="id-1.3.3.40.2.2.1"></a><p class="title"><b>Table 74. </b></p>
 <div class="table-contents"><table class="table" border="1">
 <colgroup>
 <col>
@@ -57,37 +57,37 @@
 <td><pre class="screen">data</pre></td>
 <td><pre class="screen">dict of string to string</pre></td>
 <td><pre class="screen">{}</pre></td>
-<td> </td>
+<td>Dictionary of key/value pairs of VPN plugin specific data.  Both keys and values must be strings.</td>
 </tr>
 <tr>
 <td><pre class="screen">persistent</pre></td>
 <td><pre class="screen">boolean</pre></td>
 <td><pre class="screen">FALSE</pre></td>
-<td> </td>
+<td>If the VPN service supports persistence, and this property is TRUE, the VPN will attempt to stay connected across link changes and outages, until explicitly disconnected.</td>
 </tr>
 <tr>
 <td><pre class="screen">secrets</pre></td>
 <td><pre class="screen">dict of string to string</pre></td>
 <td><pre class="screen">{}</pre></td>
-<td> </td>
+<td>Dictionary of key/value pairs of VPN plugin specific secrets like passwords or private keys.  Both keys and values must be strings.</td>
 </tr>
 <tr>
 <td><pre class="screen">service-type</pre></td>
 <td><pre class="screen">string</pre></td>
 <td><pre class="screen"></pre></td>
-<td> </td>
+<td>D-Bus service name of the VPN plugin that this setting uses to connect to its network.  i.e. org.freedesktop.NetworkManager.vpnc for the vpnc plugin.</td>
 </tr>
 <tr>
 <td><pre class="screen">timeout</pre></td>
 <td><pre class="screen">uint32</pre></td>
 <td><pre class="screen">0</pre></td>
-<td> </td>
+<td>Timeout for the VPN service to establish the connection. Some services may take quite a long time to connect. Value of 0 means a default timeout, which is 60 seconds (unless overridden by vpn.timeout in configuration file). Values greater than zero mean timeout in seconds.</td>
 </tr>
 <tr>
 <td><pre class="screen">user-name</pre></td>
 <td><pre class="screen">string</pre></td>
 <td><pre class="screen"></pre></td>
-<td> </td>
+<td>If the VPN connection requires a user name for authentication, that name should be provided here.  If the connection is available to more than one user, and the VPN requires each user to supply a different name, then leave this property empty.  If this property is empty, NetworkManager will automatically supply the username of the user which requested the VPN connection.</td>
 </tr>
 </tbody>
 </table></div>

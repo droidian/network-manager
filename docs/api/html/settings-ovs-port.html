@@ -38,7 +38,7 @@
             Properties
         </h2>
 <div class="table">
-<a name="id-1.3.3.28.2.2.1"></a><p class="title"><b>Table 74. </b></p>
+<a name="id-1.3.3.28.2.2.1"></a><p class="title"><b>Table 62. </b></p>
 <div class="table-contents"><table class="table" border="1">
 <colgroup>
 <col>
@@ -57,43 +57,45 @@
 <td><pre class="screen">bond-downdelay</pre></td>
 <td><pre class="screen">uint32</pre></td>
 <td><pre class="screen">0</pre></td>
-<td> </td>
+<td>The time port must be inactive in order to be considered down.</td>
 </tr>
 <tr>
 <td><pre class="screen">bond-mode</pre></td>
 <td><pre class="screen">string</pre></td>
 <td><pre class="screen"></pre></td>
-<td> </td>
+<td>Bonding mode. One of "active-backup", "balance-slb", or "balance-tcp".</td>
 </tr>
 <tr>
 <td><pre class="screen">bond-updelay</pre></td>
 <td><pre class="screen">uint32</pre></td>
 <td><pre class="screen">0</pre></td>
-<td> </td>
+<td>The time port must be active before it starts forwarding traffic.</td>
 </tr>
 <tr>
 <td><pre class="screen">lacp</pre></td>
 <td><pre class="screen">string</pre></td>
 <td><pre class="screen"></pre></td>
-<td> </td>
+<td>LACP mode. One of "active", "off", or "passive".</td>
 </tr>
 <tr>
 <td><pre class="screen">tag</pre></td>
 <td><pre class="screen">uint32</pre></td>
 <td><pre class="screen">0</pre></td>
-<td> </td>
+<td>The VLAN tag in the range 0-4095.</td>
 </tr>
 <tr>
 <td><pre class="screen">trunks</pre></td>
 <td><pre class="screen">array of vardict</pre></td>
 <td><pre class="screen"></pre></td>
-<td> </td>
+<td>A list of VLAN ranges that this port trunks.
+
+The property is valid only for ports with mode "trunk", "native-tagged", or "native-untagged port". If it is empty, the port trunks all VLANs.</td>
 </tr>
 <tr>
 <td><pre class="screen">vlan-mode</pre></td>
 <td><pre class="screen">string</pre></td>
 <td><pre class="screen"></pre></td>
-<td> </td>
+<td>The VLAN mode. One of "access", "native-tagged", "native-untagged", "trunk", "dot1q-tunnel" or unset.</td>
 </tr>
 </tbody>
 </table></div>

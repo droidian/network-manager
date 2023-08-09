@@ -29,10 +29,6 @@ enum NMActStageReturn {
 
 #define NM_DEVICE_CAP_INTERNAL_MASK 0xc0000000
 
-NMSettings *nm_device_get_settings(NMDevice *self);
-
-NMManager *nm_device_get_manager(NMDevice *self);
-
 gboolean nm_device_set_ip_ifindex(NMDevice *self, int ifindex);
 
 gboolean nm_device_set_ip_iface(NMDevice *self, const char *iface);
@@ -179,5 +175,7 @@ void nm_device_auth_request(NMDevice                      *self,
                             GCancellable                  *cancellable,
                             NMManagerDeviceAuthRequestFunc callback,
                             gpointer                       user_data);
+
+void nm_device_link_properties_set(NMDevice *self, gboolean reapply);
 
 #endif /* NM_DEVICE_PRIVATE_H */

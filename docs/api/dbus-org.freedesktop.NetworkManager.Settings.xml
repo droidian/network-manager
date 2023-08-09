@@ -40,6 +40,7 @@
 <link linkend="gdbus-property-org-freedesktop-NetworkManager-Settings.Connections">Connections</link>  readable   ao
 <link linkend="gdbus-property-org-freedesktop-NetworkManager-Settings.Hostname">Hostname</link>     readable   s
 <link linkend="gdbus-property-org-freedesktop-NetworkManager-Settings.CanModify">CanModify</link>    readable   b
+<link linkend="gdbus-property-org-freedesktop-NetworkManager-Settings.VersionId">VersionId</link>    readable   t
 </synopsis>
   </refsect1>
 <refsect1 role="desc" id="gdbus-interface-org-freedesktop-NetworkManager-Settings">
@@ -398,6 +399,19 @@ CanModify  readable   b
 </programlisting>
 <para>
 If true, adding and modifying connections is supported.
+</para>
+</refsect2>
+<refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Settings.VersionId">
+  <title>The "VersionId" property</title>
+  <indexterm zone="gdbus-property-org-freedesktop-NetworkManager-Settings.VersionId"><primary sortas=".Settings:VersionId">org.freedesktop.NetworkManager.Settings:VersionId</primary></indexterm>
+<programlisting>
+VersionId  readable   t
+</programlisting>
+<para>
+The version of the settings. This is incremented whenever the profile
+changes and can be used to detect concurrent modifications.
+</para><para>
+Since: 1.44
 </para>
 </refsect2>
 </refsect1>

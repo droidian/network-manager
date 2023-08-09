@@ -506,6 +506,8 @@
 </dt>
 <dt id="ientry-id-1.4.6.2.9.3.2">org.freedesktop.NetworkManager.Settings:Hostname, <a class="indexterm" href="gdbus-org.freedesktop.NetworkManager.Settings.html#gdbus-property-org-freedesktop-NetworkManager-Settings.Hostname">The "Hostname" property</a>
 </dt>
+<dt id="ientry-id-1.4.6.2.9.5.2">org.freedesktop.NetworkManager.Settings:VersionId, <a class="indexterm" href="gdbus-org.freedesktop.NetworkManager.Settings.html#gdbus-property-org-freedesktop-NetworkManager-Settings.VersionId">The "VersionId" property</a>
+</dt>
 </dl>
 </div>
 <div class="indexdiv">
@@ -750,6 +752,8 @@
 </dt>
 <dt id="ientry-id-1.3.3.17.2.2.1.1.2.9.1.1.1">dhcp-iaid, <a class="indexterm" href="settings-ipv4.html">ipv4</a>, <a class="indexterm" href="settings-ipv6.html">ipv6</a>
 </dt>
+<dt id="ientry-id-1.3.3.18.2.2.1.1.2.10.1.1.1">dhcp-pd-hint, <a class="indexterm" href="settings-ipv6.html">ipv6</a>
+</dt>
 <dt id="ientry-id-1.3.3.17.2.2.1.1.2.10.1.1.1">dhcp-reject-servers, <a class="indexterm" href="settings-ipv4.html">ipv4</a>, <a class="indexterm" href="settings-ipv6.html">ipv6</a>
 </dt>
 <dt id="ientry-id-1.3.3.17.2.2.1.1.2.11.1.1.1">dhcp-send-hostname, <a class="indexterm" href="settings-ipv4.html">ipv4</a>, <a class="indexterm" href="settings-ipv6.html">ipv6</a>
@@ -833,11 +837,17 @@
 </dt>
 <dt id="ientry-id-1.3.3.45.2.2.1.1.2.6.1.1.1">generate-mac-address-mask, <a class="indexterm" href="settings-802-3-ethernet.html">802-3-ethernet</a>, <a class="indexterm" href="settings-802-11-wireless.html">802-11-wireless</a>
 </dt>
+<dt id="ientry-id-1.3.3.52.2.2.1.1.2.1.1.1.1">gro-max-size, <a class="indexterm" href="settings-link.html">link</a>
+</dt>
 <dt id="ientry-id-1.3.3.37.2.2.1.1.2.1.1.1.1">group, <a class="indexterm" href="settings-tun.html">tun</a>, <a class="indexterm" href="settings-802-11-wireless-security.html">802-11-wireless-security</a>
 </dt>
 <dt id="ientry-id-1.3.3.8.2.2.1.1.2.3.1.1.1">group-address, <a class="indexterm" href="settings-bridge.html">bridge</a>
 </dt>
 <dt id="ientry-id-1.3.3.8.2.2.1.1.2.4.1.1.1">group-forward-mask, <a class="indexterm" href="settings-bridge.html">bridge</a>
+</dt>
+<dt id="ientry-id-1.3.3.52.2.2.1.1.2.2.1.1.1">gso-max-segments, <a class="indexterm" href="settings-link.html">link</a>
+</dt>
+<dt id="ientry-id-1.3.3.52.2.2.1.1.2.3.1.1.1">gso-max-size, <a class="indexterm" href="settings-link.html">link</a>
 </dt>
 </dl>
 </div>
@@ -867,6 +877,10 @@
 </dt>
 <dt id="ientry-id-1.3.3.39.2.2.1.1.2.4.1.1.1">ingress-priority-map, <a class="indexterm" href="settings-vlan.html">vlan</a>
 </dt>
+<dt id="ientry-id-1.3.3.15.2.2.1.1.2.5.1.1.1">initial-eps-bearer-apn, <a class="indexterm" href="settings-gsm.html">gsm</a>
+</dt>
+<dt id="ientry-id-1.3.3.15.2.2.1.1.2.6.1.1.1">initial-eps-bearer-configure, <a class="indexterm" href="settings-gsm.html">gsm</a>
+</dt>
 <dt id="ientry-id-1.3.3.19.2.2.1.1.2.5.1.1.1">input-key, <a class="indexterm" href="settings-ip-tunnel.html">ip-tunnel</a>
 </dt>
 <dt id="ientry-id-1.3.3.2.2.2.1.1.2.9.1.1.1">interface-name, <a class="indexterm" href="settings-connection.html">connection</a>, <a class="indexterm" href="settings-bond.html">bond</a>, <a class="indexterm" href="settings-bridge.html">bridge</a>, <a class="indexterm" href="settings-match.html">match</a>, <a class="indexterm" href="settings-team.html">team</a>, <a class="indexterm" href="settings-vlan.html">vlan</a>
@@ -875,7 +889,7 @@
 </dt>
 <dt id="ientry-id-1.3.3.46.2.2.1.1.2.3.1.1.1">ip6-auto-default-route, <a class="indexterm" href="settings-wireguard.html">wireguard</a>
 </dt>
-<dt id="ientry-id-1.3.3.18.2.2.1.1.2.21.1.1.1">ip6-privacy, <a class="indexterm" href="settings-ipv6.html">ipv6</a>
+<dt id="ientry-id-1.3.3.18.2.2.1.1.2.22.1.1.1">ip6-privacy, <a class="indexterm" href="settings-ipv6.html">ipv6</a>
 </dt>
 </dl>
 </div>
@@ -1115,7 +1129,7 @@
 </dt>
 <dt id="ientry-id-1.3.3.25.2.2.1.1.2.4.1.1.1">n-txq-desc, <a class="indexterm" href="settings-ovs-dpdk.html">ovs-dpdk</a>
 </dt>
-<dt id="ientry-id-1.3.3.15.2.2.1.1.2.6.1.1.1">network-id, <a class="indexterm" href="settings-gsm.html">gsm</a>
+<dt id="ientry-id-1.3.3.15.2.2.1.1.2.8.1.1.1">network-id, <a class="indexterm" href="settings-gsm.html">gsm</a>
 </dt>
 <dt id="ientry-id-1.3.3.44.2.2.1.1.2.2.1.1.1">network-name, <a class="indexterm" href="settings-wimax.html">wimax</a>
 </dt>
@@ -1397,7 +1411,7 @@
 <div class="indexdiv">
 <h3>R</h3>
 <dl>
-<dt id="ientry-id-1.3.3.18.2.2.1.1.2.26.1.1.1">ra-timeout, <a class="indexterm" href="settings-ipv6.html">ipv6</a>
+<dt id="ientry-id-1.3.3.18.2.2.1.1.2.27.1.1.1">ra-timeout, <a class="indexterm" href="settings-ipv6.html">ipv6</a>
 </dt>
 <dt id="ientry-id-1.3.3.47.2.2.1.1.2.15.1.1.1">rate, <a class="indexterm" href="settings-802-11-wireless.html">802-11-wireless</a>
 </dt>
@@ -1486,9 +1500,9 @@
 </dt>
 <dt id="ientry-id-1.3.3.49.2.2.1.1.2.5.1.1.1">short-address, <a class="indexterm" href="settings-wpan.html">wpan</a>
 </dt>
-<dt id="ientry-id-1.3.3.15.2.2.1.1.2.12.1.1.1">sim-id, <a class="indexterm" href="settings-gsm.html">gsm</a>
+<dt id="ientry-id-1.3.3.15.2.2.1.1.2.14.1.1.1">sim-id, <a class="indexterm" href="settings-gsm.html">gsm</a>
 </dt>
-<dt id="ientry-id-1.3.3.15.2.2.1.1.2.13.1.1.1">sim-operator-id, <a class="indexterm" href="settings-gsm.html">gsm</a>
+<dt id="ientry-id-1.3.3.15.2.2.1.1.2.15.1.1.1">sim-operator-id, <a class="indexterm" href="settings-gsm.html">gsm</a>
 </dt>
 <dt id="ientry-id-1.3.3.2.2.2.1.1.2.21.1.1.1">slave-type, <a class="indexterm" href="settings-connection.html">connection</a>
 </dt>
@@ -1531,7 +1545,7 @@
 </dt>
 <dt id="ientry-id-1.3.3.2.2.2.1.1.2.23.1.1.1">timestamp, <a class="indexterm" href="settings-connection.html">connection</a>
 </dt>
-<dt id="ientry-id-1.3.3.18.2.2.1.1.2.34.1.1.1">token, <a class="indexterm" href="settings-ipv6.html">ipv6</a>
+<dt id="ientry-id-1.3.3.18.2.2.1.1.2.35.1.1.1">token, <a class="indexterm" href="settings-ipv6.html">ipv6</a>
 </dt>
 <dt id="ientry-id-1.3.3.19.2.2.1.1.2.13.1.1.1">tos, <a class="indexterm" href="settings-ip-tunnel.html">ip-tunnel</a>, <a class="indexterm" href="settings-vxlan.html">vxlan</a>
 </dt>
@@ -1544,6 +1558,8 @@
 <dt id="ientry-id-1.3.3.19.2.2.1.1.2.14.1.1.1">ttl, <a class="indexterm" href="settings-ip-tunnel.html">ip-tunnel</a>, <a class="indexterm" href="settings-vxlan.html">vxlan</a>
 </dt>
 <dt id="ientry-id-1.3.3.47.2.2.1.1.2.19.1.1.1">tx-power, <a class="indexterm" href="settings-802-11-wireless.html">802-11-wireless</a>
+</dt>
+<dt id="ientry-id-1.3.3.52.2.2.1.1.2.4.1.1.1">tx-queue-length, <a class="indexterm" href="settings-link.html">link</a>
 </dt>
 <dt id="ientry-id-1.3.3.2.2.2.1.1.2.24.1.1.1">type, <a class="indexterm" href="settings-connection.html">connection</a>, <a class="indexterm" href="settings-bluetooth.html">bluetooth</a>, <a class="indexterm" href="settings-ovs-interface.html">ovs-interface</a>
 </dt>

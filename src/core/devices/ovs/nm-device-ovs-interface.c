@@ -91,12 +91,15 @@ can_auto_connect(NMDevice *device, NMSettingsConnection *sett_conn, char **speci
 }
 
 static gboolean
-check_connection_compatible(NMDevice *device, NMConnection *connection, GError **error)
+check_connection_compatible(NMDevice     *device,
+                            NMConnection *connection,
+                            gboolean      check_properties,
+                            GError      **error)
 {
     NMSettingOvsInterface *s_ovs_iface;
 
     if (!NM_DEVICE_CLASS(nm_device_ovs_interface_parent_class)
-             ->check_connection_compatible(device, connection, error))
+             ->check_connection_compatible(device, connection, check_properties, error))
         return FALSE;
 
     s_ovs_iface = nm_connection_get_setting_ovs_interface(connection);
@@ -132,6 +135,8 @@ link_changed(NMDevice *device, const NMPlatformLink *pllink)
             nm_device_devip_set_failed(device, AF_INET6, NM_DEVICE_STATE_REASON_CONFIG_FAILED);
             return;
         }
+
+        nm_device_link_properties_set(device, FALSE);
         nm_device_bring_up(device);
 
         nm_device_devip_set_state(device, AF_INET, NM_DEVICE_IP_STATE_PENDING, NULL);
@@ -214,6 +219,7 @@ _set_ip_ifindex_tun(gpointer user_data)
 
     priv->wait_link_is_waiting = FALSE;
     nm_device_set_ip_ifindex(device, priv->wait_link_ifindex);
+    nm_device_link_properties_set(device, FALSE);
 
     nm_device_devip_set_state(device, AF_INET, NM_DEVICE_IP_STATE_PENDING, NULL);
     nm_device_devip_set_state(device, AF_INET6, NM_DEVICE_IP_STATE_PENDING, NULL);
@@ -303,6 +309,7 @@ act_stage3_ip_config(NMDevice *device, int addr_family)
         return;
     }
 
+    nm_device_link_properties_set(device, FALSE);
     nm_device_devip_set_state(device, addr_family, NM_DEVICE_IP_STATE_READY, NULL);
 }
 
@@ -479,7 +486,7 @@ ovsdb_ready(NMOvsdb *ovsdb, NMDeviceOvsInterface *self)
                                       NM_DEVICE_STATE_REASON_NONE,
                                       NM_DEVICE_STATE_REASON_NONE);
     nm_device_recheck_available_connections(device);
-    nm_device_emit_recheck_auto_activate(device);
+    nm_device_recheck_auto_activate_schedule(device);
 }
 
 static void

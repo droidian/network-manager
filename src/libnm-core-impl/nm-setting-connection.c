@@ -398,7 +398,7 @@ nm_setting_connection_permissions_user_allowed(NMSettingConnection *setting, con
  * @setting: the #NMSettingConnection
  * @ptype: the permission type; at this time only "user" is supported
  * @pitem: the permission item formatted as required for @ptype
- * @detail: (allow-none): unused at this time; must be %NULL
+ * @detail: (nullable): unused at this time; must be %NULL
  *
  * Adds a permission to the connection's permission list.  At this time, only
  * the "user" permission type is supported, and @pitem must be a username. See
@@ -481,7 +481,7 @@ nm_setting_connection_remove_permission(NMSettingConnection *setting, guint32 id
  * @setting: the #NMSettingConnection
  * @ptype: the permission type; at this time only "user" is supported
  * @pitem: the permission item formatted as required for @ptype
- * @detail: (allow-none): unused at this time; must be %NULL
+ * @detail: (nullable): unused at this time; must be %NULL
  *
  * Removes the permission from the connection.
  * At this time, only the "user" permission type is supported, and @pitem must
@@ -647,6 +647,8 @@ _to_dbus_fcn_timestamp(_NM_SETT_INFO_PROP_TO_DBUS_FCN_ARGS _nm_nil)
  * Returns the #NMSettingConnection:read-only property of the connection.
  *
  * Returns: %TRUE if the connection is read-only, %FALSE if it is not
+ *
+ * Deprecated: 1.44: This property is deprecated and has no meaning.
  **/
 gboolean
 nm_setting_connection_get_read_only(NMSettingConnection *setting)
@@ -1608,6 +1610,18 @@ after_interface_name:
     if (!_nm_setting_connection_verify_secondaries(priv->secondaries.arr, error))
         return NM_SETTING_VERIFY_NORMALIZABLE;
 
+    if (priv->read_only) {
+        g_set_error_literal(error,
+                            NM_CONNECTION_ERROR,
+                            NM_CONNECTION_ERROR_MISSING_PROPERTY,
+                            _("read-only is deprecated and not settable for the user"));
+        g_prefix_error(error,
+                       "%s.%s: ",
+                       NM_SETTING_CONNECTION_SETTING_NAME,
+                       NM_SETTING_CONNECTION_READ_ONLY);
+        return NM_SETTING_VERIFY_NORMALIZABLE;
+    }
+
     return TRUE;
 }
 
@@ -1883,12 +1897,13 @@ nm_setting_connection_class_init(NMSettingConnectionClass *klass)
      * the stable-id can contain placeholders that are substituted dynamically and
      * deterministically depending on the context.
      *
-     * The stable-id is used for generating IPv6 stable private addresses
-     * with ipv6.addr-gen-mode=stable-privacy. It is also used to seed the
-     * generated cloned MAC address for ethernet.cloned-mac-address=stable
-     * and wifi.cloned-mac-address=stable. It is also used as DHCP client
-     * identifier with ipv4.dhcp-client-id=stable and to derive the DHCP
-     * DUID with ipv6.dhcp-duid=stable-[llt,ll,uuid].
+     * The stable-id is used for generating IPv6 stable private addresses with
+     * ipv6.addr-gen-mode=stable-privacy. It is also used to seed the generated
+     * cloned MAC address for ethernet.cloned-mac-address=stable and
+     * wifi.cloned-mac-address=stable. It is also used to derive the DHCP
+     * client identifier with ipv4.dhcp-client-id=stable, the DHCPv6 DUID with
+     * ipv6.dhcp-duid=stable-[llt,ll,uuid] and the DHCP IAID with
+     * ipv4.iaid=stable and ipv6.iaid=stable.
      *
      * Note that depending on the context where it is used, other parameters are
      * also seeded into the generation algorithm. For example, a per-host key
@@ -1898,22 +1913,21 @@ nm_setting_connection_class_init(NMSettingConnectionClass *klass)
      * The per-host key is the identity of your machine and stored in /var/lib/NetworkManager/secret_key.
      * See NetworkManager(8) manual about the secret-key and the host identity.
      *
-     * The '$' character is treated special to perform dynamic substitutions
-     * at runtime. Currently, supported are "${CONNECTION}", "${DEVICE}", "${MAC}",
-     * "${BOOT}", "${RANDOM}".
-     * These effectively create unique IDs per-connection, per-device, per-boot,
-     * or every time. Note that "${DEVICE}" corresponds to the interface name of the
-     * device and "${MAC}" is the permanent MAC address of the device.
+     * The '$' character is treated special to perform dynamic substitutions at
+     * activation time. Currently, supported are "${CONNECTION}", "${DEVICE}",
+     * "${MAC}", "${BOOT}", "${RANDOM}".  These effectively create unique IDs
+     * per-connection, per-device, per-boot, or every time. The "${CONNECTION}"
+     * uses the profile's connection.uuid, the "${DEVICE}" uses the interface
+     * name of the device and "${MAC}" the permanent MAC address of the device.
      * Any unrecognized patterns following '$' are treated verbatim, however
-     * are reserved for future use. You are thus advised to avoid '$' or
-     * escape it as "$$".
-     * For example, set it to "${CONNECTION}-${BOOT}-${DEVICE}" to create a unique id for
-     * this connection that changes with every reboot and differs depending on the
-     * interface where the profile activates.
+     * are reserved for future use. You are thus advised to avoid '$' or escape
+     * it as "$$".  For example, set it to "${CONNECTION}-${BOOT}-${DEVICE}" to
+     * create a unique id for this connection that changes with every reboot
+     * and differs depending on the interface where the profile activates.
      *
      * If the value is unset, a global connection default is consulted. If the
-     * value is still unset, the default is similar to "${CONNECTION}" and uses
-     * a unique, fixed ID for the connection.
+     * value is still unset, the default is "default${CONNECTION}" go generate
+     * an ID unique per connection profile.
      *
      * Since: 1.4
      **/
@@ -2190,9 +2204,9 @@ nm_setting_connection_class_init(NMSettingConnectionClass *klass)
     /**
      * NMSettingConnection:read-only:
      *
-     * %FALSE if the connection can be modified using the provided settings
-     * service's D-Bus interface with the right privileges, or %TRUE if the
-     * connection is read-only and cannot be modified.
+     * This property is deprecated and has no meaning.
+     *
+     * Deprecated: 1.44: This property is deprecated and has no meaning.
      **/
     _nm_setting_property_define_direct_boolean(properties_override,
                                                obj_properties,
@@ -2201,7 +2215,8 @@ nm_setting_connection_class_init(NMSettingConnectionClass *klass)
                                                FALSE,
                                                NM_SETTING_PARAM_FUZZY_IGNORE,
                                                NMSettingConnectionPrivate,
-                                               read_only);
+                                               read_only,
+                                               .is_deprecated = TRUE, );
 
     /**
      * NMSettingConnection:zone:

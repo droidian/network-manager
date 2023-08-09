@@ -20,7 +20,9 @@
 
 #include "c-list/src/c-list.h"
 #include "nm-errno.h"
+#include "nm-time-utils.h"
 #include "nm-str-buf.h"
+#include "nm-time-utils.h"
 
 G_STATIC_ASSERT(sizeof(NMEtherAddr) == 6);
 G_STATIC_ASSERT(_nm_alignof(NMEtherAddr) == 1);
@@ -64,7 +66,7 @@ nm_ether_addr_from_string(NMEtherAddr *addr, const char *str)
  *
  * Checks if only the bottom 64bits of the address are set.
  *
- * Return value: %TRUE or %FALSE
+ * Returns: %TRUE or %FALSE
  */
 gboolean
 _nm_utils_inet6_is_token(const struct in6_addr *in6addr)
@@ -437,7 +439,7 @@ nm_g_bytes_new_from_variant_ay(GVariant *var)
 
 /**
  * nm_g_bytes_equal_mem:
- * @bytes: (allow-none): a #GBytes array to compare. Note that
+ * @bytes: (nullable): a #GBytes array to compare. Note that
  *   %NULL is treated like an #GBytes array of length zero.
  * @mem_data: the data pointer with @mem_len bytes
  * @mem_len: the length of the data pointer
@@ -692,7 +694,7 @@ nm_strdict_to_variant_asv(GHashTable *strdict)
  * nm_strquote:
  * @buf: the output buffer of where to write the quoted @str argument.
  * @buf_len: the size of @buf.
- * @str: (allow-none): the string to quote.
+ * @str: (nullable): the string to quote.
  *
  * Writes @str to @buf with quoting. The resulting buffer
  * is always NUL terminated, unless @buf_len is zero.
@@ -1764,11 +1766,11 @@ nm_utils_escaped_tokens_escape_full(const char                     *str,
  * nm_utils_escaped_tokens_options_split:
  * @str: the src string. This string will be modified in-place.
  *   The output values will point into @str.
- * @out_key: (allow-none): the returned output key. This will always be set to @str
- *   itself. @str will be modified to contain only the unescaped, truncated
- *   key name.
- * @out_val: returns the parsed (and unescaped) value or %NULL, if @str contains
- *   no '=' delimiter.
+ * @out_key: (out) (nullable): the returned output key. This will always be set
+ *   to @str itself. @str will be modified to contain only the unescaped,
+ *   truncated key name.
+ * @out_val: (out) (nullable): returns the parsed (and unescaped) value or
+ *   %NULL, if @str contains no '=' delimiter.
  *
  * Honors backslash escaping to parse @str as "key=value" pairs. Optionally, if no '='
  * is present, @out_val will be returned as %NULL. Backslash can be used to escape
@@ -2224,7 +2226,7 @@ nm_utils_error_is_notfound(GError *error)
  * @object: the target object
  * @property_name: the property name
  * @value: the #GValue to set
- * @error: (allow-none): optional error argument
+ * @error: optional error argument
  *
  * A reimplementation of g_object_set_property(), but instead
  * returning an error instead of logging a warning. All g_object_set*()
@@ -2524,7 +2526,7 @@ _str_buf_append_c_escape_octal(NMStrBuf *strbuf, char ch)
 
 /**
  * nm_utils_buf_utf8safe_unescape:
- * @str: (allow-none): the string to unescape. The string itself is a NUL terminated
+ * @str: (nullable): the string to unescape. The string itself is a NUL terminated
  *   ASCII string, that can have C-style backslash escape sequences (which
  *   are to be unescaped). Non-ASCII characters (e.g. UTF-8) are taken verbatim, so
  *   it doesn't care that this string is UTF-8. However, usually this is a UTF-8 encoded
@@ -2755,13 +2757,16 @@ nm_utils_buf_utf8safe_escape(gconstpointer           buf,
     if (g_utf8_validate(str, buflen, &p) && nul_terminated) {
         /* note that g_utf8_validate() does not allow NUL character inside @str. Good.
          * We can treat @str like a NUL terminated string. */
-        if (!NM_STRCHAR_ANY(str,
-                            ch,
-                            (ch == '\\'
-                             || (NM_FLAGS_HAS(flags, NM_UTILS_STR_UTF8_SAFE_FLAG_ESCAPE_CTRL)
-                                 && nm_ascii_is_ctrl_or_del(ch))
-                             || (NM_FLAGS_HAS(flags, NM_UTILS_STR_UTF8_SAFE_FLAG_ESCAPE_NON_ASCII)
-                                 && nm_ascii_is_non_ascii(ch)))))
+        if (!NM_STRCHAR_ANY(
+                str,
+                ch,
+                (ch == '\\'
+                 || (NM_FLAGS_HAS(flags, NM_UTILS_STR_UTF8_SAFE_FLAG_ESCAPE_CTRL)
+                     && nm_ascii_is_ctrl_or_del(ch))
+                 || (NM_FLAGS_HAS(flags, NM_UTILS_STR_UTF8_SAFE_FLAG_ESCAPE_NON_ASCII)
+                     && nm_ascii_is_non_ascii(ch))
+                 || (NM_FLAGS_HAS(flags, NM_UTILS_STR_UTF8_SAFE_FLAG_ESCAPE_DOUBLE_QUOTE)
+                     && ch == '"'))))
             return str;
     }
 
@@ -2781,7 +2786,9 @@ nm_utils_buf_utf8safe_escape(gconstpointer           buf,
             else if ((NM_FLAGS_HAS(flags, NM_UTILS_STR_UTF8_SAFE_FLAG_ESCAPE_CTRL)
                       && nm_ascii_is_ctrl_or_del(ch))
                      || (NM_FLAGS_HAS(flags, NM_UTILS_STR_UTF8_SAFE_FLAG_ESCAPE_NON_ASCII)
-                         && nm_ascii_is_non_ascii(ch)))
+                         && nm_ascii_is_non_ascii(ch))
+                     || (NM_FLAGS_HAS(flags, NM_UTILS_STR_UTF8_SAFE_FLAG_ESCAPE_DOUBLE_QUOTE)
+                         && ch == '"'))
                 _str_buf_append_c_escape_octal(&strbuf, ch);
             else
                 nm_str_buf_append_c(&strbuf, ch);
@@ -3332,9 +3339,9 @@ _utils_hashtable_equal(GHashTable      *hash_a,
 
 /**
  * nm_utils_hashtable_cmp_equal:
- * @a: (allow-none): the hash table or %NULL
- * @b: (allow-none): the other hash table or %NULL
- * @cmp_values: (allow-none): if %NULL, only the keys
+ * @a: (nullable): the hash table or %NULL
+ * @b: (nullable): the other hash table or %NULL
+ * @cmp_values: (nullable): if %NULL, only the keys
  *   will be compared. Otherwise, this function is used to
  *   check whether all keys are equal.
  * @user_data: the argument for @cmp_values.
@@ -3401,8 +3408,8 @@ _hashtable_cmp_func(gconstpointer a, gconstpointer b, gpointer user_data)
 
 /**
  * nm_utils_hashtable_cmp:
- * @a: (allow-none): the hash to compare. May be %NULL.
- * @b: (allow-none): the other hash to compare. May be %NULL.
+ * @a: (nullable): the hash to compare. May be %NULL.
+ * @b: (nullable): the other hash to compare. May be %NULL.
  * @do_fast_precheck: if %TRUE, assume that the hashes are equal
  *   and that it is worth calling nm_utils_hashtable_cmp_equal() first.
  *   That requires, that both hashes have the same equals function
@@ -3410,7 +3417,7 @@ _hashtable_cmp_func(gconstpointer a, gconstpointer b, gpointer user_data)
  * @cmp_keys: the compare function for keys. Usually, the hash/equal function
  *   of both hashes corresponds to this function. If you set @do_fast_precheck
  *   to false, then this is not a requirement.
- * @cmp_values: (allow-none): if %NULL, only the keys are compared.
+ * @cmp_values: (nullable): if %NULL, only the keys are compared.
  *   Otherwise, the values must are also compared with this function.
  *
  * Both hashes must have keys/values of the same domain, so that
@@ -4839,6 +4846,50 @@ nm_g_child_watch_source_new(GPid            pid,
     return source;
 }
 
+gboolean
+nm_g_timeout_reschedule(GSource   **src,
+                        gint64     *p_expiry_msec,
+                        gint64      expiry_msec,
+                        GSourceFunc func,
+                        gpointer    user_data)
+{
+    gint64 now_msec;
+    gint64 timeout_msec;
+
+    /* (Re-)Schedules a timeout at "expiry_msec" (in
+     * nm_utils_get_monotonic_timestamp_msec() scale).
+     *
+     * If a source is already scheduled in "*src" and "*p_expiry_msec" is
+     * identical to "expiry_msec", then we assume the timer is already ticking,
+     * and nothing is rescheduled.
+     *
+     * Otherwise, "*src" gets cancelled (if any), a new timer is scheduled
+     * (assigned to "*src") and the new expiry is written to "*p_expiry_msec".
+     */
+
+    nm_assert(src);
+    nm_assert(p_expiry_msec);
+
+    if (*src) {
+        if (*p_expiry_msec == expiry_msec) {
+            /* already scheduled with same expiry. */
+            return FALSE;
+        }
+        nm_clear_g_source_inst(src);
+    }
+
+    now_msec = nm_utils_get_monotonic_timestamp_msec();
+
+    if (expiry_msec <= now_msec)
+        timeout_msec = 0;
+    else
+        timeout_msec = NM_MIN(expiry_msec - now_msec, (gint64) G_MAXUINT);
+
+    *p_expiry_msec = expiry_msec;
+    *src           = nm_g_timeout_add_source(timeout_msec, func, user_data);
+    return TRUE;
+}
+
 /*****************************************************************************/
 
 #define _CTX_LOG(fmt, ...)                                                                       \
@@ -5301,7 +5352,7 @@ nm_utils_ifname_valid_kernel(const char *name, GError **error)
 
         if (ch == '\0')
             return TRUE;
-        if (NM_IN_SET(ch, '/', ':') || g_ascii_isspace(ch)) {
+        if (NM_IN_SET(ch, '/', ':') || nm_ascii_is_space_kernel(ch)) {
             g_set_error_literal(error,
                                 NM_UTILS_ERROR,
                                 NM_UTILS_ERROR_UNKNOWN,
@@ -6729,7 +6780,7 @@ valid_ldh_char(char c)
  * @s: the hostname to check.
  * @trailing_dot: Accept trailing dot on multi-label names.
  *
- * Return: %TRUE if valid.
+ * Returns: %TRUE if valid.
  */
 gboolean
 nm_hostname_is_valid(const char *s, gboolean trailing_dot)
@@ -6788,4 +6839,264 @@ nm_hostname_is_valid(const char *s, gboolean trailing_dot)
         return FALSE;
 
     return TRUE;
+}
+
+/*****************************************************************************/
+
+typedef struct {
+    GTask                    *task;
+    GSource                  *source_timeout;
+    GSource                  *source_next_poll;
+    GMainContext             *context;
+    GCancellable             *internal_cancellable;
+    NMUtilsPollProbeStartFcn  probe_start_fcn;
+    NMUtilsPollProbeFinishFcn probe_finish_fcn;
+    gpointer                  probe_user_data;
+    gulong                    cancellable_id;
+    gint64                    last_poll_start_ms;
+    int                       sleep_timeout_ms;
+    int                       ratelimit_timeout_ms;
+    bool                      completed : 1;
+} PollTaskData;
+
+static void
+_poll_task_data_free(gpointer data)
+{
+    PollTaskData *poll_task_data = data;
+
+    nm_assert(G_IS_TASK(poll_task_data->task));
+    nm_assert(!poll_task_data->source_next_poll);
+    nm_assert(!poll_task_data->source_timeout);
+    nm_assert(poll_task_data->cancellable_id == 0);
+
+    g_main_context_unref(poll_task_data->context);
+
+    nm_g_slice_free(poll_task_data);
+}
+
+static void
+_poll_return(PollTaskData *poll_task_data, GError *error_take)
+{
+    nm_clear_g_source_inst(&poll_task_data->source_next_poll);
+    nm_clear_g_source_inst(&poll_task_data->source_timeout);
+    nm_clear_g_cancellable_disconnect(g_task_get_cancellable(poll_task_data->task),
+                                      &poll_task_data->cancellable_id);
+
+    nm_clear_g_cancellable(&poll_task_data->internal_cancellable);
+
+    if (error_take)
+        g_task_return_error(poll_task_data->task, g_steal_pointer(&error_take));
+    else
+        g_task_return_boolean(poll_task_data->task, TRUE);
+
+    g_object_unref(poll_task_data->task);
+}
+
+static gboolean _poll_start_cb(gpointer user_data);
+
+static void
+_poll_done_cb(GObject *source, GAsyncResult *result, gpointer user_data)
+{
+    PollTaskData                     *poll_task_data = user_data;
+    _nm_unused gs_unref_object GTask *task =
+        poll_task_data->task; /* balance ref from _poll_start_cb() */
+    gs_free_error GError *error = NULL;
+    gint64                now_ms;
+    gint64                wait_ms;
+    gboolean              is_finished;
+
+    is_finished =
+        poll_task_data->probe_finish_fcn(source, result, poll_task_data->probe_user_data, &error);
+
+    if (nm_utils_error_is_cancelled(error)) {
+        /* we already handle this differently. Nothing to do. */
+        return;
+    }
+
+    if (error || is_finished) {
+        _poll_return(poll_task_data, g_steal_pointer(&error));
+        return;
+    }
+
+    now_ms = nm_utils_get_monotonic_timestamp_msec();
+    if (poll_task_data->ratelimit_timeout_ms > 0)
+        wait_ms =
+            (poll_task_data->last_poll_start_ms + poll_task_data->ratelimit_timeout_ms) - now_ms;
+    else
+        wait_ms = 0;
+    if (poll_task_data->sleep_timeout_ms > 0)
+        wait_ms = MAX(wait_ms, poll_task_data->sleep_timeout_ms);
+
+    poll_task_data->source_next_poll =
+        nm_g_source_attach(nm_g_timeout_source_new(MAX(1, wait_ms),
+                                                   G_PRIORITY_DEFAULT,
+                                                   _poll_start_cb,
+                                                   poll_task_data,
+                                                   NULL),
+                           poll_task_data->context);
+}
+
+static gboolean
+_poll_start_cb(gpointer user_data)
+{
+    PollTaskData *poll_task_data = user_data;
+
+    nm_clear_g_source_inst(&poll_task_data->source_next_poll);
+
+    poll_task_data->last_poll_start_ms = nm_utils_get_monotonic_timestamp_msec();
+
+    g_object_ref(poll_task_data->task); /* balanced by _poll_done_cb() */
+
+    poll_task_data->probe_start_fcn(poll_task_data->internal_cancellable,
+                                    poll_task_data->probe_user_data,
+                                    _poll_done_cb,
+                                    poll_task_data);
+
+    return G_SOURCE_CONTINUE;
+}
+
+static gboolean
+_poll_timeout_cb(gpointer user_data)
+{
+    PollTaskData *poll_task_data = user_data;
+
+    _poll_return(poll_task_data, nm_utils_error_new(NM_UTILS_ERROR_UNKNOWN, "timeout expired"));
+    return G_SOURCE_CONTINUE;
+}
+
+static void
+_poll_cancelled_cb(GObject *object, gpointer user_data)
+{
+    PollTaskData *poll_task_data = user_data;
+    GError       *error          = NULL;
+
+    nm_clear_g_signal_handler(g_task_get_cancellable(poll_task_data->task),
+                              &poll_task_data->cancellable_id);
+    nm_utils_error_set_cancelled(&error, FALSE, NULL);
+    _poll_return(poll_task_data, error);
+}
+
+/**
+ * nm_utils_poll:
+ * @poll_timeout_ms: if >= 0, then this is the overall timeout for how long we poll.
+ *   When this timeout expires, the request completes with failure (and error set).
+ * @ratelimit_timeout_ms: if > 0, we ratelimit the starts from one prope_start_fcn
+ *   call to the next. We will wait at least this time between two consecutive polls.
+ * @sleep_timeout_ms: if > 0, then we wait after a probe finished this timeout
+ *   before the next. Together with @ratelimit_timeout_ms this determines how
+ *   frequently we probe. We will wait at least this time between the end of the
+ *   previous poll and the next one.
+ * @probe_register_object_fcn: (allow-none): called by nm_utils_poll()
+ *   synchronously, with the new, internal GTask instance. The purpose of this
+ *   callback is a bit obscure, you may want to pass NULL here. It's used by some
+ *   caller to register a weak pointer on the internal GTask instance to track
+ *   the lifetime of the operation.
+ * @probe_start_fcn: used to start a (asynchronous) probe. A probe must be
+ *   completed by calling the provided callback. While a probe is in progress, we
+ *   will not start another. The function is called the first time on an idle
+ *   handler, afterwards it gets called again on each timeout for polling.
+ * @probe_finish_fcn: will be called from the callback of @probe_start_fcn. If the
+ *   function returns %TRUE (polling done) or an error, polling stops. Otherwise,
+ *   another poll will be started.
+ * @probe_user_data: user_data for the probe functions.
+ * @cancellable: cancellable for polling.
+ * @callback: when polling completes.
+ * @user_data: for @callback.
+ *
+ * This uses the current g_main_context_get_thread_default() for scheduling
+ * actions.
+ */
+void
+nm_utils_poll(int                               poll_timeout_ms,
+              int                               ratelimit_timeout_ms,
+              int                               sleep_timeout_ms,
+              NMUtilsPollProbeRegisterObjectFcn probe_register_object_fcn,
+              NMUtilsPollProbeStartFcn          probe_start_fcn,
+              NMUtilsPollProbeFinishFcn         probe_finish_fcn,
+              gpointer                          probe_user_data,
+              GCancellable                     *cancellable,
+              GAsyncReadyCallback               callback,
+              gpointer                          user_data)
+{
+    PollTaskData *poll_task_data;
+
+    poll_task_data  = g_slice_new(PollTaskData);
+    *poll_task_data = (PollTaskData){
+        .task             = nm_g_task_new(NULL, cancellable, nm_utils_poll, callback, user_data),
+        .probe_start_fcn  = probe_start_fcn,
+        .probe_finish_fcn = probe_finish_fcn,
+        .probe_user_data  = probe_user_data,
+        .completed        = FALSE,
+        .context          = g_main_context_ref_thread_default(),
+        .sleep_timeout_ms = sleep_timeout_ms,
+        .ratelimit_timeout_ms = ratelimit_timeout_ms,
+        .internal_cancellable = g_cancellable_new(),
+    };
+
+    g_task_set_task_data(poll_task_data->task, poll_task_data, _poll_task_data_free);
+
+    if (probe_register_object_fcn)
+        probe_register_object_fcn((GObject *) poll_task_data->task, probe_user_data);
+
+    if (poll_timeout_ms >= 0) {
+        poll_task_data->source_timeout =
+            nm_g_source_attach(nm_g_timeout_source_new(poll_timeout_ms,
+                                                       G_PRIORITY_DEFAULT,
+                                                       _poll_timeout_cb,
+                                                       poll_task_data,
+                                                       NULL),
+                               poll_task_data->context);
+    }
+
+    poll_task_data->source_next_poll = nm_g_source_attach(
+        nm_g_idle_source_new(G_PRIORITY_DEFAULT_IDLE, _poll_start_cb, poll_task_data, NULL),
+        poll_task_data->context);
+
+    if (cancellable) {
+        gulong signal_id;
+
+        signal_id = g_cancellable_connect(cancellable,
+                                          G_CALLBACK(_poll_cancelled_cb),
+                                          poll_task_data,
+                                          NULL);
+        if (signal_id == 0) {
+            /* the request is already cancelled. Return. */
+            return;
+        }
+        poll_task_data->cancellable_id = signal_id;
+    }
+}
+
+/**
+ * nm_utils_poll_finish:
+ * @result: the GAsyncResult from the GAsyncReadyCallback callback.
+ * @probe_user_data: the user data provided to nm_utils_poll().
+ * @error: the failure code.
+ *
+ * Returns: %TRUE if the polling completed with success. In that case,
+ *   the error won't be set.
+ *   If the request was cancelled, this is indicated by @error and
+ *   %FALSE will be returned.
+ *   If the probe returned a failure, this returns %FALSE and the error
+ *   provided by @probe_finish_fcn.
+ *   If the request times out, this returns %FALSE with error set.
+ *   Error is always set if (and only if) the function returns %FALSE.
+ */
+gboolean
+nm_utils_poll_finish(GAsyncResult *result, gpointer *probe_user_data, GError **error)
+{
+    GTask        *task;
+    PollTaskData *poll_task_data;
+
+    g_return_val_if_fail(nm_g_task_is_valid(result, NULL, nm_utils_poll), FALSE);
+    g_return_val_if_fail(!error || !*error, FALSE);
+
+    task = G_TASK(result);
+
+    if (probe_user_data) {
+        poll_task_data = g_task_get_task_data(task);
+        NM_SET_OUT(probe_user_data, poll_task_data->probe_user_data);
+    }
+
+    return g_task_propagate_boolean(task, error);
 }

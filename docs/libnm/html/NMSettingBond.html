@@ -250,6 +250,18 @@
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMSettingBond.html#NM-SETTING-BOND-OPTION-PEER-NOTIF-DELAY:CAPS" title="NM_SETTING_BOND_OPTION_PEER_NOTIF_DELAY">NM_SETTING_BOND_OPTION_PEER_NOTIF_DELAY</a></td>
 </tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingBond.html#NM-SETTING-BOND-OPTION-ARP-MISSED-MAX:CAPS" title="NM_SETTING_BOND_OPTION_ARP_MISSED_MAX">NM_SETTING_BOND_OPTION_ARP_MISSED_MAX</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingBond.html#NM-SETTING-BOND-OPTION-LACP-ACTIVE:CAPS" title="NM_SETTING_BOND_OPTION_LACP_ACTIVE">NM_SETTING_BOND_OPTION_LACP_ACTIVE</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingBond.html#NM-SETTING-BOND-OPTION-NS-IP6-TARGET:CAPS" title="NM_SETTING_BOND_OPTION_NS_IP6_TARGET">NM_SETTING_BOND_OPTION_NS_IP6_TARGET</a></td>
+</tr>
 </tbody>
 </table></div>
 </div>
@@ -508,7 +520,7 @@ the <em class="parameter"><code>name</code></em>
 <tr>
 <td class="parameter_name"><p>value</p></td>
 <td class="parameter_description"><p>the value of the option to validate. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
 </tr>
 </tbody>
 </table></div>
@@ -540,14 +552,14 @@ nm_setting_bond_get_valid_options (<em class="parameter"><code><a class="link" h
 <tbody><tr>
 <td class="parameter_name"><p>setting</p></td>
 <td class="parameter_description"><p>the <a class="link" href="NMSettingBond.html" title="NMSettingBond"><span class="type">NMSettingBond</span></a>. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
 </tr></tbody>
 </table></div>
 </div>
 <div class="refsect3">
 <a name="nm-setting-bond-get-valid-options.returns"></a><h4>Returns</h4>
 <p>a <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated array of strings of valid bond options. </p>
-<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>][<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -806,6 +818,24 @@ to the connection.</p>
 <div class="refsect2">
 <a name="NM-SETTING-BOND-OPTION-PEER-NOTIF-DELAY:CAPS"></a><h3>NM_SETTING_BOND_OPTION_PEER_NOTIF_DELAY</h3>
 <pre class="programlisting">#define NM_SETTING_BOND_OPTION_PEER_NOTIF_DELAY  "peer_notif_delay"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-BOND-OPTION-ARP-MISSED-MAX:CAPS"></a><h3>NM_SETTING_BOND_OPTION_ARP_MISSED_MAX</h3>
+<pre class="programlisting">#define NM_SETTING_BOND_OPTION_ARP_MISSED_MAX    "arp_missed_max"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-BOND-OPTION-LACP-ACTIVE:CAPS"></a><h3>NM_SETTING_BOND_OPTION_LACP_ACTIVE</h3>
+<pre class="programlisting">#define NM_SETTING_BOND_OPTION_LACP_ACTIVE       "lacp_active"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-BOND-OPTION-NS-IP6-TARGET:CAPS"></a><h3>NM_SETTING_BOND_OPTION_NS_IP6_TARGET</h3>
+<pre class="programlisting">#define NM_SETTING_BOND_OPTION_NS_IP6_TARGET     "ns_ip6_target"
 </pre>
 </div>
 </div>

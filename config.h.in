@@ -140,6 +140,9 @@
 /* Define to 1 if you have the <sys/types.h> header file. */
 #undef HAVE_SYS_TYPES_H
 
+/* Define to 1 if you have the <threads.h> header file. */
+#undef HAVE_THREADS_H
+
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
 
@@ -176,6 +179,9 @@
 /* Mobile Broadband Service Provider Information Database location */
 #undef MOBILE_BROADBAND_PROVIDER_INFO_DATABASE
 
+/* Define to path of modprobe binary */
+#undef MODPROBE_PATH
+
 /* Path to netconfig */
 #undef NETCONFIG_PATH
 
@@ -193,6 +199,9 @@
 
 /* Default configuration option for main.dhcp setting */
 #undef NM_CONFIG_DEFAULT_MAIN_DHCP
+
+/* The default value of the main.migrate-ifcfg-rh configuration option */
+#undef NM_CONFIG_DEFAULT_MAIN_MIGRATE_IFCFG_RH
 
 /* Default configuration option for main.plugins setting */
 #undef NM_CONFIG_DEFAULT_MAIN_PLUGINS

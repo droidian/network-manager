@@ -378,7 +378,7 @@ static void name_owner_changed_cb(GDBusConnection *connection,
 
 static void name_owner_get_call(NMClient *self);
 
-static void _set_nm_running(NMClient *self);
+static void _set_nm_running(NMClient *self, gboolean queue_notify);
 
 /*****************************************************************************/
 
@@ -2724,6 +2724,7 @@ _obj_handle_dbus_changes(NMClient *self, NMLDBusObject *dbobj)
             if (dbobj->dbus_path == _dbus_path_nm) {
                 nm_assert(!priv->dbobj_nm);
                 priv->dbobj_nm = dbobj;
+                _set_nm_running(self, TRUE);
             } else if (dbobj->dbus_path == _dbus_path_settings) {
                 nm_assert(!priv->dbobj_settings);
                 priv->dbobj_settings = dbobj;
@@ -2783,6 +2784,7 @@ _obj_handle_dbus_changes(NMClient *self, NMLDBusObject *dbobj)
             if (dbobj->dbus_path == _dbus_path_nm) {
                 nm_assert(priv->dbobj_nm == dbobj);
                 priv->dbobj_nm = NULL;
+                _set_nm_running(self, TRUE);
                 nml_dbus_property_o_clear_many(priv->nm.property_o,
                                                G_N_ELEMENTS(priv->nm.property_o),
                                                self);
@@ -2936,7 +2938,7 @@ _dbus_handle_changes_commit(NMClient *self, gboolean allow_init_start_check_comp
 
     _nm_client_notify_event_emit(self);
 
-    _set_nm_running(self);
+    _set_nm_running(self, FALSE);
 
     if (allow_init_start_check_complete)
         _init_start_check_complete(self);
@@ -3079,11 +3081,10 @@ _dbus_handle_interface_added(NMClient   *self,
                              const char *object_path,
                              GVariant   *ifaces)
 {
-    gboolean       changed = FALSE;
-    const char    *interface_name;
-    GVariant      *changed_properties;
-    GVariantIter   iter_ifaces;
-    NMLDBusObject *dbobj = NULL;
+    gboolean     changed = FALSE;
+    const char  *interface_name;
+    GVariant    *changed_properties;
+    GVariantIter iter_ifaces;
 
     nm_assert(g_variant_is_of_type(ifaces, G_VARIANT_TYPE("a{sa{sv}}")));
 
@@ -3097,7 +3098,7 @@ _dbus_handle_interface_added(NMClient   *self,
                                             interface_name,
                                             TRUE,
                                             changed_properties,
-                                            &dbobj))
+                                            NULL))
             changed = TRUE;
     }
 
@@ -4084,15 +4085,18 @@ nm_client_get_startup(NMClient *client)
 }
 
 static void
-_set_nm_running(NMClient *self)
+_set_nm_running(NMClient *self, gboolean queue_notify)
 {
     NMClientPrivate *priv = NM_CLIENT_GET_PRIVATE(self);
     gboolean         nm_running;
 
-    nm_running = priv->name_owner && !priv->get_managed_objects_cancellable;
+    nm_running = priv->dbobj_nm && priv->name_owner && !priv->get_managed_objects_cancellable;
     if (priv->nm_running != nm_running) {
         priv->nm_running = nm_running;
-        _notify(self, PROP_NM_RUNNING);
+        if (queue_notify) {
+            _nm_client_queue_notify_object(self, self, obj_properties[PROP_NM_RUNNING]);
+        } else
+            _notify(self, PROP_NM_RUNNING);
     }
 }
 
@@ -4167,7 +4171,7 @@ nm_client_networking_get_enabled(NMClient *client)
  * nm_client_networking_set_enabled:
  * @client: a #NMClient
  * @enabled: %TRUE to set networking enabled, %FALSE to set networking disabled
- * @error: (allow-none): return location for a #GError, or %NULL
+ * @error: return location for a #GError, or %NULL
  *
  * Enables or disables networking.  When networking is disabled, all controlled
  * interfaces are disconnected and deactivated.  When networking is enabled,
@@ -4461,10 +4465,10 @@ nm_client_connectivity_check_get_uri(NMClient *client)
 /**
  * nm_client_get_logging:
  * @client: a #NMClient
- * @level: (allow-none): return location for logging level string
- * @domains: (allow-none): return location for log domains string. The string is
+ * @level: (out) (optional) (nullable): return location for logging level string
+ * @domains: (out) (optional) (nullable): return location for log domains string. The string is
  *   a list of domains separated by ","
- * @error: (allow-none): return location for a #GError, or %NULL
+ * @error: return location for a #GError, or %NULL
  *
  * Gets NetworkManager current logging level and domains.
  *
@@ -4505,10 +4509,10 @@ nm_client_get_logging(NMClient *client, char **level, char **domains, GError **e
 /**
  * nm_client_set_logging:
  * @client: a #NMClient
- * @level: (allow-none): logging level to set (%NULL or an empty string for no change)
- * @domains: (allow-none): logging domains to set. The string should be a list of log
+ * @level: (nullable): logging level to set (%NULL or an empty string for no change)
+ * @domains: (nullable): logging domains to set. The string should be a list of log
  *   domains separated by ",". (%NULL or an empty string for no change)
- * @error: (allow-none): return location for a #GError, or %NULL
+ * @error: return location for a #GError, or %NULL
  *
  * Sets NetworkManager logging level and/or domains.
  *
@@ -4729,7 +4733,7 @@ nm_client_check_connectivity_finish(NMClient *client, GAsyncResult *result, GErr
 /**
  * nm_client_save_hostname:
  * @client: the %NMClient
- * @hostname: (allow-none): the new persistent hostname to set, or %NULL to
+ * @hostname: (nullable): the new persistent hostname to set, or %NULL to
  *   clear any existing persistent hostname
  * @cancellable: a #GCancellable, or %NULL
  * @error: return location for #GError
@@ -4765,7 +4769,7 @@ nm_client_save_hostname(NMClient     *client,
 /**
  * nm_client_save_hostname_async:
  * @client: the %NMClient
- * @hostname: (allow-none): the new persistent hostname to set, or %NULL to
+ * @hostname: (nullable): the new persistent hostname to set, or %NULL to
  *   clear any existing persistent hostname
  * @cancellable: a #GCancellable, or %NULL
  * @callback: (scope async): callback to be called when the operation completes
@@ -5022,9 +5026,9 @@ activate_connection_cb(GObject *object, GAsyncResult *result, gpointer user_data
 /**
  * nm_client_activate_connection_async:
  * @client: a #NMClient
- * @connection: (allow-none): an #NMConnection
- * @device: (allow-none): the #NMDevice
- * @specific_object: (allow-none): the object path of a connection-type-specific
+ * @connection: (nullable): an #NMConnection
+ * @device: (nullable): the #NMDevice
+ * @specific_object: (nullable): the object path of a connection-type-specific
  *   object this activation should use. This parameter is currently ignored for
  *   wired and mobile broadband connections, and the value of %NULL should be used
  *   (ie, no specific object).  For Wi-Fi or WiMAX connections, pass the object
@@ -5258,11 +5262,11 @@ _add_and_activate_connection(NMClient           *self,
 /**
  * nm_client_add_and_activate_connection_async:
  * @client: a #NMClient
- * @partial: (allow-none): an #NMConnection to add; the connection may be
+ * @partial: (nullable): an #NMConnection to add; the connection may be
  *   partially filled (or even %NULL) and will be completed by NetworkManager
  *   using the given @device and @specific_object before being added
- * @device: (allow-none): the #NMDevice
- * @specific_object: (allow-none): the object path of a connection-type-specific
+ * @device: (nullable): the #NMDevice
+ * @specific_object: (nullable): the object path of a connection-type-specific
  *   object this activation should use. This parameter is currently ignored for
  *   wired and mobile broadband connections, and the value of %NULL should be used
  *   (ie, no specific object).  For Wi-Fi or WiMAX connections, pass the object
@@ -5332,11 +5336,11 @@ nm_client_add_and_activate_connection_finish(NMClient *client, GAsyncResult *res
 /**
  * nm_client_add_and_activate_connection2:
  * @client: a #NMClient
- * @partial: (allow-none): an #NMConnection to add; the connection may be
+ * @partial: (nullable): an #NMConnection to add; the connection may be
  *   partially filled (or even %NULL) and will be completed by NetworkManager
  *   using the given @device and @specific_object before being added
- * @device: (allow-none): the #NMDevice
- * @specific_object: (allow-none): the object path of a connection-type-specific
+ * @device: (nullable): the #NMDevice
+ * @specific_object: (nullable): the object path of a connection-type-specific
  *   object this activation should use. This parameter is currently ignored for
  *   wired and mobile broadband connections, and the value of %NULL should be used
  *   (i.e., no specific object).  For Wi-Fi or WiMAX connections, pass the object
@@ -5398,7 +5402,7 @@ nm_client_add_and_activate_connection2(NMClient           *client,
  * @client: an #NMClient
  * @result: the result passed to the #GAsyncReadyCallback
  * @error: location for a #GError, or %NULL
- * @out_result: (allow-none) (transfer full) (out): the output result
+ * @out_result: (out) (optional) (nullable) (transfer full): the output result
  *   of type "a{sv}" returned by D-Bus' AddAndActivate2 call. Currently, no
  *   output is implemented yet.
  *
@@ -5829,7 +5833,7 @@ nm_client_add_connection_finish(NMClient *client, GAsyncResult *result, GError *
  * @client: the %NMClient
  * @settings: the "a{sa{sv}}" #GVariant with the content of the setting.
  * @flags: the %NMSettingsAddConnection2Flags argument.
- * @args: (allow-none): the "a{sv}" #GVariant with extra argument or %NULL
+ * @args: (nullable): the "a{sv}" #GVariant with extra argument or %NULL
  *   for no extra arguments.
  * @ignore_out_result: this function wraps AddConnection2(), which has an
  *   additional result "a{sv}" output parameter. By setting this to %TRUE,
@@ -5871,11 +5875,11 @@ nm_client_add_connection2(NMClient                     *client,
  * nm_client_add_connection2_finish:
  * @client: the #NMClient
  * @result: the #GAsyncResult
- * @out_result: (allow-none) (transfer full) (out): the output #GVariant
- *   from AddConnection2().
+ * @out_result: (out) (optional) (nullable) (transfer full): the output
+ *   #GVariant from AddConnection2().
  *   If you care about the output result, then the "ignore_out_result"
  *   parameter of nm_client_add_connection2() must not be set to %TRUE.
- * @error: (allow-none): the error argument.
+ * @error: the error argument.
  *
  * Returns: (transfer full): on success, a pointer to the added
  *   #NMRemoteConnection.
@@ -6048,7 +6052,7 @@ nm_client_load_connections_finish(NMClient     *client,
  * files from disk, adding, updating, and removing connections until
  * the in-memory state matches the on-disk state.
  *
- * Return value: %TRUE on success, %FALSE on failure
+ * Returns: %TRUE on success, %FALSE on failure
  *
  * Deprecated: 1.22: Use nm_client_reload_connections_async() or GDBusConnection.
  **/
@@ -6121,7 +6125,7 @@ nm_client_reload_connections_async(NMClient           *client,
  *
  * Gets the result of an nm_client_reload_connections_async() call.
  *
- * Return value: %TRUE on success, %FALSE on failure
+ * Returns: %TRUE on success, %FALSE on failure
  **/
 gboolean
 nm_client_reload_connections_finish(NMClient *client, GAsyncResult *result, GError **error)
@@ -6147,7 +6151,7 @@ nm_client_reload_connections_finish(NMClient *client, GAsyncResult *result, GErr
  *
  * Gets the current DNS processing mode.
  *
- * Return value: the DNS processing mode, or %NULL in case the
+ * Returns: the DNS processing mode, or %NULL in case the
  *   value is not available.
  *
  * Since: 1.6
@@ -6166,7 +6170,7 @@ nm_client_get_dns_mode(NMClient *client)
  *
  * Gets the current DNS resolv.conf manager.
  *
- * Return value: the resolv.conf manager or %NULL in case the
+ * Returns: the resolv.conf manager or %NULL in case the
  *   value is not available.
  *
  * Since: 1.6
@@ -6279,7 +6283,7 @@ _notify_update_prop_dns_manager_configuration(NMClient               *self,
 /**
  * nm_client_get_capabilities:
  * @client: the #NMClient instance
- * @length: (out) (allow-none): the number of returned capabilities.
+ * @length: (out) (optional): the number of returned capabilities.
  *
  * Returns: (transfer none) (array length=length): the
  *   list of capabilities reported by the server or %NULL
@@ -7172,7 +7176,7 @@ name_owner_changed(NMClient *self, const char *name_owner)
     if (changed && priv->name_owner)
         _init_fetch_all(self);
 
-    _set_nm_running(self);
+    _set_nm_running(self, FALSE);
 
     if (priv->init_data) {
         nm_auto_pop_gmaincontext GMainContext *main_context = NULL;
@@ -9059,8 +9063,8 @@ _wait_shutdown_cancelled_cb(GCancellable *cancellable, gpointer user_data)
  *   that the client's maincontext gets iterated so that it can complete.
  *   By integrating the maincontext in the current thread default, you
  *   may instead only iterate the latter.
- * @cancellable: (allow-none): the #GCancellable to abort the shutdown.
- * @callback: (nullable): a #GAsyncReadyCallback to call when the request
+ * @cancellable: the #GCancellable to abort the shutdown.
+ * @callback: a #GAsyncReadyCallback to call when the request
  *   is satisfied or %NULL if you don't care about the result of the
  *   method invocation.
  * @user_data: the data to pass to @callback

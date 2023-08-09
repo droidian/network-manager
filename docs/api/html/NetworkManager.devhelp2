@@ -70,6 +70,7 @@
         <sub name="" link="settings-wpan.html"/>
         <sub name="" link="settings-bond-port.html"/>
         <sub name="" link="settings-hostname.html"/>
+        <sub name="" link="settings-link.html"/>
         <sub name="" link="settings-loopback.html"/>
         <sub name="" link="settings-ovs-external-ids.html"/>
         <sub name="" link="settings-ovs-other-config.html"/>
@@ -241,6 +242,7 @@
     <keyword type="property" name="The &quot;Connections&quot; property" link="gdbus-org.freedesktop.NetworkManager.Settings.html#gdbus-property-org-freedesktop-NetworkManager-Settings.Connections"/>
     <keyword type="property" name="The &quot;Hostname&quot; property" link="gdbus-org.freedesktop.NetworkManager.Settings.html#gdbus-property-org-freedesktop-NetworkManager-Settings.Hostname"/>
     <keyword type="property" name="The &quot;CanModify&quot; property" link="gdbus-org.freedesktop.NetworkManager.Settings.html#gdbus-property-org-freedesktop-NetworkManager-Settings.CanModify"/>
+    <keyword type="property" name="The &quot;VersionId&quot; property" link="gdbus-org.freedesktop.NetworkManager.Settings.html#gdbus-property-org-freedesktop-NetworkManager-Settings.VersionId"/>
     <keyword type="method" name="The Update() method" link="gdbus-org.freedesktop.NetworkManager.Settings.Connection.html#gdbus-method-org-freedesktop-NetworkManager-Settings-Connection.Update"/>
     <keyword type="method" name="The UpdateUnsaved() method" link="gdbus-org.freedesktop.NetworkManager.Settings.Connection.html#gdbus-method-org-freedesktop-NetworkManager-Settings-Connection.UpdateUnsaved"/>
     <keyword type="method" name="The Delete() method" link="gdbus-org.freedesktop.NetworkManager.Settings.Connection.html#gdbus-method-org-freedesktop-NetworkManager-Settings-Connection.Delete"/>

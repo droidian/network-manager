@@ -7,8 +7,11 @@
 #ifndef __NETWORKMANAGER_SETTINGS_CONNECTION_H__
 #define __NETWORKMANAGER_SETTINGS_CONNECTION_H__
 
+#include "libnm-core-intern/nm-meta-setting-base.h"
+
 #include "nm-dbus-object.h"
 #include "nm-connection.h"
+#include "NetworkManagerUtils.h"
 
 #include "nm-settings-storage.h"
 
@@ -138,9 +141,10 @@ typedef enum {
 #define NM_SETTINGS_CONNECTION_FLAGS_CHANGED    "flags-changed"
 
 /* Properties */
-#define NM_SETTINGS_CONNECTION_UNSAVED  "unsaved"
-#define NM_SETTINGS_CONNECTION_FLAGS    "flags"
-#define NM_SETTINGS_CONNECTION_FILENAME "filename"
+#define NM_SETTINGS_CONNECTION_UNSAVED    "unsaved"
+#define NM_SETTINGS_CONNECTION_VERSION_ID "version-id"
+#define NM_SETTINGS_CONNECTION_FLAGS      "flags"
+#define NM_SETTINGS_CONNECTION_FILENAME   "filename"
 
 /**
  * NMSettingsConnectionIntFlags:
@@ -188,19 +192,6 @@ typedef enum _NMSettingsConnectionIntFlags {
     _NM_SETTINGS_CONNECTION_INT_FLAGS_ALL = ((_NM_SETTINGS_CONNECTION_INT_FLAGS_LAST - 1) << 1) - 1,
 } NMSettingsConnectionIntFlags;
 
-typedef enum {
-    NM_SETTINGS_AUTO_CONNECT_BLOCKED_REASON_NONE = 0,
-
-    NM_SETTINGS_AUTO_CONNECT_BLOCKED_REASON_USER_REQUEST = (1LL << 0),
-    NM_SETTINGS_AUTO_CONNECT_BLOCKED_REASON_FAILED       = (1LL << 1),
-    NM_SETTINGS_AUTO_CONNECT_BLOCKED_REASON_NO_SECRETS   = (1LL << 2),
-
-    NM_SETTINGS_AUTO_CONNECT_BLOCKED_REASON_ALL =
-        (NM_SETTINGS_AUTO_CONNECT_BLOCKED_REASON_USER_REQUEST
-         | NM_SETTINGS_AUTO_CONNECT_BLOCKED_REASON_FAILED
-         | NM_SETTINGS_AUTO_CONNECT_BLOCKED_REASON_NO_SECRETS),
-} NMSettingsAutoconnectBlockedReason;
-
 typedef struct _NMSettingsConnectionCallId NMSettingsConnectionCallId;
 
 typedef struct _NMSettingsConnectionClass NMSettingsConnectionClass;
@@ -210,6 +201,7 @@ struct _NMSettingsConnectionPrivate;
 struct _NMSettingsConnection {
     NMDBusObject                         parent;
     CList                                _connections_lst;
+    CList                                devcon_con_lst_head;
     struct _NMSettingsConnectionPrivate *_priv;
 };
 
@@ -217,7 +209,13 @@ GType nm_settings_connection_get_type(void);
 
 NMSettingsConnection *nm_settings_connection_new(void);
 
+NMSettings *nm_settings_connection_get_settings(NMSettingsConnection *self);
+
+NMManager *nm_settings_connection_get_manager(NMSettingsConnection *self);
+
 NMConnection *nm_settings_connection_get_connection(NMSettingsConnection *self);
+gpointer      nm_settings_connection_get_setting(NMSettingsConnection *self,
+                                                 NMMetaSettingType     meta_type);
 
 void _nm_settings_connection_set_connection(NMSettingsConnection            *self,
                                             NMConnection                    *new_connection,
@@ -233,6 +231,9 @@ gboolean nm_settings_connection_still_valid(NMSettingsConnection *self);
 const char *nm_settings_connection_get_filename(NMSettingsConnection *self);
 
 guint64 nm_settings_connection_get_last_secret_agent_version_id(NMSettingsConnection *self);
+
+guint64 nm_settings_connection_get_version_id(NMSettingsConnection *self);
+void    nm_settings_connection_bump_version_id(NMSettingsConnection *self);
 
 gboolean
 nm_settings_connection_has_unmodified_applied_connection(NMSettingsConnection *self,
@@ -347,31 +348,15 @@ void nm_settings_connection_add_seen_bssid(NMSettingsConnection *self, const cha
 
 guint nm_settings_connection_get_num_seen_bssids(NMSettingsConnection *self);
 
-int  nm_settings_connection_autoconnect_retries_get(NMSettingsConnection *self);
-void nm_settings_connection_autoconnect_retries_set(NMSettingsConnection *self, int retries);
-void nm_settings_connection_autoconnect_retries_reset(NMSettingsConnection *self);
-
-gint32 nm_settings_connection_autoconnect_retries_blocked_until(NMSettingsConnection *self);
+gboolean nm_settings_connection_autoconnect_is_blocked(NMSettingsConnection *self);
 
 NMSettingsAutoconnectBlockedReason
-         nm_settings_connection_autoconnect_blocked_reason_get(NMSettingsConnection *self);
-gboolean nm_settings_connection_autoconnect_blocked_reason_set_full(
-    NMSettingsConnection              *self,
-    NMSettingsAutoconnectBlockedReason mask,
-    NMSettingsAutoconnectBlockedReason value);
+nm_settings_connection_autoconnect_blocked_reason_get(NMSettingsConnection *self);
 
-static inline gboolean
+gboolean
 nm_settings_connection_autoconnect_blocked_reason_set(NMSettingsConnection              *self,
-                                                      NMSettingsAutoconnectBlockedReason mask,
-                                                      gboolean                           set)
-{
-    return nm_settings_connection_autoconnect_blocked_reason_set_full(
-        self,
-        mask,
-        set ? mask : NM_SETTINGS_AUTO_CONNECT_BLOCKED_REASON_NONE);
-}
-
-gboolean nm_settings_connection_autoconnect_is_blocked(NMSettingsConnection *self);
+                                                      NMSettingsAutoconnectBlockedReason reason,
+                                                      gboolean                           set);
 
 const char *nm_settings_connection_get_id(NMSettingsConnection *connection);
 const char *nm_settings_connection_get_uuid(NMSettingsConnection *connection);

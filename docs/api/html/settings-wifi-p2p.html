@@ -38,7 +38,7 @@
             Properties
         </h2>
 <div class="table">
-<a name="id-1.3.3.43.2.2.1"></a><p class="title"><b>Table 89. </b></p>
+<a name="id-1.3.3.43.2.2.1"></a><p class="title"><b>Table 77. </b></p>
 <div class="table-contents"><table class="table" border="1">
 <colgroup>
 <col>
@@ -57,19 +57,23 @@
 <td><pre class="screen">peer</pre></td>
 <td><pre class="screen">string</pre></td>
 <td><pre class="screen"></pre></td>
-<td> </td>
+<td>The P2P device that should be connected to. Currently, this is the only way to create or join a group.</td>
 </tr>
 <tr>
 <td><pre class="screen">wfd-ies</pre></td>
 <td><pre class="screen">byte array</pre></td>
 <td><pre class="screen"></pre></td>
-<td> </td>
+<td>The Wi-Fi Display (WFD) Information Elements (IEs) to set.
+
+Wi-Fi Display requires a protocol specific information element to be set in certain Wi-Fi frames. These can be specified here for the purpose of establishing a connection. This setting is only useful when implementing a Wi-Fi Display client.</td>
 </tr>
 <tr>
 <td><pre class="screen">wps-method</pre></td>
 <td><pre class="screen">uint32</pre></td>
 <td><pre class="screen">0</pre></td>
-<td> </td>
+<td>Flags indicating which mode of WPS is to be used.
+
+There's little point in changing the default setting as NetworkManager will automatically determine the best method to use.</td>
 </tr>
 </tbody>
 </table></div>

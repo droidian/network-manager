@@ -254,7 +254,7 @@ wireless_band_channel_changed_cb(GObject *object, GParamSpec *pspec, gpointer us
 }
 
 static void
-connection_master_changed_cb(GObject *object, GParamSpec *pspec, gpointer user_data)
+connection_controller_changed_cb(GObject *object, GParamSpec *pspec, gpointer user_data)
 {
     NMSettingConnection *s_con      = NM_SETTING_CONNECTION(object);
     NMConnection        *connection = NM_CONNECTION(user_data);
@@ -343,7 +343,7 @@ nmc_setting_connection_connect_handlers(NMSettingConnection *setting, NMConnecti
 
     g_signal_connect(setting,
                      "notify::" NM_SETTING_CONNECTION_MASTER,
-                     G_CALLBACK(connection_master_changed_cb),
+                     G_CALLBACK(connection_controller_changed_cb),
                      connection);
 }
 
@@ -364,6 +364,9 @@ _set_fcn_precheck_connection_secondaries(NMClient   *client,
 
     strv0 = nm_strsplit_set(value, " \t,");
     if (!strv0)
+        return TRUE;
+
+    if (!client)
         return TRUE;
 
     connections = nm_client_get_connections(client);
@@ -495,7 +498,7 @@ _env_get_env_flags(const NMMetaEnvironment *environment, gpointer environment_us
 
     nm_assert(nmc);
 
-    return (nmc->offline ? NM_META_ENV_FLAGS_OFFLINE : NM_META_ENV_FLAGS_NONE);
+    return (nmc->nmc_config.offline ? NM_META_ENV_FLAGS_OFFLINE : NM_META_ENV_FLAGS_NONE);
 }
 
 /*****************************************************************************/

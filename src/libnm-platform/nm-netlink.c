@@ -313,9 +313,6 @@ nlmsg_parse_error(const struct nlmsghdr *nlh, const char **out_extack_msg)
 
     e = nlmsg_data(nlh);
 
-    if (!e->error)
-        return 0;
-
     if (NM_FLAGS_HAS(nlh->nlmsg_flags, NLM_F_ACK_TLVS) && out_extack_msg
         && nlh->nlmsg_len >= sizeof(*e) + e->msg.nlmsg_len) {
         static const struct nla_policy policy[] = {
@@ -328,10 +325,18 @@ nlmsg_parse_error(const struct nlmsghdr *nlh, const char **out_extack_msg)
         tlvs = NM_CAST_ALIGN(struct nlattr,
                              (((char *) e) + sizeof(*e) + e->msg.nlmsg_len - NLMSG_HDRLEN));
         if (nla_parse_arr(tb, tlvs, nlh->nlmsg_len - sizeof(*e) - e->msg.nlmsg_len, policy) >= 0) {
-            if (tb[NLMSGERR_ATTR_MSG])
-                *out_extack_msg = nla_get_string(tb[NLMSGERR_ATTR_MSG]);
+            if (tb[NLMSGERR_ATTR_MSG]) {
+                const char *s;
+
+                s = nla_get_string(tb[NLMSGERR_ATTR_MSG]);
+                if (s[0] != '\0')
+                    *out_extack_msg = s;
+            }
         }
     }
+
+    if (!e->error)
+        return 0;
 
     return -nm_errno_from_native(e->error);
 }
@@ -488,44 +493,52 @@ nlmsg_put(struct nl_msg *n,
 }
 
 size_t
-nla_strlcpy(char *dst, const struct nlattr *nla, size_t dstsize)
+_nla_strlcpy_full(char *dst, const struct nlattr *nla, size_t dstsize, gboolean wipe_remainder)
 {
-    const char *src;
+    const char *src = NULL;
     size_t      srclen;
-    size_t      len;
+    size_t      cpylen;
 
-    /* - Always writes @dstsize bytes to @dst
-     * - Copies the first non-NUL characters to @dst.
-     *   Any characters after the first NUL bytes in @nla are ignored.
-     * - If the string @nla is longer than @dstsize, the string
-     *   gets truncated. @dst will always be NUL terminated. */
+    /* Behaves like strlcpy():
+     *
+     * - returns the length of the string in nla (how much it wanted to copy).
+     * - will always NUL terminate dst (unless dstsize is zero).
+     * - if @wipe_remainder, the remaining bytes after the string are set to NUL,
+     *   similar to what strncpy() would do. Otherwise the bytes are undefined.
+     * - nla is not required to contain a NUL terminated string (unlike nla_get_string()).
+     * - the function copies the bytes up to the first NUL character in nla.
+     *   any remainder in nla is ignored.
+     * - nla may be NULL, which is treated the same as an empty string (copying zero bytes).
+     */
 
-    if (G_UNLIKELY(dstsize <= 1)) {
-        if (dstsize == 1)
-            dst[0] = '\0';
-        if (nla && (srclen = nla_len(nla)) > 0)
-            return strnlen(nla_data(nla), srclen);
-        return 0;
-    }
-
-    nm_assert(dst);
+    nm_assert(dstsize == 0 || dst);
 
     if (nla) {
         srclen = nla_len(nla);
         if (srclen > 0) {
             src    = nla_data(nla);
             srclen = strnlen(src, srclen);
-            if (srclen > 0) {
-                len = NM_MIN(dstsize - 1, srclen);
-                memcpy(dst, src, len);
-                memset(&dst[len], 0, dstsize - len);
-                return srclen;
-            }
         }
+    } else
+        srclen = 0;
+
+    if (dstsize == 0) {
+        /* we cannot NUL terminate. This is potentially dangerous, maybe
+         * we should assert against this case. */
+        return srclen;
     }
 
-    memset(dst, 0, dstsize);
-    return 0;
+    cpylen = NM_MIN(dstsize - 1u, srclen);
+
+    nm_memcpy(dst, src, cpylen);
+
+    if (wipe_remainder) {
+        /* like strncpy() would do, wipe the rest. */
+        memset(&dst[cpylen], 0, dstsize - cpylen);
+    } else
+        dst[cpylen] = '\0';
+
+    return srclen;
 }
 
 size_t
@@ -1024,17 +1037,6 @@ nlmsg_get_dst(struct nl_msg *msg)
 }
 
 int
-nl_socket_set_nonblocking(const struct nl_sock *sk)
-{
-    nm_assert_sk(sk);
-
-    if (fcntl(sk->s_fd, F_SETFL, O_NONBLOCK) < 0)
-        return -nm_errno_from_native(errno);
-
-    return 0;
-}
-
-int
 nl_socket_set_buffer_size(struct nl_sock *sk, int rxbuf, int txbuf)
 {
     int err;
@@ -1483,13 +1485,13 @@ nl_send_auto(struct nl_sock *sk, struct nl_msg *msg)
  * @nla: (out): the source address on success.
  * @buf: (out): pointer to the result buffer on success. This is
  *   either @buf0 or an allocated buffer that gets returned.
- * @out_creds: (out) (allow-none): optional out buffer for the credentials
+ * @out_creds: (out) (optional): optional out buffer for the credentials
  *   on success.
- * @out_creds_has: (out) (allow-none): result indicating whether
+ * @out_creds_has: (out) (optional): result indicating whether
  *   @out_creds was filled.
-* @out_pktinfo_group: (out) (allow-none): optional out buffer for NETLINK_PKTINFO
+* @out_pktinfo_group: (out) (optional): optional out buffer for NETLINK_PKTINFO
 *    group on success.
- * @out_pktinfo_has: (out) (allow-none): result indicating whether
+ * @out_pktinfo_has: (out) (optional): result indicating whether
  *   @out_pktinfo_group was filled.
  *
  * If @buf0_len is zero, the function will g_malloc() a new receive buffer of size

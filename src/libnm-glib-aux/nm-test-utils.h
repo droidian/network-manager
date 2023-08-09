@@ -203,6 +203,54 @@
     }                                                             \
     G_STMT_END
 
+#define nmtst_assert_cmpmem(m1, l1, m2, l2)                                                     \
+    G_STMT_START                                                                                \
+    {                                                                                           \
+        const guint8 *const _m1 = (gpointer) (m1);                                              \
+        const guint8 *const _m2 = (gpointer) (m2);                                              \
+        const gsize         _l1 = (l1);                                                         \
+        const gsize         _l2 = (l2);                                                         \
+                                                                                                \
+        /* This is like g_assert_cmpmem(), however on failure it actually
+         * prints the compared buffer contents, which is useful for debugging
+         * the test failure. */                       \
+                                                                                                \
+        g_assert(_l1 == 0 || _m1);                                                              \
+        g_assert(_l2 == 0 || _m2);                                                              \
+                                                                                                \
+        if (_l1 != _l2 || (_l1 > 0 && memcmp(_m1, _m2, _l1) != 0)) {                            \
+            gs_free char *_s1 = NULL;                                                           \
+            gs_free char *_s2 = NULL;                                                           \
+                                                                                                \
+            g_error(                                                                            \
+                "ERROR: %s:%d : buffer [\"%s\" (%s, %zu bytes)] differs from [\"%s\" (%s, %zu " \
+                "bytes)]:\n"                                                                    \
+                "   a=[ \"%s\" ]\n"                                                             \
+                "   b=[ \"%s\" ]\n",                                                            \
+                __FILE__,                                                                       \
+                (int) __LINE__,                                                                 \
+                #m1,                                                                            \
+                #l1,                                                                            \
+                _l1,                                                                            \
+                #m2,                                                                            \
+                #l2,                                                                            \
+                _l2,                                                                            \
+                (_s1 = nm_utils_buf_utf8safe_escape_cp(                                         \
+                     _m1,                                                                       \
+                     _l1,                                                                       \
+                     NM_UTILS_STR_UTF8_SAFE_FLAG_ESCAPE_CTRL                                    \
+                         | NM_UTILS_STR_UTF8_SAFE_FLAG_ESCAPE_DOUBLE_QUOTE))                    \
+                    ?: "",                                                                      \
+                (_s2 = nm_utils_buf_utf8safe_escape_cp(                                         \
+                     _m2,                                                                       \
+                     _l2,                                                                       \
+                     NM_UTILS_STR_UTF8_SAFE_FLAG_ESCAPE_CTRL                                    \
+                         | NM_UTILS_STR_UTF8_SAFE_FLAG_ESCAPE_DOUBLE_QUOTE))                    \
+                    ?: "");                                                                     \
+        }                                                                                       \
+    }                                                                                           \
+    G_STMT_END
+
 /*****************************************************************************/
 
 /* Our nm-error error numbers use negative values to signal failure.
@@ -1249,7 +1297,7 @@ nmtst_stable_rand(guint64 seed, gpointer buf, gsize len)
 
 /**
  * nmtst_get_rand_word_length:
- * @rand: (allow-none): #GRand instance or %NULL to use the singleton.
+ * @rand: (nullable): #GRand instance or %NULL to use the singleton.
  *
  * Returns: a random integer >= 0, that most frequently is somewhere between
  * 0 and 16, but (with decreasing) probability, it can be larger. This can
@@ -2839,8 +2887,7 @@ _nmtst_variant_new_vardict(int dummy, ...)
     G_STMT_END
 #else
 #define _nmtst_assert_variant_bytestring_cmp_str(_ptr, _ptr2, _len) \
-    G_STMT_START                                                    \
-    {}                                                              \
+    G_STMT_START {}                                                 \
     G_STMT_END
 #endif
 

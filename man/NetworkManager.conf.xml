@@ -357,7 +357,7 @@ no-auto-default=*
         NetworkManager also writes a file <filename>&nmrundir;/no-stub-resolv.conf</filename>
         that contains the original name servers pushed to the DNS plugin.</para>
 
-        <para>When using <literal>dnsmasq</literal> and <literal>systemd-resolved</literal>
+        <para>When using <literal>dnsmasq</literal> and <literal>systemd-resolved</literal>,
         per-connection added dns servers will always be queried using
         the device the connection has been activated on.</para>
         </listitem>
@@ -421,16 +421,15 @@ no-auto-default=*
 
       <varlistentry>
         <term><varname>systemd-resolved</varname></term>
-        <listitem><para>Send the connection DNS configuration to
+        <listitem><para>Additionally, send the connection DNS configuration to
         <literal>systemd-resolved</literal>. Defaults to "<literal>true</literal>".
         </para>
-        <para>Note that this setting is complementary to the
-        <varname>dns</varname> setting. You can keep this enabled while using
-        <varname>dns</varname> set to another DNS plugin alongside
-        <literal>systemd-resolved</literal>, or <varname>dns</varname> set to
-        <literal>systemd-resolved</literal> to configure the system resolver to use
-        <literal>systemd-resolved</literal>.</para>
-        <para>If systemd-resolved is enabled, the connectivity check resolves the
+        <para>Note that this setting has no effect if the main <varname>dns</varname>
+        plugin is already <literal>systemd-resolved</literal>. It is complementary to the
+        <varname>dns</varname> setting to configure systemd-resolved alongside the
+        main plugin.</para>
+        <para>If systemd-resolved is enabled, either via this setting or the main
+        DNS plugin, the connectivity check resolves the
         hostname per-device.</para>
         </listitem>
       </varlistentry>
@@ -528,6 +527,17 @@ no-auto-default=*
           </para>
         </listitem>
       </varlistentry>
+
+      <varlistentry>
+        <term><varname>migrate-ifcfg-rh</varname></term>
+        <listitem><para>Whether NetworkManager tries to automatically convert
+        any connection profile stored in ifcfg-rh format to the keyfile format.
+        Support for ifcfg-rh is deprecated and will be eventually removed. If
+        enabled, the migration is performed at every startup of the daemon.
+        The default value is <literal>&NM_CONFIG_DEFAULT_MAIN_MIGRATE_IFCFG_RH_TEXT;</literal>.
+        </para></listitem>
+      </varlistentry>
+
     </variablelist>
   </refsect1>
 
@@ -551,6 +561,21 @@ no-auto-default=*
           <listitem>
             <para>The location where keyfiles are read and stored.
             This defaults to "<filename>&sysconfdir;/NetworkManager/system-connections</filename>".
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term><varname>rename</varname></term>
+          <listitem>
+            <para>
+                NetworkManager automatically chooses a filename when storing
+                a new profile to disk. That name depends on the profile's name
+                (connection.id). When updating a profile's name, the file is
+                not renamed to not break scripts that rely on the filename
+                for the profile.
+                By setting this option to "true", NetworkManager renames
+                the keyfile on update of the profile, to follow the profile's
+                name. This defaults to "false".
             </para>
           </listitem>
         </varlistentry>
@@ -1646,9 +1671,9 @@ enable=nm-version-min:1.3,nm-version-min:1.2.6,nm-version-min:1.0.16
         <term><varname>ifcfg-rh</varname></term>
         <listitem>
           <para>
-            This plugin is used on the Fedora and Red Hat Enterprise
-            Linux distributions to read and write configuration from
-            the standard
+            This plugin is now deprecated; it can be used on the
+            Fedora and Red Hat Enterprise Linux distributions to read
+            and write configuration from the standard
             <filename>/etc/sysconfig/network-scripts/ifcfg-*</filename>
             files. It currently supports reading Ethernet, Wi-Fi,
             InfiniBand, VLAN, Bond, Bridge, and Team connections.

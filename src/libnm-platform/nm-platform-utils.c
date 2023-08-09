@@ -1955,10 +1955,10 @@ nmp_utils_ip_config_source_to_string(NMIPConfigSource source, char *buf, gsize l
 /**
  * nmp_utils_sysctl_open_netdir:
  * @ifindex: the ifindex for which to open "/sys/class/net/%s"
- * @ifname_guess: (allow-none): optional argument, if present used as initial
+ * @ifname_guess: (nullable): optional argument, if present used as initial
  *   guess as the current name for @ifindex. If guessed right,
  *   it saves an additional if_indextoname() call.
- * @out_ifname: (allow-none): if present, must be at least IFNAMSIZ
+ * @out_ifname: (optional): if present, must be at least IFNAMSIZ
  *   characters. On success, this will contain the actual ifname
  *   found while opening the directory.
  *
@@ -2060,35 +2060,6 @@ nmp_utils_new_vlan_name(const char *parent_iface, guint32 vlan_id)
     g_snprintf(&ifname[parent_len], IFNAMSIZ - parent_len, ".%u", vlan_id);
 
     return ifname;
-}
-
-/*****************************************************************************/
-
-/* nmp_utils_new_infiniband_name:
- * @name: the output-buffer where the value will be written. Must be
- *   not %NULL and point to a string buffer of at least IFNAMSIZ bytes.
- * @parent_name: the parent interface name
- * @p_key: the partition key.
- *
- * Returns: the infiniband name will be written to @name and @name
- *   is returned.
- */
-const char *
-nmp_utils_new_infiniband_name(char *name, const char *parent_name, int p_key)
-{
-    g_return_val_if_fail(name, NULL);
-    g_return_val_if_fail(parent_name && parent_name[0], NULL);
-    g_return_val_if_fail(strlen(parent_name) < IFNAMSIZ, NULL);
-
-    /* technically, p_key of 0x0000 and 0x8000 is not allowed either. But we don't
-     * want to assert against that in nmp_utils_new_infiniband_name(). So be more
-     * resilient here, and accept those. */
-    g_return_val_if_fail(p_key >= 0 && p_key <= 0xffff, NULL);
-
-    /* If parent+suffix is too long, kernel would just truncate
-     * the name. We do the same. See ipoib_vlan_add().  */
-    g_snprintf(name, IFNAMSIZ, "%s.%04x", parent_name, p_key);
-    return name;
 }
 
 /*****************************************************************************/
@@ -2209,7 +2180,7 @@ nmp_utils_modprobe(GError **error, gboolean suppress_error_logging, const char *
 
     /* construct the argument list */
     argv = g_ptr_array_sized_new(4);
-    g_ptr_array_add(argv, "/sbin/modprobe");
+    g_ptr_array_add(argv, MODPROBE_PATH);
     g_ptr_array_add(argv, "--use-blacklist");
     g_ptr_array_add(argv, (char *) arg1);
 

@@ -12,6 +12,7 @@
 
 #include "alloc-util.h"
 #include "errno-util.h"
+#include "lock-util.h"
 #include "time-util.h"
 #include "user-util.h"
 
@@ -22,8 +23,6 @@
 #define PTR_TO_MODE(p) ((mode_t) ((uintptr_t) (p)-1))
 #define MODE_TO_PTR(u) ((void *) ((uintptr_t) (u)+1))
 
-int unlink_noerrno(const char *path);
-
 int rmdir_parents(const char *path, const char *stop);
 
 int rename_noreplace(int olddirfd, const char *oldpath, int newdirfd, const char *newpath);
@@ -33,7 +32,10 @@ int readlink_malloc(const char *p, char **r);
 int readlink_value(const char *p, char **ret);
 int readlink_and_make_absolute(const char *p, char **r);
 
-int chmod_and_chown(const char *path, mode_t mode, uid_t uid, gid_t gid);
+int chmod_and_chown_at(int dir_fd, const char *path, mode_t mode, uid_t uid, gid_t gid);
+static inline int chmod_and_chown(const char *path, mode_t mode, uid_t uid, gid_t gid) {
+        return chmod_and_chown_at(AT_FDCWD, path, mode, uid, gid);
+}
 int fchmod_and_chown_with_fallback(int fd, const char *path, mode_t mode, uid_t uid, gid_t gid);
 static inline int fchmod_and_chown(int fd, mode_t mode, uid_t uid, gid_t gid) {
         return fchmod_and_chown_with_fallback(fd, NULL, mode, uid, gid); /* no fallback */
@@ -96,7 +98,7 @@ static inline char* unlink_and_free(char *p) {
         if (!p)
                 return NULL;
 
-        (void) unlink_noerrno(p);
+        (void) unlink(p);
         return mfree(p);
 }
 DEFINE_TRIVIAL_CLEANUP_FUNC(char*, unlink_and_free);
@@ -112,7 +114,10 @@ typedef enum UnlinkDeallocateFlags {
 
 int unlinkat_deallocate(int fd, const char *name, UnlinkDeallocateFlags flags);
 
-int open_parent(const char *path, int flags, mode_t mode);
+int open_parent_at(int dir_fd, const char *path, int flags, mode_t mode);
+static inline int open_parent(const char *path, int flags, mode_t mode) {
+        return open_parent_at(AT_FDCWD, path, flags, mode);
+}
 
 int conservative_renameat(int olddirfd, const char *oldpath, int newdirfd, const char *newpath);
 static inline int conservative_rename(const char *oldpath, const char *newpath) {
@@ -126,3 +131,11 @@ int parse_cifs_service(const char *s, char **ret_host, char **ret_service, char 
 int open_mkdir_at(int dirfd, const char *path, int flags, mode_t mode);
 
 int openat_report_new(int dirfd, const char *pathname, int flags, mode_t mode, bool *ret_newly_created);
+
+typedef enum XOpenFlags {
+        XO_LABEL = 1 << 0,
+} XOpenFlags;
+
+int xopenat(int dir_fd, const char *path, int open_flags, XOpenFlags xopen_flags, mode_t mode);
+
+int xopenat_lock(int dir_fd, const char *path, int open_flags, XOpenFlags xopen_flags, mode_t mode, LockType locktype, int operation);

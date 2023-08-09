@@ -3,26 +3,28 @@
 #ifndef __NM_INET_UTILS_H__
 #define __NM_INET_UTILS_H__
 
-typedef struct _NMIPAddr {
-    union {
-        guint8          addr_ptr[sizeof(struct in6_addr)];
-        in_addr_t       addr4;
-        struct in_addr  addr4_struct;
-        struct in6_addr addr6;
+#include "libnm-std-aux/unaligned-fundamental.h"
 
-        /* NMIPAddr is really a union for IP addresses.
-         * However, as ethernet addresses fit in here nicely, use
-         * it also for an ethernet MAC address. */
-        guint8      ether_addr_octet[6 /*ETH_ALEN*/];
-        NMEtherAddr ether_addr;
+typedef union _NMIPAddr {
+    guint8          addr_ptr[sizeof(struct in6_addr)];
+    in_addr_t       addr4;
+    struct in_addr  addr4_struct;
+    struct in6_addr addr6;
 
-        guint8 array[sizeof(struct in6_addr)];
-    };
+    /* This union field only exists, so that it's guaranteed that NMIPAddr has
+     * a suitable alignment. We use that with nm_ether_addr_zero macro, that
+     * aliases nm_ip_addr_zero. */
+    NMEtherAddr _ether_addr;
 } NMIPAddr;
 
-#define NM_IP_ADDR_INIT \
-    {                   \
-        .array = { 0 }  \
+typedef struct _NMIPAddrTyped {
+    NMIPAddr addr;
+    gint8    addr_family;
+} NMIPAddrTyped;
+
+#define NM_IP_ADDR_INIT   \
+    {                     \
+        .addr_ptr = { 0 } \
     }
 
 #define _NM_IN6ADDR_INIT(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, aa, ab, ac, ad, ae, af) \
@@ -90,14 +92,15 @@ nm_ip_addr_set(int addr_family, gpointer dst, gconstpointer src)
 static inline gboolean
 nm_ip_addr_is_null(int addr_family, gconstpointer addr)
 {
-    NMIPAddr a;
+    struct in6_addr a6;
 
-    nm_ip_addr_set(addr_family, &a, addr);
+    nm_assert(addr);
 
     if (NM_IS_IPv4(addr_family))
-        return a.addr4 == 0;
+        return unaligned_read_ne32(addr) == 0;
 
-    return IN6_IS_ADDR_UNSPECIFIED(&a.addr6);
+    memcpy(&a6, addr, sizeof(struct in6_addr));
+    return IN6_IS_ADDR_UNSPECIFIED(&a6);
 }
 
 static inline NMIPAddr
@@ -117,7 +120,7 @@ nm_ip_addr_init(int addr_family, gconstpointer src)
 
         /* ensure all bytes of the union are initialized. If only to make
          * valgrind happy. */
-        memset(&a.array[sizeof(in_addr_t)], 0, sizeof(a) - sizeof(in_addr_t));
+        memset(&a.addr_ptr[sizeof(in_addr_t)], 0, sizeof(a) - sizeof(in_addr_t));
     } else
         memcpy(&a, src, sizeof(struct in6_addr));
 
@@ -139,6 +142,30 @@ nm_ip_addr_from_packed_array(int addr_family, gconstpointer ipaddr_arr, gsize id
     return NM_IS_IPv4(addr_family)
                ? ((gconstpointer) & (((const struct in_addr *) ipaddr_arr)[idx]))
                : ((gconstpointer) & (((const struct in6_addr *) ipaddr_arr)[idx]));
+}
+
+/*****************************************************************************/
+
+static inline int
+nm_ip_addr_typed_cmp(const NMIPAddrTyped *a, const NMIPAddrTyped *b)
+{
+    NM_CMP_SELF(a, b);
+    NM_CMP_FIELD(a, b, addr_family);
+    NM_CMP_DIRECT_MEMCMP(&a->addr, &b->addr, nm_utils_addr_family_to_size(a->addr_family));
+    return 0;
+}
+
+static inline gboolean
+nm_ip_addr_typed_equal(const NMIPAddrTyped *a, const NMIPAddrTyped *b)
+{
+    return nm_ip_addr_typed_cmp(a, b) == 0;
+}
+
+static inline void
+nm_ip_addr_typed_hash_update(NMHashState *h, const NMIPAddrTyped *addr)
+{
+    nm_hash_update_vals(h, addr->addr_family);
+    nm_hash_update_mem(h, &addr->addr, nm_utils_addr_family_to_size(addr->addr_family));
 }
 
 /*****************************************************************************/
@@ -341,6 +368,8 @@ nm_inet6_ntop_dup(const struct in6_addr *addr)
 }
 
 /*****************************************************************************/
+
+int nmtst_inet_aton(const char *text, in_addr_t *out_addr);
 
 gboolean nm_inet_parse_bin_full(int         addr_family,
                                 gboolean    accept_legacy,

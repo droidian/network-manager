@@ -359,8 +359,8 @@ nm_http_client_req(NMHttpClient       *self,
  * nm_http_client_req_finish:
  * @self: the #NMHttpClient instance
  * @result: the #GAsyncResult which to complete.
- * @out_response_code: (allow-none) (out): the HTTP response code or -1 on other error.
- * @out_response_data: (allow-none) (transfer full): the HTTP response data, if any.
+ * @out_response_code: (out) (optional): the HTTP response code or -1 on other error.
+ * @out_response_data: (out) (optional) (nullable) (transfer full): the HTTP response data, if any.
  *   The GBytes buffer is guaranteed to have a trailing NUL character *after* the
  *   returned buffer size. That means, you can always trust that the buffer is NUL terminated
  *   and that there is one additional hidden byte after the data.
@@ -427,6 +427,12 @@ _poll_req_data_free(gpointer data)
     g_free((gpointer) poll_req_data->http_headers);
 
     nm_g_slice_free(poll_req_data);
+}
+
+static void
+_poll_reg_probe_register_object_fcn(GObject *object, gpointer user_data)
+{
+    nmcs_wait_for_objects_register(object);
 }
 
 static void
@@ -508,13 +514,14 @@ _poll_req_probe_finish_fcn(GObject      *source,
 static void
 _poll_req_done_cb(GObject *source, GAsyncResult *result, gpointer user_data)
 {
-    PollReqData          *poll_req_data = user_data;
+    PollReqData          *poll_req_data = NULL;
     gs_free_error GError *error         = NULL;
     gboolean              success;
 
-    success = nmcs_utils_poll_finish(result, NULL, &error);
+    success = nm_utils_poll_finish(result, (gpointer *) &poll_req_data, &error);
 
     nm_assert((!!success) == (!error));
+    nm_assert(poll_req_data);
 
     if (error)
         g_task_return_error(poll_req_data->task, g_steal_pointer(&error));
@@ -575,15 +582,16 @@ nm_http_client_poll_req(NMHttpClient               *self,
     context =
         nm_g_main_context_push_thread_default_if_necessary(nm_http_client_get_main_context(self));
 
-    nmcs_utils_poll(poll_timeout_ms,
-                    ratelimit_timeout_ms,
-                    0,
-                    _poll_req_probe_start_fcn,
-                    _poll_req_probe_finish_fcn,
-                    poll_req_data,
-                    cancellable,
-                    _poll_req_done_cb,
-                    poll_req_data);
+    nm_utils_poll(poll_timeout_ms,
+                  ratelimit_timeout_ms,
+                  0,
+                  _poll_reg_probe_register_object_fcn,
+                  _poll_req_probe_start_fcn,
+                  _poll_req_probe_finish_fcn,
+                  poll_req_data,
+                  cancellable,
+                  _poll_req_done_cb,
+                  NULL);
 }
 
 gboolean

@@ -97,7 +97,7 @@ _entry_lookup_head(const NMDedupMultiIndex   *self,
         if (c_list_is_empty(&idx_type->lst_idx_head))
             head_entry = NULL;
         else {
-            nm_assert(c_list_length(&idx_type->lst_idx_head) == 1);
+            nm_assert(c_list_length_is(&idx_type->lst_idx_head, 1));
             head_entry = c_list_entry(idx_type->lst_idx_head.next, NMDedupMultiHeadEntry, lst_idx);
         }
         nm_assert(head_entry == g_hash_table_lookup(self->idx_entries, &stack_entry));
@@ -420,7 +420,7 @@ nm_dedup_multi_index_add(NMDedupMultiIndex                         *self,
  *
  * Adds and object to the index.
  *
- * Return: %TRUE if anything changed, %FALSE if nothing changed.
+ * Returns: %TRUE if anything changed, %FALSE if nothing changed.
  */
 gboolean
 nm_dedup_multi_index_add_full(NMDedupMultiIndex                         *self,
@@ -951,7 +951,7 @@ nm_dedup_multi_objs_to_ptr_array_head(const NMDedupMultiHeadEntry   *head_entry,
 /**
  * nm_dedup_multi_entry_reorder:
  * @entry: the entry to reorder. It must not be NULL (and tracked in an index).
- * @entry_order: (allow-none): an optional other entry. It MUST be in the same
+ * @entry_order: (nullable): an optional other entry. It MUST be in the same
  *   list as entry. If given, @entry will be ordered after/before @entry_order.
  *   If left at %NULL, @entry will be moved to the front/end of the list.
  * @order_after: if @entry_order is given, %TRUE means to move @entry after

@@ -2083,7 +2083,7 @@ nm_ip_address_set_attribute (<em class="parameter"><code><a class="link" href="N
 <tr>
 <td class="parameter_name"><p>value</p></td>
 <td class="parameter_description"><p>the value. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>][<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>][<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
 </tr>
 </tbody>
 </table></div>
@@ -2128,7 +2128,7 @@ nm_ip_route_new (<em class="parameter"><code><span class="type">int</span> famil
 <tr>
 <td class="parameter_name"><p>next_hop</p></td>
 <td class="parameter_description"><p>the IP address of the next hop (or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>). </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
 </tr>
 <tr>
 <td class="parameter_name"><p>metric</p></td>
@@ -2192,7 +2192,7 @@ point to buffers of the correct size for <em class="parameter"><code>family</cod
 <tr>
 <td class="parameter_name"><p>next_hop</p></td>
 <td class="parameter_description"><p>the IP address of the next hop (or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>). </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
 </tr>
 <tr>
 <td class="parameter_name"><p>metric</p></td>
@@ -2639,7 +2639,7 @@ it.</p>
 <tr>
 <td class="parameter_name"><p>next_hop</p></td>
 <td class="parameter_description"><p>the route's next hop, as a string. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
 </tr>
 </tbody>
 </table></div>
@@ -2879,7 +2879,7 @@ nm_ip_route_set_attribute (<em class="parameter"><code><a class="link" href="NMS
 <tr>
 <td class="parameter_name"><p>value</p></td>
 <td class="parameter_description"><p>the value. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>][<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>][<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
 </tr>
 </tbody>
 </table></div>
@@ -2939,8 +2939,8 @@ and the value is of the correct type and well-formed.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>error</p></td>
-<td class="parameter_description"><p>return location for a <a href="https://developer.gnome.org/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a>, or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
+<td class="parameter_description"><p>return location for a <a href="https://developer.gnome.org/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a>, or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a></p></td>
+<td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
@@ -3028,7 +3028,7 @@ nm_ip_routing_rule_ref (<em class="parameter"><code><a class="link" href="NMSett
 <tbody><tr>
 <td class="parameter_name"><p>self</p></td>
 <td class="parameter_description"><p>the <a class="link" href="NMSettingIPConfig.html#NMIPRoutingRule"><span class="type">NMIPRoutingRule</span></a> instance. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
 </tr></tbody>
 </table></div>
 </div>
@@ -3061,7 +3061,7 @@ the instance if the reference count reaches zero.</p>
 <tbody><tr>
 <td class="parameter_name"><p>self</p></td>
 <td class="parameter_description"><p>the <a class="link" href="NMSettingIPConfig.html#NMIPRoutingRule"><span class="type">NMIPRoutingRule</span></a> instance. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
 </tr></tbody>
 </table></div>
 </div>
@@ -3725,7 +3725,7 @@ during <a class="link" href="NMSettingIPConfig.html#nm-ip-routing-rule-validate"
 <td class="parameter_name"><p>from</p></td>
 <td class="parameter_description"><p>the from/src address to set.
 The address family must match. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
 </tr>
 <tr>
 <td class="parameter_name"><p>len</p></td>
@@ -3818,7 +3818,7 @@ during <a class="link" href="NMSettingIPConfig.html#nm-ip-routing-rule-validate"
 <td class="parameter_name"><p>to</p></td>
 <td class="parameter_description"><p>the to/dst address to set.
 The address family must match. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
 </tr>
 <tr>
 <td class="parameter_name"><p>len</p></td>
@@ -3886,7 +3886,7 @@ representation you'd get double backslashes.</p>
 <tr>
 <td class="parameter_name"><p>iifname</p></td>
 <td class="parameter_description"><p>the iifname to set or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to unset. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
 </tr>
 </tbody>
 </table></div>
@@ -3947,7 +3947,7 @@ representation you'd get double backslashes.</p>
 <tr>
 <td class="parameter_name"><p>oifname</p></td>
 <td class="parameter_description"><p>the oifname to set or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to unset. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
 </tr>
 </tbody>
 </table></div>
@@ -4152,13 +4152,13 @@ nm_ip_routing_rule_get_uid_range (<em class="parameter"><code>const <a class="li
 <td class="parameter_name"><p>out_range_start</p></td>
 <td class="parameter_description"><p>returns the start of the range
 or 0 if the range is not set. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>][<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>][<acronym title="NULL may be passed instead of a pointer to a location."><span class="acronym">optional</span></acronym>]</span></td>
 </tr>
 <tr>
 <td class="parameter_name"><p>out_range_end</p></td>
 <td class="parameter_description"><p>returns the end of the range
 or 0 if the range is not set. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>][<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>][<acronym title="NULL may be passed instead of a pointer to a location."><span class="acronym">optional</span></acronym>]</span></td>
 </tr>
 </tbody>
 </table></div>
@@ -4229,12 +4229,12 @@ nm_ip_routing_rule_cmp (<em class="parameter"><code>const <a class="link" href="
 <tr>
 <td class="parameter_name"><p>rule</p></td>
 <td class="parameter_description"><p>the <a class="link" href="NMSettingIPConfig.html#NMIPRoutingRule"><span class="type">NMIPRoutingRule</span></a> instance to compare. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
 </tr>
 <tr>
 <td class="parameter_name"><p>other</p></td>
 <td class="parameter_description"><p>the other <a class="link" href="NMSettingIPConfig.html#NMIPRoutingRule"><span class="type">NMIPRoutingRule</span></a> instance to compare. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
 </tr>
 </tbody>
 </table></div>
@@ -4268,8 +4268,8 @@ nm_ip_routing_rule_validate (<em class="parameter"><code>const <a class="link" h
 </tr>
 <tr>
 <td class="parameter_name"><p>error</p></td>
-<td class="parameter_description"><p>the error result if validation fails. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>][<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>]</span></td>
+<td class="parameter_description"><p>the error result if validation fails.</p></td>
+<td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
@@ -4312,12 +4312,12 @@ string conversion.</p></td>
 <td class="parameter_name"><p>extra_args</p></td>
 <td class="parameter_description"><p>extra arguments for controlling the string
 conversion. Currently, not extra arguments are supported. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
 </tr>
 <tr>
 <td class="parameter_name"><p>error</p></td>
-<td class="parameter_description"><p>the error reason. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>][<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>]</span></td>
+<td class="parameter_description"><p>the error reason.</p></td>
+<td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
@@ -4361,12 +4361,12 @@ string conversion.</p></td>
 <td class="parameter_name"><p>extra_args</p></td>
 <td class="parameter_description"><p>extra arguments for controlling the string
 conversion. Currently, not extra arguments are supported. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
 </tr>
 <tr>
 <td class="parameter_name"><p>error</p></td>
-<td class="parameter_description"><p>the error reason. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>][<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>]</span></td>
+<td class="parameter_description"><p>the error reason.</p></td>
+<td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
@@ -5990,7 +5990,7 @@ nm_setting_ip_config_get_dhcp_reject_servers
 <tr>
 <td class="parameter_name"><p>out_len</p></td>
 <td class="parameter_description"><p>the number of returned elements. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>][<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>]</span></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>][<acronym title="NULL may be passed instead of a pointer to a location."><span class="acronym">optional</span></acronym>]</span></td>
 </tr>
 </tbody>
 </table></div>
@@ -6144,7 +6144,7 @@ nm_setting_ip_config_get_replace_local_rule
 <a name="nm-setting-ip-config-get-replace-local-rule.returns"></a><h4>Returns</h4>
 <p> the <span class="type">“replace-local-rule”</span> property of the setting</p>
 </div>
-<p class="since">Since: 1.44, 1.42.2</p>
+<p class="since">Since: 1.44</p>
 </div>
 </div>
 <div class="refsect1">

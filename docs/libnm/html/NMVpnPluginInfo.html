@@ -381,7 +381,7 @@ given <em class="parameter"><code>name</code></em>
 <td class="parameter_description"><p>the name to search for. Either <em class="parameter"><code>name</code></em>
 or <em class="parameter"><code>service</code></em>
 must be present. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
 </tr>
 <tr>
 <td class="parameter_name"><p>service</p></td>
@@ -389,7 +389,7 @@ must be present. </p></td>
 or
 <em class="parameter"><code>service</code></em>
 must be present. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
 </tr>
 </tbody>
 </table></div>
@@ -398,7 +398,7 @@ must be present. </p></td>
 <a name="nm-vpn-plugin-info-new-search-file.returns"></a><h4>Returns</h4>
 <p>a newly created instance of plugin info
 or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if no matching value was found. </p>
-<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>][<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.4</p>
 </div>
@@ -1060,7 +1060,7 @@ nm_vpn_plugin_info_set_editor_plugin (<em class="parameter"><code><a class="link
 <tr>
 <td class="parameter_name"><p>plugin</p></td>
 <td class="parameter_description"><p>plugin instance. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
 </tr>
 </tbody>
 </table></div>

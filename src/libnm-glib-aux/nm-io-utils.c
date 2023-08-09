@@ -21,6 +21,86 @@
 
 /*****************************************************************************/
 
+int
+nm_io_fcntl_getfl(int fd)
+{
+    int f;
+
+    nm_assert(fd >= 0);
+
+    f = fcntl(fd, F_GETFL, 0);
+
+    /* The caller really must provide a valid FD. For a valid FD, there is not
+     * reason why this call could fail (or how we could handle the failure).
+     *
+     * Unlike plain fcntl(), nm_io_fcntl_getfl() cannot fail. */
+    nm_assert(f != -1);
+
+    /* We not only assert that the return value is "!= -1", but that it's not
+     * negative. Negative flags would be very odd, and not something we would
+     * expect for a successful call. */
+    nm_assert(f >= 0);
+
+    return f;
+}
+
+int
+nm_io_fcntl_setfl(int fd, int flags)
+{
+    int f;
+    int errsv;
+
+    nm_assert(fd >= 0);
+    nm_assert(flags >= 0);
+
+    f = fcntl(fd, F_SETFL, flags);
+    if (f != 0) {
+        errsv = errno;
+
+        nm_assert(errsv != EBADF);
+
+        return -NM_ERRNO_NATIVE(errsv);
+    }
+
+    return 0;
+}
+
+int
+nm_io_fcntl_setfl_update(int fd, int flags_mask, int flags_value)
+{
+    int flags_current;
+
+    nm_assert(fd >= 0);
+    nm_assert(flags_mask > 0);
+    nm_assert(flags_value >= 0);
+    nm_assert(((~flags_mask) & flags_value) == 0);
+
+    flags_current = nm_io_fcntl_getfl(fd);
+    return nm_io_fcntl_setfl(fd, (flags_current & ~flags_mask) | (flags_mask & flags_value));
+}
+
+void
+nm_io_fcntl_setfl_update_nonblock(int fd)
+{
+    int r;
+
+    nm_assert(fd >= 0);
+
+    r = nm_io_fcntl_setfl_update(fd, O_NONBLOCK, O_NONBLOCK);
+
+    /* nm_io_fcntl_setfl_update() already asserts that it cannot fail with
+     * EBADF.
+     *
+     * In nm_io_fcntl_setfl_update_nonblock() only sts O_NONBLOCK, where we
+     * don't expect any other error. Kernel should never reject setting this
+     * flags, and if it did, we have to find out how to handle that. Currently
+     * we don't handle it and assert against failure. */
+
+    nm_assert(r == 0);
+}
+
+/*****************************************************************************/
+
 _nm_printf(4, 5) static int _get_contents_error(GError    **error,
                                                 int         errsv,
                                                 int        *out_errsv,
@@ -79,7 +159,7 @@ _nm_printf(4, 5) static int _get_contents_error(GError    **error,
  *  the NUL byte. That is, it reads only files up to a length of
  *  @max_length - 1 bytes.
  * @length: optional output argument of the read file size.
- * @out_errsv: (allow-none) (out): on error, a positive errno. or zero.
+ * @out_errsv: (out) (optional): on error, a positive errno. or zero.
  * @error:
  *
  *
@@ -276,7 +356,7 @@ nm_utils_fd_get_contents(int                         fd,
  *   the NUL byte. That is, it reads only files up to a length of
  *   @max_length - 1 bytes.
  * @length: optional output argument of the read file size.
- * @out_errsv: (allow-none) (out): on error, a positive errno. or zero.
+ * @out_errsv: (out) (optional): on error, a positive errno. or zero.
  * @error:
  *
  * A reimplementation of g_file_get_contents() with a few differences:
@@ -444,7 +524,7 @@ nm_utils_file_set_contents(const char            *filename,
 /**
  * nm_utils_file_stat:
  * @filename: the filename to stat.
- * @out_st: (allow-none) (out): if given, this will be passed to stat().
+ * @out_st: (out) (nullable): if given, this will be passed to stat().
  *
  * Just wraps stat() and gives the errno number as function result instead
  * of setting the errno (though, errno is also set). It's only for convenience
@@ -482,13 +562,17 @@ nm_utils_fd_read(int fd, NMStrBuf *out_string)
     g_return_val_if_fail(fd >= 0, -1);
     g_return_val_if_fail(out_string, -1);
 
-    /* If the buffer size is 0, we allocate NM_UTILS_GET_NEXT_REALLOC_SIZE_1000 (1000 bytes)
-     * the first time. Afterwards, the buffer grows exponentially.
+    /* Reserve at least 488+1 bytes of buffer size. That is probably a suitable
+     * compromise between not wasting too much buffer space and not reading too much.
      *
-     * Note that with @buf_available, we always would read as much buffer as we actually
-     * have reserved. */
-    nm_str_buf_maybe_expand(out_string, NM_UTILS_GET_NEXT_REALLOC_SIZE_1000, FALSE);
+     * Note that when we start with an empty buffer, the first allocation of
+     * 488+1 bytes will actually allocate 1000 bytes. So if we were to receive
+     * one byte at a time, we don't need a reallocation for the first 1000-(488+1)
+     * bytes. Afterwards grows the buffer exponentially.
+     */
+    nm_str_buf_maybe_expand(out_string, NM_UTILS_GET_NEXT_REALLOC_SIZE_488 + 1, FALSE);
 
+    /* We always use all the available buffer size. */
     buf_available = out_string->allocated - out_string->len;
 
     n_read = read(fd, &((nm_str_buf_get_str_unsafe(out_string))[out_string->len]), buf_available);

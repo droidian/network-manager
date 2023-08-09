@@ -7,8 +7,8 @@ dnl  - add corresponding NM_VERSION_x_y_z macros in
 dnl    "shared/nm-version-macros.h.in"
 dnl  - update number in meson.build
 m4_define([nm_major_version], [1])
-m4_define([nm_minor_version], [42])
-m4_define([nm_micro_version], [8])
+m4_define([nm_minor_version], [44])
+m4_define([nm_micro_version], [0])
 m4_define([nm_version],
           [nm_major_version.nm_minor_version.nm_micro_version])
 
@@ -120,6 +120,9 @@ AC_CHECK_DECLS([
 ]])
 
 AC_CHECK_HEADERS(sys/auxv.h)
+AC_CHECK_HEADERS(threads.h,
+                 [],
+                 [AC_DEFINE([HAVE_THREADS_H], [0], [Define to 1 if you have the <threads.h> header file.])])
 
 AC_CHECK_DECLS([getrandom],
                [AC_DEFINE([USE_SYS_RANDOM_H], [1], [sys/random.h is usable])
@@ -169,10 +172,9 @@ AC_SUBST(nmrundir, '${runstatedir}'/$PACKAGE, [NetworkManager runtime state dire
 AC_CHECK_FUNCS([__secure_getenv secure_getenv])
 
 # Alternative configuration plugins
-AC_ARG_ENABLE(ifcfg-rh, AS_HELP_STRING([--enable-ifcfg-rh], [enable ifcfg-rh configuration plugin (Fedora/RHEL)]))
+AC_ARG_ENABLE(ifcfg-rh, AS_HELP_STRING([--enable-ifcfg-rh], [enable ifcfg-rh configuration plugin (Fedora/RHEL) (deprecated)]))
 AC_ARG_ENABLE(ifupdown, AS_HELP_STRING([--enable-ifupdown], [enable ifupdown configuration plugin (Debian/Ubuntu)]))
 # Default alternative plugins by distribution
-AS_IF([test -z "$enable_ifcfg_rh" -a -d /etc/sysconfig/network-scripts], enable_ifcfg_rh=yes)
 AS_IF([test -z "$enable_ifupdown" -a -f /etc/debian_version],            enable_ifupdown=yes)
 # Otherwise, plugins default to "no"
 AS_IF([test -z "$enable_ifcfg_rh"], enable_ifcfg_rh=no)
@@ -406,6 +408,26 @@ fi
 AC_DEFINE_UNQUOTED(NM_CONFIG_DEFAULT_LOGGING_BACKEND, "$nm_config_logging_backend_default", [Default configuration option for logging.backend])
 NM_CONFIG_DEFAULT_LOGGING_BACKEND_TEXT="$nm_config_logging_backend_default"
 AC_SUBST(NM_CONFIG_DEFAULT_LOGGING_BACKEND_TEXT)
+
+AC_ARG_WITH(config-migrate-ifcfg-rh-default,
+            AS_HELP_STRING([--with-config-migrate-ifcfg-rh-default=yes|no],
+                           [Default value for main.migrate-ifcfg-rh]),
+            nm_config_migrate_ifcfg_rh_default="$withval",
+            nm_config_migrate_ifcfg_rh_default="no")
+
+if test "$nm_config_migrate_ifcfg_rh_default" = yes; then
+	if test "$enable_ifcfg_rh" = no; then
+		AC_MSG_ERROR([ifcfg-rh migration can be enabled by default only when the ifcfg-rh plugin is enabled])
+	fi
+	AC_DEFINE(NM_CONFIG_DEFAULT_MAIN_MIGRATE_IFCFG_RH, "true", [The default value of the main.migrate-ifcfg-rh configuration option])
+	NM_CONFIG_DEFAULT_MAIN_MIGRATE_IFCFG_RH_TEXT='true'
+elif test "$nm_config_migrate_ifcfg_rh_default" = no; then
+	AC_DEFINE(NM_CONFIG_DEFAULT_MAIN_MIGRATE_IFCFG_RH, "false", [The default value of the main.migrate-ifcfg-rh configuration option])
+	NM_CONFIG_DEFAULT_MAIN_MIGRATE_IFCFG_RH_TEXT='false'
+else
+	AC_MSG_ERROR([The value of --with-config-migrate-ifcfg-rh-default must be either "yes" or "no".])
+fi
+AC_SUBST(NM_CONFIG_DEFAULT_MAIN_MIGRATE_IFCFG_RH_TEXT)
 
 AC_ARG_WITH(config-wifi-backend-default,
             AS_HELP_STRING([--with-config-wifi-backend-default=backend],
@@ -1006,6 +1028,19 @@ fi
 AC_DEFINE_UNQUOTED(NFT_PATH, "$NFT_PATH", [Define to path of nft binary])
 AC_SUBST(NFT_PATH)
 
+AC_ARG_WITH(modprobe,
+			AS_HELP_STRING([--with-modprobe=/sbin/modprobe], [path to modprobe]))
+if test "x${with_modprobe}" = x; then
+	AC_PATH_PROG(MODPROBE_PATH, modprobe, [], $PATH:/sbin:/usr/sbin)
+	if test "x$MODPROBE_PATH" = x; then
+		MODPROBE_PATH='/sbin/modprobe'
+	fi
+else
+	MODPROBE_PATH="$with_modprobe"
+fi
+AC_DEFINE_UNQUOTED(MODPROBE_PATH, "$MODPROBE_PATH", [Define to path of modprobe binary])
+AC_SUBST(MODPROBE_PATH)
+
 AC_ARG_WITH(dnsmasq,
             AS_HELP_STRING([--with-dnsmasq=/path/to/dnsmasq], [path to dnsmasq]))
 if test "x${with_dnsmasq}" = x; then
@@ -1052,6 +1087,7 @@ else
 fi
 AM_CONDITIONAL(WITH_LIBPSL, test "$with_libpsl" != "no")
 
+have_libcurl=''
 
 AC_ARG_ENABLE(concheck,
               AS_HELP_STRING([--enable-concheck], [enable connectivity checking support]),
@@ -1075,12 +1111,12 @@ AC_ARG_WITH(nmcli,
             AS_HELP_STRING([--with-nmcli=yes|no], [Build nmcli]),
             [],
             [with_nmcli=yes])
-if test "$with_nmcli" == yes; then
+if test "$with_nmcli" = yes; then
     if test "$with_readline" = none; then
         AC_MSG_FAILURE([nmcli requires readline library. Use --with-readline or --with-nmcli=no])
     fi
     build_nmcli=yes
-elif test "$with_nmcli" == no; then
+elif test "$with_nmcli" = no; then
     build_nmcli=no
 else
     AC_MSG_ERROR([invalid --with-nmcli option. Valid options are --with-nmcli=yes|no])
@@ -1088,9 +1124,11 @@ fi
 AM_CONDITIONAL(BUILD_NMCLI, test "$build_nmcli" = yes)
 
 AC_ARG_WITH(nm-cloud-setup,
-            AS_HELP_STRING([--with-nm-cloud-setup=yes|no], [Build nm-cloud-setup, a tool for automatically configure networking in cloud (EXPERIMENTAL!)]))
+            AS_HELP_STRING([--with-nm-cloud-setup=yes|no], [Build nm-cloud-setup, a tool for automatically configuring networking in cloud]))
 if test "$with_nm_cloud_setup" != no; then
-	PKG_CHECK_MODULES(LIBCURL, [libcurl >= 7.24.0], [have_libcurl=yes], [have_libcurl=no])
+	if test "$have_libcurl" = ""; then
+		PKG_CHECK_MODULES(LIBCURL, [libcurl >= 7.24.0], [have_libcurl=yes], [have_libcurl=no])
+	fi
 	if test "$have_libcurl" != "yes"; then
 		AC_MSG_ERROR(--with-nm-cloud-setup requires libcurl library.)
 	fi
@@ -1417,10 +1455,12 @@ echo "  iwd: $ac_with_iwd"
 echo "  jansson: $have_jansson${JANSSON_SONAME:+ (soname: $JANSSON_SONAME)}"
 echo "  iptables: $IPTABLES_PATH"
 echo "  nft: $NFT_PATH"
+echo "  modprobe: $MODPROBE_PATH"
 echo
 
 echo "Configuration plugins (main.plugins=${config_plugins_default})"
 echo "  ifcfg-rh: ${enable_ifcfg_rh}"
+echo "    default value of main.migrate-ifcfg-rh: ${nm_config_migrate_ifcfg_rh_default}"
 echo "  ifupdown: ${enable_ifupdown}"
 echo
 

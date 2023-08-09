@@ -6,7 +6,7 @@ project(
 #  - add corresponding NM_VERSION_x_y_z macros in
 #    "src/libnm-core-public/nm-version-macros.h.in"
 #  - update number in configure.ac
-  version: '1.42.8',
+  version: '1.44.0',
   license: 'GPL2+',
   default_options: [
     'buildtype=debugoptimized',
@@ -104,6 +104,7 @@ endforeach
 
 # headers
 config_h.set10('HAVE_SYS_AUXV_H', cc.has_header('sys/auxv.h'))
+config_h.set10('HAVE_THREADS_H', cc.has_header('threads.h'))
 
 use_sys_random = cc.has_function('getrandom', prefix: '#include <sys/random.h>')
 config_h.set10('USE_SYS_RANDOM_H', use_sys_random)
@@ -288,11 +289,12 @@ glib_dep = declare_dependency(
 )
 
 enable_ifcfg_rh = get_option('ifcfg_rh')
-if enable_ifcfg_rh == 'auto'
-  enable_ifcfg_rh = (run_command('test', '-e', '/etc/sysconfig/network-scripts').returncode() == 0)
-else
-  enable_ifcfg_rh = (enable_ifcfg_rh != 'false')
+
+config_migrate_ifcfg_rh_default = get_option('config_migrate_ifcfg_rh_default').to_string()
+if config_migrate_ifcfg_rh_default == 'true'
+  assert(enable_ifcfg_rh, 'ifcfg-rh migration can be enabled by default only when the ifcfg-rh plugin is enabled')
 endif
+config_h.set_quoted('NM_CONFIG_DEFAULT_MAIN_MIGRATE_IFCFG_RH', config_migrate_ifcfg_rh_default)
 
 enable_ifupdown = get_option('ifupdown')
 if enable_ifupdown == 'auto'
@@ -698,6 +700,7 @@ default_paths = ['/sbin', '/usr/sbin']
 progs = [['iptables', default_paths, '/usr/sbin/iptables'],
          ['nft',      default_paths, '/usr/sbin/nft'],
          ['dnsmasq',  default_paths, ''],
+         ['modprobe', default_paths, '/sbin/modprobe']
         ]
 
 foreach prog : progs
@@ -892,6 +895,7 @@ data_conf.set('NM_CONFIG_DEFAULT_LOGGING_BACKEND_TEXT',  config_logging_backend_
 data_conf.set('NM_CONFIG_DEFAULT_MAIN_AUTH_POLKIT_TEXT', config_auth_polkit_default)
 data_conf.set('NM_CONFIG_DEFAULT_MAIN_DHCP',             config_dhcp_default)
 data_conf.set('NM_CONFIG_DEFAULT_MAIN_RC_MANAGER',       config_dns_rc_manager_default)
+data_conf.set('NM_CONFIG_DEFAULT_MAIN_MIGRATE_IFCFG_RH_TEXT', config_migrate_ifcfg_rh_default)
 data_conf.set('NM_CONFIG_DEFAULT_WIFI_BACKEND_TEXT',     config_wifi_backend_default)
 data_conf.set('NM_MAJOR_VERSION',                        nm_major_version)
 data_conf.set('NM_MICRO_VERSION',                        nm_micro_version)
@@ -949,6 +953,16 @@ subdir('po')
 if enable_vapi
   subdir('vapi')
 endif
+
+test(
+  'check-vapi',
+  find_program(join_paths(source_root, 'tools', 'check-vapi.sh')),
+)
+
+test(
+  'check-nm-autoptr',
+  find_program(join_paths(source_root, 'tools', 'check-nm-autoptr.sh')),
+)
 
 subdir('examples/C/glib')
 
@@ -1065,6 +1079,7 @@ output += '\n'
 output += '  jansson: ' + jansson_msg + '\n'
 output += '  iptables: ' + config_h.get('IPTABLES_PATH') + '\n'
 output += '  nft: ' + config_h.get('NFT_PATH') + '\n'
+output += '  modprobe: ' + config_h.get('MODPROBE_PATH') + '\n'
 output += '  modemmanager-1: ' + enable_modem_manager.to_string() + '\n'
 if enable_modem_manager
   output += '  mobile-broadband-provider-info-database: ' + mobile_broadband_provider_info_database + '\n'
@@ -1078,6 +1093,7 @@ output += '  nmtui: ' + enable_nmtui.to_string() + '\n'
 output += '  nm-cloud-setup: ' + enable_nm_cloud_setup.to_string() + '\n'
 output += '\nConfiguration_plugins (main.plugins=' + config_plugins_default + ')\n'
 output += '  ifcfg-rh: ' + enable_ifcfg_rh.to_string() + '\n'
+output += '    default value of main.migrate-ifcfg-rh: ' +  config_migrate_ifcfg_rh_default + '\n'
 output += '  ifupdown: ' + enable_ifupdown.to_string() + '\n'
 output += '\nHandlers for /etc/resolv.conf:\n' + resolv_conf_summary
 output += '\n'
