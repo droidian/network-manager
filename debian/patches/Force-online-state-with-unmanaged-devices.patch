@@ -12,7 +12,7 @@ Bug-Debian: http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=512286
  1 file changed, 115 insertions(+)
 
 diff --git a/src/core/nm-manager.c b/src/core/nm-manager.c
-index 9c72122..76bade4 100644
+index 937acbb..874591f 100644
 --- a/src/core/nm-manager.c
 +++ b/src/core/nm-manager.c
 @@ -53,6 +53,8 @@
@@ -73,7 +73,7 @@ index 9c72122..76bade4 100644
      if (new_state >= NM_STATE_CONNECTED_LOCAL && priv->connectivity_state == NM_CONNECTIVITY_FULL) {
          new_state = NM_STATE_CONNECTED_GLOBAL;
      }
-@@ -7694,6 +7724,62 @@ impl_manager_get_logging(NMDBusObject                      *obj,
+@@ -7709,6 +7739,62 @@ impl_manager_get_logging(NMDBusObject                      *obj,
          g_variant_new("(ss)", nm_logging_level_to_string(), nm_logging_domains_to_string()));
  }
  
@@ -136,7 +136,7 @@ index 9c72122..76bade4 100644
  typedef struct {
      NMManager             *self;
      GDBusMethodInvocation *context;
-@@ -7986,6 +8072,9 @@ nm_manager_start(NMManager *self, GError **error)
+@@ -8001,6 +8087,9 @@ nm_manager_start(NMManager *self, GError **error)
      nm_clear_g_source(&priv->devices_inited_id);
      priv->devices_inited_id = g_idle_add_full(G_PRIORITY_LOW + 10, devices_inited_cb, self, NULL);
  
@@ -146,7 +146,7 @@ index 9c72122..76bade4 100644
      return TRUE;
  }
  
-@@ -8871,6 +8960,22 @@ nm_manager_init(NMManager *self)
+@@ -8886,6 +8975,22 @@ nm_manager_init(NMManager *self)
          _LOGW(LOGD_CORE, "failed to monitor kernel firmware directory '%s'.", KERNEL_FIRMWARE_DIR);
      }
  
@@ -169,7 +169,7 @@ index 9c72122..76bade4 100644
      priv->metered       = NM_METERED_UNKNOWN;
      priv->sleep_devices = g_hash_table_new(nm_direct_hash, NULL);
  }
-@@ -9161,6 +9266,16 @@ dispose(GObject *object)
+@@ -9176,6 +9281,16 @@ dispose(GObject *object)
          g_clear_object(&priv->fw_monitor);
      }
  
