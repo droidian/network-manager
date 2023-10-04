@@ -82,8 +82,9 @@
           <span class="citerefentry"><span class="refentrytitle">terminal-colors.d</span>(5)</span>.
           Please refer to the <a class="link" href="nmcli.html#colors" title="Colors">Colors</a> section for a
           list of color names supported by <span class="command"><strong>nmcli</strong></span>.</p>
-<p>If the environment variable <code class="literal">NO_COLOR</code> is set (to any value),
-          then coloring is disabled with mode "auto". Explicitly enabling coloring overrides
+<p>If the environment variable <code class="literal">NO_COLOR</code> is set (to any non-empty value),
+          then coloring is disabled with mode "auto". If the environment variable <code class="literal">CLICOLOR_FORCE</code>
+          is set (to any non-empty value), then coloring is enabled with mode "auto". Explicitly enabling coloring overrides
           the environment variable.</p>
 </td>
 </tr>

@@ -2,12 +2,12 @@
 .\"     Title: NetworkManager.conf
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 08/09/2023
+.\"      Date: 10/03/2023
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.44.0
+.\"    Source: NetworkManager 1.44.2
 .\"  Language: English
 .\"
-.TH "NETWORKMANAGER\&.CONF" "5" "" "NetworkManager 1\&.44\&.0" "Configuration"
+.TH "NETWORKMANAGER\&.CONF" "5" "" "NetworkManager 1\&.44\&.2" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -1139,7 +1139,7 @@ Whether the device is managed or not\&. A device can be marked as managed via ud
 .PP
 \fIcarrier\-wait\-timeout\fR
 .RS 4
-Specify the timeout for waiting for carrier in milliseconds\&. The default is 5000 milliseconds\&. This setting exists because certain drivers/hardware can take a long time to detect whether the cable is plugged in\&.
+Specify the timeout for waiting for carrier in milliseconds\&. The default is 6000 milliseconds\&. This setting exists because certain drivers/hardware can take a long time to detect whether the cable is plugged in\&.
 .sp
 When the device loses carrier, NetworkManager does not react immediately\&. Instead, it waits for this timeout before considering the link lost\&.
 .sp

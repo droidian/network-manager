@@ -101,8 +101,6 @@ typedef struct {
      * timestamp when we start probing. */
     guint32 probing_timeout_msec;
 
-    NMEtherAddr last_conflict_addr;
-
     NML3AcdDefendType acd_defend_type_desired : 3;
     NML3AcdDefendType acd_defend_type_current : 3;
     bool              acd_defend_type_is_active : 1;
@@ -168,7 +166,6 @@ typedef struct {
     /* This flag is only used temporarily to do a bulk update and
      * clear all the ones that are no longer in used. */
     bool os_dirty : 1;
-    bool os_tna_dirty : 1;
 } ObjStateData;
 
 G_STATIC_ASSERT(G_STRUCT_OFFSET(ObjStateData, obj) == 0);
@@ -2663,8 +2660,8 @@ handle_init:
         nm_assert(acd_data->info.state == NM_L3_ACD_ADDR_STATE_PROBING);
         nm_assert(acd_data->nacd_probe);
 
-        acd_data->nacd_probe         = n_acd_probe_free(acd_data->nacd_probe);
-        acd_data->last_conflict_addr = *sender_addr;
+        acd_data->nacd_probe              = n_acd_probe_free(acd_data->nacd_probe);
+        acd_data->info.last_conflict_addr = *sender_addr;
         _l3_acd_data_state_set_full(self,
                                     acd_data,
                                     NM_L3_ACD_ADDR_STATE_USED,
@@ -2676,7 +2673,7 @@ handle_init:
             _l3_acd_data_timeout_schedule(acd_data, ACD_WAIT_TIME_PROBING_FULL_RESTART_MSEC);
 
         if (!_l3_acd_data_defendconflict_warning_ratelimited(acd_data, p_now_msec)) {
-            _LOGI("IPv4 address %s is used on network connected to interface %d%s%s%s from "
+            _LOGD("IPv4 address %s is used on network connected to interface %d%s%s%s from "
                   "host %s",
                   nm_inet4_ntop(acd_data->info.addr, sbuf_addr),
                   self->priv.ifindex,
@@ -2707,7 +2704,7 @@ handle_init:
                   nm_ether_addr_to_string_a(sender_addr));
 
         if (!_l3_acd_data_defendconflict_warning_ratelimited(acd_data, p_now_msec)) {
-            _LOGW("IPv4 address collision detection sees conflict on interface %d%s%s%s for "
+            _LOGD("IPv4 address collision detection sees conflict on interface %d%s%s%s for "
                   "address %s from host %s",
                   self->priv.ifindex,
                   NM_PRINT_FMT_QUOTED(self->priv.plobj_next,
@@ -2719,8 +2716,8 @@ handle_init:
                   nm_ether_addr_to_string_a(sender_addr));
         }
 
-        acd_data->nacd_probe         = n_acd_probe_free(acd_data->nacd_probe);
-        acd_data->last_conflict_addr = *sender_addr;
+        acd_data->nacd_probe              = n_acd_probe_free(acd_data->nacd_probe);
+        acd_data->info.last_conflict_addr = *sender_addr;
         _l3_acd_data_state_set(self, acd_data, NM_L3_ACD_ADDR_STATE_CONFLICT, TRUE);
         if (!acd_data->acd_data_timeout_source)
             _l3_acd_data_timeout_schedule(acd_data, ACD_WAIT_TIME_CONFLICT_RESTART_MSEC);
@@ -4035,7 +4032,7 @@ again:
                         &obj_state->os_failedobj_prioq_idx);
         _LOGW(
             "missing IPv%c route: %s",
-            nm_utils_addr_family_to_char(NMP_OBJECT_GET_TYPE(obj_state->obj)),
+            nm_utils_addr_family_to_char(NMP_OBJECT_GET_ADDR_FAMILY(obj_state->obj)),
             nmp_object_to_string(obj_state->obj, NMP_OBJECT_TO_STRING_PUBLIC, sbuf, sizeof(sbuf)));
         goto again;
     }
@@ -4076,7 +4073,7 @@ _failedobj_handle_routes(NML3Cfg *self, int addr_family, GPtrArray *routes_faile
         gboolean                  just_failed          = FALSE;
         gboolean                  arm_timer            = FALSE;
         int                       grace_timeout_msec;
-        gint64                    grace_expiry_mesc;
+        gint64                    grace_expiry_msec;
 
         nm_assert(NMP_OBJECT_GET_TYPE(o) == NMP_OBJECT_TYPE_IP_ROUTE(NM_IS_IPv4(addr_family)));
 
@@ -4108,11 +4105,11 @@ _failedobj_handle_routes(NML3Cfg *self, int addr_family, GPtrArray *routes_faile
             grace_timeout_msec = 0;
         }
 
-        grace_expiry_mesc = now_msec + grace_timeout_msec;
+        grace_expiry_msec = now_msec + grace_timeout_msec;
 
         if (obj_state->os_failedobj_expiry_msec == 0) {
             /* This is a new failure that we didn't see before... */
-            obj_state->os_failedobj_expiry_msec = grace_expiry_mesc;
+            obj_state->os_failedobj_expiry_msec = grace_expiry_msec;
             if (grace_timeout_msec == 0)
                 just_failed = TRUE;
             else {
@@ -4120,9 +4117,9 @@ _failedobj_handle_routes(NML3Cfg *self, int addr_family, GPtrArray *routes_faile
                 just_started_to_fail = TRUE;
             }
         } else {
-            if (obj_state->os_failedobj_expiry_msec > grace_expiry_mesc) {
+            if (obj_state->os_failedobj_expiry_msec > grace_expiry_msec) {
                 /* Shorten the grace timeout. We anyway rearm below... */
-                obj_state->os_failedobj_expiry_msec = grace_expiry_mesc;
+                obj_state->os_failedobj_expiry_msec = grace_expiry_msec;
             }
             if (obj_state->os_failedobj_expiry_msec <= now_msec) {
                 /* The grace period is (already) expired. */
