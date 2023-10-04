@@ -2,12 +2,12 @@
 .\"     Title: nmcli
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 08/09/2023
+.\"      Date: 10/03/2023
 .\"    Manual: General Commands Manual
-.\"    Source: NetworkManager 1.44.0
+.\"    Source: NetworkManager 1.44.2
 .\"  Language: English
 .\"
-.TH "NMCLI" "1" "" "NetworkManager 1\&.44\&.0" "General Commands Manual"
+.TH "NMCLI" "1" "" "NetworkManager 1\&.44\&.2" "General Commands Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -102,7 +102,9 @@ section for a list of color names supported by
 .sp
 If the environment variable
 NO_COLOR
-is set (to any value), then coloring is disabled with mode "auto"\&. Explicitly enabling coloring overrides the environment variable\&.
+is set (to any non\-empty value), then coloring is disabled with mode "auto"\&. If the environment variable
+CLICOLOR_FORCE
+is set (to any non\-empty value), then coloring is enabled with mode "auto"\&. Explicitly enabling coloring overrides the environment variable\&.
 .RE
 .PP
 \fB\-\-complete\-args\fR

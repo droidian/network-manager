@@ -6,10 +6,10 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: NetworkManager 1.44.0\n"
+"Project-Id-Version: NetworkManager 1.44.2\n"
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/NetworkManager/"
 "NetworkManager/issues\n"
-"POT-Creation-Date: 2023-08-09 17:52+0200\n"
+"POT-Creation-Date: 2023-10-03 16:28+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -472,12 +472,11 @@ msgstr ""
 msgid "Cannot create '%s': %s"
 msgstr ""
 
-#: src/core/main-utils.c:193
-#, c-format
-msgid "%s is already running (pid %ld)\n"
+#: src/core/main-utils.c:196
+msgid "%s is already running (pid %"
 msgstr ""
 
-#: src/core/main-utils.c:261 src/core/main.c:368
+#: src/core/main-utils.c:266 src/core/main.c:368
 #, c-format
 msgid "%s.  Please use --help to see a list of valid options.\n"
 msgstr ""
@@ -598,7 +597,7 @@ msgstr ""
 msgid "Show NetworkManager options"
 msgstr ""
 
-#: src/core/nm-manager.c:6905 src/libnmc-setting/nm-meta-setting-desc.c:8506
+#: src/core/nm-manager.c:6920 src/libnmc-setting/nm-meta-setting-desc.c:8506
 msgid "VPN connection"
 msgstr ""
 
@@ -4288,31 +4287,31 @@ msgstr ""
 msgid "The device disappeared"
 msgstr ""
 
-#: src/libnmc-base/nm-client-utils.c:823
+#: src/libnmc-base/nm-client-utils.c:826
 msgid "missing colon for \"<setting>.<property>:<secret>\" format"
 msgstr ""
 
-#: src/libnmc-base/nm-client-utils.c:840
+#: src/libnmc-base/nm-client-utils.c:843
 msgid "missing dot for \"<setting>.<property>:<secret>\" format"
 msgstr ""
 
-#: src/libnmc-base/nm-client-utils.c:846
+#: src/libnmc-base/nm-client-utils.c:849
 msgid "missing setting for \"<setting>.<property>:<secret>\" format"
 msgstr ""
 
-#: src/libnmc-base/nm-client-utils.c:857
+#: src/libnmc-base/nm-client-utils.c:860
 msgid "missing property for \"<setting>.<property>:<secret>\" format"
 msgstr ""
 
-#: src/libnmc-base/nm-client-utils.c:867
+#: src/libnmc-base/nm-client-utils.c:870
 msgid "invalid setting name"
 msgstr ""
 
-#: src/libnmc-base/nm-client-utils.c:881
+#: src/libnmc-base/nm-client-utils.c:884
 msgid "property name is not UTF-8"
 msgstr ""
 
-#: src/libnmc-base/nm-client-utils.c:898 src/libnmc-base/nm-client-utils.c:904
+#: src/libnmc-base/nm-client-utils.c:901 src/libnmc-base/nm-client-utils.c:907
 msgid "secret is not UTF-8"
 msgstr ""
 
@@ -7379,18 +7378,15 @@ msgstr ""
 msgid ""
 "How many additional levels of encapsulation are permitted to be prepended to "
 "packets. This property applies only to IPv6 tunnels. To disable this option, "
-"add NM_IP_TUNNEL_FLAG_IP6_IGN_ENCAP_LIMIT (0x1) to ip-tunnel flags."
+"add 0x1 (ip6-ign-encap-limit) to ip-tunnel flags."
 msgstr ""
 
 #: src/libnmc-setting/settings-docs.h.in:223
 msgid ""
-"Tunnel flags. Currently, the following values are supported: "
-"NM_IP_TUNNEL_FLAG_IP6_IGN_ENCAP_LIMIT (0x1), "
-"NM_IP_TUNNEL_FLAG_IP6_USE_ORIG_TCLASS (0x2), "
-"NM_IP_TUNNEL_FLAG_IP6_USE_ORIG_FLOWLABEL (0x4), "
-"NM_IP_TUNNEL_FLAG_IP6_MIP6_DEV (0x8), NM_IP_TUNNEL_FLAG_IP6_RCV_DSCP_COPY "
-"(0x10), NM_IP_TUNNEL_FLAG_IP6_USE_ORIG_FWMARK (0x20). They are valid only "
-"for IPv6 tunnels."
+"Tunnel flags. Currently, the following values are supported: 0x1 (ip6-ign-"
+"encap-limit), 0x2 (ip6-use-orig-tclass), 0x4 (ip6-use-orig-flowlabel), 0x8 "
+"(ip6-mip6-dev), 0x10 (ip6-rcv-dscp-copy) and 0x20 (ip6-use-orig-fwmark). "
+"They are valid only for IPv6 tunnels."
 msgstr ""
 
 #: src/libnmc-setting/settings-docs.h.in:224
@@ -7419,8 +7415,9 @@ msgstr ""
 
 #: src/libnmc-setting/settings-docs.h.in:228
 msgid ""
-"The tunneling mode, for example NM_IP_TUNNEL_MODE_IPIP (1) or "
-"NM_IP_TUNNEL_MODE_GRE (2)."
+"The tunneling mode. Valid values: ipip (1), gre (2), sit (3), isatap (4), "
+"vti (5), ip6ip6 (6), ipip6 (7), ip6gre (8), vti6 (9), gretap (10) and "
+"ip6gretap (11)"
 msgstr ""
 
 #: src/libnmc-setting/settings-docs.h.in:229
@@ -11413,7 +11410,7 @@ msgstr ""
 msgid "Error: %s"
 msgstr ""
 
-#: src/nmcli/devices.c:5213 src/nmcli/nmcli.c:885
+#: src/nmcli/devices.c:5213 src/nmcli/nmcli.c:887
 #, c-format
 msgid "Error: '%s' is not a valid timeout."
 msgstr ""
@@ -11933,68 +11930,68 @@ msgstr ""
 msgid "Error: missing argument for '%s' option."
 msgstr ""
 
-#: src/nmcli/nmcli.c:630
+#: src/nmcli/nmcli.c:632
 #, c-format
 msgid "Unexpected end of file following '%s'\n"
 msgstr ""
 
-#: src/nmcli/nmcli.c:637
+#: src/nmcli/nmcli.c:639
 #, c-format
 msgid "Expected whitespace following '%s'\n"
 msgstr ""
 
-#: src/nmcli/nmcli.c:648
+#: src/nmcli/nmcli.c:650
 #, c-format
 msgid "Expected a value for '%s'\n"
 msgstr ""
 
-#: src/nmcli/nmcli.c:664
+#: src/nmcli/nmcli.c:666
 #, c-format
 msgid "Expected a line break following '%s'\n"
 msgstr ""
 
-#: src/nmcli/nmcli.c:792
+#: src/nmcli/nmcli.c:794
 msgid "Error: Option '--terse' is specified the second time."
 msgstr ""
 
-#: src/nmcli/nmcli.c:798
+#: src/nmcli/nmcli.c:800
 msgid "Error: Option '--terse' is mutually exclusive with '--pretty'."
 msgstr ""
 
-#: src/nmcli/nmcli.c:806
+#: src/nmcli/nmcli.c:808
 msgid "Error: Option '--pretty' is specified the second time."
 msgstr ""
 
-#: src/nmcli/nmcli.c:812
+#: src/nmcli/nmcli.c:814
 msgid "Error: Option '--pretty' is mutually exclusive with '--terse'."
 msgstr ""
 
-#: src/nmcli/nmcli.c:827
+#: src/nmcli/nmcli.c:829
 #, c-format
 msgid "Error: '%s' is not a valid argument for '%s' option."
 msgstr ""
 
-#: src/nmcli/nmcli.c:844 src/nmcli/nmcli.c:859
+#: src/nmcli/nmcli.c:846 src/nmcli/nmcli.c:861
 #, c-format
 msgid "Error: '%s' is not valid argument for '%s' option."
 msgstr ""
 
-#: src/nmcli/nmcli.c:892
+#: src/nmcli/nmcli.c:894
 #, c-format
 msgid "nmcli tool, version %s\n"
 msgstr ""
 
-#: src/nmcli/nmcli.c:901
+#: src/nmcli/nmcli.c:903
 #, c-format
 msgid "Error: Option '%s' is unknown, try 'nmcli -help'."
 msgstr ""
 
-#: src/nmcli/nmcli.c:959 src/nmcli/nmcli.c:968
+#: src/nmcli/nmcli.c:961 src/nmcli/nmcli.c:970
 #, c-format
 msgid "Error: nmcli terminated by signal %s (%d)"
 msgstr ""
 
-#: src/nmcli/nmcli.c:1035
+#: src/nmcli/nmcli.c:1037
 msgid "Success"
 msgstr ""
 
