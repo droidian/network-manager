@@ -26,4 +26,3 @@ lib/systemd/system/NetworkManager-wait-online.service
 lib/systemd/system/nm-priv-helper.service
 debian/NetworkManager.conf etc/NetworkManager/
 debian/org.freedesktop.NetworkManager.rules usr/share/polkit-1/rules.d/
-debian/01-ifupdown etc/NetworkManager/dispatcher.d/
