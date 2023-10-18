@@ -1,3 +1,14 @@
+network-manager (1.44.2-2) unstable; urgency=medium
+
+  * Stop executing ifupdown hook scripts on network state changes.
+    Many of those script are not meant to be run within a NetworkManager
+    context. Packages that would benefit from reacting on such network state
+    changes should install a native NetworkManager-dispatcher script.
+    The interface is documented in more detail in the
+    NetworkManager-dispatcher(8) man page.
+
+ -- Michael Biebl <biebl@debian.org>  Wed, 18 Oct 2023 14:24:23 +0200
+
 network-manager (1.44.2-1) unstable; urgency=medium
 
   * New upstream version 1.44.2
