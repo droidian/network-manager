@@ -4,6 +4,7 @@ Priority: optional
 Maintainer: Utopia Maintenance Team <pkg-utopia-maintainers@lists.alioth.debian.org>
 Uploaders: Michael Biebl <biebl@debian.org>
 Build-Depends: debhelper-compat (= 13),
+               debhelper (>= 13.11.6),
                dh-sequence-gir,
                automake (>= 1.12),
                pkg-config,

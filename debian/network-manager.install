@@ -9,6 +9,8 @@ usr/lib/*/NetworkManager/*/libnm-ppp-plugin.so
 usr/lib/*/NetworkManager/*/libnm-wwan.so
 usr/lib/pppd/*/*.so
 usr/lib/firewalld/zones/nm-shared.xml
+usr/lib/systemd/system/*.service
+usr/lib/udev/rules.d/*.rules
 usr/share/locale/
 usr/share/man/
 usr/share/dbus-1/system-services/
@@ -19,10 +21,5 @@ usr/share/polkit-1/
 usr/share/bash-completion/
 etc/NetworkManager/
 var/lib/NetworkManager/
-lib/udev/rules.d/*.rules
-lib/systemd/system/NetworkManager.service
-lib/systemd/system/NetworkManager-dispatcher.service
-lib/systemd/system/NetworkManager-wait-online.service
-lib/systemd/system/nm-priv-helper.service
 debian/NetworkManager.conf etc/NetworkManager/
 debian/org.freedesktop.NetworkManager.rules usr/share/polkit-1/rules.d/
