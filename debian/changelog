@@ -1,3 +1,12 @@
+network-manager (1.44.2-3) unstable; urgency=medium
+
+  * Move systemd services files and udev rules to /usr.
+    Add a corresponding versioned Build-Depends on debhelper (>= 13.11.6) to
+    ensure we have a recent enough dh_installsystemd.
+  * Install helper binaries into /usr/libexec (Closes: #1026388)
+
+ -- Michael Biebl <biebl@debian.org>  Fri, 20 Oct 2023 16:35:24 +0200
+
 network-manager (1.44.2-2) unstable; urgency=medium
 
   * Stop executing ifupdown hook scripts on network state changes.
