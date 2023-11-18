@@ -1,3 +1,15 @@
+network-manager (1.44.2-4) unstable; urgency=medium
+
+  * Fix typo in latest NEWS entry
+  * Ship /etc/NetworkManager/VPN directory in network-manager package.
+    This will make an eventual cleanup easier once all VPN plugin packages
+    have moved their .name files to /usr/lib/NetworkManager/VPN.
+  * core: propagate the user-requested reason for act-request disconnection.
+    This avoids that deactivating a Wireguard VPN connection triggers an
+    error notification.
+
+ -- Michael Biebl <biebl@debian.org>  Sat, 18 Nov 2023 20:57:16 +0100
+
 network-manager (1.44.2-3) unstable; urgency=medium
 
   * Move systemd services files and udev rules to /usr.
