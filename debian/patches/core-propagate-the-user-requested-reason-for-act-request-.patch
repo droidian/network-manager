@@ -1,0 +1,65 @@
+From: Beniamino Galvani <bgalvani@redhat.com>
+Date: Sun, 22 Oct 2023 08:38:55 +0200
+Subject: core: propagate the user-requested reason for act-request
+ disconnection
+
+If the device is being disconnected for a user request, at the moment
+the active connection goes to state DEACTIVATED through the following
+transitions, independently of the reason for the disconnection:
+
+ - state: DEACTIVATING, reason: UNKNOWN
+ - state: DEACTIVATED,  reason: DEVICE_DISCONNECTED
+
+For VPNs, a disconnection is always user-initiated, and the active
+connection states emitted are:
+
+ - state: DEACTIVATING, reason: USER_DISCONNECTED
+ - state: DEACTIVATED,  reason: USER_DISCONNECTED
+
+This difference poses problems for clients that want to handle device
+and VPNs in the same way, especially because WireGuard is implemented
+as a device, but is logically a VPN.
+
+Let NMActRequest translate the USER_REQUESTED device state reason to
+USER_DISCONNECTED active connection state reason, in case of
+disconnection.
+
+This is an API change, but the previous behavior of reporting generic
+uninformative reasons seems a bug. See for example
+nmc_activation_get_effective_state(), which inspects the AC state
+reason and in case it's generic (DEVICE_DISCONNECTED), it considers
+the device state instead.
+
+https://gitlab.freedesktop.org/NetworkManager/NetworkManager/-/issues/1405
+(cherry picked from commit d3db0883c7723a9e150ea9856bd8678480c99874)
+---
+ src/core/nm-act-request.c | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/src/core/nm-act-request.c b/src/core/nm-act-request.c
+index 8fcff63..bed7ffd 100644
+--- a/src/core/nm-act-request.c
++++ b/src/core/nm-act-request.c
+@@ -320,14 +320,20 @@ device_state_changed(NMActiveConnection *active,
+                          active);
+         break;
+     case NM_DEVICE_STATE_DEACTIVATING:
++        if (reason == NM_DEVICE_STATE_REASON_USER_REQUESTED)
++            ac_state_reason = NM_ACTIVE_CONNECTION_STATE_REASON_USER_DISCONNECTED;
++
+         ac_state = NM_ACTIVE_CONNECTION_STATE_DEACTIVATING;
+         break;
+     case NM_DEVICE_STATE_FAILED:
+     case NM_DEVICE_STATE_DISCONNECTED:
+     case NM_DEVICE_STATE_UNMANAGED:
+     case NM_DEVICE_STATE_UNAVAILABLE:
+-        ac_state        = NM_ACTIVE_CONNECTION_STATE_DEACTIVATED;
+-        ac_state_reason = NM_ACTIVE_CONNECTION_STATE_REASON_DEVICE_DISCONNECTED;
++        ac_state = NM_ACTIVE_CONNECTION_STATE_DEACTIVATED;
++        if (reason == NM_DEVICE_STATE_REASON_USER_REQUESTED)
++            ac_state_reason = NM_ACTIVE_CONNECTION_STATE_REASON_USER_DISCONNECTED;
++        else
++            ac_state_reason = NM_ACTIVE_CONNECTION_STATE_REASON_DEVICE_DISCONNECTED;
+ 
+         g_signal_handlers_disconnect_by_func(device, G_CALLBACK(device_notify), active);
+         break;
