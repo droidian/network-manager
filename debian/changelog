@@ -1,3 +1,15 @@
+network-manager (1.44.2-5) unstable; urgency=medium
+
+  * Replace systemd Build-Depends with systemd-dev.
+    Only systemd.pc is required during build which is now shipped in
+    systemd-dev.
+  * Add versioned Breaks against isc-dhcp-client.
+    The AppArmor policy in isc-dhcp-client needs to be updated to account
+    for the move of the nm-dhcp-helper binary to /usr/libexec.
+    (Closes: #1056313)
+
+ -- Michael Biebl <biebl@debian.org>  Mon, 20 Nov 2023 23:02:41 +0100
+
 network-manager (1.44.2-4) unstable; urgency=medium
 
   * Fix typo in latest NEWS entry
