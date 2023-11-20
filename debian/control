@@ -63,7 +63,8 @@ Recommends: ppp,
             libpam-systemd,
 Suggests: libteam-utils,
           iptables,
-Breaks: ${misc:Breaks}
+Breaks: ${misc:Breaks},
+        isc-dhcp-client (<< 4.4.3-P1-5),
 Description: network management framework (daemon and userspace tools)
  NetworkManager is a system network service that manages your network devices
  and connections, attempting to keep active network connectivity when
