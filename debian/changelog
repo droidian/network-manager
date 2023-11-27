@@ -1,3 +1,16 @@
+network-manager (1.44.2-6) unstable; urgency=medium
+
+  * Revert "Add versioned Breaks against isc-dhcp-client"
+    Having a Breaks against isc-dhcp-client can lead to unwanted package
+    removals by apt. As the default dhcp backend in network-manager has been
+    switched from dhclient to internal, the Breaks is not strictly necessary.
+    Users that have explicitly configured "dhcp=dhclient" are advised to
+    switch to the internal option (recommended) or temporarily disable the
+    sbin.dhclient AppArmor profile shipped by isc-dhcp-client until #1055067
+    is fixed. (Closes: #1056638)
+
+ -- Michael Biebl <biebl@debian.org>  Mon, 27 Nov 2023 07:45:49 +0100
+
 network-manager (1.44.2-5) unstable; urgency=medium
 
   * Replace systemd Build-Depends with systemd-dev.
