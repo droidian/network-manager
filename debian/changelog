@@ -1,3 +1,17 @@
+network-manager (1.44.2-7) unstable; urgency=medium
+
+  [ Simon McVittie ]
+  * d/control: Explicitly build-depend on gir1.2-girepository-2.0.
+    This is currently a virtual package provided by gir1.2-glib-2.0, but it
+    will need to be split into a separate package during the
+    GNOME 46/GLib 2.79.x cycle.
+    Making this dependency explicit will also help to keep track of which
+    packages will need coordination when PyGI switches from GIRepository 2.0
+    to GIRepository 3.0, which again is likely to happen during the GNOME 46
+    cycle. (Closes: #1059623)
+
+ -- Michael Biebl <biebl@debian.org>  Fri, 29 Dec 2023 19:38:14 +0100
+
 network-manager (1.44.2-6) unstable; urgency=medium
 
   * Revert "Add versioned Breaks against isc-dhcp-client"
