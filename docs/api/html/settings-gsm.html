@@ -38,7 +38,7 @@
             Properties
         </h2>
 <div class="table">
-<a name="id-1.3.3.15.2.2.1"></a><p class="title"><b>Table 49. </b></p>
+<a name="id-1.3.3.15.2.2.1"></a><p class="title"><b>Table 50. </b></p>
 <div class="table-contents"><table class="table" border="1">
 <colgroup>
 <col>
@@ -57,7 +57,9 @@
 <td><pre class="screen">apn</pre></td>
 <td><pre class="screen">string</pre></td>
 <td><pre class="screen"></pre></td>
-<td>The GPRS Access Point Name specifying the APN used when establishing a data session with the GSM-based network.  The APN often determines how the user will be billed for their network usage and whether the user has access to the Internet or just a provider-specific walled-garden, so it is important to use the correct APN for the user's mobile broadband plan. The APN may only be composed of the characters a-z, 0-9, ., and - per GSM 03.60 Section 14.9.</td>
+<td>The GPRS Access Point Name specifying the APN used when establishing a data session with the GSM-based network.  The APN often determines how the user will be billed for their network usage and whether the user has access to the Internet or just a provider-specific walled-garden, so it is important to use the correct APN for the user's mobile broadband plan. The APN may only be composed of the characters a-z, 0-9, ., and - per GSM 03.60 Section 14.9.
+
+If the APN is unset (the default) then it may be detected based on "auto-config" setting. The property can be explicitly set to the empty string to prevent that and use no APN.</td>
 </tr>
 <tr>
 <td><pre class="screen">auto-config</pre></td>

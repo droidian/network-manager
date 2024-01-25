@@ -194,6 +194,13 @@
 </td>
 </tr>
 <tr>
+<td class="function_type">const <span class="returnvalue">char</span> *
+</td>
+<td class="function_name">
+<a class="link" href="NMSettingConnection.html#nm-setting-connection-get-controller" title="nm_setting_connection_get_controller ()">nm_setting_connection_get_controller</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
 <td class="function_type">
 <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 </td>
@@ -206,6 +213,13 @@
 </td>
 <td class="function_name">
 <a class="link" href="NMSettingConnection.html#nm-setting-connection-get-slave-type" title="nm_setting_connection_get_slave_type ()">nm_setting_connection_get_slave_type</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">char</span> *
+</td>
+<td class="function_name">
+<a class="link" href="NMSettingConnection.html#nm-setting-connection-get-port-type" title="nm_setting_connection_get_port_type ()">nm_setting_connection_get_port_type</a> <span class="c_punctuation">()</span>
 </td>
 </tr>
 <tr>
@@ -427,7 +441,15 @@
 </tr>
 <tr>
 <td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingConnection.html#NM-SETTING-CONNECTION-CONTROLLER:CAPS" title="NM_SETTING_CONNECTION_CONTROLLER">NM_SETTING_CONNECTION_CONTROLLER</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMSettingConnection.html#NM-SETTING-CONNECTION-SLAVE-TYPE:CAPS" title="NM_SETTING_CONNECTION_SLAVE_TYPE">NM_SETTING_CONNECTION_SLAVE_TYPE</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingConnection.html#NM-SETTING-CONNECTION-PORT-TYPE:CAPS" title="NM_SETTING_CONNECTION_PORT_TYPE">NM_SETTING_CONNECTION_PORT_TYPE</a></td>
 </tr>
 <tr>
 <td class="define_keyword">#define</td>
@@ -1123,6 +1145,11 @@ be a username. See <span class="type">“permissions”</span>: for more details
 <a name="nm-setting-connection-get-master"></a><h3>nm_setting_connection_get_master ()</h3>
 <pre class="programlisting">const <span class="returnvalue">char</span> *
 nm_setting_connection_get_master (<em class="parameter"><code><a class="link" href="NMSettingConnection.html" title="NMSettingConnection"><span class="type">NMSettingConnection</span></a> *setting</code></em>);</pre>
+<div class="warning">
+<p><code class="literal">nm_setting_connection_get_master</code> has been deprecated since version 1.46. and should not be used in newly-written code.</p>
+<p>Use <a class="link" href="NMSettingConnection.html#nm-setting-connection-get-controller" title="nm_setting_connection_get_controller ()"><code class="function">nm_setting_connection_get_controller()</code></a> instead which
+is just an alias.</p>
+</div>
 <p>Returns the <span class="type">“master”</span> property of the connection.</p>
 <div class="refsect3">
 <a name="nm-setting-connection-get-master.parameters"></a><h4>Parameters</h4>
@@ -1147,10 +1174,39 @@ connection.</p>
 </div>
 <hr>
 <div class="refsect2">
+<a name="nm-setting-connection-get-controller"></a><h3>nm_setting_connection_get_controller ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *
+nm_setting_connection_get_controller (<em class="parameter"><code><a class="link" href="NMSettingConnection.html" title="NMSettingConnection"><span class="type">NMSettingConnection</span></a> *setting</code></em>);</pre>
+<p>Returns the <span class="type">“controller”</span> property of the connection.</p>
+<div class="refsect3">
+<a name="nm-setting-connection-get-controller.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>setting</p></td>
+<td class="parameter_description"><p>the <a class="link" href="NMSettingConnection.html" title="NMSettingConnection"><span class="type">NMSettingConnection</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="nm-setting-connection-get-controller.returns"></a><h4>Returns</h4>
+<p> interface name of the controller device or UUID of the controller
+connection.</p>
+</div>
+<p class="since">Since: 1.46</p>
+</div>
+<hr>
+<div class="refsect2">
 <a name="nm-setting-connection-is-slave-type"></a><h3>nm_setting_connection_is_slave_type ()</h3>
 <pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 nm_setting_connection_is_slave_type (<em class="parameter"><code><a class="link" href="NMSettingConnection.html" title="NMSettingConnection"><span class="type">NMSettingConnection</span></a> *setting</code></em>,
                                      <em class="parameter"><code>const <span class="type">char</span> *type</code></em>);</pre>
+<div class="warning"><p><code class="literal">nm_setting_connection_is_slave_type</code> has been deprecated since version 1.46. and should not be used in newly-written code.</p></div>
 <div class="refsect3">
 <a name="nm-setting-connection-is-slave-type.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
@@ -1186,6 +1242,11 @@ against <em class="parameter"><code>setting</code></em>
 <a name="nm-setting-connection-get-slave-type"></a><h3>nm_setting_connection_get_slave_type ()</h3>
 <pre class="programlisting">const <span class="returnvalue">char</span> *
 nm_setting_connection_get_slave_type (<em class="parameter"><code><a class="link" href="NMSettingConnection.html" title="NMSettingConnection"><span class="type">NMSettingConnection</span></a> *setting</code></em>);</pre>
+<div class="warning">
+<p><code class="literal">nm_setting_connection_get_slave_type</code> has been deprecated since version 1.46. and should not be used in newly-written code.</p>
+<p>Use <a class="link" href="NMSettingConnection.html#nm-setting-connection-get-port-type" title="nm_setting_connection_get_port_type ()"><code class="function">nm_setting_connection_get_port_type()</code></a> instead which
+is just an alias.</p>
+</div>
 <p>Returns the <span class="type">“slave-type”</span> property of the connection.</p>
 <div class="refsect3">
 <a name="nm-setting-connection-get-slave-type.parameters"></a><h4>Parameters</h4>
@@ -1206,6 +1267,33 @@ nm_setting_connection_get_slave_type (<em class="parameter"><code><a class="link
 <a name="nm-setting-connection-get-slave-type.returns"></a><h4>Returns</h4>
 <p> the type of slave this connection is, if any</p>
 </div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-connection-get-port-type"></a><h3>nm_setting_connection_get_port_type ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *
+nm_setting_connection_get_port_type (<em class="parameter"><code><a class="link" href="NMSettingConnection.html" title="NMSettingConnection"><span class="type">NMSettingConnection</span></a> *setting</code></em>);</pre>
+<p>Returns the <span class="type">“port-type”</span> property of the connection.</p>
+<div class="refsect3">
+<a name="nm-setting-connection-get-port-type.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>setting</p></td>
+<td class="parameter_description"><p>the <a class="link" href="NMSettingConnection.html" title="NMSettingConnection"><span class="type">NMSettingConnection</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="nm-setting-connection-get-port-type.returns"></a><h4>Returns</h4>
+<p> the type of port this connection is, if any.</p>
+</div>
+<p class="since">Since: 1.46</p>
 </div>
 <hr>
 <div class="refsect2">
@@ -1810,8 +1898,20 @@ property.</p>
 </div>
 <hr>
 <div class="refsect2">
+<a name="NM-SETTING-CONNECTION-CONTROLLER:CAPS"></a><h3>NM_SETTING_CONNECTION_CONTROLLER</h3>
+<pre class="programlisting">#define NM_SETTING_CONNECTION_CONTROLLER            "controller"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
 <a name="NM-SETTING-CONNECTION-SLAVE-TYPE:CAPS"></a><h3>NM_SETTING_CONNECTION_SLAVE_TYPE</h3>
 <pre class="programlisting">#define NM_SETTING_CONNECTION_SLAVE_TYPE            "slave-type"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-CONNECTION-PORT-TYPE:CAPS"></a><h3>NM_SETTING_CONNECTION_PORT_TYPE</h3>
+<pre class="programlisting">#define NM_SETTING_CONNECTION_PORT_TYPE             "port-type"
 </pre>
 </div>
 <hr>

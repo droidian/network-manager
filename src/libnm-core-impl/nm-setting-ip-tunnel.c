@@ -55,20 +55,18 @@ typedef struct {
  * IP Tunneling Settings
  */
 struct _NMSettingIPTunnel {
-    NMSetting parent;
-    /* In the past, this struct was public API. Preserve ABI! */
+    NMSetting                parent;
+    NMSettingIPTunnelPrivate _priv;
 };
 
 struct _NMSettingIPTunnelClass {
     NMSettingClass parent;
-    /* In the past, this struct was public API. Preserve ABI! */
-    gpointer padding[4];
 };
 
 G_DEFINE_TYPE(NMSettingIPTunnel, nm_setting_ip_tunnel, NM_TYPE_SETTING)
 
 #define NM_SETTING_IP_TUNNEL_GET_PRIVATE(o) \
-    (G_TYPE_INSTANCE_GET_PRIVATE((o), NM_TYPE_SETTING_IP_TUNNEL, NMSettingIPTunnelPrivate))
+    _NM_GET_PRIVATE(o, NMSettingIPTunnel, NM_IS_SETTING_IP_TUNNEL, NMSetting)
 
 /*****************************************************************************/
 
@@ -566,8 +564,6 @@ nm_setting_ip_tunnel_class_init(NMSettingIPTunnelClass *klass)
     NMSettingClass *setting_class       = NM_SETTING_CLASS(klass);
     GArray         *properties_override = _nm_sett_info_property_override_create_array();
 
-    g_type_class_add_private(klass, sizeof(NMSettingIPTunnelPrivate));
-
     object_class->get_property = _nm_setting_property_get_property_direct;
     object_class->set_property = _nm_setting_property_set_property_direct;
 
@@ -588,7 +584,8 @@ nm_setting_ip_tunnel_class_init(NMSettingIPTunnelClass *klass)
                                               PROP_PARENT,
                                               NM_SETTING_PARAM_INFERRABLE,
                                               NMSettingIPTunnelPrivate,
-                                              parent);
+                                              parent,
+                                              .direct_string_allow_empty = TRUE);
 
     /**
      * NMSettingIPTunnel:mode:
@@ -634,7 +631,8 @@ nm_setting_ip_tunnel_class_init(NMSettingIPTunnelClass *klass)
                                               PROP_LOCAL,
                                               NM_SETTING_PARAM_INFERRABLE,
                                               NMSettingIPTunnelPrivate,
-                                              local);
+                                              local,
+                                              .direct_string_allow_empty = TRUE);
 
     /**
      * NMSettingIPTunnel:remote:
@@ -650,7 +648,8 @@ nm_setting_ip_tunnel_class_init(NMSettingIPTunnelClass *klass)
                                               PROP_REMOTE,
                                               NM_SETTING_PARAM_INFERRABLE,
                                               NMSettingIPTunnelPrivate,
-                                              remote);
+                                              remote,
+                                              .direct_string_allow_empty = TRUE);
 
     /**
      * NMSettingIPTunnel:ttl
@@ -720,7 +719,8 @@ nm_setting_ip_tunnel_class_init(NMSettingIPTunnelClass *klass)
                                               PROP_INPUT_KEY,
                                               NM_SETTING_PARAM_INFERRABLE,
                                               NMSettingIPTunnelPrivate,
-                                              input_key);
+                                              input_key,
+                                              .direct_string_allow_empty = TRUE);
 
     /**
      * NMSettingIPTunnel:output-key:
@@ -736,7 +736,8 @@ nm_setting_ip_tunnel_class_init(NMSettingIPTunnelClass *klass)
                                               PROP_OUTPUT_KEY,
                                               NM_SETTING_PARAM_INFERRABLE,
                                               NMSettingIPTunnelPrivate,
-                                              output_key);
+                                              output_key,
+                                              .direct_string_allow_empty = TRUE);
 
     /**
      * NMSettingIPTunnel:encapsulation-limit:
@@ -861,5 +862,5 @@ nm_setting_ip_tunnel_class_init(NMSettingIPTunnelClass *klass)
                              NM_META_SETTING_TYPE_IP_TUNNEL,
                              NULL,
                              properties_override,
-                             NM_SETT_INFO_PRIVATE_OFFSET_FROM_CLASS);
+                             G_STRUCT_OFFSET(NMSettingIPTunnel, _priv));
 }

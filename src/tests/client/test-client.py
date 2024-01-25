@@ -201,7 +201,6 @@ _UNSTABLE_OUTPUT = object()
 
 
 class Util:
-
     _signal_no_lookup = {
         1: "SIGHUP",
         2: "SIGINT",
@@ -544,7 +543,7 @@ class Util:
                 [
                     "sed",
                     "-e",
-                    "/^--[0-9]\+-- WARNING: unhandled .* syscall: /,/^--[0-9]\+-- it at http.*\.$/d",
+                    r"/^--[0-9]\+-- WARNING: unhandled .* syscall: /,/^--[0-9]\+-- it at http.*\.$/d",
                     name,
                 ],
                 stdout=subprocess.PIPE,
@@ -658,7 +657,6 @@ class Util:
 
     @staticmethod
     def cmd_create_argv(cmd_path, args, with_valgrind=None):
-
         if with_valgrind is None:
             with_valgrind = conf.get(ENV_NM_TEST_VALGRIND)
 
@@ -719,7 +717,7 @@ class Util:
         micro = ver & 0xFF
         minor = (ver >> 8) & 0xFF
         major = ver >> 16
-        return f"{major}.{minor}.{micro}"
+        return "%s.%s.%s" % (major, minor, micro)
 
 
 ###############################################################################
@@ -1092,9 +1090,7 @@ class NMTestContext:
             srv.shutdown()
 
     def async_start(self, wait_all=False):
-
         while True:
-
             while True:
                 for async_job in list(self._async_jobs[0 : self.MAX_JOBS]):
                     async_job.start()
@@ -1134,7 +1130,6 @@ class NMTestContext:
         self._async_jobs.append(async_job)
 
     def run_post(self):
-
         self.async_wait()
 
         self.srv_shutdown()
@@ -1302,7 +1297,6 @@ class TestNmcli(unittest.TestCase):
         extra_env=None,
         sync_barrier=None,
     ):
-
         frame = sys._getframe(1)
 
         if langs is not None:
@@ -1350,7 +1344,6 @@ class TestNmcli(unittest.TestCase):
         sync_barrier,
         frame,
     ):
-
         if sync_barrier:
             self.ctx.async_wait()
 
@@ -1428,7 +1421,6 @@ class TestNmcli(unittest.TestCase):
         self.ctx.ctx_results.append(None)
 
         def complete_cb(async_job, returncode, stdout, stderr):
-
             if expected_stdout is _UNSTABLE_OUTPUT:
                 stdout = "<UNSTABLE OUTPUT>".encode("utf-8")
             else:
@@ -1559,7 +1551,6 @@ class TestNmcli(unittest.TestCase):
 
     @nm_test
     def test_001(self):
-
         self.call_nmcli_l([])
 
         self.call_nmcli_l(
@@ -1626,7 +1617,6 @@ class TestNmcli(unittest.TestCase):
         self.call_nmcli_l(["c", "s"], replace_stdout=replace_uuids)
 
         for con_name, apn in con_gsm_list:
-
             replace_uuids.append(
                 self.ctx.srv.ReplaceTextConUuid(
                     con_name, "UUID-" + con_name + "-REPLACED-REPLACED-REPL"
@@ -1752,6 +1742,8 @@ class TestNmcli(unittest.TestCase):
             "State",
             dbus.UInt32(NM.ActiveConnectionState.DEACTIVATING),
         )
+
+        self.call_nmcli_l(["-f", "all", "d"], replace_stdout=replace_uuids)
 
         self.call_nmcli_l([], replace_stdout=replace_uuids)
 
@@ -1886,8 +1878,17 @@ class TestNmcli(unittest.TestCase):
 
         self.call_nmcli_l([], replace_stdout=replace_uuids)
 
-        for mode in Util.iter_nmcli_output_modes():
+        self.call_nmcli(
+            ["-f", "all", "connection", "show", "--order", "na:-active"],
+            replace_stdout=replace_uuids,
+        )
 
+        self.call_nmcli(
+            ["-f", "all", "connection", "show", "--order", "active:-na"],
+            replace_stdout=replace_uuids,
+        )
+
+        for mode in Util.iter_nmcli_output_modes():
             self.call_nmcli_l(
                 mode + ["con", "s", "con-vpn-1"], replace_stdout=replace_uuids
             )
@@ -2051,9 +2052,34 @@ class TestNmcli(unittest.TestCase):
                 replace_cmd=replace_uuids,
             )
 
+        replace_uuids.append(
+            self.ctx.srv.ReplaceTextConUuid(
+                "con-xx2", "UUID-con-xx2-REPLACED-REPLACED-REPLA"
+            )
+        )
+
+        self.call_nmcli(
+            ["c", "add", "type", "ethernet", "con-name", "con-xx2", "ifname", "eth1"],
+            replace_stdout=replace_uuids,
+        )
+
+        self.ctx.srv.op_SetActiveConnectionStateChangedDelay(
+            "/org/freedesktop/NetworkManager/Devices/2", 50000
+        )
+        self.call_nmcli(["-wait", "0", "con", "up", "con-xx2"])
+        self.call_nmcli(["con", "up", "con-xx1"])
+
+        self.call_nmcli_l(
+            ["-f", "all", "device", "status"],
+            replace_stdout=replace_uuids,
+        )
+        self.call_nmcli_l(
+            ["-f", "all", "connection", "show"],
+            replace_stdout=replace_uuids,
+        )
+
     @nm_test_no_dbus
     def test_offline(self):
-
         # Make sure we're not using D-Bus
         no_dbus_env = {
             "DBUS_SYSTEM_BUS_ADDRESS": "very:invalid",
@@ -2158,18 +2184,18 @@ class TestNmcli(unittest.TestCase):
         nmc.pexp.expect("Interface name:")
         nmc.pexp.sendline("eth0")
         nmc.pexp.expect("There are 3 optional settings for Wired Ethernet.")
-        nmc.pexp.expect("Do you want to provide them\? \(yes/no\) \[yes]")
+        nmc.pexp.expect(r"Do you want to provide them\? \(yes/no\) \[yes]")
         nmc.pexp.sendline("no")
         nmc.pexp.expect("There are 2 optional settings for IPv4 protocol.")
-        nmc.pexp.expect("Do you want to provide them\? \(yes/no\) \[yes]")
+        nmc.pexp.expect(r"Do you want to provide them\? \(yes/no\) \[yes]")
         nmc.pexp.sendline("no")
         nmc.pexp.expect("There are 2 optional settings for IPv6 protocol.")
-        nmc.pexp.expect("Do you want to provide them\? \(yes/no\) \[yes]")
+        nmc.pexp.expect(r"Do you want to provide them\? \(yes/no\) \[yes]")
         nmc.pexp.sendline("no")
         nmc.pexp.expect("There are 4 optional settings for Proxy.")
-        nmc.pexp.expect("Do you want to provide them\? \(yes/no\) \[yes]")
+        nmc.pexp.expect(r"Do you want to provide them\? \(yes/no\) \[yes]")
         nmc.pexp.sendline("no")
-        nmc.pexp.expect("Connection 'ethernet' \(.*\) successfully added.")
+        nmc.pexp.expect(r"Connection 'ethernet' \(.*\) successfully added.")
         nmc.pexp.expect(pexpect.EOF)
         Util.valgrind_check_log(nmc.valgrind_log, "test_ask_mode")
 
@@ -2190,34 +2216,34 @@ class TestNmcli(unittest.TestCase):
         nmc.pexp.expect("Interface name:")
         nmc.pexp.sendline("eth0")
         nmc.pexp.expect("There are 3 optional settings for Wired Ethernet.")
-        nmc.pexp.expect("Do you want to provide them\? \(yes/no\) \[yes]")
+        nmc.pexp.expect(r"Do you want to provide them\? \(yes/no\) \[yes]")
         nmc.pexp.sendline("no")
         nmc.pexp.expect("There are 2 optional settings for IPv4 protocol.")
-        nmc.pexp.expect("Do you want to provide them\? \(yes/no\) \[yes]")
+        nmc.pexp.expect(r"Do you want to provide them\? \(yes/no\) \[yes]")
         nmc.pexp.sendline("no")
         nmc.pexp.expect("There are 2 optional settings for IPv6 protocol.")
-        nmc.pexp.expect("Do you want to provide them\? \(yes/no\) \[yes]")
+        nmc.pexp.expect(r"Do you want to provide them\? \(yes/no\) \[yes]")
         nmc.pexp.sendline("no")
         nmc.pexp.expect("There are 4 optional settings for Proxy.")
-        nmc.pexp.expect("Do you want to provide them\? \(yes/no\) \[yes]")
+        nmc.pexp.expect(r"Do you want to provide them\? \(yes/no\) \[yes]")
         nmc.pexp.sendline("no")
         nmc.pexp.expect(
-            "\[connection\]\r\n"
-            + "id=ethernet\r\n"
-            + "uuid=.*\r\n"
-            + "type=ethernet\r\n"
-            + "interface-name=eth0\r\n"
-            + "\r\n"
-            + "\[ethernet\]\r\n"
-            + "\r\n"
-            + "\[ipv4\]\r\n"
-            + "method=auto\r\n"
-            + "\r\n"
-            + "\[ipv6\]\r\n"
-            + "addr-gen-mode=default\r\n"
-            + "method=auto\r\n"
-            + "\r\n"
-            + "\[proxy\]\r\n"
+            r"\[connection\]\r\n"
+            r"id=ethernet\r\n"
+            r"uuid=.*\r\n"
+            r"type=ethernet\r\n"
+            r"interface-name=eth0\r\n"
+            r"\r\n"
+            r"\[ethernet\]\r\n"
+            r"\r\n"
+            r"\[ipv4\]\r\n"
+            r"method=auto\r\n"
+            r"\r\n"
+            r"\[ipv6\]\r\n"
+            r"addr-gen-mode=default\r\n"
+            r"method=auto\r\n"
+            r"\r\n"
+            r"\[proxy\]\r\n"
         )
         nmc.pexp.expect(pexpect.EOF)
         Util.valgrind_check_log(nmc.valgrind_log, "test_ask_offline")
@@ -2268,6 +2294,10 @@ class TestNmcli(unittest.TestCase):
                 )
             ],
         )
+
+    @nm_test_no_dbus
+    def test_daemon_not_running(self):
+        self.call_nmcli(["c"])
 
 
 ###############################################################################
@@ -2508,12 +2538,12 @@ class TestNmCloudSetup(unittest.TestCase):
         nmc.pexp.expect("provider azure detected")
         nmc.pexp.expect("found interfaces: CC:00:00:00:00:01, CC:00:00:00:00:02")
         nmc.pexp.expect("found azure interfaces: 2")
-        nmc.pexp.expect("interface\[0]: found a matching device with hwaddr")
+        nmc.pexp.expect(r"interface\[0]: found a matching device with hwaddr")
         nmc.pexp.expect(
-            "interface\[0]: (received subnet address|received subnet prefix 20)"
+            r"interface\[0]: (received subnet address|received subnet prefix 20)"
         )
         nmc.pexp.expect(
-            "interface\[0]: (received subnet address|received subnet prefix 20)"
+            r"interface\[0]: (received subnet address|received subnet prefix 20)"
         )
         nmc.pexp.expect("get-config: success")
         nmc.pexp.expect("meta data received")
@@ -2644,7 +2674,7 @@ class TestNmCloudSetup(unittest.TestCase):
         nmc.pexp.expect("provider GCP detected")
         nmc.pexp.expect("found interfaces: CC:00:00:00:00:01, CC:00:00:00:00:02")
         nmc.pexp.expect("found GCP interfaces: 2")
-        nmc.pexp.expect("GCP interface\[0]: found a requested device with hwaddr")
+        nmc.pexp.expect(r"GCP interface\[0]: found a requested device with hwaddr")
         nmc.pexp.expect("get-config: success")
         nmc.pexp.expect("meta data received")
         # One of the devices has no IPv4 configuration to be modified
@@ -2699,7 +2729,7 @@ def main():
                     sys.executable,
                     __file__,
                     "--started-with-dbus-session",
-                    *sys.argv[1:],
+                    *sys.argv[1:]
                 )
             except OSError as e:
                 if e.errno != errno.ENOENT:

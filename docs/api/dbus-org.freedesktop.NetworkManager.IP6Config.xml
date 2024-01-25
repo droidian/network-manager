@@ -35,8 +35,9 @@
 Addresses  readable   a(ayuay)
 </programlisting>
 <para>
-Array of tuples of IPv6 address/prefix/gateway. Deprecated: use
-AddressData and Gateway.
+Array of tuples of IPv6 address/prefix/gateway.
+</para><para>
+DEPRECATED: use AddressData and Gateway.
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-IP6Config.AddressData">
@@ -68,7 +69,9 @@ The gateway in use.
 Routes  readable   a(ayuayu)
 </programlisting>
 <para>
-Tuples of IPv6 route/prefix/next-hop/metric. Deprecated: use RouteData
+Tuples of IPv6 route/prefix/next-hop/metric.
+</para><para>
+DEPRECATED: use RouteData.
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-IP6Config.RouteData">

@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN" "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd">
-<refentry id="nm-settings-keyfile"><refentryinfo><title>nm-settings-keyfile</title><author>NetworkManager developers</author></refentryinfo><refmeta><refentrytitle>nm-settings-keyfile</refentrytitle><manvolnum>5</manvolnum><refmiscinfo class="source">NetworkManager</refmiscinfo><refmiscinfo class="manual">Configuration</refmiscinfo><refmiscinfo class="version">1.44.2</refmiscinfo></refmeta><refnamediv><refname>nm-settings-keyfile</refname><refpurpose>Description of <emphasis>keyfile</emphasis> settings plugin</refpurpose></refnamediv><refsect1 id="description"><title>Description</title><para>
+<refentry id="nm-settings-keyfile"><refentryinfo><title>nm-settings-keyfile</title><author>NetworkManager developers</author></refentryinfo><refmeta><refentrytitle>nm-settings-keyfile</refentrytitle><manvolnum>5</manvolnum><refmiscinfo class="source">NetworkManager</refmiscinfo><refmiscinfo class="manual">Configuration</refmiscinfo><refmiscinfo class="version">1.45.90</refmiscinfo></refmeta><refnamediv><refname>nm-settings-keyfile</refname><refpurpose>Description of <emphasis>keyfile</emphasis> settings plugin</refpurpose></refnamediv><refsect1 id="description"><title>Description</title><para>
           NetworkManager is based on the concept of connection profiles that contain
-          network configuration (see <citerefentry><refentrytitle>nm-settings</refentrytitle><manvolnum>5</manvolnum></citerefentry> for details). The profiles can be
+          network configuration (see <citerefentry><refentrytitle>nm-settings-nmcli</refentrytitle><manvolnum>5</manvolnum></citerefentry> for details). The profiles can be
           stored in various formats. NetworkManager uses plugins for reading and writing
           the data. The plugins can be configured in <citerefentry><refentrytitle>NetworkManager.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>.
         </para><para>
@@ -18,20 +18,27 @@
           in plaintext inside the file.
         </para></refsect1><refsect1 id="file_format"><title>File Format</title><para>
           The <emphasis>keyfile</emphasis> config format is a simple .ini-style
-          format. It consists of sections (groups) of key-value pairs. Each section
-          corresponds to a setting name as described in the settings specification
-          (<citerefentry><refentrytitle>nm-settings</refentrytitle><manvolnum>5</manvolnum></citerefentry>). Each configuration key/value
-          pair in the section is one of the properties listed in the settings
-          specification. The majority of properties of the specification is written
-          in the same format into the <emphasis>keyfile</emphasis> too. However
-          some values are inconvenient for people to use. These are stored in the
-          files in more readable ways. These properties are described below.
-          An example could be IP addresses that are not written as integer arrays,
-          but more reasonably as "1.2.3.4/12 1.2.3.254".
+          format. It consists of sections (groups) of key-value pairs.
           More information of the generic key file format can be found at
           <ulink url="https://developer.gnome.org/glib/stable/glib-Key-value-file-parser.html#glib-Key-value-file-parser.description">
           GLib key file format</ulink> (Lines beginning with a '#' are comments,
           lists are separated by character <literal>;</literal> etc.).
+        </para><para>
+          Each section corresponds to a setting name as described in the settings
+          specification (<citerefentry><refentrytitle>nm-settings-nmcli</refentrytitle><manvolnum>5</manvolnum></citerefentry>). Each key/value pair in a
+          section is one of the properties from the specification.
+        </para><para>
+          The majority of properties are written in the same format as the
+          specification into the <emphasis>keyfile</emphasis>. However, some
+          values are inconvenient for people to use so they are stored in the
+          <emphasis>keyfile</emphasis> in more readable ways. These properties
+          that differ from the specification are described below.
+          An example could be IP addresses that are not written as integer arrays,
+          but more reasonably as "1.2.3.4/12 1.2.3.254".
+          Also, some lists of complex values (addresses, routes, routing-rules),
+          instead of using a semicolon separated list, use one key-value pair
+          per list element, with the key being the singular of the property name
+          followed by the numeric index (i.e address1, address2, ...).
         </para><para>
           Users can create or modify the <emphasis>keyfile</emphasis> connection files
           manually, even if that is not the recommended way of managing the profiles.
@@ -129,7 +136,7 @@ id=4
           There are several exceptions to this rule, mainly for making keyfile syntax easier
           for humans. The exceptions handled specially by <emphasis>keyfile</emphasis>
           plugin are listed below. Refer to
-          <link linkend="nm-settings"><citerefentry><refentrytitle>nm-settings</refentrytitle><manvolnum>5</manvolnum></citerefentry></link>
+          <link linkend="nm-settings-nmcli"><citerefentry><refentrytitle>nm-settings-nmcli</refentrytitle><manvolnum>5</manvolnum></citerefentry></link>
           for all available settings and properties and their description.
         </para><formalpara><title>Name aliases</title><para>
             Some of the NetworkManager setting names are somewhat hard to type or remember. Therefore
@@ -152,7 +159,11 @@ Example: </emphasis>address1=192.168.100.100/24 address2=10.1.1.5/24</entry></ro
 
 Example: </emphasis>gateway=192.168.100.1</entry></row><row><entry align="left">routes</entry><entry align="left">route1, route2, ...</entry><entry align="left">route/plen[,gateway,metric]</entry><entry align="left">List of IP routes.<emphasis role="bold">
 
-Example: </emphasis>route1=8.8.8.0/24,10.1.1.1,77 route2=7.7.0.0/16</entry></row></tbody></tgroup></table><table><title>ipv6 setting (section)</title><tgroup cols="4"><thead><row><entry>Property</entry><entry>Keyfile Variable</entry><entry>Format</entry><entry>Description</entry></row></thead><tbody><row><entry align="left">dns</entry><entry align="left"/><entry align="left">list of DNS IP addresses</entry><entry align="left">List of DNS servers.<emphasis role="bold">
+Example: </emphasis>route1=8.8.8.0/24,10.1.1.1,77 route2=7.7.0.0/16</entry></row><row><entry align="left">routes (attributes)</entry><entry align="left">route1_options, route2_options, ...</entry><entry align="left">key=val[,key=val...]</entry><entry align="left">Attributes defined for the routes, if any. The supported attributes are explained in ipv4.routes entry in `man nm-settings-nmcli`.<emphasis role="bold">
+
+Example: </emphasis>route1_options=mtu=1000,onlink=true</entry></row><row><entry align="left">routing-rules</entry><entry align="left">routing-rule1, routing-rule2, ...</entry><entry align="left">routing rule string</entry><entry align="left">Routing rules as defined with `ip rule add`, but with mandatory fixed priority.<emphasis role="bold">
+
+Example: </emphasis>routing-rule1=priority 5 from 192.167.4.0/24 table 45</entry></row></tbody></tgroup></table><table><title>ipv6 setting (section)</title><tgroup cols="4"><thead><row><entry>Property</entry><entry>Keyfile Variable</entry><entry>Format</entry><entry>Description</entry></row></thead><tbody><row><entry align="left">dns</entry><entry align="left"/><entry align="left">list of DNS IP addresses</entry><entry align="left">List of DNS servers.<emphasis role="bold">
 
 Example: </emphasis>dns=2001:4860:4860::8888;2001:4860:4860::8844;</entry></row><row><entry align="left">addresses</entry><entry align="left">address1, address2, ...</entry><entry align="left">address/plen</entry><entry align="left">List of static IP addresses.<emphasis role="bold">
 
@@ -160,7 +171,11 @@ Example: </emphasis>address1=abbe::cafe/96 address2=2001::1234</entry></row><row
 
 Example: </emphasis>gateway=abbe::1</entry></row><row><entry align="left">routes</entry><entry align="left">route1, route2, ...</entry><entry align="left">route/plen[,gateway,metric]</entry><entry align="left">List of IP routes.<emphasis role="bold">
 
-Example: </emphasis>route1=2001:4860:4860::/64,2620:52:0:2219:222:68ff:fe11:5403</entry></row></tbody></tgroup></table><table><title>serial setting (section)</title><tgroup cols="4"><thead><row><entry>Property</entry><entry>Keyfile Variable</entry><entry>Format</entry><entry>Description</entry></row></thead><tbody><row><entry align="left">parity</entry><entry align="left"/><entry align="left">'e', 'o', or 'n'</entry><entry align="left">The connection parity; even, odd, or none. Note that older versions of NetworkManager stored this as an integer: 69 ('E') for even, 111 ('o') for odd, or 110 ('n') for none.<emphasis role="bold">
+Example: </emphasis>route1=2001:4860:4860::/64,2620:52:0:2219:222:68ff:fe11:5403</entry></row><row><entry align="left">routes (attributes)</entry><entry align="left">route1_options, route2_options, ...</entry><entry align="left">key=val[,key=val...]</entry><entry align="left">Attributes defined for the routes, if any. The supported attributes are explained in ipv6.routes entry in `man nm-settings-nmcli`.<emphasis role="bold">
+
+Example: </emphasis>route1_options=mtu=1000,onlink=true</entry></row><row><entry align="left">routing-rules</entry><entry align="left">routing-rule1, routing-rule2, ...</entry><entry align="left">routing rule string</entry><entry align="left">Routing rules as defined with `ip rule add`, but with mandatory fixed priority.<emphasis role="bold">
+
+Example: </emphasis>routing-rule1=priority 5 from 2001:4860:4860::/64 table 45</entry></row></tbody></tgroup></table><table><title>serial setting (section)</title><tgroup cols="4"><thead><row><entry>Property</entry><entry>Keyfile Variable</entry><entry>Format</entry><entry>Description</entry></row></thead><tbody><row><entry align="left">parity</entry><entry align="left"/><entry align="left">'e', 'o', or 'n'</entry><entry align="left">The connection parity; even, odd, or none. Note that older versions of NetworkManager stored this as an integer: 69 ('E') for even, 111 ('o') for odd, or 110 ('n') for none.<emphasis role="bold">
 
 Example: </emphasis>parity=n</entry></row></tbody></tgroup></table><table><title>vpn setting (section)</title><tgroup cols="4"><thead><row><entry>Property</entry><entry>Keyfile Variable</entry><entry>Format</entry><entry>Description</entry></row></thead><tbody><row><entry align="left">data</entry><entry align="left">separate variables named after keys of the dictionary</entry><entry align="left"/><entry align="left">The keys of the data dictionary are used as variable names directly under [vpn] section.<emphasis role="bold">
 
@@ -175,7 +190,7 @@ Example: </emphasis>password=Popocatepetl</entry></row></tbody></tgroup></table>
               and storing this secret; when it is required, agents will be asked to provide it.</para></listitem><listitem><para>2 - (not-saved) - this secret should not be saved but should be requested
               from the user each time it is required.</para></listitem><listitem><para>4 - (not-required) - in some situations it cannot be automatically determined
               that a secret is required or not. This flag hints that the secret is not required
-              and should not be requested from the user.</para></listitem></itemizedlist></refsect2></refsect1><refsect1 id="files"><title>Files</title><para><filename>/etc/NetworkManager/system-connections/*</filename></para></refsect1><refsect1 id="see_also"><title>See Also</title><para><link linkend="nm-settings"><citerefentry><refentrytitle>nm-settings</refentrytitle><manvolnum>5</manvolnum></citerefentry></link>,
+              and should not be requested from the user.</para></listitem></itemizedlist></refsect2></refsect1><refsect1 id="files"><title>Files</title><para><filename>/etc/NetworkManager/system-connections/*</filename></para></refsect1><refsect1 id="see_also"><title>See Also</title><para><link linkend="nm-settings-nmcli"><citerefentry><refentrytitle>nm-settings-nmcli</refentrytitle><manvolnum>5</manvolnum></citerefentry></link>,
         <link linkend="nm-settings-ifcfg-rh"><citerefentry><refentrytitle>nm-settings-ifcfg-rh</refentrytitle><manvolnum>5</manvolnum></citerefentry></link>,
         <link linkend="NetworkManager"><citerefentry><refentrytitle>NetworkManager</refentrytitle><manvolnum>8</manvolnum></citerefentry></link>,
         <link linkend="NetworkManager.conf"><citerefentry><refentrytitle>NetworkManager.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry></link>,

@@ -291,65 +291,91 @@ connection_type_to_display(const char *type, NMMetaAccessorGetType get_type)
 static int
 active_connection_get_state_ord(NMActiveConnection *active)
 {
+    static const NMActiveConnectionState ordered_states[] = {
+        NM_ACTIVE_CONNECTION_STATE_UNKNOWN,
+        NM_ACTIVE_CONNECTION_STATE_DEACTIVATED,
+        NM_ACTIVE_CONNECTION_STATE_DEACTIVATING,
+        NM_ACTIVE_CONNECTION_STATE_ACTIVATING,
+        NM_ACTIVE_CONNECTION_STATE_ACTIVATED,
+    };
+    NMActiveConnectionState state;
+    int                     i;
+    gboolean                is_external;
+
     /* returns an integer related to @active's state, that can be used for sorting
      * active connections based on their activation state. */
-    if (!active)
-        return -2;
 
-    switch (nm_active_connection_get_state(active)) {
-    case NM_ACTIVE_CONNECTION_STATE_UNKNOWN:
-        return 0;
-    case NM_ACTIVE_CONNECTION_STATE_DEACTIVATED:
-        return 1;
-    case NM_ACTIVE_CONNECTION_STATE_DEACTIVATING:
-        return 2;
-    case NM_ACTIVE_CONNECTION_STATE_ACTIVATING:
-        return 3;
-    case NM_ACTIVE_CONNECTION_STATE_ACTIVATED:
-        return 4;
+    if (!active)
+        return -10;
+
+    state       = nm_active_connection_get_state(active);
+    is_external = NM_FLAGS_HAS(nm_active_connection_get_state_flags(active),
+                               NM_ACTIVATION_STATE_FLAG_EXTERNAL);
+
+    for (i = 0; i < (int) G_N_ELEMENTS(ordered_states); i++) {
+        if (state == ordered_states[i]) {
+            if (!is_external)
+                i += G_N_ELEMENTS(ordered_states);
+            return i;
+        }
     }
-    return -1;
+
+    return is_external ? -2 : -1;
 }
 
 int
 nmc_active_connection_cmp(NMActiveConnection *ac_a, NMActiveConnection *ac_b)
 {
-    NMSettingIPConfig  *s_ip;
-    NMRemoteConnection *conn;
+    NMSettingIPConfig  *s_ip4_a;
+    NMSettingIPConfig  *s_ip4_b;
+    NMSettingIPConfig  *s_ip6_a;
+    NMSettingIPConfig  *s_ip6_b;
+    NMRemoteConnection *conn_a;
+    NMRemoteConnection *conn_b;
     NMIPConfig         *da_ip;
     NMIPConfig         *db_ip;
-    int                 da_num_addrs;
-    int                 db_num_addrs;
-    int                 cmp = 0;
+    gint64              da_num_addrs;
+    gint64              db_num_addrs;
+    gboolean            bool_a;
+    gboolean            bool_b;
 
-    /* Non-active sort last. */
+    /* nmc_active_connection_cmp() sorts more-important ACs later. That means,
+     * - NULL comes first
+     * - then sorting by state (active_connection_get_state_ord()), with "activated" sorted last.
+     * - various properties of the AC.
+     *
+     * This is basically the inverse order of `nmcli connection`.
+     */
+
+    /* Non-active (and NULL) sort first! */
     NM_CMP_SELF(ac_a, ac_b);
-    NM_CMP_DIRECT(active_connection_get_state_ord(ac_b), active_connection_get_state_ord(ac_a));
+    NM_CMP_DIRECT(active_connection_get_state_ord(ac_a), active_connection_get_state_ord(ac_b));
+
+    conn_a = nm_active_connection_get_connection(ac_a);
+    conn_b = nm_active_connection_get_connection(ac_b);
+
+    s_ip6_a = conn_a ? nm_connection_get_setting_ip6_config(NM_CONNECTION(conn_a)) : NULL;
+    s_ip6_b = conn_b ? nm_connection_get_setting_ip6_config(NM_CONNECTION(conn_b)) : NULL;
 
     /* Shared connections (likely hotspots) go on the top if possible */
-    conn = nm_active_connection_get_connection(ac_a);
-    s_ip = conn ? nm_connection_get_setting_ip6_config(NM_CONNECTION(conn)) : NULL;
-    if (s_ip
-        && nm_streq(nm_setting_ip_config_get_method(s_ip), NM_SETTING_IP6_CONFIG_METHOD_SHARED))
-        cmp++;
-    conn = nm_active_connection_get_connection(ac_b);
-    s_ip = conn ? nm_connection_get_setting_ip6_config(NM_CONNECTION(conn)) : NULL;
-    if (s_ip
-        && nm_streq(nm_setting_ip_config_get_method(s_ip), NM_SETTING_IP6_CONFIG_METHOD_SHARED))
-        cmp--;
-    NM_CMP_RETURN(cmp);
+    bool_a = (s_ip6_a
+              && nm_streq(nm_setting_ip_config_get_method(s_ip6_a),
+                          NM_SETTING_IP6_CONFIG_METHOD_SHARED));
+    bool_b = (s_ip6_b
+              && nm_streq(nm_setting_ip_config_get_method(s_ip6_b),
+                          NM_SETTING_IP6_CONFIG_METHOD_SHARED));
+    NM_CMP_DIRECT(bool_a, bool_b);
 
-    conn = nm_active_connection_get_connection(ac_a);
-    s_ip = conn ? nm_connection_get_setting_ip4_config(NM_CONNECTION(conn)) : NULL;
-    if (s_ip
-        && nm_streq(nm_setting_ip_config_get_method(s_ip), NM_SETTING_IP4_CONFIG_METHOD_SHARED))
-        cmp++;
-    conn = nm_active_connection_get_connection(ac_b);
-    s_ip = conn ? nm_connection_get_setting_ip4_config(NM_CONNECTION(conn)) : NULL;
-    if (s_ip
-        && nm_streq(nm_setting_ip_config_get_method(s_ip), NM_SETTING_IP4_CONFIG_METHOD_SHARED))
-        cmp--;
-    NM_CMP_RETURN(cmp);
+    s_ip4_a = conn_a ? nm_connection_get_setting_ip4_config(NM_CONNECTION(conn_a)) : NULL;
+    s_ip4_b = conn_b ? nm_connection_get_setting_ip4_config(NM_CONNECTION(conn_b)) : NULL;
+
+    bool_a = (s_ip4_a
+              && nm_streq(nm_setting_ip_config_get_method(s_ip4_a),
+                          NM_SETTING_IP4_CONFIG_METHOD_SHARED));
+    bool_b = (s_ip4_b
+              && nm_streq(nm_setting_ip_config_get_method(s_ip4_b),
+                          NM_SETTING_IP4_CONFIG_METHOD_SHARED));
+    NM_CMP_DIRECT(bool_a, bool_b);
 
     /* VPNs go next */
     NM_CMP_DIRECT(!!nm_active_connection_get_vpn(ac_a), !!nm_active_connection_get_vpn(ac_b));
@@ -367,9 +393,9 @@ nmc_active_connection_cmp(NMActiveConnection *ac_a, NMActiveConnection *ac_b)
     db_num_addrs = db_ip ? nm_ip_config_get_addresses(db_ip)->len : 0;
 
     da_ip = nm_active_connection_get_ip6_config(ac_a);
-    da_num_addrs += da_ip ? nm_ip_config_get_addresses(da_ip)->len : 0;
+    da_num_addrs += (gint64) (da_ip ? nm_ip_config_get_addresses(da_ip)->len : 0u);
     db_ip = nm_active_connection_get_ip6_config(ac_b);
-    db_num_addrs += db_ip ? nm_ip_config_get_addresses(db_ip)->len : 0;
+    db_num_addrs += (gint64) (db_ip ? nm_ip_config_get_addresses(db_ip)->len : 0u);
 
     NM_CMP_DIRECT(da_num_addrs, db_num_addrs);
 
@@ -779,7 +805,7 @@ _metagen_con_show_get_fcn(NMC_META_GENERIC_INFO_GET_FCN_ARGS)
     case NMC_GENERIC_INFO_TYPE_CON_SHOW_PORT:
         if (!s_con)
             return NULL;
-        return nm_setting_connection_get_slave_type(s_con);
+        return nm_setting_connection_get_port_type(s_con);
     case NMC_GENERIC_INFO_TYPE_CON_SHOW_FILENAME:
         if (!NM_IS_REMOTE_CONNECTION(c))
             return NULL;
@@ -1049,7 +1075,8 @@ const NmcMetaGenericInfo
     "," NM_SETTING_LINK_SETTING_NAME "," NM_SETTING_PROXY_SETTING_NAME                 \
     "," NM_SETTING_TC_CONFIG_SETTING_NAME "," NM_SETTING_SRIOV_SETTING_NAME            \
     "," NM_SETTING_ETHTOOL_SETTING_NAME "," NM_SETTING_OVS_DPDK_SETTING_NAME           \
-    "," NM_SETTING_HOSTNAME_SETTING_NAME /* NM_SETTING_DUMMY_SETTING_NAME NM_SETTING_WIMAX_SETTING_NAME */
+    "," NM_SETTING_HOSTNAME_SETTING_NAME "," NM_SETTING_HSR_SETTING_NAME
+/* NM_SETTING_DUMMY_SETTING_NAME NM_SETTING_WIMAX_SETTING_NAME */
 
 const NmcMetaGenericInfo *const nmc_fields_con_active_details_groups[] = {
     NMC_META_GENERIC_WITH_NESTED("GENERAL", metagen_con_active_general), /* 0 */
@@ -1447,7 +1474,7 @@ get_ac_for_connection_cmp(gconstpointer pa, gconstpointer pb)
     NMActiveConnection *ac_a = *((NMActiveConnection *const *) pa);
     NMActiveConnection *ac_b = *((NMActiveConnection *const *) pb);
 
-    NM_CMP_RETURN(nmc_active_connection_cmp(ac_a, ac_b));
+    NM_CMP_RETURN(nmc_active_connection_cmp(ac_b, ac_a));
     NM_CMP_DIRECT_STRCMP0(nm_active_connection_get_id(ac_a), nm_active_connection_get_id(ac_b));
     NM_CMP_DIRECT_STRCMP0(nm_active_connection_get_connection_type(ac_a),
                           nm_active_connection_get_connection_type(ac_b));
@@ -2262,7 +2289,7 @@ get_connection(NmCli              *nmc,
                             NMCLI_ERROR,
                             NMC_RESULT_ERROR_USER_INPUT,
                             _("%s argument is missing"),
-                            selector);
+                            (*argv)[0]);
                 return NULL;
             }
         } else {
@@ -3838,7 +3865,7 @@ is_setting_mandatory(NMConnection *connection, NMSetting *setting)
     g_return_val_if_fail(s_con, FALSE);
 
     c_type = nm_setting_connection_get_connection_type(s_con);
-    s_type = nm_setting_connection_get_slave_type(s_con);
+    s_type = nm_setting_connection_get_port_type(s_con);
 
     name = nm_setting_get_name(setting);
 
@@ -4427,7 +4454,7 @@ con_settings(NMConnection                             *connection,
     s_con = nm_connection_get_setting_connection(connection);
     g_return_val_if_fail(s_con, FALSE);
 
-    con_type       = nm_setting_connection_get_slave_type(s_con);
+    con_type       = nm_setting_connection_get_port_type(s_con);
     *port_settings = nm_meta_setting_info_valid_parts_for_slave_type(con_type, NULL);
     if (!*port_settings) {
         g_set_error(error,
@@ -4527,14 +4554,16 @@ enable_type_settings_and_options(NmCli *nmc, NMConnection *con, GError **error)
     s_con = nm_connection_get_setting_connection(con);
     g_return_val_if_fail(s_con, FALSE);
 
-    if (nm_setting_connection_get_slave_type(s_con))
-        enable_options(NM_SETTING_CONNECTION_SETTING_NAME, NM_SETTING_CONNECTION_MASTER, NULL);
+    if (nm_setting_connection_get_port_type(s_con)) {
+        enable_options(NM_SETTING_CONNECTION_SETTING_NAME, NM_SETTING_CONNECTION_CONTROLLER, NULL);
+    }
 
     if (NM_IN_STRSET(nm_setting_connection_get_connection_type(s_con),
                      NM_SETTING_BLUETOOTH_SETTING_NAME,
                      NM_SETTING_BOND_SETTING_NAME,
                      NM_SETTING_BRIDGE_SETTING_NAME,
                      NM_SETTING_DUMMY_SETTING_NAME,
+                     NM_SETTING_HSR_SETTING_NAME,
                      NM_SETTING_OVS_BRIDGE_SETTING_NAME,
                      NM_SETTING_OVS_PATCH_SETTING_NAME,
                      NM_SETTING_OVS_PORT_SETTING_NAME,
@@ -4587,7 +4616,7 @@ set_connection_type(NmCli            *nmc,
         if (!set_property(nmc->client,
                           con,
                           NM_SETTING_CONNECTION_SETTING_NAME,
-                          NM_SETTING_CONNECTION_SLAVE_TYPE,
+                          NM_SETTING_CONNECTION_PORT_TYPE,
                           port_type,
                           NM_META_ACCESSOR_MODIFIER_SET,
                           error)) {
@@ -4657,14 +4686,14 @@ set_connection_controller(NmCli            *nmc,
         return FALSE;
     }
 
-    port_type   = nm_setting_connection_get_slave_type(s_con);
+    port_type   = nm_setting_connection_get_port_type(s_con);
     connections = nmc_get_connections(nmc);
     value       = normalized_controller_for_port(connections, value, port_type, &port_type);
 
     if (!set_property(nmc->client,
                       con,
                       NM_SETTING_CONNECTION_SETTING_NAME,
-                      NM_SETTING_CONNECTION_SLAVE_TYPE,
+                      NM_SETTING_CONNECTION_PORT_TYPE,
                       port_type,
                       NM_META_ACCESSOR_MODIFIER_SET,
                       error)) {
@@ -4894,6 +4923,11 @@ _meta_abstract_get_option_info(const NMMetaAbstractInfo *abstract_info)
                     "master",
                     set_connection_controller,
                     NULL),
+        OPTION_INFO(CONNECTION,
+                    NM_SETTING_CONNECTION_CONTROLLER,
+                    "controller",
+                    set_connection_controller,
+                    NULL),
         OPTION_INFO(BLUETOOTH,
                     NM_SETTING_BLUETOOTH_TYPE,
                     "bt-type",
@@ -4984,7 +5018,7 @@ complete_property_name(NmCli                 *nmc,
     connection_type = nm_connection_get_connection_type(connection);
     s_con           = nm_connection_get_setting_connection(connection);
     if (s_con)
-        port_type = nm_setting_connection_get_slave_type(s_con);
+        port_type = nm_setting_connection_get_port_type(s_con);
     valid_settings_main = get_valid_settings_array(connection_type);
     valid_settings_port = nm_meta_setting_info_valid_parts_for_slave_type(port_type, NULL);
 
@@ -5927,7 +5961,7 @@ read_properties:
 
     /* Traditionally, we didn't ask for these options for ethernet ports. They don't
      * make much sense, since these are likely to be set by the controller anyway. */
-    if (nm_setting_connection_get_slave_type(s_con)) {
+    if (nm_setting_connection_get_port_type(s_con)) {
         disable_options(NM_SETTING_WIRED_SETTING_NAME, NM_SETTING_WIRED_MTU);
         disable_options(NM_SETTING_WIRED_SETTING_NAME, NM_SETTING_WIRED_MAC_ADDRESS);
         disable_options(NM_SETTING_WIRED_SETTING_NAME, NM_SETTING_WIRED_CLONED_MAC_ADDRESS);
@@ -5938,7 +5972,7 @@ read_properties:
     if (!nm_setting_connection_get_id(s_con)) {
         const char *ifname    = nm_setting_connection_get_interface_name(s_con);
         const char *type      = nm_setting_connection_get_connection_type(s_con);
-        const char *port_type = nm_setting_connection_get_slave_type(s_con);
+        const char *port_type = nm_setting_connection_get_port_type(s_con);
 
         /* If only bother when there's a type, which is not guaranteed at this point.
          * Otherwise, the validation will fail anyway. */
@@ -6213,7 +6247,7 @@ gen_setting_names(const char *text, int state)
     /* is_port */
     s_con = nm_connection_get_setting_connection(nmc_tab_completion.connection);
     if (s_con)
-        s_type = nm_setting_connection_get_slave_type(s_con);
+        s_type = nm_setting_connection_get_port_type(s_con);
     valid_settings_arr = nm_meta_setting_info_valid_parts_for_slave_type(s_type, NULL);
 
     if (list_idx < NM_PTRARRAY_LEN(valid_settings_arr)) {
@@ -6580,7 +6614,7 @@ get_setting_and_property(const char *prompt,
         /* Is this too much (and useless?) effort for an unlikely case? */
         s_con = nm_connection_get_setting_connection(nmc_tab_completion.connection);
         if (s_con)
-            s_type = nm_setting_connection_get_slave_type(s_con);
+            s_type = nm_setting_connection_get_port_type(s_con);
 
         valid_settings_main = get_valid_settings_array(nmc_tab_completion.con_type);
         valid_settings_port = nm_meta_setting_info_valid_parts_for_slave_type(s_type, NULL);
@@ -7951,7 +7985,7 @@ editor_menu_main(NmCli *nmc, NMConnection *connection, const char *connection_ty
 
     s_con = nm_connection_get_setting_connection(connection);
     if (s_con)
-        s_type = nm_setting_connection_get_slave_type(s_con);
+        s_type = nm_setting_connection_get_port_type(s_con);
 
     valid_settings_main = get_valid_settings_array(connection_type);
     valid_settings_port = nm_meta_setting_info_valid_parts_for_slave_type(s_type, NULL);
@@ -8824,9 +8858,9 @@ editor_init_new_connection(NmCli *nmc, NMConnection *connection, const char *por
         g_object_set(s_con,
                      NM_SETTING_CONNECTION_TYPE,
                      NM_SETTING_WIRED_SETTING_NAME,
-                     NM_SETTING_CONNECTION_MASTER,
+                     NM_SETTING_CONNECTION_CONTROLLER,
                      dev_ifname ?: "eth0",
-                     NM_SETTING_CONNECTION_SLAVE_TYPE,
+                     NM_SETTING_CONNECTION_PORT_TYPE,
                      port_type,
                      NULL);
     } else {
@@ -9369,8 +9403,10 @@ do_connection_delete(const NMCCommand *cmd, NmCli *nmc, int argc, const char *co
             g_clear_error(&error);
 
             if (nmc->return_value != NMC_RESULT_ERROR_NOT_FOUND) {
-                g_string_free(invalid_cons, TRUE);
-                invalid_cons = NULL;
+                if (invalid_cons) {
+                    g_string_free(invalid_cons, TRUE);
+                    invalid_cons = NULL;
+                }
                 goto finish;
             }
 

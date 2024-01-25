@@ -16,6 +16,7 @@
 <link linkend="gdbus-property-org-freedesktop-NetworkManager-AccessPoint.HwAddress">HwAddress</link>   readable   s
 <link linkend="gdbus-property-org-freedesktop-NetworkManager-AccessPoint.Mode">Mode</link>        readable   u
 <link linkend="gdbus-property-org-freedesktop-NetworkManager-AccessPoint.MaxBitrate">MaxBitrate</link>  readable   u
+<link linkend="gdbus-property-org-freedesktop-NetworkManager-AccessPoint.Bandwidth">Bandwidth</link>   readable   u
 <link linkend="gdbus-property-org-freedesktop-NetworkManager-AccessPoint.Strength">Strength</link>    readable   y
 <link linkend="gdbus-property-org-freedesktop-NetworkManager-AccessPoint.LastSeen">LastSeen</link>    readable   i
 </synopsis>
@@ -117,6 +118,16 @@ MaxBitrate  readable   u
 <para>
 The maximum bitrate this access point is capable of, in kilobits/second
 (Kb/s).
+</para>
+</refsect2>
+<refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-AccessPoint.Bandwidth">
+  <title>The "Bandwidth" property</title>
+  <indexterm zone="gdbus-property-org-freedesktop-NetworkManager-AccessPoint.Bandwidth"><primary sortas=".AccessPoint:Bandwidth">org.freedesktop.NetworkManager.AccessPoint:Bandwidth</primary></indexterm>
+<programlisting>
+Bandwidth  readable   u
+</programlisting>
+<para>
+The bandwidth announced by the access point in MHz.
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-AccessPoint.Strength">

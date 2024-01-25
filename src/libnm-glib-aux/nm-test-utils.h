@@ -134,7 +134,7 @@
     ({                                                                                        \
         gboolean     _not_expired             = TRUE;                                         \
         const gint64 nmtst_wait_start_us      = g_get_monotonic_time();                       \
-        const gint64 nmtst_wait_duration_us   = (max_wait_ms) *1000L;                         \
+        const gint64 nmtst_wait_duration_us   = (max_wait_ms) * 1000L;                        \
         const gint64 nmtst_wait_end_us        = nmtst_wait_start_us + nmtst_wait_duration_us; \
         gint64       _nmtst_wait_remaining_us = nmtst_wait_duration_us;                       \
         int          _nmtst_wait_iteration    = 0;                                            \
@@ -496,8 +496,6 @@ __nmtst_init(int        *argc,
         __nmtst_internal.orig_argv = g_strdupv(*argv);
 
     __nmtst_internal.assert_logging = !!assert_logging;
-
-    nm_g_type_init();
 
     is_debug = g_test_verbose();
 
@@ -1228,7 +1226,7 @@ nmtst_rand_perm_strv(const char *const *strv)
     /* this returns a (scrambled) SHALLOW copy of the strv array! */
 
     n   = NM_PTRARRAY_LEN(strv);
-    res = (const char **) (nm_strv_dup(strv, n, FALSE) ?: g_new0(char *, 1));
+    res = (const char **) (nm_strv_dup(strv, n, FALSE) ?: nm_strv_empty_new());
     nmtst_rand_perm(NULL, res, res, sizeof(char *), n);
     return res;
 }
@@ -1803,7 +1801,7 @@ nmtst_inet_from_string(int addr_family, const char *str)
 static inline const char *
 nmtst_inet_to_string(int addr_family, gconstpointer addr)
 {
-    static _nm_thread_local char buf[NM_CONST_MAX(INET6_ADDRSTRLEN, INET_ADDRSTRLEN)];
+    static _nm_thread_local char buf[NM_MAX(INET6_ADDRSTRLEN, INET_ADDRSTRLEN)];
 
     g_assert(NM_IN_SET(addr_family, AF_INET, AF_INET6));
     g_assert(addr);
@@ -2568,20 +2566,21 @@ nmtst_assert_connection_unnormalizable(NMConnection *con,
     g_clear_error(&error);
 }
 
-static inline void
-nmtst_assert_setting_verifies(NMSetting *setting)
-{
-    /* assert that the setting verifies without an error */
-
-    GError  *error = NULL;
-    gboolean success;
-
-    g_assert(NM_IS_SETTING(setting));
-
-    success = nm_setting_verify(setting, NULL, &error);
-    g_assert_no_error(error);
-    g_assert(success);
-}
+#define nmtst_assert_setting_verifies(setting)                  \
+    G_STMT_START                                                \
+    {                                                           \
+        NMSetting *_setting = NM_SETTING(setting);              \
+        GError    *_error   = NULL;                             \
+        gboolean   _success;                                    \
+                                                                \
+        /* assert that the setting verifies without an error */ \
+                                                                \
+        g_assert(NM_IS_SETTING(_setting));                      \
+                                                                \
+        _success = nm_setting_verify(_setting, NULL, &_error);  \
+        nmtst_assert_success(_success, _error);                 \
+    }                                                           \
+    G_STMT_END
 
 #if defined(__NM_SIMPLE_CONNECTION_H__) && NM_CHECK_VERSION(1, 10, 0) \
     && (!defined(NM_VERSION_MAX_ALLOWED) || NM_VERSION_MAX_ALLOWED >= NM_VERSION_1_10)
@@ -2605,7 +2604,7 @@ _nmtst_assert_connection_has_settings(NMConnection *connection,
 
     va_start(ap, has_at_most);
     while ((name = va_arg(ap, const char *))) {
-        if (!nm_g_hash_table_add(names, (gpointer) name))
+        if (!g_hash_table_add(names, (gpointer) name))
             g_assert_not_reached();
         g_ptr_array_add(names_arr, (gpointer) name);
     }

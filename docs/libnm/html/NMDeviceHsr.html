@@ -1,0 +1,398 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>NMDeviceHsr: libnm Reference Manual</title>
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
+<link rel="home" href="index.html" title="libnm Reference Manual">
+<link rel="up" href="ch04.html" title="Device and Runtime Configuration API Reference">
+<link rel="prev" href="NMDeviceGeneric.html" title="NMDeviceGeneric">
+<link rel="next" href="NMDeviceInfiniband.html" title="NMDeviceInfiniband">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
+                  <a href="#NMDeviceHsr.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
+                  <a href="#NMDeviceHsr.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_properties">  <span class="dim">|</span> 
+                  <a href="#NMDeviceHsr.properties" class="shortcut">Properties</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="ch04.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="NMDeviceGeneric.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="NMDeviceInfiniband.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="NMDeviceHsr"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="NMDeviceHsr.top_of_page"></a>NMDeviceHsr</span></h2>
+<p>NMDeviceHsr</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="NMDeviceHsr.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="function_type">
+<a class="link" href="NMDevice.html" title="NMDevice"><span class="returnvalue">NMDevice</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="NMDeviceHsr.html#nm-device-hsr-get-port1" title="nm_device_hsr_get_port1 ()">nm_device_hsr_get_port1</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="NMDevice.html" title="NMDevice"><span class="returnvalue">NMDevice</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="NMDeviceHsr.html#nm-device-hsr-get-port2" title="nm_device_hsr_get_port2 ()">nm_device_hsr_get_port2</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">char</span> *
+</td>
+<td class="function_name">
+<a class="link" href="NMDeviceHsr.html#nm-device-hsr-get-supervision-address" title="nm_device_hsr_get_supervision_address ()">nm_device_hsr_get_supervision_address</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint8"><span class="returnvalue">guint8</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="NMDeviceHsr.html#nm-device-hsr-get-multicast-spec" title="nm_device_hsr_get_multicast_spec ()">nm_device_hsr_get_multicast_spec</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="NMDeviceHsr.html#nm-device-hsr-get-prp" title="nm_device_hsr_get_prp ()">nm_device_hsr_get_prp</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="NMDeviceHsr.properties"></a><h2>Properties</h2>
+<div class="informaltable"><table class="informaltable" border="0">
+<colgroup>
+<col width="150px" class="properties_type">
+<col width="300px" class="properties_name">
+<col width="200px" class="properties_flags">
+</colgroup>
+<tbody>
+<tr>
+<td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guchar"><span class="type">guchar</span></a></td>
+<td class="property_name"><a class="link" href="NMDeviceHsr.html#NMDeviceHsr--multicast-spec" title="The “multicast-spec” property">multicast-spec</a></td>
+<td class="property_flags">Read</td>
+</tr>
+<tr>
+<td class="property_type">
+<a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a> *</td>
+<td class="property_name"><a class="link" href="NMDeviceHsr.html#NMDeviceHsr--port1" title="The “port1” property">port1</a></td>
+<td class="property_flags">Read</td>
+</tr>
+<tr>
+<td class="property_type">
+<a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a> *</td>
+<td class="property_name"><a class="link" href="NMDeviceHsr.html#NMDeviceHsr--port2" title="The “port2” property">port2</a></td>
+<td class="property_flags">Read</td>
+</tr>
+<tr>
+<td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></td>
+<td class="property_name"><a class="link" href="NMDeviceHsr.html#NMDeviceHsr--prp" title="The “prp” property">prp</a></td>
+<td class="property_flags">Read</td>
+</tr>
+<tr>
+<td class="property_type">
+<span class="type">char</span> *</td>
+<td class="property_name"><a class="link" href="NMDeviceHsr.html#NMDeviceHsr--supervision-address" title="The “supervision-address” property">supervision-address</a></td>
+<td class="property_flags">Read</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="NMDeviceHsr.other"></a><h2>Types and Values</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="other_proto_type">
+<col class="other_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMDeviceHsr.html#NM-DEVICE-HSR-PORT1:CAPS" title="NM_DEVICE_HSR_PORT1">NM_DEVICE_HSR_PORT1</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMDeviceHsr.html#NM-DEVICE-HSR-PORT2:CAPS" title="NM_DEVICE_HSR_PORT2">NM_DEVICE_HSR_PORT2</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMDeviceHsr.html#NM-DEVICE-HSR-SUPERVISION-ADDRESS:CAPS" title="NM_DEVICE_HSR_SUPERVISION_ADDRESS">NM_DEVICE_HSR_SUPERVISION_ADDRESS</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMDeviceHsr.html#NM-DEVICE-HSR-MULTICAST-SPEC:CAPS" title="NM_DEVICE_HSR_MULTICAST_SPEC">NM_DEVICE_HSR_MULTICAST_SPEC</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMDeviceHsr.html#NM-DEVICE-HSR-PRP:CAPS" title="NM_DEVICE_HSR_PRP">NM_DEVICE_HSR_PRP</a></td>
+</tr>
+<tr>
+<td class="datatype_keyword"> </td>
+<td class="function_name"><a class="link" href="NMDeviceHsr.html#NMDeviceHsr-struct" title="NMDeviceHsr">NMDeviceHsr</a></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="NMDeviceHsr.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="screen">    <a href="https://developer.gnome.org/gobject/unstable/gobject-The-Base-Object-Type.html#GObject-struct">GObject</a>
+    <span class="lineart">╰──</span> <a class="link" href="NMObject.html" title="NMObject">NMObject</a>
+        <span class="lineart">╰──</span> <a class="link" href="NMDevice.html" title="NMDevice">NMDevice</a>
+            <span class="lineart">╰──</span> NMDeviceHsr
+</pre>
+</div>
+<div class="refsect1">
+<a name="NMDeviceHsr.description"></a><h2>Description</h2>
+</div>
+<div class="refsect1">
+<a name="NMDeviceHsr.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="nm-device-hsr-get-port1"></a><h3>nm_device_hsr_get_port1 ()</h3>
+<pre class="programlisting"><a class="link" href="NMDevice.html" title="NMDevice"><span class="returnvalue">NMDevice</span></a> *
+nm_device_hsr_get_port1 (<em class="parameter"><code><a class="link" href="NMDeviceHsr.html" title="NMDeviceHsr"><span class="type">NMDeviceHsr</span></a> *device</code></em>);</pre>
+<div class="refsect3">
+<a name="nm-device-hsr-get-port1.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>device</p></td>
+<td class="parameter_description"><p>a <a class="link" href="NMDeviceHsr.html" title="NMDeviceHsr"><span class="type">NMDeviceHsr</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="nm-device-hsr-get-port1.returns"></a><h4>Returns</h4>
+<p>the device's port1 device. </p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
+</div>
+<p class="since">Since: 1.46</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-device-hsr-get-port2"></a><h3>nm_device_hsr_get_port2 ()</h3>
+<pre class="programlisting"><a class="link" href="NMDevice.html" title="NMDevice"><span class="returnvalue">NMDevice</span></a> *
+nm_device_hsr_get_port2 (<em class="parameter"><code><a class="link" href="NMDeviceHsr.html" title="NMDeviceHsr"><span class="type">NMDeviceHsr</span></a> *device</code></em>);</pre>
+<div class="refsect3">
+<a name="nm-device-hsr-get-port2.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>device</p></td>
+<td class="parameter_description"><p>a <a class="link" href="NMDeviceHsr.html" title="NMDeviceHsr"><span class="type">NMDeviceHsr</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="nm-device-hsr-get-port2.returns"></a><h4>Returns</h4>
+<p>the device's port2 device. </p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
+</div>
+<p class="since">Since: 1.46</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-device-hsr-get-supervision-address"></a><h3>nm_device_hsr_get_supervision_address ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *
+nm_device_hsr_get_supervision_address (<em class="parameter"><code><a class="link" href="NMDeviceHsr.html" title="NMDeviceHsr"><span class="type">NMDeviceHsr</span></a> *device</code></em>);</pre>
+<div class="refsect3">
+<a name="nm-device-hsr-get-supervision-address.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>device</p></td>
+<td class="parameter_description"><p>a <a class="link" href="NMDeviceHsr.html" title="NMDeviceHsr"><span class="type">NMDeviceHsr</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="nm-device-hsr-get-supervision-address.returns"></a><h4>Returns</h4>
+<p> the supervision MAC adddress</p>
+</div>
+<p class="since">Since: 1.46</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-device-hsr-get-multicast-spec"></a><h3>nm_device_hsr_get_multicast_spec ()</h3>
+<pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint8"><span class="returnvalue">guint8</span></a>
+nm_device_hsr_get_multicast_spec (<em class="parameter"><code><a class="link" href="NMDeviceHsr.html" title="NMDeviceHsr"><span class="type">NMDeviceHsr</span></a> *device</code></em>);</pre>
+<div class="refsect3">
+<a name="nm-device-hsr-get-multicast-spec.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>device</p></td>
+<td class="parameter_description"><p>a <a class="link" href="NMDeviceHsr.html" title="NMDeviceHsr"><span class="type">NMDeviceHsr</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="nm-device-hsr-get-multicast-spec.returns"></a><h4>Returns</h4>
+<p> the last byte of the supervision address</p>
+</div>
+<p class="since">Since: 1.46</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-device-hsr-get-prp"></a><h3>nm_device_hsr_get_prp ()</h3>
+<pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
+nm_device_hsr_get_prp (<em class="parameter"><code><a class="link" href="NMDeviceHsr.html" title="NMDeviceHsr"><span class="type">NMDeviceHsr</span></a> *device</code></em>);</pre>
+<div class="refsect3">
+<a name="nm-device-hsr-get-prp.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>device</p></td>
+<td class="parameter_description"><p>a <a class="link" href="NMDeviceHsr.html" title="NMDeviceHsr"><span class="type">NMDeviceHsr</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="nm-device-hsr-get-prp.returns"></a><h4>Returns</h4>
+<p> whether PRP protocol is used or not</p>
+</div>
+<p class="since">Since: 1.46</p>
+</div>
+</div>
+<div class="refsect1">
+<a name="NMDeviceHsr.other_details"></a><h2>Types and Values</h2>
+<div class="refsect2">
+<a name="NM-DEVICE-HSR-PORT1:CAPS"></a><h3>NM_DEVICE_HSR_PORT1</h3>
+<pre class="programlisting">#define NM_DEVICE_HSR_PORT1               "port1"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-DEVICE-HSR-PORT2:CAPS"></a><h3>NM_DEVICE_HSR_PORT2</h3>
+<pre class="programlisting">#define NM_DEVICE_HSR_PORT2               "port2"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-DEVICE-HSR-SUPERVISION-ADDRESS:CAPS"></a><h3>NM_DEVICE_HSR_SUPERVISION_ADDRESS</h3>
+<pre class="programlisting">#define NM_DEVICE_HSR_SUPERVISION_ADDRESS "supervision-address"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-DEVICE-HSR-MULTICAST-SPEC:CAPS"></a><h3>NM_DEVICE_HSR_MULTICAST_SPEC</h3>
+<pre class="programlisting">#define NM_DEVICE_HSR_MULTICAST_SPEC      "multicast-spec"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-DEVICE-HSR-PRP:CAPS"></a><h3>NM_DEVICE_HSR_PRP</h3>
+<pre class="programlisting">#define NM_DEVICE_HSR_PRP                 "prp"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMDeviceHsr-struct"></a><h3>NMDeviceHsr</h3>
+<pre class="programlisting">typedef struct _NMDeviceHsr NMDeviceHsr;</pre>
+<p class="since">Since: 1.46</p>
+</div>
+</div>
+<div class="refsect1">
+<a name="NMDeviceHsr.property-details"></a><h2>Property Details</h2>
+<div class="refsect2">
+<a name="NMDeviceHsr--multicast-spec"></a><h3>The <code class="literal">“multicast-spec”</code> property</h3>
+<pre class="programlisting">  “multicast-spec”           <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guchar"><span class="type">guchar</span></a></pre>
+<p>The device last byte of the supervision address.</p>
+<p>Owner: NMDeviceHsr</p>
+<p>Flags: Read</p>
+<p>Default value: 0</p>
+<p class="since">Since: 1.46</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMDeviceHsr--port1"></a><h3>The <code class="literal">“port1”</code> property</h3>
+<pre class="programlisting">  “port1”                    <a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a> *</pre>
+<p>The device's port1 device.</p>
+<p>Owner: NMDeviceHsr</p>
+<p>Flags: Read</p>
+<p class="since">Since: 1.46</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMDeviceHsr--port2"></a><h3>The <code class="literal">“port2”</code> property</h3>
+<pre class="programlisting">  “port2”                    <a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a> *</pre>
+<p>The device's port2 device.</p>
+<p>Owner: NMDeviceHsr</p>
+<p>Flags: Read</p>
+<p class="since">Since: 1.46</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMDeviceHsr--prp"></a><h3>The <code class="literal">“prp”</code> property</h3>
+<pre class="programlisting">  “prp”                      <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></pre>
+<p>Whether the PRP protocol is used or not.</p>
+<p>Owner: NMDeviceHsr</p>
+<p>Flags: Read</p>
+<p>Default value: FALSE</p>
+<p class="since">Since: 1.46</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMDeviceHsr--supervision-address"></a><h3>The <code class="literal">“supervision-address”</code> property</h3>
+<pre class="programlisting">  “supervision-address”      <span class="type">char</span> *</pre>
+<p>The device supervision MAC adddress.</p>
+<p>Owner: NMDeviceHsr</p>
+<p>Flags: Read</p>
+<p>Default value: NULL</p>
+<p class="since">Since: 1.46</p>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.33.1</div>
+</body>
+</html>

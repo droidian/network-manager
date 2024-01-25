@@ -349,7 +349,7 @@ verify_trunks(GPtrArray *ranges, GError **error)
         }
 
         for (vlan = range->start; vlan <= range->end; vlan++) {
-            if (!nm_g_hash_table_add(h, GUINT_TO_POINTER(vlan))) {
+            if (!g_hash_table_add(h, GUINT_TO_POINTER(vlan))) {
                 g_set_error(error,
                             NM_CONNECTION_ERROR,
                             NM_CONNECTION_ERROR_INVALID_PROPERTY,
@@ -422,16 +422,16 @@ verify(NMSetting *setting, NMConnection *connection, GError **error)
             g_prefix_error(error,
                            "%s.%s: ",
                            NM_SETTING_CONNECTION_SETTING_NAME,
-                           NM_SETTING_CONNECTION_MASTER);
+                           NM_SETTING_CONNECTION_CONTROLLER);
             return FALSE;
         }
 
-        slave_type = nm_setting_connection_get_slave_type(s_con);
+        slave_type = nm_setting_connection_get_port_type(s_con);
         if (slave_type && strcmp(slave_type, NM_SETTING_OVS_BRIDGE_SETTING_NAME)) {
             g_set_error(error,
                         NM_CONNECTION_ERROR,
                         NM_CONNECTION_ERROR_INVALID_PROPERTY,
-                        _("A connection with a '%s' setting must have the slave-type set to '%s'. "
+                        _("A connection with a '%s' setting must have the port-type set to '%s'. "
                           "Instead it is '%s'"),
                         NM_SETTING_OVS_PORT_SETTING_NAME,
                         NM_SETTING_OVS_BRIDGE_SETTING_NAME,
@@ -439,7 +439,7 @@ verify(NMSetting *setting, NMConnection *connection, GError **error)
             g_prefix_error(error,
                            "%s.%s: ",
                            NM_SETTING_CONNECTION_SETTING_NAME,
-                           NM_SETTING_CONNECTION_SLAVE_TYPE);
+                           NM_SETTING_CONNECTION_PORT_TYPE);
             return FALSE;
         }
     }
@@ -614,7 +614,8 @@ nm_setting_ovs_port_class_init(NMSettingOvsPortClass *klass)
                                               PROP_VLAN_MODE,
                                               NM_SETTING_PARAM_INFERRABLE,
                                               NMSettingOvsPort,
-                                              vlan_mode);
+                                              vlan_mode,
+                                              .direct_string_allow_empty = TRUE);
 
     /**
      * NMSettingOvsPort:tag:
@@ -672,7 +673,8 @@ nm_setting_ovs_port_class_init(NMSettingOvsPortClass *klass)
                                               PROP_LACP,
                                               NM_SETTING_PARAM_INFERRABLE,
                                               NMSettingOvsPort,
-                                              lacp);
+                                              lacp,
+                                              .direct_string_allow_empty = TRUE);
 
     /**
      * NMSettingOvsPort:bond-mode:
@@ -687,7 +689,8 @@ nm_setting_ovs_port_class_init(NMSettingOvsPortClass *klass)
                                               PROP_BOND_MODE,
                                               NM_SETTING_PARAM_INFERRABLE,
                                               NMSettingOvsPort,
-                                              bond_mode);
+                                              bond_mode,
+                                              .direct_string_allow_empty = TRUE);
 
     /**
      * NMSettingOvsPort:bond-updelay:

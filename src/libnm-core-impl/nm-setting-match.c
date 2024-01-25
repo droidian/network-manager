@@ -68,6 +68,8 @@ nm_setting_match_get_num_interface_names(NMSettingMatch *setting)
  * @setting: the #NMSettingMatch
  * @idx: index number of the DNS search domain to return
  *
+ * Since 1.46, access at index "len" is allowed and returns NULL.
+ *
  * Returns: the interface name at index @idx
  *
  * Since: 1.14
@@ -77,11 +79,7 @@ nm_setting_match_get_interface_name(NMSettingMatch *setting, int idx)
 {
     g_return_val_if_fail(NM_IS_SETTING_MATCH(setting), NULL);
 
-    g_return_val_if_fail(setting->interface_name.arr && idx >= 0
-                             && idx < setting->interface_name.arr->len,
-                         NULL);
-
-    return nm_strvarray_get_idx(setting->interface_name.arr, idx);
+    return nm_strvarray_get_idxnull_or_greturn(setting->interface_name.arr, idx);
 }
 
 /**
@@ -99,7 +97,7 @@ nm_setting_match_add_interface_name(NMSettingMatch *setting, const char *interfa
     g_return_if_fail(NM_IS_SETTING_MATCH(setting));
     g_return_if_fail(interface_name);
 
-    nm_strvarray_add(nm_strvarray_ensure(&setting->interface_name.arr), interface_name);
+    nm_strvarray_ensure_and_add(&setting->interface_name.arr, interface_name);
     _notify(setting, PROP_INTERFACE_NAME);
 }
 
@@ -120,7 +118,7 @@ nm_setting_match_remove_interface_name(NMSettingMatch *setting, int idx)
     g_return_if_fail(setting->interface_name.arr && idx >= 0
                      && idx < setting->interface_name.arr->len);
 
-    g_array_remove_index(setting->interface_name.arr, idx);
+    nm_strvarray_remove_index(setting->interface_name.arr, idx);
     _notify(setting, PROP_INTERFACE_NAME);
 }
 
@@ -141,12 +139,11 @@ nm_setting_match_remove_interface_name_by_value(NMSettingMatch *setting, const c
     g_return_val_if_fail(NM_IS_SETTING_MATCH(setting), FALSE);
     g_return_val_if_fail(interface_name, FALSE);
 
-    if (nm_strvarray_remove_first(setting->interface_name.arr, interface_name)) {
-        _notify(setting, PROP_INTERFACE_NAME);
-        return TRUE;
-    }
+    if (!nm_strvarray_remove_first(setting->interface_name.arr, interface_name))
+        return FALSE;
 
-    return FALSE;
+    _notify(setting, PROP_INTERFACE_NAME);
+    return TRUE;
 }
 
 /**
@@ -162,10 +159,8 @@ nm_setting_match_clear_interface_names(NMSettingMatch *setting)
 {
     g_return_if_fail(NM_IS_SETTING_MATCH(setting));
 
-    if (nm_g_array_len(setting->interface_name.arr) != 0) {
-        nm_clear_pointer(&setting->interface_name.arr, g_array_unref);
+    if (nm_strvarray_clear(&setting->interface_name.arr))
         _notify(setting, PROP_INTERFACE_NAME);
-    }
 }
 
 /**
@@ -187,7 +182,7 @@ nm_setting_match_get_interface_names(NMSettingMatch *setting, guint *length)
 {
     g_return_val_if_fail(NM_IS_SETTING_MATCH(setting), NULL);
 
-    return nm_strvarray_get_strv(&setting->interface_name.arr, length);
+    return nm_strvarray_get_strv_notnull(setting->interface_name.arr, length);
 }
 
 /*****************************************************************************/
@@ -213,6 +208,8 @@ nm_setting_match_get_num_kernel_command_lines(NMSettingMatch *setting)
  * @setting: the #NMSettingMatch
  * @idx: index number of the kernel command line argument to return
  *
+ * Since 1.46, access at index "len" is allowed and returns NULL.
+ *
  * Returns: the kernel command line argument at index @idx
  *
  * Since: 1.26
@@ -222,11 +219,7 @@ nm_setting_match_get_kernel_command_line(NMSettingMatch *setting, guint idx)
 {
     g_return_val_if_fail(NM_IS_SETTING_MATCH(setting), NULL);
 
-    g_return_val_if_fail(setting->kernel_command_line.arr
-                             && idx < setting->kernel_command_line.arr->len,
-                         NULL);
-
-    return nm_strvarray_get_idx(setting->kernel_command_line.arr, idx);
+    return nm_strvarray_get_idxnull_or_greturn(setting->kernel_command_line.arr, idx);
 }
 
 /**
@@ -244,7 +237,7 @@ nm_setting_match_add_kernel_command_line(NMSettingMatch *setting, const char *ke
     g_return_if_fail(NM_IS_SETTING_MATCH(setting));
     g_return_if_fail(kernel_command_line);
 
-    nm_strvarray_add(nm_strvarray_ensure(&setting->kernel_command_line.arr), kernel_command_line);
+    nm_strvarray_ensure_and_add(&setting->kernel_command_line.arr, kernel_command_line);
     _notify(setting, PROP_KERNEL_COMMAND_LINE);
 }
 
@@ -265,7 +258,7 @@ nm_setting_match_remove_kernel_command_line(NMSettingMatch *setting, guint idx)
     g_return_if_fail(setting->kernel_command_line.arr
                      && idx < setting->kernel_command_line.arr->len);
 
-    g_array_remove_index(setting->kernel_command_line.arr, idx);
+    nm_strvarray_remove_index(setting->kernel_command_line.arr, idx);
     _notify(setting, PROP_KERNEL_COMMAND_LINE);
 }
 
@@ -287,12 +280,11 @@ nm_setting_match_remove_kernel_command_line_by_value(NMSettingMatch *setting,
     g_return_val_if_fail(NM_IS_SETTING_MATCH(setting), FALSE);
     g_return_val_if_fail(kernel_command_line, FALSE);
 
-    if (nm_strvarray_remove_first(setting->kernel_command_line.arr, kernel_command_line)) {
-        _notify(setting, PROP_KERNEL_COMMAND_LINE);
-        return TRUE;
-    }
+    if (!nm_strvarray_remove_first(setting->kernel_command_line.arr, kernel_command_line))
+        return FALSE;
 
-    return FALSE;
+    _notify(setting, PROP_KERNEL_COMMAND_LINE);
+    return TRUE;
 }
 
 /**
@@ -308,10 +300,8 @@ nm_setting_match_clear_kernel_command_lines(NMSettingMatch *setting)
 {
     g_return_if_fail(NM_IS_SETTING_MATCH(setting));
 
-    if (nm_g_array_len(setting->kernel_command_line.arr) != 0) {
-        nm_clear_pointer(&setting->kernel_command_line.arr, g_array_unref);
+    if (nm_strvarray_clear(&setting->kernel_command_line.arr))
         _notify(setting, PROP_KERNEL_COMMAND_LINE);
-    }
 }
 
 /**
@@ -330,7 +320,7 @@ nm_setting_match_get_kernel_command_lines(NMSettingMatch *setting, guint *length
 {
     g_return_val_if_fail(NM_IS_SETTING_MATCH(setting), NULL);
 
-    return nm_strvarray_get_strv(&setting->kernel_command_line.arr, length);
+    return nm_strvarray_get_strv_notnull(setting->kernel_command_line.arr, length);
 }
 
 /*****************************************************************************/
@@ -356,6 +346,8 @@ nm_setting_match_get_num_drivers(NMSettingMatch *setting)
  * @setting: the #NMSettingMatch
  * @idx: index number of the DNS search domain to return
  *
+ * Since 1.46, access at index "len" is allowed and returns NULL.
+ *
  * Returns: the driver at index @idx
  *
  * Since: 1.26
@@ -365,9 +357,7 @@ nm_setting_match_get_driver(NMSettingMatch *setting, guint idx)
 {
     g_return_val_if_fail(NM_IS_SETTING_MATCH(setting), NULL);
 
-    g_return_val_if_fail(setting->driver.arr && idx < setting->driver.arr->len, NULL);
-
-    return nm_strvarray_get_idx(setting->driver.arr, idx);
+    return nm_strvarray_get_idxnull_or_greturn(setting->driver.arr, idx);
 }
 
 /**
@@ -385,7 +375,7 @@ nm_setting_match_add_driver(NMSettingMatch *setting, const char *driver)
     g_return_if_fail(NM_IS_SETTING_MATCH(setting));
     g_return_if_fail(driver);
 
-    nm_strvarray_add(nm_strvarray_ensure(&setting->driver.arr), driver);
+    nm_strvarray_ensure_and_add(&setting->driver.arr, driver);
     _notify(setting, PROP_DRIVER);
 }
 
@@ -405,7 +395,7 @@ nm_setting_match_remove_driver(NMSettingMatch *setting, guint idx)
 
     g_return_if_fail(setting->driver.arr && idx < setting->driver.arr->len);
 
-    g_array_remove_index(setting->driver.arr, idx);
+    nm_strvarray_remove_index(setting->driver.arr, idx);
     _notify(setting, PROP_DRIVER);
 }
 
@@ -426,12 +416,11 @@ nm_setting_match_remove_driver_by_value(NMSettingMatch *setting, const char *dri
     g_return_val_if_fail(NM_IS_SETTING_MATCH(setting), FALSE);
     g_return_val_if_fail(driver, FALSE);
 
-    if (nm_strvarray_remove_first(setting->driver.arr, driver)) {
-        _notify(setting, PROP_DRIVER);
-        return TRUE;
-    }
+    if (!nm_strvarray_remove_first(setting->driver.arr, driver))
+        return FALSE;
 
-    return FALSE;
+    _notify(setting, PROP_DRIVER);
+    return TRUE;
 }
 
 /**
@@ -447,10 +436,8 @@ nm_setting_match_clear_drivers(NMSettingMatch *setting)
 {
     g_return_if_fail(NM_IS_SETTING_MATCH(setting));
 
-    if (nm_g_array_len(setting->driver.arr) != 0) {
-        nm_clear_pointer(&setting->driver.arr, g_array_unref);
+    if (nm_strvarray_clear(&setting->driver.arr))
         _notify(setting, PROP_DRIVER);
-    }
 }
 
 /**
@@ -469,7 +456,7 @@ nm_setting_match_get_drivers(NMSettingMatch *setting, guint *length)
 {
     g_return_val_if_fail(NM_IS_SETTING_MATCH(setting), NULL);
 
-    return nm_strvarray_get_strv(&setting->driver.arr, length);
+    return nm_strvarray_get_strv_notnull(setting->driver.arr, length);
 }
 
 /*****************************************************************************/
@@ -495,6 +482,8 @@ nm_setting_match_get_num_paths(NMSettingMatch *setting)
  * @setting: the #NMSettingMatch
  * @idx: index number of the path to return
  *
+ * Since 1.46, access at index "len" is allowed and returns NULL.
+ *
  * Returns: the path at index @idx
  *
  * Since: 1.26
@@ -504,9 +493,7 @@ nm_setting_match_get_path(NMSettingMatch *setting, guint idx)
 {
     g_return_val_if_fail(NM_IS_SETTING_MATCH(setting), NULL);
 
-    g_return_val_if_fail(setting->path.arr && idx < setting->path.arr->len, NULL);
-
-    return nm_strvarray_get_idx(setting->path.arr, idx);
+    return nm_strvarray_get_idxnull_or_greturn(setting->path.arr, idx);
 }
 
 /**
@@ -524,7 +511,7 @@ nm_setting_match_add_path(NMSettingMatch *setting, const char *path)
     g_return_if_fail(NM_IS_SETTING_MATCH(setting));
     g_return_if_fail(path);
 
-    nm_strvarray_add(nm_strvarray_ensure(&setting->path.arr), path);
+    nm_strvarray_ensure_and_add(&setting->path.arr, path);
     _notify(setting, PROP_PATH);
 }
 
@@ -544,7 +531,7 @@ nm_setting_match_remove_path(NMSettingMatch *setting, guint idx)
 
     g_return_if_fail(setting->path.arr && idx < setting->path.arr->len);
 
-    g_array_remove_index(setting->path.arr, idx);
+    nm_strvarray_remove_index(setting->path.arr, idx);
     _notify(setting, PROP_PATH);
 }
 
@@ -565,12 +552,11 @@ nm_setting_match_remove_path_by_value(NMSettingMatch *setting, const char *path)
     g_return_val_if_fail(NM_IS_SETTING_MATCH(setting), FALSE);
     g_return_val_if_fail(path, FALSE);
 
-    if (nm_strvarray_remove_first(setting->path.arr, path)) {
-        _notify(setting, PROP_PATH);
-        return TRUE;
-    }
+    if (!nm_strvarray_remove_first(setting->path.arr, path))
+        return FALSE;
 
-    return FALSE;
+    _notify(setting, PROP_PATH);
+    return TRUE;
 }
 
 /**
@@ -586,10 +572,8 @@ nm_setting_match_clear_paths(NMSettingMatch *setting)
 {
     g_return_if_fail(NM_IS_SETTING_MATCH(setting));
 
-    if (nm_g_array_len(setting->path.arr) != 0) {
-        nm_clear_pointer(&setting->path.arr, g_array_unref);
+    if (nm_strvarray_clear(&setting->path.arr))
         _notify(setting, PROP_PATH);
-    }
 }
 
 /**
@@ -608,7 +592,7 @@ nm_setting_match_get_paths(NMSettingMatch *setting, guint *length)
 {
     g_return_val_if_fail(NM_IS_SETTING_MATCH(setting), NULL);
 
-    return nm_strvarray_get_strv(&setting->path.arr, length);
+    return nm_strvarray_get_strv_notnull(setting->path.arr, length);
 }
 
 /*****************************************************************************/
@@ -719,19 +703,6 @@ verify(NMSetting *setting, NMConnection *connection, GError **error)
 }
 
 static void
-finalize(GObject *object)
-{
-    NMSettingMatch *self = NM_SETTING_MATCH(object);
-
-    nm_clear_pointer(&self->interface_name.arr, g_array_unref);
-    nm_clear_pointer(&self->kernel_command_line.arr, g_array_unref);
-    nm_clear_pointer(&self->driver.arr, g_array_unref);
-    nm_clear_pointer(&self->path.arr, g_array_unref);
-
-    G_OBJECT_CLASS(nm_setting_match_parent_class)->finalize(object);
-}
-
-static void
 nm_setting_match_class_init(NMSettingMatchClass *klass)
 {
     GObjectClass   *object_class        = G_OBJECT_CLASS(klass);
@@ -740,7 +711,6 @@ nm_setting_match_class_init(NMSettingMatchClass *klass)
 
     object_class->get_property = _nm_setting_property_get_property_direct;
     object_class->set_property = _nm_setting_property_set_property_direct;
-    object_class->finalize     = finalize;
 
     setting_class->verify = verify;
 

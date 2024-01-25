@@ -623,6 +623,149 @@ nm_g_variant_maybe_singleton_i(gint32 value)
 
 /*****************************************************************************/
 
+static int
+_variant_type_cmp(const GVariantType *type1, const GVariantType *type2)
+{
+    const char *string1;
+    const char *string2;
+    gsize       size;
+
+    NM_CMP_SELF(type1, type2);
+
+    size = g_variant_type_get_string_length(type1);
+
+    NM_CMP_DIRECT(size, g_variant_type_get_string_length(type2));
+
+    string1 = g_variant_type_peek_string(type1);
+    string2 = g_variant_type_peek_string(type2);
+
+    NM_CMP_DIRECT_MEMCMP(string1, string2, size);
+    return 0;
+}
+
+int
+nm_g_variant_type_cmp(const GVariantType *type1, const GVariantType *type2)
+{
+    int r;
+
+    r = _variant_type_cmp(type1, type2);
+    nm_assert((!!g_variant_type_equal(type1, type2)) == (r == 0));
+    return r;
+}
+
+/*****************************************************************************/
+
+typedef enum {
+    VARIANT_CMP_TYPE_VARIANT,
+    VARIANT_CMP_TYPE_STRDICT,
+    VARIANT_CMP_TYPE_VARDICT,
+} VariantCmpType;
+
+static int
+_variant_cmp_array(GVariant *value1, GVariant *value2, VariantCmpType type)
+{
+    gsize len;
+    gsize i;
+
+    len = g_variant_n_children(value1);
+
+    NM_CMP_DIRECT(len, g_variant_n_children(value2));
+
+    for (i = 0; i < len; i++) {
+        gs_unref_variant GVariant *child1 = g_variant_get_child_value(value1, i);
+        gs_unref_variant GVariant *child2 = g_variant_get_child_value(value2, i);
+        const char                *key1;
+        const char                *key2;
+        const char                *val1_str;
+        const char                *val2_str;
+
+        nm_assert(child1);
+        nm_assert(child2);
+
+        switch (type) {
+        case VARIANT_CMP_TYPE_VARIANT:
+            NM_CMP_RETURN(nm_g_variant_cmp(child1, child2));
+            break;
+        case VARIANT_CMP_TYPE_STRDICT:
+            g_variant_get(child1, "{&s&s}", &key1, &val1_str);
+            g_variant_get(child2, "{&s&s}", &key2, &val2_str);
+            NM_CMP_DIRECT_STRCMP(key1, key2);
+            NM_CMP_DIRECT_STRCMP(val1_str, val2_str);
+            break;
+        case VARIANT_CMP_TYPE_VARDICT:
+        {
+            gs_unref_variant GVariant *val1_var = NULL;
+            gs_unref_variant GVariant *val2_var = NULL;
+
+            g_variant_get(child1, "{&sv}", &key1, &val1_var);
+            g_variant_get(child2, "{&sv}", &key2, &val2_var);
+            NM_CMP_DIRECT_STRCMP(key1, key2);
+            NM_CMP_RETURN(nm_g_variant_cmp(val1_var, val2_var));
+            break;
+        }
+        }
+    }
+
+    return 0;
+}
+
+static int
+_variant_cmp_generic(GVariant *value1, GVariant *value2)
+{
+    gs_free char *str1 = NULL;
+    gs_free char *str2 = NULL;
+
+    /* This is like g_variant_equal(), which also resorts to pretty-printing
+     * the variants for comparison.
+     *
+     * Note that the variant types are already checked and equal. We thus don't
+     * need to include the type annotation. */
+    str1 = g_variant_print(value1, FALSE);
+    str2 = g_variant_print(value2, FALSE);
+
+    NM_CMP_DIRECT_STRCMP(str1, str2);
+    return 0;
+}
+
+static int
+_variant_cmp(GVariant *value1, GVariant *value2)
+{
+    const GVariantType *type;
+
+    NM_CMP_SELF(value1, value2);
+
+    type = g_variant_get_type(value1);
+
+    NM_CMP_RETURN(nm_g_variant_type_cmp(type, g_variant_get_type(value2)));
+
+    if (g_variant_type_is_basic(type))
+        NM_CMP_RETURN(g_variant_compare(value1, value2));
+    else if (g_variant_type_is_subtype_of(type, G_VARIANT_TYPE("a{ss}")))
+        NM_CMP_RETURN(_variant_cmp_array(value1, value2, VARIANT_CMP_TYPE_STRDICT));
+    else if (g_variant_type_is_subtype_of(type, G_VARIANT_TYPE("a{sv}")))
+        NM_CMP_RETURN(_variant_cmp_array(value1, value2, VARIANT_CMP_TYPE_VARDICT));
+    else if (g_variant_type_is_array(type) || g_variant_type_is_tuple(type))
+        NM_CMP_RETURN(_variant_cmp_array(value1, value2, VARIANT_CMP_TYPE_VARIANT));
+    else
+        NM_CMP_RETURN(_variant_cmp_generic(value1, value2));
+
+    return 0;
+}
+
+int
+nm_g_variant_cmp(GVariant *value1, GVariant *value2)
+{
+    int r;
+
+    r = _variant_cmp(value1, value2);
+
+    nm_assert((!!nm_g_variant_equal(value1, value2)) == (r == 0));
+
+    return r;
+}
+
+/*****************************************************************************/
+
 GHashTable *
 nm_strdict_clone(GHashTable *src)
 {
@@ -1937,7 +2080,7 @@ nm_utils_strsplit_quoted(const char *str)
     }
 
     if (!arr)
-        return g_new0(char *, 1);
+        return nm_strv_empty_new();
 
     /* We want to return an optimally sized strv array, with no excess
      * memory allocated. Hence, clone once more. */
@@ -1964,8 +2107,6 @@ nm_utils_strsplit_quoted(const char *str)
  * Searches @list for @needle and returns the index of the first match (based
  * on strcmp()).
  *
- * For convenience, @list has type 'char**' instead of 'const char **'.
- *
  * Returns: index of first occurrence or -1 if @needle is not found in @list.
  */
 gssize
@@ -1984,7 +2125,7 @@ _nm_strv_find_first(const char *const *list, gssize len, const char *needle)
             }
         } else {
             for (i = 0; i < len; i++) {
-                if (list[i] && !strcmp(needle, list[i]))
+                if (list[i] && nm_streq(needle, list[i]))
                     return i;
             }
         }
@@ -1993,7 +2134,7 @@ _nm_strv_find_first(const char *const *list, gssize len, const char *needle)
 
         if (list) {
             for (i = 0; list[i]; i++) {
-                if (strcmp(needle, list[i]) == 0)
+                if (nm_streq(needle, list[i]))
                     return i;
             }
         }
@@ -2078,7 +2219,7 @@ nm_strv_is_same_unordered(const char *const *strv1,
 }
 
 const char **
-nm_strv_cleanup_const(const char **strv, gboolean skip_empty, gboolean skip_repeated)
+nm_strv_cleanup_const(const char **strv, gboolean no_empty, gboolean no_duplicates)
 {
     gsize i;
     gsize j;
@@ -2086,13 +2227,12 @@ nm_strv_cleanup_const(const char **strv, gboolean skip_empty, gboolean skip_repe
     if (!strv || !*strv)
         return strv;
 
-    if (!skip_empty && !skip_repeated)
+    if (!no_empty && !no_duplicates)
         return strv;
 
     j = 0;
     for (i = 0; strv[i]; i++) {
-        if ((skip_empty && !*strv[i])
-            || (skip_repeated && nm_strv_find_first(strv, j, strv[i]) >= 0))
+        if ((no_empty && !*strv[i]) || (no_duplicates && nm_strv_contains(strv, j, strv[i])))
             continue;
         strv[j++] = strv[i];
     }
@@ -2101,7 +2241,7 @@ nm_strv_cleanup_const(const char **strv, gboolean skip_empty, gboolean skip_repe
 }
 
 char **
-nm_strv_cleanup(char **strv, gboolean strip_whitespace, gboolean skip_empty, gboolean skip_repeated)
+nm_strv_cleanup(char **strv, gboolean strip_whitespace, gboolean no_empty, gboolean no_duplicates)
 {
     gsize i;
     gsize j;
@@ -2115,12 +2255,11 @@ nm_strv_cleanup(char **strv, gboolean strip_whitespace, gboolean skip_empty, gbo
         for (i = 0; strv[i]; i++)
             g_strstrip(strv[i]);
     }
-    if (!skip_empty && !skip_repeated)
+    if (!no_empty && !no_duplicates)
         return strv;
     j = 0;
     for (i = 0; strv[i]; i++) {
-        if ((skip_empty && !*strv[i])
-            || (skip_repeated && nm_strv_find_first(strv, j, strv[i]) >= 0))
+        if ((no_empty && !*strv[i]) || (no_duplicates && nm_strv_contains(strv, j, strv[i])))
             g_free(strv[i]);
         else
             strv[j++] = strv[i];
@@ -2217,6 +2356,44 @@ nm_utils_error_is_notfound(GError *error)
             return NM_IN_SET(error->code, G_FILE_ERROR_NOENT);
     }
     return FALSE;
+}
+
+/*****************************************************************************/
+
+void
+nm_gobject_notify_together_by_pspec_v(gpointer                 obj,
+                                      const GParamSpec *const *param_specs,
+                                      gsize                    param_specs_len)
+{
+    GObject *const    gobj        = obj;
+    gboolean          frozen      = FALSE;
+    const GParamSpec *pspec_first = NULL;
+
+    nm_assert(G_IS_OBJECT(gobj));
+    nm_assert(param_specs_len > 0);
+
+    while (param_specs_len-- > 0) {
+        const GParamSpec *pspec = (param_specs++)[0];
+
+        if (!pspec)
+            continue;
+
+        if (!frozen) {
+            if (!pspec_first) {
+                pspec_first = pspec;
+                continue;
+            }
+            frozen = TRUE;
+            g_object_freeze_notify(gobj);
+            g_object_notify_by_pspec(gobj, (GParamSpec *) pspec_first);
+        }
+        g_object_notify_by_pspec(gobj, (GParamSpec *) pspec);
+    }
+
+    if (frozen)
+        g_object_thaw_notify(gobj);
+    else if (pspec_first)
+        g_object_notify_by_pspec(gobj, (GParamSpec *) pspec_first);
 }
 
 /*****************************************************************************/
@@ -3584,6 +3761,9 @@ nm_strv_make_deep_copied_n(const char **strv, gsize len)
  *   the returned array must be freed with g_strfreev(). Otherwise, the
  *   strings themself are not copied. You must take care of who owns the
  *   strings yourself.
+ * @preserved_empty: affects how to handle if the strv array is empty (length 0).
+ *   If TRUE, results in a non-NULL, empty, allocated strv array. If FALSE,
+ *   returns NULL instead of an empty strv array.
  *
  * Like g_strdupv(), with two differences:
  *
@@ -3602,7 +3782,10 @@ nm_strv_make_deep_copied_n(const char **strv, gsize len)
  *   cloned or not.
  */
 char **
-_nm_strv_dup(const char *const *strv, gssize len, gboolean deep_copied)
+_nm_strv_dup_full(const char *const *strv,
+                  gssize             len,
+                  gboolean           deep_copied,
+                  gboolean           preserve_empty)
 {
     gsize  i, l;
     char **v;
@@ -3611,13 +3794,16 @@ _nm_strv_dup(const char *const *strv, gssize len, gboolean deep_copied)
         l = NM_PTRARRAY_LEN(strv);
     else
         l = len;
-    if (l == 0) {
-        /* this function never returns an empty strv array. If you
-         * need that, handle it yourself. */
+
+    if (l == 0 && !preserve_empty) {
+        /* An empty strv array is not returned (as requested by
+         * !preserved_empty). Instead, return NULL. */
         return NULL;
     }
 
-    v = g_new(char *, l + 1);
+    nm_assert(l < G_MAXSIZE);
+
+    v = g_new(char *, l + 1u);
     for (i = 0; i < l; i++) {
         if (G_UNLIKELY(!strv[i])) {
             /* NULL strings are not allowed. Clear the remainder of the array
@@ -5775,38 +5961,79 @@ nm_utils_is_specific_hostname(const char *name)
 
 /*****************************************************************************/
 
-/* taken from systemd's uid_to_name(). */
-char *
-nm_utils_uid_to_name(uid_t uid)
-{
-    gs_free char *buf_heap = NULL;
-    char          buf_stack[4096];
-    gsize         bufsize;
-    char         *buf;
+typedef struct {
+    struct passwd pw;
+    _nm_alignas(max_align_t) char buf[];
+} GetPwuidData;
 
-    bufsize = sizeof(buf_stack);
-    buf     = buf_stack;
+/**
+ * nm_getpwuid:
+ * uid: the user Id to look up
+ *
+ * Calls getpwuid_r() to lookup the passwd entry. See the manual.
+ * Allocates and returns a suitable buffer.
+ *
+ * The returned buffer is likely much large than required. You don't want to
+ * keep this buffer around for longer than necessary.
+ *
+ * Returns: (transfer full): the passwd entry, if found or NULL on error
+ *   or if the entry was not found.
+ */
+struct passwd *
+nm_getpwuid(uid_t uid)
+{
+    gs_free GetPwuidData *data = NULL;
+    gsize                 bufsize;
+    const gsize           OFFSET = G_STRUCT_OFFSET(GetPwuidData, buf);
+    long int              size_max;
+
+    size_max = sysconf(_SC_GETPW_R_SIZE_MAX);
+    if (size_max > 0 && ((unsigned long int) size_max < G_MAXSIZE - OFFSET))
+        bufsize = size_max;
+    else
+        bufsize = 4096;
 
     for (;;) {
-        struct passwd  pwbuf;
         struct passwd *pw = NULL;
         int            r;
 
-        r = getpwuid_r(uid, &pwbuf, buf, bufsize, &pw);
-        if (r == 0 && pw)
-            return nm_strdup_not_empty(pw->pw_name);
+        if (bufsize >= G_MAXSIZE - OFFSET)
+            return NULL;
+
+        nm_clear_g_free(&data);
+        data = g_malloc(OFFSET + bufsize);
+
+        r = getpwuid_r(uid, &data->pw, data->buf, bufsize, &pw);
+        if (r == 0) {
+            if (!pw)
+                return NULL;
+            nm_assert(pw == (gpointer) data);
+            return (gpointer) g_steal_pointer(&data);
+        }
 
         if (r != ERANGE)
             return NULL;
 
         if (bufsize > G_MAXSIZE / 2u)
             return NULL;
-
         bufsize *= 2u;
-        g_free(buf_heap);
-        buf_heap = g_malloc(bufsize);
-        buf      = buf_heap;
     }
+}
+
+const char *
+nm_passwd_name(const struct passwd *pw)
+{
+    /* Normalize "pw->pw_name" and return it. */
+    return pw ? nm_str_not_empty(pw->pw_name) : NULL;
+}
+
+char *
+nm_utils_uid_to_name(uid_t uid)
+{
+    gs_free struct passwd *pw = NULL;
+
+    pw = nm_getpwuid(uid);
+    return g_strdup(nm_passwd_name(pw));
 }
 
 /* taken from systemd's nss_user_record_by_name() */
@@ -5886,6 +6113,9 @@ nm_utils_exp10(gint16 ex)
 gboolean
 _nm_utils_is_empty_ssid_arr(const guint8 *ssid, gsize len)
 {
+    if (len == 0)
+        return TRUE;
+
     /* Single white space is for Linksys APs */
     if (len == 1 && ssid[0] == ' ')
         return TRUE;
@@ -6925,10 +7155,10 @@ _poll_done_cb(GObject *source, GAsyncResult *result, gpointer user_data)
     else
         wait_ms = 0;
     if (poll_task_data->sleep_timeout_ms > 0)
-        wait_ms = MAX(wait_ms, poll_task_data->sleep_timeout_ms);
+        wait_ms = NM_MAX(wait_ms, poll_task_data->sleep_timeout_ms);
 
     poll_task_data->source_next_poll =
-        nm_g_source_attach(nm_g_timeout_source_new(MAX(1, wait_ms),
+        nm_g_source_attach(nm_g_timeout_source_new(NM_MAX(1, wait_ms),
                                                    G_PRIORITY_DEFAULT,
                                                    _poll_start_cb,
                                                    poll_task_data,

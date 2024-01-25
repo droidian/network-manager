@@ -7,22 +7,13 @@
 ]>
 
 <!--
+  SPDX-License-Identifier: GFDL-1.1-no-invariants-or-later
+
   NetworkManager(8) manual page
 
   Copyright 2005 - 2016 Red Hat, Inc.
   Copyright 2005 - 2009 Novell, Inc.
   Copyright 2005 Robert Love
-
-  Permission is granted to copy, distribute and/or modify this document
-  under the terms of the GNU Free Documentation License, Version 1.1
-  or any later version published by the Free Software Foundation;
-  with no Invariant Sections, no Front-Cover Texts, and no Back-Cover
-  Texts. You may obtain a copy of the GNU Free Documentation License
-  from the Free Software Foundation by visiting their Web site or by
-  writing to:
-
-  Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 -->
 
 <refentry id="NetworkManager">
@@ -202,6 +193,42 @@
         </para>
         </listitem>
       </varlistentry>
+      <varlistentry>
+        <term><varname>ID_NET_MANAGED_BY</varname></term>
+        <listitem><para>
+          If <varname>NM_UNMANAGED</varname> is set, this has no effect. Otherwise,
+          if the attribute is set to anything but
+          <literal>"org.freedesktop.NetworkManager"</literal>, the device is unmanaged.
+        </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><varname>NM_AUTO_DEFAULT_LINK_LOCAL_ONLY</varname></term>
+        <listitem><para>
+          If set to <literal>"1"</literal> or <literal>"true"</literal>, the
+          automatically generated connections "Wired connection N" will only
+          enable link local addressing for IPv4 and IPv6. This can be useful
+          on thunderbolt devices or host-to-host USB devices.
+        </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><varname>ID_NET_AUTO_LINK_LOCAL_ONLY</varname></term>
+        <listitem><para>
+          Honored and treated the same as if <varname>NM_AUTO_DEFAULT_LINK_LOCAL_ONLY</varname>
+          were set.
+        </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><varname>ID_NET_DHCP_BROADCAST</varname></term>
+        <listitem><para>
+          If set to <literal>"1"</literal> or <literal>"true"</literal>, use
+          broadcast requests for DHCPv4 offers. This can make sense of devices
+          that can't handle unicast messages until being configured.
+        </para>
+        </listitem>
+      </varlistentry>
     </variablelist>
   </refsect1>
 
@@ -357,7 +384,7 @@
       <link linkend='nmcli'><citerefentry><refentrytitle>nmcli</refentrytitle><manvolnum>1</manvolnum></citerefentry></link>,
       <link linkend='nmcli-examples'><citerefentry><refentrytitle>nmcli-examples</refentrytitle><manvolnum>7</manvolnum></citerefentry></link>,
       <link linkend='nm-online'><citerefentry><refentrytitle>nm-online</refentrytitle><manvolnum>1</manvolnum></citerefentry></link>,
-      <link linkend='nm-settings'><citerefentry><refentrytitle>nm-settings</refentrytitle><manvolnum>5</manvolnum></citerefentry></link>,
+      <link linkend='nm-settings-nmcli'><citerefentry><refentrytitle>nm-settings-nmcli</refentrytitle><manvolnum>5</manvolnum></citerefentry></link>,
       <citerefentry><refentrytitle>nm-applet</refentrytitle><manvolnum>1</manvolnum></citerefentry>,
       <citerefentry><refentrytitle>nm-connection-editor</refentrytitle><manvolnum>1</manvolnum></citerefentry>,
       <citerefentry><refentrytitle>udev</refentrytitle><manvolnum>7</manvolnum></citerefentry>

@@ -1943,3 +1943,25 @@ global:
 	nm_setting_link_get_type;
 	nm_setting_link_new;
 } libnm_1_42_0;
+
+libnm_1_46_0 {
+global:
+	nm_access_point_get_bandwidth;
+	nm_device_hsr_get_multicast_spec;
+	nm_device_hsr_get_port1;
+	nm_device_hsr_get_port2;
+	nm_device_hsr_get_prp;
+	nm_device_hsr_get_supervision_address;
+	nm_device_hsr_get_type;
+	nm_device_ip_tunnel_get_fwmark;
+	nm_ethtool_optname_is_channels;
+	nm_ethtool_optname_is_eee;
+	nm_setting_connection_get_controller;
+	nm_setting_connection_get_port_type;
+	nm_setting_hsr_get_multicast_spec;
+	nm_setting_hsr_get_port1;
+	nm_setting_hsr_get_port2;
+	nm_setting_hsr_get_prp;
+	nm_setting_hsr_get_type;
+	nm_setting_hsr_new;
+} libnm_1_44_0;

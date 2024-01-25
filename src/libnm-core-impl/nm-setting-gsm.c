@@ -65,20 +65,17 @@ typedef struct {
  * GSM-based Mobile Broadband Settings
  */
 struct _NMSettingGsm {
-    NMSetting parent;
-    /* In the past, this struct was public API. Preserve ABI! */
+    NMSetting           parent;
+    NMSettingGsmPrivate _priv;
 };
 
 struct _NMSettingGsmClass {
     NMSettingClass parent;
-    /* In the past, this struct was public API. Preserve ABI! */
-    gpointer padding[4];
 };
 
 G_DEFINE_TYPE(NMSettingGsm, nm_setting_gsm, NM_TYPE_SETTING)
 
-#define NM_SETTING_GSM_GET_PRIVATE(o) \
-    (G_TYPE_INSTANCE_GET_PRIVATE((o), NM_TYPE_SETTING_GSM, NMSettingGsmPrivate))
+#define NM_SETTING_GSM_GET_PRIVATE(o) _NM_GET_PRIVATE(o, NMSettingGsm, NM_IS_SETTING_GSM, NMSetting)
 
 /*****************************************************************************/
 
@@ -565,8 +562,6 @@ nm_setting_gsm_class_init(NMSettingGsmClass *klass)
     NMSettingClass *setting_class       = NM_SETTING_CLASS(klass);
     GArray         *properties_override = _nm_sett_info_property_override_create_array();
 
-    g_type_class_add_private(klass, sizeof(NMSettingGsmPrivate));
-
     object_class->get_property = _nm_setting_property_get_property_direct;
     object_class->set_property = _nm_setting_property_set_property_direct;
 
@@ -607,7 +602,8 @@ nm_setting_gsm_class_init(NMSettingGsmClass *klass)
                                               NM_SETTING_PARAM_NONE,
                                               NMSettingGsmPrivate,
                                               number,
-                                              .is_deprecated = TRUE, );
+                                              .is_deprecated             = TRUE,
+                                              .direct_string_allow_empty = TRUE);
 
     /**
      * NMSettingGsm:username:
@@ -622,7 +618,8 @@ nm_setting_gsm_class_init(NMSettingGsmClass *klass)
                                               PROP_USERNAME,
                                               NM_SETTING_PARAM_NONE,
                                               NMSettingGsmPrivate,
-                                              username);
+                                              username,
+                                              .direct_string_allow_empty = TRUE);
 
     /**
      * NMSettingGsm:password:
@@ -637,7 +634,8 @@ nm_setting_gsm_class_init(NMSettingGsmClass *klass)
                                               PROP_PASSWORD,
                                               NM_SETTING_PARAM_SECRET,
                                               NMSettingGsmPrivate,
-                                              password);
+                                              password,
+                                              .direct_string_allow_empty = TRUE);
 
     /**
      * NMSettingGsm:password-flags:
@@ -660,6 +658,10 @@ nm_setting_gsm_class_init(NMSettingGsmClass *klass)
      * is important to use the correct APN for the user's mobile broadband plan.
      * The APN may only be composed of the characters a-z, 0-9, ., and - per GSM
      * 03.60 Section 14.9.
+     *
+     * If the APN is unset (the default) then it may be detected based on
+     * "auto-config" setting. The property can be explicitly set to the
+     * empty string to prevent that and use no APN.
      **/
     _nm_setting_property_define_direct_string(properties_override,
                                               obj_properties,
@@ -668,7 +670,8 @@ nm_setting_gsm_class_init(NMSettingGsmClass *klass)
                                               NM_SETTING_PARAM_NONE,
                                               NMSettingGsmPrivate,
                                               apn,
-                                              .direct_set_string_strip = TRUE);
+                                              .direct_set_string_strip   = TRUE,
+                                              .direct_string_allow_empty = TRUE);
 
     /**
      * NMSettingGsm:network-id:
@@ -686,7 +689,8 @@ nm_setting_gsm_class_init(NMSettingGsmClass *klass)
                                               NM_SETTING_PARAM_NONE,
                                               NMSettingGsmPrivate,
                                               network_id,
-                                              .direct_set_string_strip = TRUE);
+                                              .direct_set_string_strip   = TRUE,
+                                              .direct_string_allow_empty = TRUE);
 
     /**
      * NMSettingGsm:pin:
@@ -701,7 +705,8 @@ nm_setting_gsm_class_init(NMSettingGsmClass *klass)
                                               PROP_PIN,
                                               NM_SETTING_PARAM_SECRET,
                                               NMSettingGsmPrivate,
-                                              pin);
+                                              pin,
+                                              .direct_string_allow_empty = TRUE);
 
     /**
      * NMSettingGsm:pin-flags:
@@ -745,7 +750,8 @@ nm_setting_gsm_class_init(NMSettingGsmClass *klass)
                                               PROP_DEVICE_ID,
                                               NM_SETTING_PARAM_NONE,
                                               NMSettingGsmPrivate,
-                                              device_id);
+                                              device_id,
+                                              .direct_string_allow_empty = TRUE);
 
     /**
      * NMSettingGsm:sim-id:
@@ -763,7 +769,8 @@ nm_setting_gsm_class_init(NMSettingGsmClass *klass)
                                               PROP_SIM_ID,
                                               NM_SETTING_PARAM_NONE,
                                               NMSettingGsmPrivate,
-                                              sim_id);
+                                              sim_id,
+                                              .direct_string_allow_empty = TRUE);
 
     /**
      * NMSettingGsm:sim-operator-id:
@@ -782,7 +789,8 @@ nm_setting_gsm_class_init(NMSettingGsmClass *klass)
                                               PROP_SIM_OPERATOR_ID,
                                               NM_SETTING_PARAM_NONE,
                                               NMSettingGsmPrivate,
-                                              sim_operator_id);
+                                              sim_operator_id,
+                                              .direct_string_allow_empty = TRUE);
 
     /**
      * NMSettingGsm:mtu:
@@ -836,7 +844,8 @@ nm_setting_gsm_class_init(NMSettingGsmClass *klass)
                                               PROP_INITIAL_EPS_APN,
                                               NM_SETTING_PARAM_NONE,
                                               NMSettingGsmPrivate,
-                                              initial_eps_apn);
+                                              initial_eps_apn,
+                                              .direct_string_allow_empty = TRUE);
 
     /* Ignore incoming deprecated properties */
     _nm_properties_override_dbus(properties_override,
@@ -854,5 +863,5 @@ nm_setting_gsm_class_init(NMSettingGsmClass *klass)
                              NM_META_SETTING_TYPE_GSM,
                              NULL,
                              properties_override,
-                             NM_SETT_INFO_PRIVATE_OFFSET_FROM_CLASS);
+                             G_STRUCT_OFFSET(NMSettingGsm, _priv));
 }

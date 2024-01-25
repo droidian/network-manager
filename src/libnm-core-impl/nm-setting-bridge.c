@@ -1416,7 +1416,7 @@ nm_setting_bridge_class_init(NMSettingBridgeClass *klass)
 {
     GObjectClass   *object_class        = G_OBJECT_CLASS(klass);
     NMSettingClass *setting_class       = NM_SETTING_CLASS(klass);
-    GArray         *properties_override = _nm_sett_info_property_override_create_array();
+    GArray         *properties_override = _nm_sett_info_property_override_create_array_sized(35);
 
     object_class->get_property = get_property;
     object_class->set_property = set_property;
@@ -1811,7 +1811,8 @@ nm_setting_bridge_class_init(NMSettingBridgeClass *klass)
                                               PROP_VLAN_PROTOCOL,
                                               NM_SETTING_PARAM_INFERRABLE,
                                               NMSettingBridge,
-                                              _priv.vlan_protocol);
+                                              _priv.vlan_protocol,
+                                              .direct_string_allow_empty = TRUE);
 
     /**
      * NMSettingBridge:vlan-stats-enabled:
@@ -1862,7 +1863,8 @@ nm_setting_bridge_class_init(NMSettingBridgeClass *klass)
                                               PROP_MULTICAST_ROUTER,
                                               NM_SETTING_PARAM_INFERRABLE,
                                               NMSettingBridge,
-                                              _priv.multicast_router);
+                                              _priv.multicast_router,
+                                              .direct_string_allow_empty = TRUE);
 
     /**
      * NMSettingBridge:multicast-query-use-ifaddr:

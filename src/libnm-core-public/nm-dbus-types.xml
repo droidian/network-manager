@@ -347,6 +347,11 @@
               <entry role="enum_member_value"><para>= <literal>32</literal></para><para></para></entry>
               <entry role="enum_member_description"><para>a loopback interface. Since: 1.42.</para><para></para></entry>
             </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_TYPE_HSR</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>33</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>A HSR/PRP device. Since: 1.46.</para><para></para></entry>
+            </row>
           </tbody>
         </tgroup>
       </informaltable>
@@ -471,6 +476,11 @@
               <entry role="enum_member_name"><para>NM_WIFI_DEVICE_CAP_FREQ_5GHZ</para><para></para></entry>
               <entry role="enum_member_value"><para>= <literal>0x00000400</literal></para><para></para></entry>
               <entry role="enum_member_description"><para>device supports 5GHz frequencies</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_WIFI_DEVICE_CAP_FREQ_6GHZ</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x00000800</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>device supports 6GHz frequencies. Since: 1.46.</para><para></para></entry>
             </row>
             <row role="constant">
               <entry role="enum_member_name"><para>NM_WIFI_DEVICE_CAP_MESH</para><para></para></entry>
@@ -1670,7 +1680,7 @@
             <row role="constant">
               <entry role="enum_member_name"><para>NM_CHECKPOINT_CREATE_FLAG_ALLOW_OVERLAPPING</para><para></para></entry>
               <entry role="enum_member_value"><para>= <literal>0x08</literal></para><para></para></entry>
-              <entry role="enum_member_description"><para>by default, creating a checkpoint fails if there are already existing checkoints that reference the same devices. With this flag, creation of such checkpoints is allowed, however, if an older checkpoint that references overlapping devices gets rolled back, it will automatically destroy this checkpoint during rollback. This allows to create several overlapping checkpoints in parallel, and rollback to them at will. With the special case that rolling back to an older checkpoint will invalidate all overlapping younger checkpoints. This opts-in that the checkpoint can be automatically destroyed by the rollback of an older checkpoint. Since: 1.12.</para><para></para></entry>
+              <entry role="enum_member_description"><para>by default, creating a checkpoint fails if there are already existing checkpoints that reference the same devices. With this flag, creation of such checkpoints is allowed, however, if an older checkpoint that references overlapping devices gets rolled back, it will automatically destroy this checkpoint during rollback. This allows to create several overlapping checkpoints in parallel, and rollback to them at will. With the special case that rolling back to an older checkpoint will invalidate all overlapping younger checkpoints. This opts-in that the checkpoint can be automatically destroyed by the rollback of an older checkpoint. Since: 1.12.</para><para></para></entry>
             </row>
             <row role="constant">
               <entry role="enum_member_name"><para>NM_CHECKPOINT_CREATE_FLAG_NO_PRESERVE_EXTERNAL_PORTS</para><para></para></entry>

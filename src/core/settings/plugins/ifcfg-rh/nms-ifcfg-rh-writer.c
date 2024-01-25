@@ -1346,6 +1346,7 @@ write_ethtool_setting(NMConnection *connection, shvarFile *ifcfg, GError **error
         guint32              u32;
         gboolean             b;
         gboolean             any_option = FALSE;
+        char                 prop_name[300];
 
         s_con = nm_connection_get_setting_connection(connection);
         if (s_con) {
@@ -1424,6 +1425,30 @@ write_ethtool_setting(NMConnection *connection, shvarFile *ifcfg, GError **error
             g_string_append(str, nms_ifcfg_rh_utils_get_ethtool_name(ethtool_id));
             g_string_append(str, b ? " on" : " off");
             any_option = TRUE;
+        }
+
+        is_first = TRUE;
+        for (ethtool_id = _NM_ETHTOOL_ID_CHANNELS_FIRST; ethtool_id <= _NM_ETHTOOL_ID_CHANNELS_LAST;
+             ethtool_id++) {
+            if (nm_setting_option_get_uint32(NM_SETTING(s_ethtool),
+                                             nm_ethtool_data[ethtool_id]->optname,
+                                             &u32)) {
+                nm_sprintf_buf(prop_name, "ethtool.%s", nm_ethtool_data[ethtool_id]->optname);
+                set_error_unsupported(error, connection, prop_name, FALSE);
+                return FALSE;
+            }
+        }
+
+        is_first = TRUE;
+        for (ethtool_id = _NM_ETHTOOL_ID_EEE_FIRST; ethtool_id <= _NM_ETHTOOL_ID_EEE_LAST;
+             ethtool_id++) {
+            if (nm_setting_option_get_boolean(NM_SETTING(s_ethtool),
+                                              nm_ethtool_data[ethtool_id]->optname,
+                                              &b)) {
+                nm_sprintf_buf(prop_name, "ethtool.%s", nm_ethtool_data[ethtool_id]->optname);
+                set_error_unsupported(error, connection, prop_name, FALSE);
+                return FALSE;
+            }
         }
 
         if (!any_option) {
@@ -2235,34 +2260,38 @@ write_connection_setting(NMSettingConnection *s_con, shvarFile *ifcfg, const cha
             master       = NULL;
         }
 
-        if (nm_setting_connection_is_slave_type(s_con, NM_SETTING_BOND_SETTING_NAME)) {
+        if (nm_streq0(nm_setting_connection_get_port_type(s_con), NM_SETTING_BOND_SETTING_NAME)) {
             svSetValueStr(ifcfg, "MASTER_UUID", master);
             svSetValueStr(ifcfg, "MASTER", master_iface);
             svSetValueStr(ifcfg, "SLAVE", "yes");
-        } else if (nm_setting_connection_is_slave_type(s_con, NM_SETTING_BRIDGE_SETTING_NAME)) {
+        } else if (nm_streq0(nm_setting_connection_get_port_type(s_con),
+                             NM_SETTING_BRIDGE_SETTING_NAME)) {
             svSetValueStr(ifcfg, "BRIDGE_UUID", master);
             svSetValueStr(ifcfg, "BRIDGE", master_iface);
-        } else if (nm_setting_connection_is_slave_type(s_con, NM_SETTING_TEAM_SETTING_NAME)) {
+        } else if (nm_streq0(nm_setting_connection_get_port_type(s_con),
+                             NM_SETTING_TEAM_SETTING_NAME)) {
             svSetValueStr(ifcfg, "TEAM_MASTER_UUID", master);
             svSetValueStr(ifcfg, "TEAM_MASTER", master_iface);
             if (NM_IN_STRSET(type, NM_SETTING_WIRED_SETTING_NAME, NM_SETTING_VLAN_SETTING_NAME))
                 svUnsetValue(ifcfg, "TYPE");
-        } else if (nm_setting_connection_is_slave_type(s_con, NM_SETTING_OVS_PORT_SETTING_NAME)) {
+        } else if (nm_streq0(nm_setting_connection_get_port_type(s_con),
+                             NM_SETTING_OVS_PORT_SETTING_NAME)) {
             svSetValueStr(ifcfg, "OVS_PORT_UUID", master);
             svSetValueStr(ifcfg, "OVS_PORT", master_iface);
-        } else if (nm_setting_connection_is_slave_type(s_con, NM_SETTING_VRF_SETTING_NAME)) {
+        } else if (nm_streq0(nm_setting_connection_get_port_type(s_con),
+                             NM_SETTING_VRF_SETTING_NAME)) {
             svSetValueStr(ifcfg, "VRF_UUID", master);
             svSetValueStr(ifcfg, "VRF", master_iface);
         } else {
             _LOGW("don't know how to set master for a %s slave",
-                  nm_setting_connection_get_slave_type(s_con));
+                  nm_setting_connection_get_port_type(s_con));
         }
     }
 
     if (nm_streq0(type, NM_SETTING_TEAM_SETTING_NAME))
         svSetValueStr(ifcfg, "DEVICETYPE", TYPE_TEAM);
     else if (master_iface
-             && nm_setting_connection_is_slave_type(s_con, NM_SETTING_TEAM_SETTING_NAME))
+             && nm_streq0(nm_setting_connection_get_port_type(s_con), NM_SETTING_TEAM_SETTING_NAME))
         svSetValueStr(ifcfg, "DEVICETYPE", TYPE_TEAM_PORT);
 
     /* secondary connection UUIDs */

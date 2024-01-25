@@ -779,6 +779,10 @@
                   dbus-type="i"
                   gprop-type="NMSettingConnectionAutoconnectSlaves"
                   />
+        <property name="controller"
+                  dbus-type="s"
+                  gprop-type="gchararray"
+                  />
         <property name="dns-over-tls"
                   dbus-type="i"
                   gprop-type="gint"
@@ -804,6 +808,7 @@
                   gprop-type="gint"
                   />
         <property name="master"
+                  is-deprecated="1"
                   dbus-type="s"
                   gprop-type="gchararray"
                   />
@@ -831,6 +836,10 @@
                   dbus-type="as"
                   gprop-type="GStrv"
                   />
+        <property name="port-type"
+                  dbus-type="s"
+                  gprop-type="gchararray"
+                  />
         <property name="read-only"
                   is-deprecated="1"
                   dbus-type="b"
@@ -841,6 +850,7 @@
                   gprop-type="GStrv"
                   />
         <property name="slave-type"
+                  is-deprecated="1"
                   dbus-type="s"
                   gprop-type="gchararray"
                   />
@@ -1276,6 +1286,10 @@
                   dbus-type="b"
                   is-setting-option="1"
                   />
+        <property name="eee-enabled"
+                  dbus-type="b"
+                  is-setting-option="1"
+                  />
         <property name="ring-rx"
                   dbus-type="u"
                   is-setting-option="1"
@@ -1289,6 +1303,22 @@
                   is-setting-option="1"
                   />
         <property name="ring-tx"
+                  dbus-type="u"
+                  is-setting-option="1"
+                  />
+        <property name="channels-rx"
+                  dbus-type="u"
+                  is-setting-option="1"
+                  />
+        <property name="channels-tx"
+                  dbus-type="u"
+                  is-setting-option="1"
+                  />
+        <property name="channels-other"
+                  dbus-type="u"
+                  is-setting-option="1"
+                  />
+        <property name="channels-combined"
                   dbus-type="u"
                   is-setting-option="1"
                   />
@@ -1396,6 +1426,26 @@
         <property name="priority"
                   dbus-type="i"
                   gprop-type="gint"
+                  />
+    </setting>
+    <setting name="hsr"
+             gtype="NMSettingHsr"
+             >
+        <property name="multicast-spec"
+                  dbus-type="u"
+                  gprop-type="guint"
+                  />
+        <property name="port1"
+                  dbus-type="s"
+                  gprop-type="gchararray"
+                  />
+        <property name="port2"
+                  dbus-type="s"
+                  gprop-type="gchararray"
+                  />
+        <property name="prp"
+                  dbus-type="b"
+                  gprop-type="gboolean"
                   />
     </setting>
     <setting name="infiniband"

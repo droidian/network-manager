@@ -497,7 +497,7 @@ nmc_string_to_arg_array(const char *line,
 
     arr0 = nm_strsplit_set(line ?: "", delim ?: " \t");
     if (!arr0)
-        arr = g_new0(char *, 1);
+        arr = nm_strv_empty_new();
     else
         arr = g_strdupv((char **) arr0);
 
@@ -1829,6 +1829,9 @@ nmc_warn_if_version_mismatch(NMClient *client)
     const char *nm_ver;
 
     g_return_if_fail(client != NULL);
+
+    if (!nm_client_get_nm_running(client))
+        return;
 
     nm_ver = nm_client_get_version(client);
     if (!nm_streq0(nm_ver, VERSION)) {

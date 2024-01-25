@@ -42,20 +42,18 @@ typedef struct {
  * Bluetooth Settings
  */
 struct _NMSettingBluetooth {
-    NMSetting parent;
-    /* In the past, this struct was public API. Preserve ABI! */
+    NMSetting                 parent;
+    NMSettingBluetoothPrivate _priv;
 };
 
 struct _NMSettingBluetoothClass {
     NMSettingClass parent;
-    /* In the past, this struct was public API. Preserve ABI! */
-    gpointer padding[4];
 };
 
 G_DEFINE_TYPE(NMSettingBluetooth, nm_setting_bluetooth, NM_TYPE_SETTING)
 
 #define NM_SETTING_BLUETOOTH_GET_PRIVATE(o) \
-    (G_TYPE_INSTANCE_GET_PRIVATE((o), NM_TYPE_SETTING_BLUETOOTH, NMSettingBluetoothPrivate))
+    _NM_GET_PRIVATE(o, NMSettingBluetooth, NM_IS_SETTING_BLUETOOTH, NMSetting)
 
 /*****************************************************************************/
 
@@ -254,8 +252,6 @@ nm_setting_bluetooth_class_init(NMSettingBluetoothClass *klass)
     NMSettingClass *setting_class       = NM_SETTING_CLASS(klass);
     GArray         *properties_override = _nm_sett_info_property_override_create_array();
 
-    g_type_class_add_private(klass, sizeof(NMSettingBluetoothPrivate));
-
     object_class->get_property = _nm_setting_property_get_property_direct;
     object_class->set_property = _nm_setting_property_set_property_direct;
 
@@ -287,7 +283,8 @@ nm_setting_bluetooth_class_init(NMSettingBluetoothClass *klass)
                                               PROP_TYPE,
                                               NM_SETTING_PARAM_INFERRABLE,
                                               NMSettingBluetoothPrivate,
-                                              type);
+                                              type,
+                                              .direct_string_allow_empty = TRUE);
 
     g_object_class_install_properties(object_class, _PROPERTY_ENUMS_LAST, obj_properties);
 
@@ -295,5 +292,5 @@ nm_setting_bluetooth_class_init(NMSettingBluetoothClass *klass)
                              NM_META_SETTING_TYPE_BLUETOOTH,
                              NULL,
                              properties_override,
-                             NM_SETT_INFO_PRIVATE_OFFSET_FROM_CLASS);
+                             G_STRUCT_OFFSET(NMSettingBluetooth, _priv));
 }

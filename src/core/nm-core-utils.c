@@ -738,19 +738,20 @@ nm_utils_kill_child_sync(pid_t       pid,
 
             if (!was_waiting) {
                 nm_log_dbg(log_domain,
-                           LOG_NAME_FMT ": waiting up to %ld milliseconds for process to terminate "
+                           LOG_NAME_FMT ": waiting up to %lu milliseconds for process to terminate "
                                         "normally after sending %s...",
                            LOG_NAME_ARGS,
-                           (long) MAX(wait_before_kill_msec, 0),
+                           (unsigned long) wait_before_kill_msec,
                            _kc_signal_to_string(sig));
                 was_waiting = TRUE;
             }
 
-            sleep_time = MIN(wait_until - now, sleep_duration_usec);
+            sleep_time = NM_MIN(wait_until - now, (gint64) sleep_duration_usec);
             if (loop_count < 20) {
                 /* At the beginning we expect the process to die fast.
                  * Limit the sleep time, the limit doubles with every iteration. */
-                sleep_time = MIN(sleep_time, (((guint64) 1) << loop_count) * G_USEC_PER_SEC / 2000);
+                sleep_time =
+                    NM_MIN(sleep_time, (((guint64) 1) << loop_count) * G_USEC_PER_SEC / 2000);
                 loop_count++;
             }
             g_usleep(sleep_time);
@@ -1031,17 +1032,17 @@ nm_utils_kill_process_sync(pid_t       pid,
                 loop_count =
                     0; /* reset the loop_count. Now we really expect the process to die quickly. */
             } else
-                sleep_time = MIN(wait_until_sigkill - now, sleep_duration_usec);
+                sleep_time = NM_MIN(wait_until_sigkill - now, (gint64) sleep_duration_usec);
         }
 
         if (!was_waiting) {
             if (wait_until_sigkill != 0) {
                 nm_log_dbg(log_domain,
                            LOG_NAME_PROCESS_FMT
-                           ": waiting up to %ld milliseconds for process to disappear before "
+                           ": waiting up to %lu milliseconds for process to disappear before "
                            "sending KILL signal after sending %s...",
                            LOG_NAME_ARGS,
-                           (long) wait_before_kill_msec,
+                           (unsigned long) wait_before_kill_msec,
                            _kc_signal_to_string(sig));
             } else if (max_wait_until != 0) {
                 nm_log_dbg(
@@ -1064,7 +1065,7 @@ nm_utils_kill_process_sync(pid_t       pid,
         if (loop_count < 20) {
             /* At the beginning we expect the process to die fast.
              * Limit the sleep time, the limit doubles with every iteration. */
-            sleep_time = MIN(sleep_time, (((guint64) 1) << loop_count) * G_USEC_PER_SEC / 2000);
+            sleep_time = NM_MIN(sleep_time, (((guint64) 1) << loop_count) * G_USEC_PER_SEC / 2000);
             loop_count++;
         }
         g_usleep(sleep_time);
@@ -2711,7 +2712,7 @@ _host_id_read_timestamp(gboolean      use_secret_key_file,
 
 #define EPOCH_TWO_YEARS (G_GINT64_CONSTANT(2 * 365 * 24 * 3600) * NM_UTILS_NSEC_PER_SEC)
 
-    v = nm_hash_siphash42(1156657133u, host_id, host_id_len);
+    v = c_siphash_hash(NM_HASH_SEED_16_U64(1156657133u), host_id, host_id_len);
 
     now = time(NULL);
     *out_timestamp_ns =
@@ -3396,6 +3397,7 @@ nm_utils_stable_id_parse(const char *stable_id,
                          const char *hwaddr,
                          const char *bootid,
                          const char *uuid,
+                         GBytes     *ssid,
                          char      **out_generated)
 {
     nm_auto_str_buf NMStrBuf str = NM_STR_BUF_INIT_A(NM_UTILS_GET_NEXT_REALLOC_SIZE_232, FALSE);
@@ -3481,7 +3483,29 @@ nm_utils_stable_id_parse(const char *stable_id,
             _stable_id_append(&str, deviceid);
         else if (CHECK_PREFIX("${MAC}"))
             _stable_id_append(&str, hwaddr);
-        else if (g_str_has_prefix(&stable_id[i], "${RANDOM}")) {
+        else if (CHECK_PREFIX("${NETWORK_SSID}")) {
+            gs_free char *value_free = NULL;
+            gs_free char *s          = NULL;
+            const char   *value;
+            const char   *type_id;
+
+            if (ssid) {
+                type_id = "s:";
+                value   = nm_utils_buf_utf8safe_escape_bytes(ssid,
+                                                           NM_UTILS_STR_UTF8_SAFE_FLAG_ESCAPE_CTRL,
+                                                           &value_free);
+            } else {
+                /* If we have no SSID, we fallback to the connection's UUID.
+                 *
+                 * Give a separate prefix (@type_id), so that an SSID and a UUID
+                 * fallback never result in the same output. */
+                type_id = "c:";
+                value   = uuid ?: "";
+            }
+
+            s = g_strjoin("", type_id, value, NULL);
+            _stable_id_append(&str, s);
+        } else if (g_str_has_prefix(&stable_id[i], "${RANDOM}")) {
             /* RANDOM makes not so much sense for cloned-mac-address
              * as the result is similar to specifying "cloned-mac-address=random".
              * It makes however sense for RFC 7217 Stable Privacy IPv6 addresses
@@ -3520,6 +3544,29 @@ nm_utils_stable_id_parse(const char *stable_id,
         nm_str_buf_append_len(&str, &stable_id[idx_start], i - idx_start);
     *out_generated = nm_str_buf_finalize(&str, NULL);
     return NM_UTILS_STABLE_TYPE_GENERATED;
+}
+
+NMUtilsStableType
+nm_utils_stable_id_parse_network_ssid(GBytes     *ssid,
+                                      const char *uuid,
+                                      gboolean    complete,
+                                      char      **out_stable_id)
+{
+    NMUtilsStableType stable_type;
+
+    stable_type =
+        nm_utils_stable_id_parse("${NETWORK_SSID}", NULL, NULL, NULL, uuid, ssid, out_stable_id);
+
+    nm_assert(stable_type == NM_UTILS_STABLE_TYPE_GENERATED);
+    nm_assert(!out_stable_id || nm_str_not_empty(*out_stable_id));
+
+    if (complete && out_stable_id) {
+        gs_free char *ss = g_steal_pointer(out_stable_id);
+
+        *out_stable_id = nm_utils_stable_id_generated_complete(ss);
+    }
+
+    return stable_type;
 }
 
 /*****************************************************************************/
@@ -3567,7 +3614,7 @@ nm_utils_ipv6_addr_set_stable_privacy_with_host_id(NMUtilsStableType stable_type
 
     sum = g_checksum_new(G_CHECKSUM_SHA256);
 
-    host_id_len = MIN(host_id_len, G_MAXUINT32);
+    host_id_len = NM_MIN(host_id_len, G_MAXUINT32);
 
     if (stable_type != NM_UTILS_STABLE_TYPE_UUID) {
         guint8 stable_type_uint8;
@@ -3742,7 +3789,7 @@ _hw_addr_gen_stable_eth(NMUtilsStableType stable_type,
 
     sum = g_checksum_new(G_CHECKSUM_SHA256);
 
-    host_id_len = MIN(host_id_len, G_MAXUINT32);
+    host_id_len = NM_MIN(host_id_len, G_MAXUINT32);
 
     nm_assert(stable_type < (NMUtilsStableType) 255);
     stable_type_uint8 = stable_type;
@@ -3819,23 +3866,23 @@ nm_utils_dhcp_client_id_mac(int arp_type, const guint8 *hwaddr, gsize hwaddr_len
     return g_bytes_new_take(client_id_buf, hwaddr_len + 1);
 }
 
-#define HASH_KEY              \
-    ((const guint8[16]){0x80, \
-                        0x11, \
-                        0x8c, \
-                        0xc2, \
-                        0xfe, \
-                        0x4a, \
-                        0x03, \
-                        0xee, \
-                        0x3e, \
-                        0xd6, \
-                        0x0c, \
-                        0x6f, \
-                        0x36, \
-                        0x39, \
-                        0x14, \
-                        0x09})
+#define HASH_KEY          \
+    NM_HASH_SEED_16(0x80, \
+                    0x11, \
+                    0x8c, \
+                    0xc2, \
+                    0xfe, \
+                    0x4a, \
+                    0x03, \
+                    0xee, \
+                    0x3e, \
+                    0xd6, \
+                    0x0c, \
+                    0x6f, \
+                    0x36, \
+                    0x39, \
+                    0x14, \
+                    0x09)
 
 /**
  * nm_utils_create_dhcp_iaid:
@@ -4255,8 +4302,8 @@ read_device_factory_paths_sort_fcn(gconstpointer a, gconstpointer b)
     const struct plugin_info *db = b;
     time_t                    ta, tb;
 
-    ta = MAX(da->st.st_mtime, da->st.st_ctime);
-    tb = MAX(db->st.st_mtime, db->st.st_ctime);
+    ta = NM_MAX(da->st.st_mtime, da->st.st_ctime);
+    tb = NM_MAX(db->st.st_mtime, db->st.st_ctime);
 
     if (ta < tb)
         return 1;
@@ -4779,15 +4826,91 @@ get_max_rate_vht(const guint8 *bytes, guint len, guint32 *out_maxrate)
     return TRUE;
 }
 
+static gboolean
+get_bandwidth_ht(const guint8 *bytes, guint len, guint32 *out_bandwidth)
+{
+    guint8 ht_op_flag_group;
+
+    /* http://standards.ieee.org/getieee802/download/802.11-2012.pdf
+     * https://mrncciew.com/2014/11/04/cwap-ht-operations-ie/
+     * IEEE std 802.11-2020 section 9.4.2.56
+     */
+
+    if (len != 22)
+        return FALSE;
+
+    ht_op_flag_group = bytes[1];
+
+    /* Check bit for 20Mhz or 40Mhz */
+    if (ht_op_flag_group & (1 << 2))
+        *out_bandwidth = 40;
+    else
+        *out_bandwidth = 20;
+
+    return TRUE;
+}
+
+static gboolean
+get_bandwidth_vht(const guint8 *bytes, guint len, guint32 *out_bandwidth)
+{
+    guint8 sta_channel_width;
+    guint8 ccfs0;
+    guint8 ccfs1;
+
+    /* http://chimera.labs.oreilly.com/books/1234000001739/ch03.html#management_frames
+     * https://community.arubanetworks.com/community-home/librarydocuments/viewdocument?DocumentKey=799aad1b-d9c4-421a-a492-a111e8680d34&CommunityKey=39a6bdf4-2376-46f9-853a-49420d2d0caa&tab=librarydocuments
+     * IEEE Std 802.11-2020 section 9.4.2.158
+     */
+
+    if (len < 3)
+        return FALSE;
+
+    sta_channel_width = bytes[0];
+    ccfs0             = bytes[1];
+    ccfs1             = bytes[2];
+    switch (sta_channel_width) {
+    case 0:
+        /* we rely on HT Operation IE value*/
+        return FALSE;
+    case 1:
+        if (ccfs1 == 0)
+            *out_bandwidth = 80;
+        else if (abs(ccfs1 - ccfs0) == 8)
+            *out_bandwidth = 160;
+        else if (abs(ccfs1 - ccfs0) > 16)
+            /* we are considering 80+80 as 160 */
+            *out_bandwidth = 160;
+        else
+            /* falling back to 80 MHz */
+            *out_bandwidth = 80;
+        break;
+    case 2:
+        /* deprecated */
+        *out_bandwidth = 160;
+        break;
+    case 3:
+        /* deprecated */
+        *out_bandwidth = 160;
+        break;
+    default:
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
 /* Management Frame Information Element IDs, ieee80211_eid */
 #define WLAN_EID_HT_CAPABILITY   45
+#define WLAN_EID_HT_OPERATION    61
 #define WLAN_EID_VHT_CAPABILITY  191
+#define WLAN_EID_VHT_OPERATION   192
 #define WLAN_EID_VENDOR_SPECIFIC 221
 
 void
 nm_wifi_utils_parse_ies(const guint8 *bytes,
                         gsize         len,
                         guint32      *out_max_rate,
+                        guint32      *out_bandwidth,
                         gboolean     *out_metered,
                         gboolean     *out_owe_transition_mode)
 {
@@ -4795,6 +4918,7 @@ nm_wifi_utils_parse_ies(const guint8 *bytes,
     guint32 m;
 
     NM_SET_OUT(out_max_rate, 0);
+    NM_SET_OUT(out_bandwidth, 0);
     NM_SET_OUT(out_metered, FALSE);
     NM_SET_OUT(out_owe_transition_mode, FALSE);
 
@@ -4816,11 +4940,19 @@ nm_wifi_utils_parse_ies(const guint8 *bytes,
                     *out_max_rate = NM_MAX(*out_max_rate, m);
             }
             break;
+        case WLAN_EID_HT_OPERATION:
+            if (out_bandwidth)
+                get_bandwidth_ht(bytes, elem_len, out_bandwidth);
+            break;
         case WLAN_EID_VHT_CAPABILITY:
             if (out_max_rate) {
                 if (get_max_rate_vht(bytes, elem_len, &m))
                     *out_max_rate = NM_MAX(*out_max_rate, m);
             }
+            break;
+        case WLAN_EID_VHT_OPERATION:
+            if (out_bandwidth)
+                get_bandwidth_vht(bytes, elem_len, out_bandwidth);
             break;
         case WLAN_EID_VENDOR_SPECIFIC:
             if (len == 8 && bytes[0] == 0x00 /* OUI: Microsoft */
@@ -5333,7 +5465,7 @@ nm_utils_shorten_hostname(const char *hostname, char **shortened)
         l = (dot - hostname);
     else
         l = strlen(hostname);
-    l = MIN(l, (gsize) NM_HOST_NAME_MAX);
+    l = NM_MIN(l, (gsize) NM_HOST_NAME_MAX);
 
     s = g_strndup(hostname, l);
 

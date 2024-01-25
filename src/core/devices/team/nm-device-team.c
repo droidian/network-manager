@@ -290,9 +290,9 @@ master_update_slave_connection(NMDevice     *device,
     g_free(port_config);
 
     g_object_set(nm_connection_get_setting_connection(connection),
-                 NM_SETTING_CONNECTION_MASTER,
+                 NM_SETTING_CONNECTION_CONTROLLER,
                  nm_connection_get_uuid(applied_connection),
-                 NM_SETTING_CONNECTION_SLAVE_TYPE,
+                 NM_SETTING_CONNECTION_PORT_TYPE,
                  NM_SETTING_TEAM_SETTING_NAME,
                  NULL);
     return TRUE;
@@ -1090,9 +1090,21 @@ static const NMDBusInterfaceInfoExtended interface_info_device_team = {
     .parent = NM_DEFINE_GDBUS_INTERFACE_INFO_INIT(
         NM_DBUS_INTERFACE_DEVICE_TEAM,
         .properties = NM_DEFINE_GDBUS_PROPERTY_INFOS(
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("HwAddress", "s", NM_DEVICE_HW_ADDRESS),
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("Carrier", "b", NM_DEVICE_CARRIER),
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("Slaves", "ao", NM_DEVICE_SLAVES),
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE(
+                "HwAddress",
+                "s",
+                NM_DEVICE_HW_ADDRESS,
+                .annotations = NM_GDBUS_ANNOTATION_INFO_LIST_DEPRECATED(), ),
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE(
+                "Carrier",
+                "b",
+                NM_DEVICE_CARRIER,
+                .annotations = NM_GDBUS_ANNOTATION_INFO_LIST_DEPRECATED(), ),
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE(
+                "Slaves",
+                "ao",
+                NM_DEVICE_SLAVES,
+                .annotations = NM_GDBUS_ANNOTATION_INFO_LIST_DEPRECATED(), ),
             NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("Config",
                                                            "s",
                                                            NM_DEVICE_TEAM_CONFIG), ), ),

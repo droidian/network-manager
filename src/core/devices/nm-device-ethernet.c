@@ -1431,7 +1431,7 @@ act_stage2_config(NMDevice *device, NMDeviceStateReason *out_failure_reason)
 
                 mtu = nm_setting_ppp_get_mtu(s_ppp);
                 mru = nm_setting_ppp_get_mru(s_ppp);
-                mxu = MAX(mru, mtu);
+                mxu = NM_MAX(mru, mtu);
                 if (mxu) {
                     _LOGD(LOGD_PPP,
                           "set MTU to %u (PPP interface MRU %u, MTU %u)",
@@ -1711,10 +1711,8 @@ new_default_connection(NMDevice *self)
     NMSettingsConnection *const   *connections;
     NMSetting                     *setting;
     gs_unref_hashtable GHashTable *existing_ids = NULL;
-    struct udev_device            *dev;
     const char                    *perm_hw_addr;
     const char                    *iface;
-    const char                    *uprop   = "0";
     gs_free char                  *defname = NULL;
     gs_free char                  *uuid    = NULL;
     guint                          i, n_connections;
@@ -1759,30 +1757,6 @@ new_default_connection(NMDevice *self)
                  NM_SETTING_CONNECTION_INTERFACE_NAME,
                  iface,
                  NULL);
-
-    /* Check if we should create a Link-Local only connection */
-    dev = nm_platform_link_get_udev_device(nm_device_get_platform(NM_DEVICE(self)),
-                                           nm_device_get_ip_ifindex(self));
-    if (dev)
-        uprop = udev_device_get_property_value(dev, "NM_AUTO_DEFAULT_LINK_LOCAL_ONLY");
-
-    if (_nm_utils_ascii_str_to_bool(uprop, FALSE)) {
-        setting = nm_setting_ip4_config_new();
-        g_object_set(setting,
-                     NM_SETTING_IP_CONFIG_METHOD,
-                     NM_SETTING_IP4_CONFIG_METHOD_LINK_LOCAL,
-                     NULL);
-        nm_connection_add_setting(connection, setting);
-
-        setting = nm_setting_ip6_config_new();
-        g_object_set(setting,
-                     NM_SETTING_IP_CONFIG_METHOD,
-                     NM_SETTING_IP6_CONFIG_METHOD_LINK_LOCAL,
-                     NM_SETTING_IP_CONFIG_MAY_FAIL,
-                     TRUE,
-                     NULL);
-        nm_connection_add_setting(connection, setting);
-    }
 
     return connection;
 }
@@ -2043,14 +2017,20 @@ static const NMDBusInterfaceInfoExtended interface_info_device_wired = {
         NM_DBUS_INTERFACE_DEVICE_WIRED,
         .properties = NM_DEFINE_GDBUS_PROPERTY_INFOS(
             NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("HwAddress", "s", NM_DEVICE_HW_ADDRESS),
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("PermHwAddress",
-                                                           "s",
-                                                           NM_DEVICE_PERM_HW_ADDRESS),
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE(
+                "PermHwAddress",
+                "s",
+                NM_DEVICE_PERM_HW_ADDRESS,
+                .annotations = NM_GDBUS_ANNOTATION_INFO_LIST_DEPRECATED(), ),
             NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("Speed", "u", NM_DEVICE_ETHERNET_SPEED),
             NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("S390Subchannels",
                                                            "as",
                                                            NM_DEVICE_ETHERNET_S390_SUBCHANNELS),
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("Carrier", "b", NM_DEVICE_CARRIER), ), ),
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE(
+                "Carrier",
+                "b",
+                NM_DEVICE_CARRIER,
+                .annotations = NM_GDBUS_ANNOTATION_INFO_LIST_DEPRECATED(), ), ), ),
 };
 
 static void

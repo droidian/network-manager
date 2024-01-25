@@ -312,16 +312,16 @@ verify(NMSetting *setting, NMConnection *connection, GError **error)
             g_set_error(error,
                         NM_CONNECTION_ERROR,
                         NM_CONNECTION_ERROR_INVALID_PROPERTY,
-                        _("A connection with a '%s' setting must have a master."),
+                        _("A connection with a '%s' setting must have a controller."),
                         NM_SETTING_OVS_INTERFACE_SETTING_NAME);
             g_prefix_error(error,
                            "%s.%s: ",
                            NM_SETTING_CONNECTION_SETTING_NAME,
-                           NM_SETTING_CONNECTION_MASTER);
+                           NM_SETTING_CONNECTION_CONTROLLER);
             return FALSE;
         }
 
-        slave_type = nm_setting_connection_get_slave_type(s_con);
+        slave_type = nm_setting_connection_get_port_type(s_con);
         if (slave_type && !nm_streq(slave_type, NM_SETTING_OVS_PORT_SETTING_NAME)) {
             g_set_error(error,
                         NM_CONNECTION_ERROR,
@@ -334,7 +334,7 @@ verify(NMSetting *setting, NMConnection *connection, GError **error)
             g_prefix_error(error,
                            "%s.%s: ",
                            NM_SETTING_CONNECTION_SETTING_NAME,
-                           NM_SETTING_CONNECTION_SLAVE_TYPE);
+                           NM_SETTING_CONNECTION_PORT_TYPE);
             return FALSE;
         }
     }
@@ -394,7 +394,8 @@ nm_setting_ovs_interface_class_init(NMSettingOvsInterfaceClass *klass)
                                               PROP_TYPE,
                                               NM_SETTING_PARAM_INFERRABLE,
                                               NMSettingOvsInterface,
-                                              type);
+                                              type,
+                                              .direct_string_allow_empty = TRUE);
     /**
      * NMSettingOvsInterface:ofport-request:
      *

@@ -38,7 +38,7 @@
             Properties
         </h2>
 <div class="table">
-<a name="id-1.3.3.11.2.2.1"></a><p class="title"><b>Table 45. </b></p>
+<a name="id-1.3.3.11.2.2.1"></a><p class="title"><b>Table 46. </b></p>
 <div class="table-contents"><table class="table" border="1">
 <colgroup>
 <col>
@@ -57,7 +57,7 @@
 <td><pre class="screen">app-fcoe-flags</pre></td>
 <td><pre class="screen">NMSettingDcbFlags (uint32)</pre></td>
 <td><pre class="screen"></pre></td>
-<td>Specifies the NMSettingDcbFlags for the DCB FCoE application.  Flags may be any combination of NM_SETTING_DCB_FLAG_ENABLE (0x1), NM_SETTING_DCB_FLAG_ADVERTISE (0x2), and NM_SETTING_DCB_FLAG_WILLING (0x4).</td>
+<td>Specifies the NMSettingDcbFlags for the DCB FCoE application.  Flags may be any combination of 0x1 (enable), 0x2 (advertise), and 0x4 (willing).</td>
 </tr>
 <tr>
 <td><pre class="screen">app-fcoe-mode</pre></td>
@@ -71,31 +71,31 @@ Since 1.34, NULL is the default and means "fabric". Before 1.34, NULL was reject
 <td><pre class="screen">app-fcoe-priority</pre></td>
 <td><pre class="screen">int32</pre></td>
 <td><pre class="screen">-1</pre></td>
-<td>The highest User Priority (0 - 7) which FCoE frames should use, or -1 for default priority.  Only used when the "app-fcoe-flags" property includes the NM_SETTING_DCB_FLAG_ENABLE (0x1) flag.</td>
+<td>The highest User Priority (0 - 7) which FCoE frames should use, or -1 for default priority.  Only used when the "app-fcoe-flags" property includes the 0x1 (enable) flag.</td>
 </tr>
 <tr>
 <td><pre class="screen">app-fip-flags</pre></td>
 <td><pre class="screen">NMSettingDcbFlags (uint32)</pre></td>
 <td><pre class="screen"></pre></td>
-<td>Specifies the NMSettingDcbFlags for the DCB FIP application.  Flags may be any combination of NM_SETTING_DCB_FLAG_ENABLE (0x1), NM_SETTING_DCB_FLAG_ADVERTISE (0x2), and NM_SETTING_DCB_FLAG_WILLING (0x4).</td>
+<td>Specifies the NMSettingDcbFlags for the DCB FIP application.  Flags may be any combination of 0x1 (enable), 0x2 (advertise), and 0x4 (willing).</td>
 </tr>
 <tr>
 <td><pre class="screen">app-fip-priority</pre></td>
 <td><pre class="screen">int32</pre></td>
 <td><pre class="screen">-1</pre></td>
-<td>The highest User Priority (0 - 7) which FIP frames should use, or -1 for default priority.  Only used when the "app-fip-flags" property includes the NM_SETTING_DCB_FLAG_ENABLE (0x1) flag.</td>
+<td>The highest User Priority (0 - 7) which FIP frames should use, or -1 for default priority.  Only used when the "app-fip-flags" property includes the 0x1 (enable) flag.</td>
 </tr>
 <tr>
 <td><pre class="screen">app-iscsi-flags</pre></td>
 <td><pre class="screen">NMSettingDcbFlags (uint32)</pre></td>
 <td><pre class="screen"></pre></td>
-<td>Specifies the NMSettingDcbFlags for the DCB iSCSI application.  Flags may be any combination of NM_SETTING_DCB_FLAG_ENABLE (0x1), NM_SETTING_DCB_FLAG_ADVERTISE (0x2), and NM_SETTING_DCB_FLAG_WILLING (0x4).</td>
+<td>Specifies the NMSettingDcbFlags for the DCB iSCSI application.  Flags may be any combination of 0x1 (enable), 0x2 (advertise), and 0x4 (willing).</td>
 </tr>
 <tr>
 <td><pre class="screen">app-iscsi-priority</pre></td>
 <td><pre class="screen">int32</pre></td>
 <td><pre class="screen">-1</pre></td>
-<td>The highest User Priority (0 - 7) which iSCSI frames should use, or -1 for default priority. Only used when the "app-iscsi-flags" property includes the NM_SETTING_DCB_FLAG_ENABLE (0x1) flag.</td>
+<td>The highest User Priority (0 - 7) which iSCSI frames should use, or -1 for default priority. Only used when the "app-iscsi-flags" property includes the 0x1 (enable) flag.</td>
 </tr>
 <tr>
 <td><pre class="screen">priority-bandwidth</pre></td>
@@ -113,7 +113,7 @@ Since 1.34, NULL is the default and means "fabric". Before 1.34, NULL was reject
 <td><pre class="screen">priority-flow-control-flags</pre></td>
 <td><pre class="screen">NMSettingDcbFlags (uint32)</pre></td>
 <td><pre class="screen"></pre></td>
-<td>Specifies the NMSettingDcbFlags for DCB Priority Flow Control (PFC). Flags may be any combination of NM_SETTING_DCB_FLAG_ENABLE (0x1), NM_SETTING_DCB_FLAG_ADVERTISE (0x2), and NM_SETTING_DCB_FLAG_WILLING (0x4).</td>
+<td>Specifies the NMSettingDcbFlags for DCB Priority Flow Control (PFC). Flags may be any combination of 0x1 (enable), 0x2 (advertise), and 0x4 (willing).</td>
 </tr>
 <tr>
 <td><pre class="screen">priority-group-bandwidth</pre></td>
@@ -125,7 +125,7 @@ Since 1.34, NULL is the default and means "fabric". Before 1.34, NULL was reject
 <td><pre class="screen">priority-group-flags</pre></td>
 <td><pre class="screen">NMSettingDcbFlags (uint32)</pre></td>
 <td><pre class="screen"></pre></td>
-<td>Specifies the NMSettingDcbFlags for DCB Priority Groups.  Flags may be any combination of NM_SETTING_DCB_FLAG_ENABLE (0x1), NM_SETTING_DCB_FLAG_ADVERTISE (0x2), and NM_SETTING_DCB_FLAG_WILLING (0x4).</td>
+<td>Specifies the NMSettingDcbFlags for DCB Priority Groups.  Flags may be any combination of 0x1 (enable), 0x2 (advertise), and 0x4 (willing).</td>
 </tr>
 <tr>
 <td><pre class="screen">priority-group-id</pre></td>

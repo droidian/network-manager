@@ -7,20 +7,11 @@
 ]>
 
 <!--
+  SPDX-License-Identifier: GFDL-1.1-no-invariants-or-later
+
   nm-openvswitch(7) manual page
 
   Copyright 2017 Red Hat, Inc.
-
-  Permission is granted to copy, distribute and/or modify this document
-  under the terms of the GNU Free Documentation License, Version 1.1
-  or any later version published by the Free Software Foundation;
-  with no Invariant Sections, no Front-Cover Texts, and no Back-Cover
-  Texts. You may obtain a copy of the GNU Free Documentation License
-  from the Free Software Foundation by visiting their Web site or by
-  writing to:
-
-  Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 -->
 
 <refentry id="nm-openvswitch">
@@ -170,7 +161,7 @@ Connection 'ovs-slave-eth2' (475ac1bf-30b2-4534-a877-27f33f58b082) successfully 
 <prompt>$ </prompt><userinput>nmcli conn add type ethernet conn.interface eth3 master bond0</userinput>
 Connection 'ovs-slave-eth3' (8dedeecb-ed12-482b-b77a-24a4fb835136) successfully added.
 </screen>
-      <para>It's just a Port with multiple interfaces. See nm-settings manual for
+      <para>It's just a Port with multiple interfaces. See nm-settings-nmcli manual for
       Bonding options you can use with "nmcli c add" or "nmcli c modify". You could
       even set a VLAN tag on the same Port to do VLAN tagging and bonding at the same
       time.</para>
@@ -197,7 +188,7 @@ Connection 'ovs-slave-eth3' (8dedeecb-ed12-482b-b77a-24a4fb835136) successfully 
       <ulink url="https://www.rfc-editor.org/rfc/rfc7047.txt">RFC 7047: The Open vSwitch Database Management Protocol</ulink>,
       <citerefentry><refentrytitle>ovs-vsctl</refentrytitle><manvolnum>8</manvolnum></citerefentry>,
       <citerefentry><refentrytitle>ovs-vswitchd.conf.db</refentrytitle><manvolnum>5</manvolnum></citerefentry>,
-      <link linkend='nm-settings'><citerefentry><refentrytitle>nm-settings</refentrytitle><manvolnum>5</manvolnum></citerefentry></link>,
+      <link linkend='nm-settings-nmcli'><citerefentry><refentrytitle>nm-settings-nmcli</refentrytitle><manvolnum>5</manvolnum></citerefentry></link>,
       <link linkend='nmcli'><citerefentry><refentrytitle>nmcli</refentrytitle><manvolnum>1</manvolnum></citerefentry></link>
     </para>
   </refsect1>

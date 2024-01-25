@@ -43,20 +43,18 @@ typedef struct {
  * PPP-over-Ethernet Settings
  */
 struct _NMSettingPppoe {
-    NMSetting parent;
-    /* In the past, this struct was public API. Preserve ABI! */
+    NMSetting             parent;
+    NMSettingPppoePrivate _priv;
 };
 
 struct _NMSettingPppoeClass {
     NMSettingClass parent;
-    /* In the past, this struct was public API. Preserve ABI! */
-    gpointer padding[4];
 };
 
 G_DEFINE_TYPE(NMSettingPppoe, nm_setting_pppoe, NM_TYPE_SETTING)
 
 #define NM_SETTING_PPPOE_GET_PRIVATE(o) \
-    (G_TYPE_INSTANCE_GET_PRIVATE((o), NM_TYPE_SETTING_PPPOE, NMSettingPppoePrivate))
+    _NM_GET_PRIVATE(o, NMSettingPppoe, NM_IS_SETTING_PPPOE, NMSetting)
 
 /*****************************************************************************/
 
@@ -220,8 +218,6 @@ nm_setting_pppoe_class_init(NMSettingPppoeClass *klass)
     NMSettingClass *setting_class       = NM_SETTING_CLASS(klass);
     GArray         *properties_override = _nm_sett_info_property_override_create_array();
 
-    g_type_class_add_private(klass, sizeof(NMSettingPppoePrivate));
-
     object_class->get_property = _nm_setting_property_get_property_direct;
     object_class->set_property = _nm_setting_property_set_property_direct;
 
@@ -244,7 +240,8 @@ nm_setting_pppoe_class_init(NMSettingPppoeClass *klass)
                                               PROP_PARENT,
                                               NM_SETTING_PARAM_INFERRABLE,
                                               NMSettingPppoePrivate,
-                                              parent);
+                                              parent,
+                                              .direct_string_allow_empty = TRUE);
 
     /**
      * NMSettingPppoe:service:
@@ -260,7 +257,8 @@ nm_setting_pppoe_class_init(NMSettingPppoeClass *klass)
                                               PROP_SERVICE,
                                               NM_SETTING_PARAM_NONE,
                                               NMSettingPppoePrivate,
-                                              service);
+                                              service,
+                                              .direct_string_allow_empty = TRUE);
 
     /**
      * NMSettingPppoe:username:
@@ -273,7 +271,8 @@ nm_setting_pppoe_class_init(NMSettingPppoeClass *klass)
                                               PROP_USERNAME,
                                               NM_SETTING_PARAM_NONE,
                                               NMSettingPppoePrivate,
-                                              username);
+                                              username,
+                                              .direct_string_allow_empty = TRUE);
 
     /**
      * NMSettingPppoe:password:
@@ -286,7 +285,8 @@ nm_setting_pppoe_class_init(NMSettingPppoeClass *klass)
                                               PROP_PASSWORD,
                                               NM_SETTING_PARAM_SECRET,
                                               NMSettingPppoePrivate,
-                                              password);
+                                              password,
+                                              .direct_string_allow_empty = TRUE);
 
     /**
      * NMSettingPppoe:password-flags:
@@ -306,5 +306,5 @@ nm_setting_pppoe_class_init(NMSettingPppoeClass *klass)
                              NM_META_SETTING_TYPE_PPPOE,
                              NULL,
                              properties_override,
-                             NM_SETT_INFO_PRIVATE_OFFSET_FROM_CLASS);
+                             G_STRUCT_OFFSET(NMSettingPppoe, _priv));
 }

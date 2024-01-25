@@ -22,6 +22,7 @@
 #include <linux/rtnetlink.h>
 #include <linux/if_ether.h>
 #include <linux/if_infiniband.h>
+#include <libudev.h>
 
 #include "libnm-std-aux/unaligned.h"
 #include "libnm-glib-aux/nm-uuid.h"
@@ -303,6 +304,8 @@ typedef struct {
     NMEthtoolCoalesceState *coalesce;
     NMEthtoolRingState     *ring;
     NMEthtoolPauseState    *pause;
+    NMEthtoolChannelsState *channels;
+    NMEthtoolEEEState      *eee;
 } EthtoolState;
 
 typedef enum {
@@ -1030,12 +1033,14 @@ _prop_get_connection_stable_id(NMDevice          *self,
         gs_free char        *generated = NULL;
         NMUtilsStableType    stable_type;
         NMSettingConnection *s_con;
+        NMSettingWireless   *s_wifi;
         gboolean             hwaddr_is_fake;
         const char          *hwaddr;
         const char          *stable_id;
         const char          *uuid;
 
-        s_con = nm_connection_get_setting_connection(connection);
+        s_con  = nm_connection_get_setting_connection(connection);
+        s_wifi = nm_connection_get_setting_wireless(connection);
 
         stable_id = nm_setting_connection_get_stable_id(s_con);
 
@@ -1058,6 +1063,7 @@ _prop_get_connection_stable_id(NMDevice          *self,
                                                !hwaddr_is_fake ? hwaddr : NULL,
                                                nm_utils_boot_id_str(),
                                                uuid,
+                                               s_wifi ? nm_setting_wireless_get_ssid(s_wifi) : NULL,
                                                &generated);
 
         /* current_stable_id_type is a bitfield! */
@@ -1517,7 +1523,7 @@ _prop_get_ipvx_route_table(NMDevice *self, int addr_family)
 
     if (route_table == 0u && connection
         && (s_con = nm_connection_get_setting_connection(connection))
-        && (nm_streq0(nm_setting_connection_get_slave_type(s_con), NM_SETTING_VRF_SETTING_NAME)
+        && (nm_streq0(nm_setting_connection_get_port_type(s_con), NM_SETTING_VRF_SETTING_NAME)
             && priv->master && nm_device_get_device_type(priv->master) == NM_DEVICE_TYPE_VRF)) {
         const NMPlatformLnkVrf *lnk;
 
@@ -1655,7 +1661,7 @@ _prop_get_ipv4_dad_timeout(NMDevice *self)
                                                        self,
                                                        0,
                                                        NM_SETTING_IP_CONFIG_DAD_TIMEOUT_MAX,
-                                                       0);
+                                                       200);
 }
 
 static guint32
@@ -2017,7 +2023,10 @@ _prop_get_connection_mud_url(NMDevice *self, NMSettingConnection *s_con)
 }
 
 static GBytes *
-_prop_get_ipv4_dhcp_client_id(NMDevice *self, NMConnection *connection, GBytes *hwaddr)
+_prop_get_ipv4_dhcp_client_id(NMDevice     *self,
+                              NMConnection *connection,
+                              GBytes       *hwaddr,
+                              gboolean     *out_send_client_id)
 {
     NMSettingIPConfig *s_ip4;
     const char        *client_id;
@@ -2029,6 +2038,8 @@ _prop_get_ipv4_dhcp_client_id(NMDevice *self, NMConnection *connection, GBytes *
     gsize              hwaddr_len;
     GBytes            *result;
     gs_free char      *logstr1 = NULL;
+
+    NM_SET_OUT(out_send_client_id, TRUE);
 
     s_ip4     = nm_connection_get_setting_ip4_config(connection);
     client_id = nm_setting_ip4_config_get_dhcp_client_id(NM_SETTING_IP4_CONFIG(s_ip4));
@@ -2046,6 +2057,12 @@ _prop_get_ipv4_dhcp_client_id(NMDevice *self, NMConnection *connection, GBytes *
     if (!client_id) {
         _LOGD(LOGD_DEVICE | LOGD_DHCP4 | LOGD_IP4,
               "ipv4.dhcp-client-id: no explicit client-id configured");
+        return NULL;
+    }
+
+    if (nm_streq(client_id, "none")) {
+        _LOGD(LOGD_DEVICE | LOGD_DHCP4 | LOGD_IP4, "ipv4.dhcp-client-id: set to \"none\"");
+        NM_SET_OUT(out_send_client_id, FALSE);
         return NULL;
     }
 
@@ -2335,7 +2352,7 @@ _prop_get_x_cloned_mac_address(NMDevice *self, NMConnection *connection, gboolea
                 if (v == NM_SETTING_MAC_RANDOMIZATION_ALWAYS)
                     addr = NM_CLONED_MAC_RANDOM;
             }
-        } else if (NM_CLONED_MAC_IS_SPECIAL(a) || nm_utils_hwaddr_valid(a, ETH_ALEN))
+        } else if (NM_CLONED_MAC_IS_SPECIAL(a, is_wifi) || nm_utils_hwaddr_valid(a, ETH_ALEN))
             addr = a;
     }
 
@@ -2374,6 +2391,8 @@ _ethtool_features_reset(NMDevice *self, NMPlatform *platform, EthtoolState *etht
     gs_free NMEthtoolFeatureStates *features = NULL;
 
     features = g_steal_pointer(&ethtool_state->features);
+    if (!features)
+        return;
 
     if (!nm_platform_ethtool_set_features(platform,
                                           ethtool_state->ifindex,
@@ -2393,8 +2412,7 @@ _ethtool_features_set(NMDevice         *self,
 {
     gs_free NMEthtoolFeatureStates *features = NULL;
 
-    if (ethtool_state->features)
-        _ethtool_features_reset(self, platform, ethtool_state);
+    _ethtool_features_reset(self, platform, ethtool_state);
 
     if (nm_setting_ethtool_init_features(s_ethtool, ethtool_state->requested) == 0)
         return;
@@ -2592,6 +2610,104 @@ _ethtool_ring_set(NMDevice         *self,
 }
 
 static void
+_ethtool_channels_reset(NMDevice *self, NMPlatform *platform, EthtoolState *ethtool_state)
+{
+    gs_free NMEthtoolChannelsState *channels = NULL;
+
+    nm_assert(NM_IS_DEVICE(self));
+    nm_assert(NM_IS_PLATFORM(platform));
+    nm_assert(ethtool_state);
+
+    channels = g_steal_pointer(&ethtool_state->channels);
+    if (!channels)
+        return;
+
+    if (!nm_platform_ethtool_set_channels(platform, ethtool_state->ifindex, channels))
+        _LOGW(LOGD_DEVICE, "ethtool: failure resetting one or more channels settings");
+    else
+        _LOGD(LOGD_DEVICE, "ethtool: channels settings successfully reset");
+}
+
+static void
+_ethtool_channels_set(NMDevice         *self,
+                      NMPlatform       *platform,
+                      EthtoolState     *ethtool_state,
+                      NMSettingEthtool *s_ethtool)
+{
+    NMEthtoolChannelsState channels_old;
+    NMEthtoolChannelsState channels_new;
+    GHashTable            *hash;
+    GHashTableIter         iter;
+    const char            *name;
+    GVariant              *variant;
+    gboolean               has_old = FALSE;
+
+    nm_assert(NM_IS_DEVICE(self));
+    nm_assert(NM_IS_PLATFORM(platform));
+    nm_assert(NM_IS_SETTING_ETHTOOL(s_ethtool));
+    nm_assert(ethtool_state);
+    nm_assert(!ethtool_state->channels);
+
+    hash = _nm_setting_option_hash(NM_SETTING(s_ethtool), FALSE);
+    if (!hash)
+        return;
+
+    g_hash_table_iter_init(&iter, hash);
+    while (g_hash_table_iter_next(&iter, (gpointer *) &name, (gpointer *) &variant)) {
+        NMEthtoolID ethtool_id = nm_ethtool_id_get_by_name(name);
+        guint32     u32;
+
+        if (!nm_ethtool_id_is_channels(ethtool_id))
+            continue;
+
+        nm_assert(g_variant_is_of_type(variant, G_VARIANT_TYPE_UINT32));
+
+        if (!has_old) {
+            if (!nm_platform_ethtool_get_link_channels(platform,
+                                                       ethtool_state->ifindex,
+                                                       &channels_old)) {
+                _LOGW(LOGD_DEVICE,
+                      "ethtool: failure setting channels options (cannot read existing setting)");
+                return;
+            }
+            has_old      = TRUE;
+            channels_new = channels_old;
+        }
+
+        u32 = g_variant_get_uint32(variant);
+
+        switch (ethtool_id) {
+        case NM_ETHTOOL_ID_CHANNELS_RX:
+            channels_new.rx = u32;
+            break;
+        case NM_ETHTOOL_ID_CHANNELS_TX:
+            channels_new.tx = u32;
+            break;
+        case NM_ETHTOOL_ID_CHANNELS_OTHER:
+            channels_new.other = u32;
+            break;
+        case NM_ETHTOOL_ID_CHANNELS_COMBINED:
+            channels_new.combined = u32;
+            break;
+        default:
+            nm_assert_not_reached();
+        }
+    }
+
+    if (!has_old)
+        return;
+
+    ethtool_state->channels = nm_memdup(&channels_old, sizeof(channels_old));
+
+    if (!nm_platform_ethtool_set_channels(platform, ethtool_state->ifindex, &channels_new)) {
+        _LOGW(LOGD_DEVICE, "ethtool: failure setting channels settings");
+        return;
+    }
+
+    _LOGD(LOGD_DEVICE, "ethtool: channels settings successfully set");
+}
+
+static void
 _ethtool_pause_reset(NMDevice *self, NMPlatform *platform, EthtoolState *ethtool_state)
 {
     gs_free NMEthtoolPauseState *pause = NULL;
@@ -2608,6 +2724,25 @@ _ethtool_pause_reset(NMDevice *self, NMPlatform *platform, EthtoolState *ethtool
         _LOGW(LOGD_DEVICE, "ethtool: failure resetting one or more pause settings");
     else
         _LOGD(LOGD_DEVICE, "ethtool: pause settings successfully reset");
+}
+
+static void
+_ethtool_eee_reset(NMDevice *self, NMPlatform *platform, EthtoolState *ethtool_state)
+{
+    gs_free NMEthtoolEEEState *eee = NULL;
+
+    nm_assert(NM_IS_DEVICE(self));
+    nm_assert(NM_IS_PLATFORM(platform));
+    nm_assert(ethtool_state);
+
+    eee = g_steal_pointer(&ethtool_state->eee);
+    if (!eee)
+        return;
+
+    if (!nm_platform_ethtool_set_eee(platform, ethtool_state->ifindex, eee))
+        _LOGW(LOGD_DEVICE, "ethtool: failure resetting eee settings");
+    else
+        _LOGD(LOGD_DEVICE, "ethtool: eee settings successfully reset");
 }
 
 static void
@@ -2699,6 +2834,73 @@ _ethtool_pause_set(NMDevice         *self,
 }
 
 static void
+_ethtool_eee_set(NMDevice         *self,
+                 NMPlatform       *platform,
+                 EthtoolState     *ethtool_state,
+                 NMSettingEthtool *s_ethtool)
+{
+    NMEthtoolEEEState eee_old;
+    NMEthtoolEEEState eee_new;
+    GHashTable       *hash;
+    GHashTableIter    iter;
+    const char       *name;
+    GVariant         *variant;
+    gboolean          has_old = FALSE;
+    NMTernary         eee     = NM_TERNARY_DEFAULT;
+
+    nm_assert(NM_IS_DEVICE(self));
+    nm_assert(NM_IS_PLATFORM(platform));
+    nm_assert(NM_IS_SETTING_ETHTOOL(s_ethtool));
+    nm_assert(ethtool_state);
+    nm_assert(!ethtool_state->eee);
+
+    hash = _nm_setting_option_hash(NM_SETTING(s_ethtool), FALSE);
+    if (!hash)
+        return;
+
+    g_hash_table_iter_init(&iter, hash);
+    while (g_hash_table_iter_next(&iter, (gpointer *) &name, (gpointer *) &variant)) {
+        NMEthtoolID ethtool_id = nm_ethtool_id_get_by_name(name);
+
+        if (!nm_ethtool_id_is_eee(ethtool_id))
+            continue;
+
+        nm_assert(g_variant_is_of_type(variant, G_VARIANT_TYPE_BOOLEAN));
+
+        if (!has_old) {
+            if (!nm_platform_ethtool_get_link_eee(platform, ethtool_state->ifindex, &eee_old)) {
+                _LOGW(LOGD_DEVICE,
+                      "ethtool: failure setting eee options (cannot read "
+                      "existing setting)");
+                return;
+            }
+            has_old = TRUE;
+        }
+
+        if (ethtool_id == NM_ETHTOOL_ID_EEE_ENABLED)
+            eee = g_variant_get_boolean(variant);
+        else
+            nm_assert_not_reached();
+    }
+
+    if (!has_old)
+        return;
+
+    eee_new = eee_old;
+    if (eee != NM_TERNARY_DEFAULT)
+        eee_new.enabled = !!eee;
+
+    ethtool_state->eee = nm_memdup(&eee_old, sizeof(eee_old));
+
+    if (!nm_platform_ethtool_set_eee(platform, ethtool_state->ifindex, &eee_new)) {
+        _LOGW(LOGD_DEVICE, "ethtool: failure setting eee settings");
+        return;
+    }
+
+    _LOGD(LOGD_DEVICE, "ethtool: eee settings successfully set");
+}
+
+static void
 _ethtool_state_reset(NMDevice *self)
 {
     NMPlatform           *platform      = nm_device_get_platform(self);
@@ -2708,14 +2910,12 @@ _ethtool_state_reset(NMDevice *self)
     if (!ethtool_state)
         return;
 
-    if (ethtool_state->features)
-        _ethtool_features_reset(self, platform, ethtool_state);
-    if (ethtool_state->coalesce)
-        _ethtool_coalesce_reset(self, platform, ethtool_state);
-    if (ethtool_state->ring)
-        _ethtool_ring_reset(self, platform, ethtool_state);
-    if (ethtool_state->pause)
-        _ethtool_pause_reset(self, platform, ethtool_state);
+    _ethtool_features_reset(self, platform, ethtool_state);
+    _ethtool_coalesce_reset(self, platform, ethtool_state);
+    _ethtool_ring_reset(self, platform, ethtool_state);
+    _ethtool_pause_reset(self, platform, ethtool_state);
+    _ethtool_channels_reset(self, platform, ethtool_state);
+    _ethtool_eee_reset(self, platform, ethtool_state);
 }
 
 static void
@@ -2750,9 +2950,11 @@ _ethtool_state_set(NMDevice *self)
     _ethtool_coalesce_set(self, platform, ethtool_state, s_ethtool);
     _ethtool_ring_set(self, platform, ethtool_state, s_ethtool);
     _ethtool_pause_set(self, platform, ethtool_state, s_ethtool);
+    _ethtool_channels_set(self, platform, ethtool_state, s_ethtool);
+    _ethtool_eee_set(self, platform, ethtool_state, s_ethtool);
 
     if (ethtool_state->features || ethtool_state->coalesce || ethtool_state->ring
-        || ethtool_state->pause)
+        || ethtool_state->pause || ethtool_state->channels || ethtool_state->eee)
         priv->ethtool_state = g_steal_pointer(&ethtool_state);
 }
 
@@ -2863,7 +3065,7 @@ nm_device_link_properties_set(NMDevice *self, gboolean reapply)
     _RESET(NM_PLATFORM_LINK_CHANGE_GSO_MAX_SEGMENTS, gso_max_segments);
     _RESET(NM_PLATFORM_LINK_CHANGE_GRO_MAX_SIZE, gro_max_size);
 
-    if (nm_platform_link_change(platform, ifindex, &props, NULL, flags)) {
+    if (nm_platform_link_change(platform, ifindex, &props, NULL, NULL, flags)) {
         _LOGD(LOGD_DEVICE, "link properties successfully set");
     } else {
         _LOGW(LOGD_DEVICE, "failure setting link properties");
@@ -2890,6 +3092,7 @@ link_properties_reset(NMDevice *self)
     if (nm_platform_link_change(platform,
                                 ifindex,
                                 &priv->link_props_state.props,
+                                NULL,
                                 NULL,
                                 priv->link_props_state.flags)) {
         _LOGD(LOGD_DEVICE, "link properties successfully reset");
@@ -4228,6 +4431,19 @@ update_external_connection(NMDevice *self)
 }
 
 static void
+_dev_ipv6_log_conflicts(NMDevice *self, GArray *conflicts)
+{
+    guint i;
+    char  sbuf[NM_INET_ADDRSTRLEN];
+
+    for (i = 0; i < conflicts->len; i++) {
+        const struct in6_addr *addr = &nm_g_array_index(conflicts, const struct in6_addr, i);
+
+        _LOGI(LOGD_DEVICE, "Conflict detected for IPv6 address: %s", nm_inet6_ntop(addr, sbuf));
+    }
+}
+
+static void
 _dev_l3_cfg_notify_cb(NML3Cfg *l3cfg, const NML3ConfigNotifyData *notify_data, NMDevice *self)
 {
     NMDevicePrivate *priv = NM_DEVICE_GET_PRIVATE(self);
@@ -4250,7 +4466,7 @@ _dev_l3_cfg_notify_cb(NML3Cfg *l3cfg, const NML3ConfigNotifyData *notify_data, N
         char                   buf_addr[NM_INET_ADDRSTRLEN];
 
         if (addr_info->state == NM_L3_ACD_ADDR_STATE_USED) {
-            _LOGI(LOGD_DEVICE,
+            _LOGW(LOGD_DEVICE,
                   "IP address %s cannot be configured because it is already in use in the "
                   "network by host %s",
                   nm_inet4_ntop(addr_info->addr, buf_addr),
@@ -4284,7 +4500,6 @@ _dev_l3_cfg_notify_cb(NML3Cfg *l3cfg, const NML3ConfigNotifyData *notify_data, N
         if (priv->ipshared_data_4.state == NM_DEVICE_IP_STATE_PENDING
             && !priv->ipshared_data_4.v4.dnsmasq_manager && priv->ipshared_data_4.v4.l3cd) {
             _dev_ipshared4_spawn_dnsmasq(self);
-            nm_clear_l3cd(&priv->ipshared_data_4.v4.l3cd);
         }
         _dev_ip_state_check_async(self, AF_UNSPEC);
         _dev_ipmanual_check_ready(self);
@@ -4322,6 +4537,10 @@ _dev_l3_cfg_notify_cb(NML3Cfg *l3cfg, const NML3ConfigNotifyData *notify_data, N
                                          NM_L3CFG_CHECK_READY_FLAGS_IP6_DAD_READY,
                                          &conflicts);
             if (conflicts) {
+                if (_NMLOG_ENABLED(LOGL_INFO, LOGD_DEVICE)) {
+                    _dev_ipv6_log_conflicts(self, conflicts);
+                }
+
                 /* nm_ndisc_dad_failed() will emit a new "NDisc:config-received"
                  * signal; _dev_ipac6_ndisc_config_changed() will be called
                  * synchronously to update the current state and schedule a commit. */
@@ -5231,6 +5450,8 @@ nm_device_get_route_metric_default(NMDeviceType device_type)
         return 200;
     case NM_DEVICE_TYPE_WIMAX:
         return 250;
+    case NM_DEVICE_TYPE_HSR:
+        return 275;
     case NM_DEVICE_TYPE_BOND:
         return 300;
     case NM_DEVICE_TYPE_TEAM:
@@ -5715,7 +5936,7 @@ out:
     return FALSE;
 }
 
-#define CONCHECK_P_PROBE_INTERVAL 1
+#define CONCHECK_P_PROBE_INTERVAL 1u
 
 static void
 concheck_periodic_schedule_set(NMDevice *self, int addr_family, ConcheckScheduleMode mode)
@@ -5887,7 +6108,7 @@ concheck_update_interval(NMDevice *self, int addr_family, gboolean check_now)
 
     new_interval = nm_connectivity_get_interval(concheck_get_mgr(self));
 
-    new_interval = NM_MIN(new_interval, 7 * 24 * 3600);
+    new_interval = NM_MIN(new_interval, 7u * 24u * 3600u);
 
     if (new_interval != priv->concheck_x[IS_IPv4].p_max_interval) {
         _LOGT(LOGD_CONCHECK,
@@ -7133,7 +7354,7 @@ device_ip_link_changed(gpointer user_data)
     ip_iface = pllink->name;
 
     if (!ip_iface[0])
-        return FALSE;
+        return G_SOURCE_REMOVE;
 
     if (!nm_streq(priv->ip_iface, ip_iface)) {
         _LOGI(LOGD_DEVICE,
@@ -7989,6 +8210,40 @@ nm_device_owns_iface(NMDevice *self, const char *iface)
     return FALSE;
 }
 
+static void
+apply_udev_auto_default_configs(NMDevice *self, NMConnection *connection)
+{
+    struct udev_device *dev;
+    const char         *uprop;
+    NMSetting          *setting;
+
+    dev = nm_platform_link_get_udev_device(nm_device_get_platform(NM_DEVICE(self)),
+                                           nm_device_get_ip_ifindex(self));
+    if (!dev)
+        return;
+
+    uprop = udev_device_get_property_value(dev, "NM_AUTO_DEFAULT_LINK_LOCAL_ONLY");
+    uprop = uprop ?: udev_device_get_property_value(dev, "ID_NET_AUTO_LINK_LOCAL_ONLY");
+
+    if (_nm_utils_ascii_str_to_bool(uprop, FALSE)) {
+        setting = nm_setting_ip4_config_new();
+        g_object_set(setting,
+                     NM_SETTING_IP_CONFIG_METHOD,
+                     NM_SETTING_IP4_CONFIG_METHOD_LINK_LOCAL,
+                     NULL);
+        nm_connection_add_setting(connection, setting);
+
+        setting = nm_setting_ip6_config_new();
+        g_object_set(setting,
+                     NM_SETTING_IP_CONFIG_METHOD,
+                     NM_SETTING_IP6_CONFIG_METHOD_LINK_LOCAL,
+                     NM_SETTING_IP_CONFIG_MAY_FAIL,
+                     TRUE,
+                     NULL);
+        nm_connection_add_setting(connection, setting);
+    }
+}
+
 NMConnection *
 nm_device_new_default_connection(NMDevice *self)
 {
@@ -8001,6 +8256,8 @@ nm_device_new_default_connection(NMDevice *self)
     connection = NM_DEVICE_GET_CLASS(self)->new_default_connection(self);
     if (!connection)
         return NULL;
+
+    apply_udev_auto_default_configs(self, connection);
 
     if (!nm_connection_normalize(connection, NULL, NULL, &error)) {
         _LOGD(LOGD_DEVICE, "device generated an invalid default connection: %s", error->message);
@@ -8323,7 +8580,7 @@ nm_device_slave_notify_release(NMDevice           *self,
             master_status = "failed";
             break;
         case NM_DEVICE_STATE_REASON_USER_REQUESTED:
-            reason        = NM_DEVICE_STATE_REASON_DEPENDENCY_FAILED;
+            reason        = NM_DEVICE_STATE_REASON_USER_REQUESTED;
             master_status = "deactivated by user request";
             break;
         case NM_DEVICE_STATE_REASON_CONNECTION_REMOVED:
@@ -9184,7 +9441,7 @@ nm_device_check_slave_connection_compatible(NMDevice *self, NMConnection *slave)
 
     s_con = nm_connection_get_setting_connection(slave);
     g_assert(s_con);
-    slave_type = nm_setting_connection_get_slave_type(s_con);
+    slave_type = nm_setting_connection_get_port_type(s_con);
     if (!slave_type)
         return FALSE;
 
@@ -9746,10 +10003,16 @@ activate_stage1_device_prepare(NMDevice *self)
     master = nm_active_connection_get_master(active);
     if (master) {
         if (nm_active_connection_get_state(master) >= NM_ACTIVE_CONNECTION_STATE_DEACTIVATING) {
+            NMDevice           *master_device  = nm_active_connection_get_device(master);
+            NMDeviceStateReason failure_reason = NM_DEVICE_STATE_REASON_DEPENDENCY_FAILED;
+
             _LOGD(LOGD_DEVICE, "master connection is deactivating");
-            nm_device_state_changed(self,
-                                    NM_DEVICE_STATE_FAILED,
-                                    NM_DEVICE_STATE_REASON_DEPENDENCY_FAILED);
+
+            if (master_device && NM_DEVICE_GET_PRIVATE(master_device)->queued_act_request) {
+                /* if the controller is going to activate again, don't block this device */
+                failure_reason = NM_DEVICE_STATE_REASON_NONE;
+            }
+            nm_device_state_changed(self, NM_DEVICE_STATE_FAILED, failure_reason);
             return;
         }
         /* If the master connection is ready for slaves, attach ourselves */
@@ -10363,7 +10626,6 @@ _dev_ipmanual_check_ready(NMDevice *self)
     gboolean               has_carrier;
     NML3CfgCheckReadyFlags flags;
     gboolean               ready;
-    gs_unref_array GArray *conflicts = NULL;
     int                    IS_IPv4;
 
     if (priv->ipmanual_data.state_4 != NM_DEVICE_IP_STATE_PENDING
@@ -10393,26 +10655,41 @@ _dev_ipmanual_check_ready(NMDevice *self)
         }
     }
 
-    flags = NM_L3CFG_CHECK_READY_FLAGS_NONE;
-    if (has_carrier) {
-        flags |= NM_L3CFG_CHECK_READY_FLAGS_IP4_ACD_READY;
-        flags |= NM_L3CFG_CHECK_READY_FLAGS_IP6_DAD_READY;
-    }
+    flags = NM_L3CFG_CHECK_READY_FLAGS_IP4_ACD_READY;
+    flags |= NM_L3CFG_CHECK_READY_FLAGS_IP6_DAD_READY;
 
     for (IS_IPv4 = 0; IS_IPv4 < 2; IS_IPv4++) {
-        const int addr_family = IS_IPv4 ? AF_INET : AF_INET6;
+        const int              addr_family = IS_IPv4 ? AF_INET : AF_INET6;
+        gs_unref_array GArray *conflicts   = NULL;
 
         ready = nm_l3cfg_check_ready(priv->l3cfg,
                                      priv->l3cds[L3_CONFIG_DATA_TYPE_MANUALIP].d,
                                      addr_family,
                                      flags,
                                      &conflicts);
-        if (conflicts) {
-            _dev_ipmanual_set_state(self, addr_family, NM_DEVICE_IP_STATE_FAILED);
-            _dev_ip_state_check_async(self, AF_UNSPEC);
-        } else if (ready) {
-            _dev_ipmanual_set_state(self, addr_family, NM_DEVICE_IP_STATE_READY);
-            _dev_ip_state_check_async(self, AF_UNSPEC);
+
+        if (_NMLOG_ENABLED(LOGL_INFO, LOGD_DEVICE) && conflicts && !IS_IPv4) {
+            _dev_ipv6_log_conflicts(self, conflicts);
+        }
+
+        if (ready) {
+            guint num_addrs = 0;
+
+            num_addrs =
+                nm_l3_config_data_get_num_addresses(priv->l3cds[L3_CONFIG_DATA_TYPE_MANUALIP].d,
+                                                    addr_family);
+
+            if (conflicts && conflicts->len == num_addrs) {
+                _LOGD_ipmanual(addr_family, "all manual addresses failed DAD, failing");
+                _dev_ipmanual_set_state(self, addr_family, NM_DEVICE_IP_STATE_FAILED);
+                _dev_ip_state_check_async(self, AF_UNSPEC);
+            } else {
+                if (conflicts) {
+                    _LOGD_ipmanual(addr_family, "some manual addresses passed DAD, continuing");
+                }
+                _dev_ipmanual_set_state(self, addr_family, NM_DEVICE_IP_STATE_READY);
+                _dev_ip_state_check_async(self, AF_UNSPEC);
+            }
         }
     }
 }
@@ -10692,8 +10969,10 @@ _dev_ipdhcpx_start(NMDevice *self, int addr_family)
         const char *const     *reject_servers;
         const char            *hostname;
         gboolean               hostname_is_fqdn;
+        gboolean               send_client_id;
 
-        client_id = _prop_get_ipv4_dhcp_client_id(self, connection, hwaddr);
+        client_id = _prop_get_ipv4_dhcp_client_id(self, connection, hwaddr, &send_client_id);
+
         vendor_class_identifier =
             _prop_get_ipv4_dhcp_vendor_class_identifier(self, NM_SETTING_IP4_CONFIG(s_ip));
         reject_servers = nm_setting_ip_config_get_dhcp_reject_servers(s_ip, NULL);
@@ -10730,6 +11009,7 @@ _dev_ipdhcpx_start(NMDevice *self, int addr_family)
                 {
                     .request_broadcast = request_broadcast,
                     .acd_timeout_msec  = _prop_get_ipv4_dad_timeout(self),
+                    .send_client_id    = send_client_id,
                 },
             .previous_lease = priv->l3cds[L3_CONFIG_DATA_TYPE_DHCP_X(IS_IPv4)].d,
         };
@@ -11560,13 +11840,13 @@ _commit_mtu(NMDevice *self)
     mtu_plat = nm_platform_link_get_mtu(nm_device_get_platform(self), ifindex);
 
     if (ip6_mtu) {
-        ip6_mtu = NM_MAX(1280, ip6_mtu);
+        ip6_mtu = NM_MAX(1280u, ip6_mtu);
 
         if (!mtu_desired)
             mtu_desired = mtu_plat;
 
         if (mtu_desired) {
-            mtu_desired = NM_MAX(1280, mtu_desired);
+            mtu_desired = NM_MAX(1280u, mtu_desired);
 
             if (mtu_desired < ip6_mtu)
                 ip6_mtu = mtu_desired;
@@ -11736,8 +12016,9 @@ _dev_ipac6_ndisc_config_changed(NMNDisc              *ndisc,
                                 const NML3ConfigData *l3cd,
                                 NMDevice             *self)
 {
-    NMDevicePrivate *priv = NM_DEVICE_GET_PRIVATE(self);
-    gboolean         ready;
+    NMDevicePrivate       *priv = NM_DEVICE_GET_PRIVATE(self);
+    gboolean               ready;
+    gs_unref_array GArray *conflicts = NULL;
 
     /* The ndisc configuration changes when we receive a new RA or
      * when a lifetime expires; but also when DAD fails for a
@@ -11754,7 +12035,12 @@ _dev_ipac6_ndisc_config_changed(NMNDisc              *ndisc,
                                  l3cd,
                                  AF_INET6,
                                  NM_L3CFG_CHECK_READY_FLAGS_IP6_DAD_READY,
-                                 NULL);
+                                 &conflicts);
+
+    if (_NMLOG_ENABLED(LOGL_INFO, LOGD_DEVICE) && conflicts) {
+        _dev_ipv6_log_conflicts(self, conflicts);
+    }
+
     if (ready) {
         _dev_ipac6_set_state(self, NM_DEVICE_IP_STATE_READY);
     } else {
@@ -11856,16 +12142,8 @@ _dev_ipac6_start(NMDevice *self)
     NMUtilsIPv6IfaceId  iid;
     gboolean            is_token;
 
-    if (priv->ipac6_data.state == NM_DEVICE_IP_STATE_NONE) {
-        if (!g_file_test("/proc/sys/net/ipv6", G_FILE_TEST_IS_DIR)) {
-            _LOGI_ipac6("addrconf6: kernel does not support IPv6");
-            _dev_ipac6_set_state(self, NM_DEVICE_IP_STATE_FAILED);
-            _dev_ip_state_check_async(self, AF_INET6);
-            return;
-        }
-
+    if (priv->ipac6_data.state == NM_DEVICE_IP_STATE_NONE)
         _dev_ipac6_set_state(self, NM_DEVICE_IP_STATE_PENDING);
-    }
 
     if (NM_IN_SET(priv->ipll_data_6.state, NM_DEVICE_IP_STATE_NONE, NM_DEVICE_IP_STATE_PENDING)) {
         _dev_ipac6_grace_period_start(self, 30, TRUE);
@@ -12406,36 +12684,6 @@ activate_stage3_ip_config(NMDevice *self)
 
     ifindex = nm_device_get_ip_ifindex(self);
 
-    ipv4_method = nm_device_get_effective_ip_config_method(self, AF_INET);
-    if (nm_streq(ipv4_method, NM_SETTING_IP4_CONFIG_METHOD_AUTO)) {
-        /* "auto" usually means DHCPv4 or autoconf6, but it doesn't have to be. Subclasses
-         * can overwrite it. For example, you cannot run DHCPv4 on PPP/WireGuard links. */
-        ipv4_method = klass->get_ip_method_auto(self, AF_INET);
-    }
-
-    ipv6_method = nm_device_get_effective_ip_config_method(self, AF_INET6);
-
-    if (nm_streq(ipv6_method, NM_SETTING_IP6_CONFIG_METHOD_AUTO)) {
-        ipv6_method = klass->get_ip_method_auto(self, AF_INET6);
-    }
-
-    if (priv->ip_data_4.do_reapply) {
-        _LOGD_ip(AF_INET, "reapply...");
-        priv->ip_data_4.do_reapply = FALSE;
-        _cleanup_ip_pre(self,
-                        AF_INET,
-                        CLEANUP_TYPE_KEEP_REAPPLY,
-                        nm_streq(ipv4_method, NM_SETTING_IP4_CONFIG_METHOD_AUTO));
-    }
-    if (priv->ip_data_6.do_reapply) {
-        _LOGD_ip(AF_INET6, "reapply...");
-        priv->ip_data_6.do_reapply = FALSE;
-        _cleanup_ip_pre(self,
-                        AF_INET6,
-                        CLEANUP_TYPE_KEEP_REAPPLY,
-                        nm_streq(ipv6_method, NM_SETTING_IP6_CONFIG_METHOD_AUTO));
-    }
-
     /* Add the interface to the specified firewall zone */
     switch (priv->fw_state) {
     case FIREWALL_STATE_UNMANAGED:
@@ -12459,6 +12707,46 @@ activate_stage3_ip_config(NMDevice *self)
         break;
     }
     nm_assert(ifindex <= 0 || priv->fw_state == FIREWALL_STATE_INITIALIZED);
+
+    ipv4_method = nm_device_get_effective_ip_config_method(self, AF_INET);
+    if (nm_streq(ipv4_method, NM_SETTING_IP4_CONFIG_METHOD_AUTO)) {
+        /* "auto" usually means DHCPv4 or autoconf6, but it doesn't have to be. Subclasses
+         * can overwrite it. For example, you cannot run DHCPv4 on PPP/WireGuard links. */
+        ipv4_method = klass->get_ip_method_auto(self, AF_INET);
+    }
+
+    ipv6_method = nm_device_get_effective_ip_config_method(self, AF_INET6);
+    if (!g_file_test("/proc/sys/net/ipv6", G_FILE_TEST_IS_DIR)) {
+        _NMLOG_ip((nm_device_sys_iface_state_is_external(self)
+                   || NM_IN_STRSET(ipv6_method,
+                                   NM_SETTING_IP6_CONFIG_METHOD_AUTO,
+                                   NM_SETTING_IP6_CONFIG_METHOD_DISABLED,
+                                   NM_SETTING_IP6_CONFIG_METHOD_IGNORE))
+                      ? LOGL_DEBUG
+                      : LOGL_WARN,
+                  AF_INET6,
+                  "IPv6 not supported by kernel resulting in \"ipv6.method=disabled\"");
+        ipv6_method = NM_SETTING_IP6_CONFIG_METHOD_DISABLED;
+    } else if (nm_streq(ipv6_method, NM_SETTING_IP6_CONFIG_METHOD_AUTO)) {
+        ipv6_method = klass->get_ip_method_auto(self, AF_INET6);
+    }
+
+    if (priv->ip_data_4.do_reapply) {
+        _LOGD_ip(AF_INET, "reapply...");
+        priv->ip_data_4.do_reapply = FALSE;
+        _cleanup_ip_pre(self,
+                        AF_INET,
+                        CLEANUP_TYPE_KEEP_REAPPLY,
+                        nm_streq(ipv4_method, NM_SETTING_IP4_CONFIG_METHOD_AUTO));
+    }
+    if (priv->ip_data_6.do_reapply) {
+        _LOGD_ip(AF_INET6, "reapply...");
+        priv->ip_data_6.do_reapply = FALSE;
+        _cleanup_ip_pre(self,
+                        AF_INET6,
+                        CLEANUP_TYPE_KEEP_REAPPLY,
+                        nm_streq(ipv6_method, NM_SETTING_IP6_CONFIG_METHOD_AUTO));
+    }
 
     if (priv->state < NM_DEVICE_STATE_IP_CONFIG) {
         _dev_ip_state_req_timeout_schedule(self, AF_INET);
@@ -12726,17 +13014,31 @@ out_fail:
 static void
 _dev_ipshared4_spawn_dnsmasq(NMDevice *self)
 {
-    NMDevicePrivate      *priv = NM_DEVICE_GET_PRIVATE(self);
-    const char           *ip_iface;
-    gs_free_error GError *error = NULL;
-    NMSettingConnection  *s_con;
-    gboolean              announce_android_metered;
-    NMConnection         *applied;
+    NMDevicePrivate       *priv = NM_DEVICE_GET_PRIVATE(self);
+    const char            *ip_iface;
+    gs_free_error GError  *error = NULL;
+    NMSettingConnection   *s_con;
+    gboolean               announce_android_metered;
+    NMConnection          *applied;
+    gs_unref_array GArray *conflicts = NULL;
+    gboolean               ready;
 
     nm_assert(priv->ipshared_data_4.v4.firewall_config);
     nm_assert(priv->ipshared_data_4.v4.dnsmasq_state_id == 0);
     nm_assert(!priv->ipshared_data_4.v4.dnsmasq_manager);
     nm_assert(priv->ipshared_data_4.v4.l3cd);
+
+    ready = nm_l3cfg_check_ready(priv->l3cfg,
+                                 priv->l3cds[L3_CONFIG_DATA_TYPE_SHARED_4].d,
+                                 AF_INET,
+                                 NM_L3CFG_CHECK_READY_FLAGS_IP4_ACD_READY,
+                                 &conflicts);
+    if (!ready) {
+        _LOGT_ipshared(AF_INET, "address not ready, wait");
+        return;
+    }
+    if (conflicts)
+        goto out_fail;
 
     ip_iface = nm_device_get_ip_iface(self);
     g_return_if_fail(ip_iface);
@@ -12782,9 +13084,11 @@ _dev_ipshared4_spawn_dnsmasq(NMDevice *self)
 
     _dev_ipsharedx_set_state(self, AF_INET, NM_DEVICE_IP_STATE_READY);
     _dev_ip_state_check_async(self, AF_INET);
+    nm_clear_l3cd(&priv->ipshared_data_4.v4.l3cd);
     return;
 
 out_fail:
+    nm_clear_l3cd(&priv->ipshared_data_4.v4.l3cd);
     _dev_ipsharedx_set_state(self, AF_INET, NM_DEVICE_IP_STATE_FAILED);
     _dev_ip_state_check_async(self, AF_INET);
 }
@@ -12993,7 +13297,7 @@ _nm_device_hash_check_invalid_keys(GHashTable        *hash,
 
         g_hash_table_iter_init(&iter, hash);
         while (g_hash_table_iter_next(&iter, (gpointer *) &k, NULL)) {
-            if (nm_strv_find_first(whitelist, -1, k) < 0) {
+            if (!nm_strv_contains(whitelist, -1, k)) {
                 first_invalid_key = k;
                 break;
             }
@@ -14952,20 +15256,23 @@ nm_device_set_unmanaged_by_user_settings(NMDevice *self, gboolean now)
 void
 nm_device_set_unmanaged_by_user_udev(NMDevice *self)
 {
-    int      ifindex;
-    gboolean platform_unmanaged = FALSE;
+    NMOptionBool platform_unmanaged;
+    int          ifindex;
 
     ifindex = self->_priv->ifindex;
 
-    if (ifindex <= 0
-        || !nm_platform_link_get_unmanaged(nm_device_get_platform(self),
-                                           ifindex,
-                                           &platform_unmanaged))
+    if (ifindex <= 0)
+        return;
+
+    platform_unmanaged = nm_platform_link_get_unmanaged(nm_device_get_platform(self), ifindex);
+    if (platform_unmanaged == NM_OPTION_BOOL_DEFAULT)
         return;
 
     nm_device_set_unmanaged_by_flags(self,
                                      NM_UNMANAGED_USER_UDEV,
-                                     platform_unmanaged,
+                                     platform_unmanaged == NM_OPTION_BOOL_TRUE
+                                         ? NM_UNMAN_FLAG_OP_SET_UNMANAGED
+                                         : NM_UNMAN_FLAG_OP_SET_MANAGED,
                                      NM_DEVICE_STATE_REASON_USER_REQUESTED);
 }
 
@@ -17128,9 +17435,12 @@ _hw_addr_get_cloned(NMDevice     *self,
 
         addr_out = g_steal_pointer(&hw_addr_generated);
         type_out = HW_ADDR_TYPE_GENERATED;
-    } else if (NM_IN_STRSET(addr, NM_CLONED_MAC_STABLE)) {
+    } else if (nm_streq(addr, NM_CLONED_MAC_STABLE)
+               || (is_wifi && nm_streq(addr, NM_CLONED_MAC_STABLE_SSID))) {
+        gs_free char     *stable_id_free = NULL;
         NMUtilsStableType stable_type;
         const char       *stable_id;
+        GBytes           *ssid = NULL;
 
         if (priv->hw_addr_type == HW_ADDR_TYPE_GENERATED) {
             /* hm, we already use a generate MAC address. Most certainly, that is from the same
@@ -17138,7 +17448,28 @@ _hw_addr_get_cloned(NMDevice     *self,
             goto out_no_action;
         }
 
-        stable_id         = _prop_get_connection_stable_id(self, connection, &stable_type);
+        if (!nm_streq(addr, NM_CLONED_MAC_STABLE)) {
+            NMSettingWireless *s_wifi;
+
+            s_wifi = nm_connection_get_setting_wireless(connection);
+            if (s_wifi)
+                ssid = nm_setting_wireless_get_ssid(s_wifi);
+        }
+
+        if (G_UNLIKELY(ssid)) {
+            stable_type = nm_utils_stable_id_parse_network_ssid(ssid,
+                                                                nm_connection_get_uuid(connection),
+                                                                TRUE,
+                                                                &stable_id_free);
+            stable_id   = stable_id_free;
+        } else {
+            /* If @addr is NM_CLONED_MAC_STABLE_SSID, and this is not a Wi-Fi
+             * profile, the behavior is the same as NM_CLONED_MAC_STABLE.  Note
+             * that this really shouldn't happen, because we have a Wi-Fi
+             * profile at hand, and an SSID should be set. */
+            stable_id = _prop_get_connection_stable_id(self, connection, &stable_type);
+        }
+
         hw_addr_generated = nm_utils_hw_addr_gen_stable_eth(
             stable_type,
             stable_id,
@@ -17982,7 +18313,7 @@ set_property(GObject *object, guint prop_id, const GValue *value, GParamSpec *ps
         nm_assert(priv->type == NM_DEVICE_TYPE_UNKNOWN);
         priv->type = g_value_get_uint(value);
         nm_assert(priv->type > NM_DEVICE_TYPE_UNKNOWN);
-        nm_assert(priv->type <= NM_DEVICE_TYPE_LOOPBACK);
+        nm_assert(priv->type <= NM_DEVICE_TYPE_HSR);
         break;
     case PROP_LINK_TYPE:
         /* construct-only */
@@ -18331,9 +18662,11 @@ static const NMDBusInterfaceInfoExtended interface_info_device = {
             NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("Capabilities",
                                                            "u",
                                                            NM_DEVICE_CAPABILITIES),
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("Ip4Address",
-                                                           "u",
-                                                           NM_DEVICE_IP4_ADDRESS),
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE(
+                "Ip4Address",
+                "u",
+                NM_DEVICE_IP4_ADDRESS,
+                .annotations = NM_GDBUS_ANNOTATION_INFO_LIST_DEPRECATED(), ),
             NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("State", "u", NM_DEVICE_STATE),
             NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("StateReason",
                                                            "(uu)",

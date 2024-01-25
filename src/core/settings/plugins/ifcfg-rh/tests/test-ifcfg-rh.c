@@ -2231,7 +2231,7 @@ test_clear_master(void)
     s_con = nmtst_connection_assert_setting(connection, NM_TYPE_SETTING_CONNECTION);
 
     g_assert_cmpstr(nm_setting_connection_get_master(s_con), ==, "br0");
-    g_assert_cmpstr(nm_setting_connection_get_slave_type(s_con), ==, "bridge");
+    g_assert_cmpstr(nm_setting_connection_get_port_type(s_con), ==, "bridge");
 
     /* 2. write the connection to a new file */
     _writer_new_connec_exp(connection,
@@ -2248,7 +2248,7 @@ test_clear_master(void)
                  NULL);
 
     g_assert_cmpstr(nm_setting_connection_get_master(s_con), ==, NULL);
-    g_assert_cmpstr(nm_setting_connection_get_slave_type(s_con), ==, NULL);
+    g_assert_cmpstr(nm_setting_connection_get_port_type(s_con), ==, NULL);
 
     nmtst_assert_connection_verifies_after_normalization(connection, 0, 0);
 
@@ -3622,6 +3622,11 @@ test_roundtrip_ethtool(void)
 
             optname = nm_ethtool_data[ethtool_id]->optname;
             vtype   = nm_ethtool_id_get_variant_type(ethtool_id);
+
+            if (nm_ethtool_optname_is_channels(optname) || nm_ethtool_optname_is_eee(optname)) {
+                /* Not supported */
+                continue;
+            }
 
             if (NM_IN_SET(ethtool_id,
                           NM_ETHTOOL_ID_COALESCE_ADAPTIVE_RX,
@@ -7664,9 +7669,7 @@ test_read_bridge_component(void)
 
     s_con = nmtst_connection_assert_setting(connection, NM_TYPE_SETTING_CONNECTION);
     g_assert_cmpstr(nm_setting_connection_get_master(s_con), ==, "br0");
-    g_assert_cmpstr(nm_setting_connection_get_slave_type(s_con),
-                    ==,
-                    NM_SETTING_BRIDGE_SETTING_NAME);
+    g_assert_cmpstr(nm_setting_connection_get_port_type(s_con), ==, NM_SETTING_BRIDGE_SETTING_NAME);
 
     s_port = nmtst_connection_assert_setting(connection, NM_TYPE_SETTING_BRIDGE_PORT);
     g_assert(nm_setting_bridge_port_get_hairpin_mode(s_port));
@@ -8259,7 +8262,7 @@ test_read_bond_slave(void)
 
     g_assert_cmpstr(nm_setting_connection_get_master(s_con), ==, "bond0");
 
-    g_assert_cmpstr(nm_setting_connection_get_slave_type(s_con), ==, NM_SETTING_BOND_SETTING_NAME);
+    g_assert_cmpstr(nm_setting_connection_get_port_type(s_con), ==, NM_SETTING_BOND_SETTING_NAME);
 }
 
 static void
@@ -8315,7 +8318,7 @@ test_read_bond_port(void)
 
     s_con = nmtst_connection_assert_setting(connection, NM_TYPE_SETTING_CONNECTION);
     g_assert_cmpstr(nm_setting_connection_get_master(s_con), ==, "bond99");
-    g_assert_cmpstr(nm_setting_connection_get_slave_type(s_con), ==, NM_SETTING_BOND_SETTING_NAME);
+    g_assert_cmpstr(nm_setting_connection_get_port_type(s_con), ==, NM_SETTING_BOND_SETTING_NAME);
 
     s_port = nmtst_connection_assert_setting(connection, NM_TYPE_SETTING_BOND_PORT);
     g_assert_cmpuint(nm_setting_bond_port_get_queue_id(s_port), ==, 1);
@@ -8554,7 +8557,7 @@ test_read_bond_slave_ib(void)
     s_con = nmtst_connection_assert_setting(connection, NM_TYPE_SETTING_CONNECTION);
 
     g_assert_cmpstr(nm_setting_connection_get_master(s_con), ==, "bond0");
-    g_assert_cmpstr(nm_setting_connection_get_slave_type(s_con), ==, NM_SETTING_BOND_SETTING_NAME);
+    g_assert_cmpstr(nm_setting_connection_get_port_type(s_con), ==, NM_SETTING_BOND_SETTING_NAME);
 }
 
 static void

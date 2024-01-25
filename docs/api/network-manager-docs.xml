@@ -33,15 +33,7 @@
 	Texts. You may obtain a copy of the <citetitle>GNU Free
 	Documentation License</citetitle> from the Free Software
 	Foundation by visiting <ulink type="http"
-	url="http://www.fsf.org">their Web site</ulink> or by writing
-	to:
-
-	<address>
-	  The Free Software Foundation, Inc.,
-	  <street>51 Franklin Street</street> - Fifth Floor,
-	  <city>Boston</city>, <state>MA</state> <postcode>02110-1301</postcode>,
-	  <country>USA</country>
-	</address>
+	url="http://www.fsf.org">their Web site</ulink>.
       </para>
     </legalnotice>
 
@@ -191,6 +183,7 @@
       <xi:include href="dbus-org.freedesktop.NetworkManager.Device.Bridge.xml"/>
       <xi:include href="dbus-org.freedesktop.NetworkManager.Device.Dummy.xml"/>
       <xi:include href="dbus-org.freedesktop.NetworkManager.Device.Generic.xml"/>
+      <xi:include href="dbus-org.freedesktop.NetworkManager.Device.Hsr.xml"/>
       <xi:include href="dbus-org.freedesktop.NetworkManager.Device.IPTunnel.xml"/>
       <xi:include href="dbus-org.freedesktop.NetworkManager.Device.Infiniband.xml"/>
       <xi:include href="dbus-org.freedesktop.NetworkManager.Device.Loopback.xml"/>
@@ -322,14 +315,7 @@
 
     <para>
       You should have received a copy of the <citetitle>GNU
-      General Public License</citetitle> along with this program;
-      if not, write to the
-      <address>
-        Free Software Foundation, Inc.,
-        <street>51 Franklin Street</street> - Fifth Floor,
-        <city>Boston</city>, <state>MA</state> <postcode>02110-1301</postcode>,
-        <country>USA</country>
-      </address>
+      General Public License</citetitle> along with this program.
     </para>
 
     <para>

@@ -34,6 +34,7 @@ nm_device_error_get_type
 nm_device_ethernet_get_type
 nm_device_generic_get_type
 nm_device_get_type
+nm_device_hsr_get_type
 nm_device_infiniband_get_type
 nm_device_interface_flags_get_type
 nm_device_ip_tunnel_get_type
@@ -118,6 +119,7 @@ nm_setting_generic_get_type
 nm_setting_get_type
 nm_setting_gsm_get_type
 nm_setting_hostname_get_type
+nm_setting_hsr_get_type
 nm_setting_infiniband_get_type
 nm_setting_ip4_config_get_type
 nm_setting_ip4_link_local_get_type

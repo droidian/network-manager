@@ -7,8 +7,8 @@ dnl  - add corresponding NM_VERSION_x_y_z macros in
 dnl    "shared/nm-version-macros.h.in"
 dnl  - update number in meson.build
 m4_define([nm_major_version], [1])
-m4_define([nm_minor_version], [44])
-m4_define([nm_micro_version], [2])
+m4_define([nm_minor_version], [45])
+m4_define([nm_micro_version], [90])
 m4_define([nm_version],
           [nm_major_version.nm_minor_version.nm_micro_version])
 
@@ -21,7 +21,7 @@ AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_REQUIRE_AUX_FILE([tap-driver.sh])
 
-AM_INIT_AUTOMAKE(1.12 foreign tar-ustar no-dist-gzip dist-xz -Wno-portability)  dnl NB: Do not [quote] this parameter.
+AM_INIT_AUTOMAKE(1.12 foreign tar-pax no-dist-gzip dist-xz -Wno-portability)  dnl NB: Do not [quote] this parameter.
 AM_MAINTAINER_MODE([enable])
 AM_SILENT_RULES([yes])
 
@@ -273,13 +273,11 @@ AC_SEARCH_LIBS([dlopen], [dl dld],
 	[test "$ac_cv_search_dlopen" = "none required" || AC_SUBST([DL_LIBS], "$ac_cv_search_dlopen"]),
 	[])
 
-PKG_CHECK_MODULES(GLIB, [gio-unix-2.0 >= 2.37.6 gmodule-2.0],
-                  [AC_SUBST(LOG_DRIVER, '$(top_srcdir)/build-aux/tap-driver.sh')
-                   AC_SUBST(AM_TESTS_FD_REDIRECT, '--tap')],
-                  [PKG_CHECK_MODULES(GLIB, gio-unix-2.0 >= 2.40 gmodule-2.0)
-                   AC_SUBST(LOG_DRIVER, '$(top_srcdir)/build-aux/test-driver')])
+PKG_CHECK_MODULES(GLIB, [gio-unix-2.0 >= 2.42 gmodule-2.0])
 
-GLIB_CFLAGS="$GLIB_CFLAGS -DGLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_40 -DGLIB_VERSION_MAX_ALLOWED=GLIB_VERSION_2_40"
+AC_SUBST(LOG_DRIVER, '$(top_srcdir)/build-aux/test-driver')
+
+GLIB_CFLAGS="$GLIB_CFLAGS -DGLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_42 -DGLIB_VERSION_MAX_ALLOWED=GLIB_VERSION_2_42"
 
 AC_SUBST(GLIB_CFLAGS)
 AC_SUBST(GLIB_LIBS)
@@ -333,9 +331,6 @@ AM_CONDITIONAL(HAVE_SYSTEMD, [test "$with_systemdsystemunitdir" != no])
 if test "$with_systemdsystemunitdir" != no; then
 	AC_SUBST([systemdsystemunitdir], [$with_systemdsystemunitdir])
 fi
-
-PKG_CHECK_MODULES(SYSTEMD_200, [systemd >= 200], [have_systemd_200=yes], [have_systemd_200=no])
-AM_CONDITIONAL(HAVE_SYSTEMD_200, test "${have_systemd_200}" = "yes")
 
 # Hostname persist mode
 AC_ARG_WITH(hostname-persist,

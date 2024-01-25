@@ -16,7 +16,7 @@
  * statically against libnm-core. This basically means libnm-core, libnm, NetworkManager
  * and some test programs.
  **/
-#if !((NETWORKMANAGER_COMPILATION) &NM_NETWORKMANAGER_COMPILATION_WITH_LIBNM_CORE_INTERNAL)
+#if !((NETWORKMANAGER_COMPILATION) & NM_NETWORKMANAGER_COMPILATION_WITH_LIBNM_CORE_INTERNAL)
 #error Cannot use this header.
 #endif
 
@@ -38,6 +38,7 @@
 #include "nm-setting-dummy.h"
 #include "nm-setting-generic.h"
 #include "nm-setting-gsm.h"
+#include "nm-setting-hsr.h"
 #include "nm-setting-hostname.h"
 #include "nm-setting-infiniband.h"
 #include "nm-setting-ip-tunnel.h"
@@ -191,6 +192,21 @@ NM_TERNARY_TO_OPTION_BOOL(NMTernary v)
 
 NMSetting **_nm_connection_get_settings_arr(NMConnection *connection);
 
+/**
+ * NMSettingParseFlags:
+ * @NM_SETTING_PARSE_FLAGS_NONE: no special handling.
+ * @NM_SETTING_PARSE_FLAGS_STRICT: be strict about unexpected/invalid settings.
+ *   Such issues cause the parsing method to fail.
+ * @NM_SETTING_PARSE_FLAGS_BEST_EFFORT: ignore most errors about invalid/unexpected
+ *   settings. This is, in theory, an even less strict mode than NONE (in practice
+ *   we already ignore most errors without BEST_EFFORT, so both are almost the
+ *   same). Only if the property has from_dbus_is_full are errors taken into
+ *   account with this flag set.
+ * @NM_SETTING_PARSE_FLAGS_NORMALIZE: normalize the connection after loading it.
+ *   A failure to normalize is always an error, even with BEST_EFFORT.
+ *
+ * It is an error to set NM_SETTING_PARSE_FLAGS_STRICT | NM_SETTING_PARSE_FLAGS_BEST_EFFORT
+ */
 typedef enum /*< skip >*/ {
     NM_SETTING_PARSE_FLAGS_NONE        = 0,
     NM_SETTING_PARSE_FLAGS_STRICT      = 1LL << 0,
@@ -347,9 +363,6 @@ GPtrArray *_nm_utils_copy_object_array(const GPtrArray *array);
 GSList *nm_strv_to_gslist(char **strv, gboolean deep_copy);
 char  **_nm_utils_slist_to_strv(const GSList *slist, gboolean deep_copy);
 
-GPtrArray *nm_strv_to_ptrarray(char **strv);
-char     **_nm_utils_ptrarray_to_strv(const GPtrArray *ptrarray);
-
 gboolean _nm_utils_check_file(const char               *filename,
                               gint64                    check_owner,
                               NMUtilsCheckFilePredicate check_file,
@@ -411,9 +424,10 @@ extern const NMUtilsDNSOptionDesc _nm_utils_dns_option_descs[];
 gboolean _nm_utils_dns_option_validate(const char                 *option,
                                        char                      **out_name,
                                        long                       *out_value,
-                                       gboolean                    ipv6,
+                                       int                         addr_family,
                                        const NMUtilsDNSOptionDesc *option_descs);
-gssize   _nm_utils_dns_option_find_idx(GPtrArray *array, const char *option);
+
+gssize _nm_utils_dns_option_find_idx(const char *const *strv, gssize strv_len, const char *option);
 
 int nm_setting_ip_config_next_valid_dns_option(NMSettingIPConfig *setting, guint idx);
 
@@ -532,6 +546,9 @@ GPtrArray *_nm_setting_bridge_port_get_vlans(NMSettingBridgePort *setting);
 /*****************************************************************************/
 
 GArray *_nm_setting_connection_get_secondaries(NMSettingConnection *setting);
+
+gboolean nm_setting_connection_permissions_user_allowed_by_uid(NMSettingConnection *setting,
+                                                               gulong               uid);
 
 /*****************************************************************************/
 
@@ -721,6 +738,9 @@ typedef struct {
         NMSetting *setting, GVariant *connection_dict, GVariant *value,          \
         NMSettingParseFlags parse_flags, NMTernary *out_is_modified, GError **error
 
+    /* If there might be errors, see #NMSettingParseFlags to understand the
+     * different parsing modes (strict/best effort).
+     */
     gboolean (*from_dbus_fcn)(_NM_SETT_INFO_PROP_FROM_DBUS_FCN_ARGS _nm_nil);
 
 #define _NM_SETT_INFO_PROP_MISSING_FROM_DBUS_FCN_ARGS                    \
@@ -776,11 +796,15 @@ struct _NMSettInfoProperty {
     union {
         /* Optional hook for direct string properties, this gets called when setting the string.
          * Return whether the value changed. */
-        gboolean (*set_string_fcn)(const NMSettInfoSetting  *sett_info,
-                                   const NMSettInfoProperty *property_info,
-                                   NMSetting                *setting,
-                                   const char               *src);
-    } direct_hook;
+        gboolean (*set_string)(const NMSettInfoSetting  *sett_info,
+                               const NMSettInfoProperty *property_info,
+                               NMSetting                *setting,
+                               const char               *src);
+    } direct_set_fcn;
+
+    /* For direct properties, this is the param_spec that also should be
+     * notified on changes. */
+    GParamSpec *direct_also_notify;
 
     /* This only has meaning for direct properties (property_type->direct_type != NM_VALUE_TYPE_UNSPEC).
      * In that case, this is the offset where _nm_setting_get_private() can find
@@ -814,6 +838,31 @@ struct _NMSettInfoProperty {
 
     /* Whether the string property is implemented as a (downcast) NMRefString. */
     bool direct_string_is_refstr : 1;
+
+    /* Usually, string properties cannot be empty (because it's unclear how
+     * that relates to NULL and how to distinguish that in nmcli). In some
+     * cases, it's allowed however (e.g. "gsm.apm").
+     *
+     * The lack of this flag indicates to perform an additional check after
+     * verify(), that the string is not empty.
+     *
+     * In some cases, we can also normalize an empty value, in which case verify()
+     * also allows the string to be empty.
+     *
+     * FIXME: historically, many properties allowed to be empty. Hence, to
+     * preserve behavior this flag is also set for many properties where it
+     * maybe should not be set. We should review the use of this flag and clear
+     * it where possible. New properties generally should not allow empty
+     * strings (unless they have specific reasons). */
+    bool direct_string_allow_empty : 1;
+
+    /* Usually, for strv arrays (NM_VALUE_TYPE_STRV, NMValueStrv) there is little
+     * difference between NULL/unset and empty arrays. E.g. g_object_get() will
+     * return NULL and never an empty strv array.
+     *
+     * By setting this flag, this property treats a NULL array different from
+     * an empty array. */
+    bool direct_strv_preserve_empty : 1;
 
     /* Usually, properties that are set to the default value for the GParamSpec
      * are not serialized to GVariant (and NULL is returned by to_dbus_data().
@@ -919,8 +968,6 @@ struct _NMSettInfoSetting {
 
     NMSettInfoSettDetail detail;
 };
-
-#define NM_SETT_INFO_PRIVATE_OFFSET_FROM_CLASS ((gint16) G_MININT16)
 
 static inline gpointer
 _nm_setting_get_private(NMSetting *self, const NMSettInfoSetting *sett_info, guint16 offset)
@@ -1068,6 +1115,31 @@ gboolean _nm_utils_iaid_verify(const char *str, gint64 *out_value);
 
 gboolean
 _nm_utils_validate_dhcp_hostname_flags(NMDhcpHostnameFlags flags, int addr_family, GError **error);
+
+char **_nm_utils_ip4_dns_from_variant(GVariant *value, bool strict, GError **error);
+
+GPtrArray *_nm_utils_ip4_routes_from_variant(GVariant *value, bool strict, GError **error);
+
+GPtrArray *_nm_utils_ip4_addresses_from_variant(GVariant *value,
+                                                GVariant *labels,
+                                                char    **out_gateway,
+                                                bool      strict,
+                                                GError  **error);
+
+char **_nm_utils_ip6_dns_from_variant(GVariant *value, bool strict, GError **error);
+
+GPtrArray *_nm_utils_ip6_addresses_from_variant(GVariant *value,
+                                                char    **out_gateway,
+                                                bool      strict,
+                                                GError  **error);
+
+GPtrArray *_nm_utils_ip6_routes_from_variant(GVariant *value, bool strict, GError **error);
+
+GPtrArray *
+_nm_utils_ip_addresses_from_variant(GVariant *value, int family, bool strict, GError **error);
+
+GPtrArray *
+_nm_utils_ip_routes_from_variant(GVariant *value, int family, bool strict, GError **error);
 
 /*****************************************************************************/
 

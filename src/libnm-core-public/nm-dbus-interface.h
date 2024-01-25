@@ -37,6 +37,7 @@
 #define NM_DBUS_INTERFACE_DEVICE_DUMMY         NM_DBUS_INTERFACE_DEVICE ".Dummy"
 #define NM_DBUS_INTERFACE_DEVICE_GENERIC       NM_DBUS_INTERFACE_DEVICE ".Generic"
 #define NM_DBUS_INTERFACE_DEVICE_GRE           NM_DBUS_INTERFACE_DEVICE ".Gre"
+#define NM_DBUS_INTERFACE_DEVICE_HSR           NM_DBUS_INTERFACE_DEVICE ".Hsr"
 #define NM_DBUS_INTERFACE_DEVICE_INFINIBAND    NM_DBUS_INTERFACE_DEVICE ".Infiniband"
 #define NM_DBUS_INTERFACE_DEVICE_IP_TUNNEL     NM_DBUS_INTERFACE_DEVICE ".IPTunnel"
 #define NM_DBUS_INTERFACE_DEVICE_LOOPBACK      NM_DBUS_INTERFACE_DEVICE ".Loopback"
@@ -234,6 +235,7 @@ typedef enum {
  * @NM_DEVICE_TYPE_WIFI_P2P: an 802.11 Wi-Fi P2P device. Since: 1.16.
  * @NM_DEVICE_TYPE_VRF: A VRF (Virtual Routing and Forwarding) interface. Since: 1.24.
  * @NM_DEVICE_TYPE_LOOPBACK: a loopback interface. Since: 1.42.
+ * @NM_DEVICE_TYPE_HSR: A HSR/PRP device. Since: 1.46.
  *
  * #NMDeviceType values indicate the type of hardware represented by a
  * device object.
@@ -272,6 +274,7 @@ typedef enum {
     NM_DEVICE_TYPE_WIFI_P2P      = 30,
     NM_DEVICE_TYPE_VRF           = 31,
     NM_DEVICE_TYPE_LOOPBACK      = 32,
+    NM_DEVICE_TYPE_HSR           = 33,
 } NMDeviceType;
 
 /**
@@ -306,6 +309,7 @@ typedef enum /*< flags >*/ {
  * @NM_WIFI_DEVICE_CAP_FREQ_VALID: device reports frequency capabilities
  * @NM_WIFI_DEVICE_CAP_FREQ_2GHZ: device supports 2.4GHz frequencies
  * @NM_WIFI_DEVICE_CAP_FREQ_5GHZ: device supports 5GHz frequencies
+ * @NM_WIFI_DEVICE_CAP_FREQ_6GHZ: device supports 6GHz frequencies. Since: 1.46.
  * @NM_WIFI_DEVICE_CAP_MESH: device supports acting as a mesh point. Since: 1.20.
  * @NM_WIFI_DEVICE_CAP_IBSS_RSN: device supports WPA2/RSN in an IBSS network. Since: 1.22.
  *
@@ -324,6 +328,7 @@ typedef enum /*< flags >*/ {
     NM_WIFI_DEVICE_CAP_FREQ_VALID    = 0x00000100,
     NM_WIFI_DEVICE_CAP_FREQ_2GHZ     = 0x00000200,
     NM_WIFI_DEVICE_CAP_FREQ_5GHZ     = 0x00000400,
+    NM_WIFI_DEVICE_CAP_FREQ_6GHZ     = 0x00000800,
     NM_WIFI_DEVICE_CAP_MESH          = 0x00001000,
     NM_WIFI_DEVICE_CAP_IBSS_RSN      = 0x00002000,
 } NMDeviceWifiCapabilities;
@@ -967,7 +972,7 @@ typedef enum {
  * @NM_CHECKPOINT_CREATE_FLAG_DISCONNECT_NEW_DEVICES: upon rollback,
  *   disconnect any new device appeared after the checkpoint. Since: 1.6.
  * @NM_CHECKPOINT_CREATE_FLAG_ALLOW_OVERLAPPING: by default, creating
- *   a checkpoint fails if there are already existing checkoints that
+ *   a checkpoint fails if there are already existing checkpoints that
  *   reference the same devices. With this flag, creation of such
  *   checkpoints is allowed, however, if an older checkpoint
  *   that references overlapping devices gets rolled back, it will

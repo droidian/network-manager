@@ -441,9 +441,7 @@ am__EXEEXT_4 = src/libnm-client-impl/tests/test-nm-client$(EXEEXT) \
 am__EXEEXT_11 = src/libnm-platform/tests/test-nm-platform$(EXEEXT) \
 	src/libnm-client-aux-extern/tests/test-libnm-client-aux$(EXEEXT) \
 	src/libnm-glib-aux/tests/test-shared-general$(EXEEXT) \
-	$(am__EXEEXT_3) \
-	src/libnm-core-impl/tests/test-compare$(EXEEXT) \
-	src/libnm-core-impl/tests/test-crypto$(EXEEXT) \
+	$(am__EXEEXT_3) src/libnm-core-impl/tests/test-crypto$(EXEEXT) \
 	src/libnm-core-impl/tests/test-general$(EXEEXT) \
 	src/libnm-core-impl/tests/test-keyfile$(EXEEXT) \
 	src/libnm-core-impl/tests/test-secrets$(EXEEXT) \
@@ -650,6 +648,7 @@ am__objects_1 = introspection/libnmdbus_la-org.freedesktop.NetworkManager.Access
 	introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Bridge.lo \
 	introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Dummy.lo \
 	introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Generic.lo \
+	introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Hsr.lo \
 	introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.IPTunnel.lo \
 	introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Infiniband.lo \
 	introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Loopback.lo \
@@ -940,6 +939,7 @@ am_src_core_libNetworkManager_la_OBJECTS =  \
 	src/core/devices/libNetworkManager_la-nm-device-bridge.lo \
 	src/core/devices/libNetworkManager_la-nm-device-dummy.lo \
 	src/core/devices/libNetworkManager_la-nm-device-ethernet.lo \
+	src/core/devices/libNetworkManager_la-nm-device-hsr.lo \
 	src/core/devices/libNetworkManager_la-nm-device-infiniband.lo \
 	src/core/devices/libNetworkManager_la-nm-device-ip-tunnel.lo \
 	src/core/devices/libNetworkManager_la-nm-device-loopback.lo \
@@ -1189,6 +1189,7 @@ am__objects_5 =  \
 	src/libnm-client-impl/libnm_client_impl_la-nm-device-dummy.lo \
 	src/libnm-client-impl/libnm_client_impl_la-nm-device-ethernet.lo \
 	src/libnm-client-impl/libnm_client_impl_la-nm-device-generic.lo \
+	src/libnm-client-impl/libnm_client_impl_la-nm-device-hsr.lo \
 	src/libnm-client-impl/libnm_client_impl_la-nm-device-infiniband.lo \
 	src/libnm-client-impl/libnm_client_impl_la-nm-device-ip-tunnel.lo \
 	src/libnm-client-impl/libnm_client_impl_la-nm-device-loopback.lo \
@@ -1294,6 +1295,7 @@ am__objects_8 =  \
 	src/libnm-core-impl/libnm_core_impl_la-nm-setting-generic.lo \
 	src/libnm-core-impl/libnm_core_impl_la-nm-setting-gsm.lo \
 	src/libnm-core-impl/libnm_core_impl_la-nm-setting-hostname.lo \
+	src/libnm-core-impl/libnm_core_impl_la-nm-setting-hsr.lo \
 	src/libnm-core-impl/libnm_core_impl_la-nm-setting-infiniband.lo \
 	src/libnm-core-impl/libnm_core_impl_la-nm-setting-ip-config.lo \
 	src/libnm-core-impl/libnm_core_impl_la-nm-setting-ip-tunnel.lo \
@@ -1340,7 +1342,6 @@ am__objects_9 = $(am__objects_8) \
 	src/libnm-core-impl/libnm_core_impl_la-nm-keyfile-utils.lo \
 	src/libnm-core-impl/libnm_core_impl_la-nm-keyfile.lo \
 	src/libnm-core-impl/libnm_core_impl_la-nm-meta-setting-base-impl.lo \
-	src/libnm-core-impl/libnm_core_impl_la-nm-property-compare.lo \
 	src/libnm-core-impl/libnm_core_impl_la-nm-setting.lo \
 	src/libnm-core-impl/libnm_core_impl_la-nm-simple-connection.lo \
 	src/libnm-core-impl/libnm_core_impl_la-nm-team-utils.lo \
@@ -1476,7 +1477,6 @@ src_libnm_platform_libnm_platform_la_DEPENDENCIES =  \
 	$(am__DEPENDENCIES_1)
 am__src_libnm_platform_libnm_platform_la_SOURCES_DIST =  \
 	src/linux-headers/ethtool.h src/linux-headers/mptcp.h \
-	src/linux-headers/nl80211-vnd-intel.h \
 	src/linux-headers/nl802154.h \
 	src/nm-compat-headers/linux/if_addr.h \
 	src/libnm-platform/nm-linux-platform.c \
@@ -2207,10 +2207,10 @@ src_libnm_core_impl_gen_metadata_nm_settings_libnm_core_LINK =  \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(src_libnm_core_impl_gen_metadata_nm_settings_libnm_core_LDFLAGS) \
 	$(LDFLAGS) -o $@
-src_libnm_core_impl_tests_test_compare_SOURCES =  \
-	src/libnm-core-impl/tests/test-compare.c
-src_libnm_core_impl_tests_test_compare_OBJECTS =  \
-	src/libnm-core-impl/tests/test_compare-test-compare.$(OBJEXT)
+src_libnm_core_impl_tests_test_crypto_SOURCES =  \
+	src/libnm-core-impl/tests/test-crypto.c
+src_libnm_core_impl_tests_test_crypto_OBJECTS =  \
+	src/libnm-core-impl/tests/test_crypto-test-crypto.$(OBJEXT)
 am__DEPENDENCIES_6 =  \
 	src/libnm-core-aux-extern/libnm-core-aux-extern.la \
 	src/libnm-core-impl/libnm-core-impl.la \
@@ -2222,17 +2222,6 @@ am__DEPENDENCIES_6 =  \
 	src/libnm-glib-aux/libnm-glib-aux.la \
 	src/libnm-std-aux/libnm-std-aux.la \
 	src/c-siphash/libc-siphash.la $(am__DEPENDENCIES_1)
-src_libnm_core_impl_tests_test_compare_DEPENDENCIES =  \
-	$(am__DEPENDENCIES_6)
-src_libnm_core_impl_tests_test_compare_LINK = $(LIBTOOL) $(AM_V_lt) \
-	--tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link \
-	$(CCLD) $(AM_CFLAGS) $(CFLAGS) \
-	$(src_libnm_core_impl_tests_test_compare_LDFLAGS) $(LDFLAGS) \
-	-o $@
-src_libnm_core_impl_tests_test_crypto_SOURCES =  \
-	src/libnm-core-impl/tests/test-crypto.c
-src_libnm_core_impl_tests_test_crypto_OBJECTS =  \
-	src/libnm-core-impl/tests/test_crypto-test-crypto.$(OBJEXT)
 src_libnm_core_impl_tests_test_crypto_DEPENDENCIES =  \
 	$(am__DEPENDENCIES_6)
 src_libnm_core_impl_tests_test_crypto_LINK = $(LIBTOOL) $(AM_V_lt) \
@@ -2757,6 +2746,7 @@ am__depfiles_remade = examples/C/glib/$(DEPDIR)/add_connection_gdbus-add-connect
 	introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Bridge.Plo \
 	introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Dummy.Plo \
 	introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Generic.Plo \
+	introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Hsr.Plo \
 	introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.IPTunnel.Plo \
 	introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Infiniband.Plo \
 	introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Loopback.Plo \
@@ -2845,6 +2835,7 @@ am__depfiles_remade = examples/C/glib/$(DEPDIR)/add_connection_gdbus-add-connect
 	src/core/devices/$(DEPDIR)/libNetworkManager_la-nm-device-ethernet.Plo \
 	src/core/devices/$(DEPDIR)/libNetworkManager_la-nm-device-factory.Plo \
 	src/core/devices/$(DEPDIR)/libNetworkManager_la-nm-device-generic.Plo \
+	src/core/devices/$(DEPDIR)/libNetworkManager_la-nm-device-hsr.Plo \
 	src/core/devices/$(DEPDIR)/libNetworkManager_la-nm-device-infiniband.Plo \
 	src/core/devices/$(DEPDIR)/libNetworkManager_la-nm-device-ip-tunnel.Plo \
 	src/core/devices/$(DEPDIR)/libNetworkManager_la-nm-device-loopback.Plo \
@@ -3003,6 +2994,7 @@ am__depfiles_remade = examples/C/glib/$(DEPDIR)/add_connection_gdbus-add-connect
 	src/libnm-client-impl/$(DEPDIR)/libnm_client_impl_la-nm-device-dummy.Plo \
 	src/libnm-client-impl/$(DEPDIR)/libnm_client_impl_la-nm-device-ethernet.Plo \
 	src/libnm-client-impl/$(DEPDIR)/libnm_client_impl_la-nm-device-generic.Plo \
+	src/libnm-client-impl/$(DEPDIR)/libnm_client_impl_la-nm-device-hsr.Plo \
 	src/libnm-client-impl/$(DEPDIR)/libnm_client_impl_la-nm-device-infiniband.Plo \
 	src/libnm-client-impl/$(DEPDIR)/libnm_client_impl_la-nm-device-ip-tunnel.Plo \
 	src/libnm-client-impl/$(DEPDIR)/libnm_client_impl_la-nm-device-loopback.Plo \
@@ -3058,7 +3050,6 @@ am__depfiles_remade = examples/C/glib/$(DEPDIR)/add_connection_gdbus-add-connect
 	src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-keyfile-utils.Plo \
 	src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-keyfile.Plo \
 	src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-meta-setting-base-impl.Plo \
-	src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-property-compare.Plo \
 	src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-6lowpan.Plo \
 	src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-8021x.Plo \
 	src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-adsl.Plo \
@@ -3075,6 +3066,7 @@ am__depfiles_remade = examples/C/glib/$(DEPDIR)/add_connection_gdbus-add-connect
 	src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-generic.Plo \
 	src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-gsm.Plo \
 	src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-hostname.Plo \
+	src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-hsr.Plo \
 	src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-infiniband.Plo \
 	src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-ip-config.Plo \
 	src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-ip-tunnel.Plo \
@@ -3121,7 +3113,6 @@ am__depfiles_remade = examples/C/glib/$(DEPDIR)/add_connection_gdbus-add-connect
 	src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-utils.Plo \
 	src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-vpn-editor-plugin.Plo \
 	src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-vpn-plugin-info.Plo \
-	src/libnm-core-impl/tests/$(DEPDIR)/test_compare-test-compare.Po \
 	src/libnm-core-impl/tests/$(DEPDIR)/test_crypto-test-crypto.Po \
 	src/libnm-core-impl/tests/$(DEPDIR)/test_general-nm-core-tests-enum-types.Po \
 	src/libnm-core-impl/tests/$(DEPDIR)/test_general-test-general.Po \
@@ -3498,7 +3489,6 @@ SOURCES = $(src_libnmt_newt_libnmt_newt_a_SOURCES) \
 	src/libnm-client-impl/tests/test-remote-settings-client.c \
 	src/libnm-client-impl/tests/test-secret-agent.c \
 	$(src_libnm_core_impl_gen_metadata_nm_settings_libnm_core_SOURCES) \
-	src/libnm-core-impl/tests/test-compare.c \
 	src/libnm-core-impl/tests/test-crypto.c \
 	$(src_libnm_core_impl_tests_test_general_SOURCES) \
 	$(nodist_src_libnm_core_impl_tests_test_general_SOURCES) \
@@ -3627,7 +3617,6 @@ DIST_SOURCES = $(am__src_libnmt_newt_libnmt_newt_a_SOURCES_DIST) \
 	src/libnm-client-impl/tests/test-remote-settings-client.c \
 	src/libnm-client-impl/tests/test-secret-agent.c \
 	$(src_libnm_core_impl_gen_metadata_nm_settings_libnm_core_SOURCES) \
-	src/libnm-core-impl/tests/test-compare.c \
 	src/libnm-core-impl/tests/test-crypto.c \
 	$(src_libnm_core_impl_tests_test_general_SOURCES) \
 	src/libnm-core-impl/tests/test-keyfile.c \
@@ -3949,7 +3938,6 @@ ACLOCAL = @ACLOCAL@
 AMTAR = @AMTAR@
 AM_CFLAGS = @AM_CFLAGS@
 AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
-AM_TESTS_FD_REDIRECT = @AM_TESTS_FD_REDIRECT@
 AR = @AR@
 AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
@@ -4138,8 +4126,6 @@ SELINUX_LIBS = @SELINUX_LIBS@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 STRIP = @STRIP@
-SYSTEMD_200_CFLAGS = @SYSTEMD_200_CFLAGS@
-SYSTEMD_200_LIBS = @SYSTEMD_200_LIBS@
 SYSTEMD_INHIBIT_CFLAGS = @SYSTEMD_INHIBIT_CFLAGS@
 SYSTEMD_INHIBIT_LIBS = @SYSTEMD_INHIBIT_LIBS@
 SYSTEMD_JOURNAL_CFLAGS = @SYSTEMD_JOURNAL_CFLAGS@
@@ -5011,10 +4997,10 @@ EXTRA_DIST = src/c-stdaux/src/c-stdaux-generic.h \
 	src/tests/client/test-client.check-on-disk/test_004.expected \
 	src/tests/client/test-client.check-on-disk/test_offline.expected \
 	src/tests/client/test-client.check-on-disk/test_version_warn.expected \
+	src/tests/client/test-client.check-on-disk/test_daemon_not_running.expected \
 	src/tests/client/meson.build $(NULL) data/84-nm-drivers.rules \
 	data/85-nm-unmanaged.rules data/90-nm-thunderbolt.rules \
 	data/NetworkManager-dispatcher.service.in \
-	data/NetworkManager-wait-online-systemd-pre200.service.in \
 	data/NetworkManager-wait-online.service.in \
 	data/NetworkManager.service.in data/nm-priv-helper.service.in \
 	data/meson.build data/nm-shared.xml data/server.conf.in \
@@ -5172,7 +5158,6 @@ man_pages_autogen = man/nm-settings-dbus.5 man/nm-settings-keyfile.5 \
 check_programs = src/libnm-platform/tests/test-nm-platform \
 	src/libnm-client-aux-extern/tests/test-libnm-client-aux \
 	src/libnm-glib-aux/tests/test-shared-general $(am__append_6) \
-	src/libnm-core-impl/tests/test-compare \
 	src/libnm-core-impl/tests/test-crypto \
 	src/libnm-core-impl/tests/test-general \
 	src/libnm-core-impl/tests/test-keyfile \
@@ -5666,7 +5651,6 @@ src_libnm_platform_libnm_platform_la_CPPFLAGS = \
 
 src_libnm_platform_libnm_platform_la_SOURCES =  \
 	src/linux-headers/ethtool.h src/linux-headers/mptcp.h \
-	src/linux-headers/nl80211-vnd-intel.h \
 	src/linux-headers/nl802154.h \
 	src/nm-compat-headers/linux/if_addr.h \
 	src/libnm-platform/nm-linux-platform.c \
@@ -5942,6 +5926,8 @@ introspection_sources = \
 	introspection/org.freedesktop.NetworkManager.Device.Dummy.h \
 	introspection/org.freedesktop.NetworkManager.Device.Generic.c \
 	introspection/org.freedesktop.NetworkManager.Device.Generic.h \
+	introspection/org.freedesktop.NetworkManager.Device.Hsr.c \
+	introspection/org.freedesktop.NetworkManager.Device.Hsr.h \
 	introspection/org.freedesktop.NetworkManager.Device.IPTunnel.c \
 	introspection/org.freedesktop.NetworkManager.Device.IPTunnel.h \
 	introspection/org.freedesktop.NetworkManager.Device.Infiniband.c \
@@ -6032,6 +6018,7 @@ DBUS_INTERFACE_DOCS = \
 	docs/api/dbus-org.freedesktop.NetworkManager.Device.Bridge.xml \
 	docs/api/dbus-org.freedesktop.NetworkManager.Device.Dummy.xml \
 	docs/api/dbus-org.freedesktop.NetworkManager.Device.Generic.xml \
+	docs/api/dbus-org.freedesktop.NetworkManager.Device.Hsr.xml \
 	docs/api/dbus-org.freedesktop.NetworkManager.Device.IPTunnel.xml \
 	docs/api/dbus-org.freedesktop.NetworkManager.Device.Infiniband.xml \
 	docs/api/dbus-org.freedesktop.NetworkManager.Device.Loopback.xml \
@@ -6085,6 +6072,7 @@ dbusinterfaces_DATA = \
 	introspection/org.freedesktop.NetworkManager.Device.Bridge.xml \
 	introspection/org.freedesktop.NetworkManager.Device.Dummy.xml \
 	introspection/org.freedesktop.NetworkManager.Device.Generic.xml \
+	introspection/org.freedesktop.NetworkManager.Device.Hsr.xml \
 	introspection/org.freedesktop.NetworkManager.Device.IPTunnel.xml \
 	introspection/org.freedesktop.NetworkManager.Device.Infiniband.xml \
 	introspection/org.freedesktop.NetworkManager.Device.Loopback.xml \
@@ -6149,6 +6137,7 @@ src_libnm_core_impl_lib_h_pub_real = \
 	src/libnm-core-public/nm-setting-generic.h \
 	src/libnm-core-public/nm-setting-gsm.h \
 	src/libnm-core-public/nm-setting-hostname.h \
+	src/libnm-core-public/nm-setting-hsr.h \
 	src/libnm-core-public/nm-setting-infiniband.h \
 	src/libnm-core-public/nm-setting-ip-config.h \
 	src/libnm-core-public/nm-setting-ip-tunnel.h \
@@ -6206,7 +6195,6 @@ src_libnm_core_public_mkenums_h = \
 src_libnm_core_impl_lib_h_priv = \
 	src/libnm-core-impl/nm-connection-private.h \
 	src/libnm-core-impl/nm-default-libnm-core.h \
-	src/libnm-core-impl/nm-property-compare.h \
 	src/libnm-core-impl/nm-setting-private.h \
 	src/libnm-core-impl/nm-team-utils.h \
 	src/libnm-core-impl/nm-utils-private.h \
@@ -6234,6 +6222,7 @@ src_libnm_core_impl_lib_c_settings_real = \
 	src/libnm-core-impl/nm-setting-generic.c \
 	src/libnm-core-impl/nm-setting-gsm.c \
 	src/libnm-core-impl/nm-setting-hostname.c \
+	src/libnm-core-impl/nm-setting-hsr.c \
 	src/libnm-core-impl/nm-setting-infiniband.c \
 	src/libnm-core-impl/nm-setting-ip-config.c \
 	src/libnm-core-impl/nm-setting-ip-tunnel.c \
@@ -6283,7 +6272,6 @@ src_libnm_core_impl_lib_c_real = \
 	src/libnm-core-impl/nm-keyfile-utils.c \
 	src/libnm-core-impl/nm-keyfile.c \
 	src/libnm-core-impl/nm-meta-setting-base-impl.c \
-	src/libnm-core-impl/nm-property-compare.c \
 	src/libnm-core-impl/nm-setting.c \
 	src/libnm-core-impl/nm-simple-connection.c \
 	src/libnm-core-impl/nm-team-utils.c \
@@ -6406,7 +6394,6 @@ src_libnm_core_impl_tests_cppflags = \
 	$(SANITIZER_EXEC_CFLAGS) \
 	$(NULL)
 
-src_libnm_core_impl_tests_test_compare_CPPFLAGS = $(src_libnm_core_impl_tests_cppflags)
 src_libnm_core_impl_tests_test_crypto_CPPFLAGS = $(src_libnm_core_impl_tests_cppflags)
 src_libnm_core_impl_tests_test_general_CPPFLAGS = $(src_libnm_core_impl_tests_cppflags)
 src_libnm_core_impl_tests_test_keyfile_CPPFLAGS = $(src_libnm_core_impl_tests_cppflags)
@@ -6442,14 +6429,12 @@ src_libnm_core_impl_tests_ldflags = \
 	$(SANITIZER_EXEC_LDFLAGS) \
 	$(NULL)
 
-src_libnm_core_impl_tests_test_compare_LDADD = $(src_libnm_core_impl_tests_ldadd)
 src_libnm_core_impl_tests_test_crypto_LDADD = $(src_libnm_core_impl_tests_ldadd)
 src_libnm_core_impl_tests_test_general_LDADD = $(src_libnm_core_impl_tests_ldadd)
 src_libnm_core_impl_tests_test_keyfile_LDADD = $(src_libnm_core_impl_tests_ldadd)
 src_libnm_core_impl_tests_test_secrets_LDADD = $(src_libnm_core_impl_tests_ldadd)
 src_libnm_core_impl_tests_test_setting_LDADD = $(src_libnm_core_impl_tests_ldadd)
 src_libnm_core_impl_tests_test_settings_defaults_LDADD = $(src_libnm_core_impl_tests_ldadd)
-src_libnm_core_impl_tests_test_compare_LDFLAGS = $(src_libnm_core_impl_tests_ldflags)
 src_libnm_core_impl_tests_test_crypto_LDFLAGS = $(src_libnm_core_impl_tests_ldflags)
 src_libnm_core_impl_tests_test_general_LDFLAGS = $(src_libnm_core_impl_tests_ldflags)
 src_libnm_core_impl_tests_test_keyfile_LDFLAGS = $(src_libnm_core_impl_tests_ldflags)
@@ -6474,6 +6459,7 @@ libnm_lib_h_pub_real = \
 	src/libnm-client-public/nm-device-dummy.h \
 	src/libnm-client-public/nm-device-ethernet.h \
 	src/libnm-client-public/nm-device-generic.h \
+	src/libnm-client-public/nm-device-hsr.h \
 	src/libnm-client-public/nm-device-infiniband.h \
 	src/libnm-client-public/nm-device-ip-tunnel.h \
 	src/libnm-client-public/nm-device-loopback.h \
@@ -6548,6 +6534,7 @@ libnm_lib_c_real = \
 	src/libnm-client-impl/nm-device-dummy.c \
 	src/libnm-client-impl/nm-device-ethernet.c \
 	src/libnm-client-impl/nm-device-generic.c \
+	src/libnm-client-impl/nm-device-hsr.c \
 	src/libnm-client-impl/nm-device-infiniband.c \
 	src/libnm-client-impl/nm-device-ip-tunnel.c \
 	src/libnm-client-impl/nm-device-loopback.c \
@@ -6717,7 +6704,10 @@ libnm_noinst_data = \
 	src/libnm-client-impl/nm-property-infos-ifcfg-rh.xml \
 	src/libnm-client-impl/nm-property-infos-keyfile.xml \
 	src/libnm-client-impl/nm-property-infos-nmcli.xml \
-	src/libnm-client-impl/nm-settings-docs-gir.xml \
+	src/libnm-client-impl/nm-settings-docs-gir-dbus.xml \
+	src/libnm-client-impl/nm-settings-docs-gir-ifcfg-rh.xml \
+	src/libnm-client-impl/nm-settings-docs-gir-keyfile.xml \
+	src/libnm-client-impl/nm-settings-docs-gir-nmcli.xml \
 	src/libnmc-setting/settings-docs-input.xml \
 	$(NULL)
 
@@ -7169,6 +7159,8 @@ src_core_libNetworkManager_la_SOURCES = \
 	src/core/devices/nm-device-dummy.h \
 	src/core/devices/nm-device-ethernet.c \
 	src/core/devices/nm-device-ethernet.h \
+	src/core/devices/nm-device-hsr.c \
+	src/core/devices/nm-device-hsr.h \
 	src/core/devices/nm-device-infiniband.c \
 	src/core/devices/nm-device-infiniband.h \
 	src/core/devices/nm-device-ip-tunnel.c \
@@ -9259,6 +9251,9 @@ introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Dummy.lo:  \
 introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Generic.lo:  \
 	introspection/$(am__dirstamp) \
 	introspection/$(DEPDIR)/$(am__dirstamp)
+introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Hsr.lo:  \
+	introspection/$(am__dirstamp) \
+	introspection/$(DEPDIR)/$(am__dirstamp)
 introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.IPTunnel.lo:  \
 	introspection/$(am__dirstamp) \
 	introspection/$(DEPDIR)/$(am__dirstamp)
@@ -9621,6 +9616,9 @@ src/core/devices/libNetworkManager_la-nm-device-dummy.lo:  \
 	src/core/devices/$(am__dirstamp) \
 	src/core/devices/$(DEPDIR)/$(am__dirstamp)
 src/core/devices/libNetworkManager_la-nm-device-ethernet.lo:  \
+	src/core/devices/$(am__dirstamp) \
+	src/core/devices/$(DEPDIR)/$(am__dirstamp)
+src/core/devices/libNetworkManager_la-nm-device-hsr.lo:  \
 	src/core/devices/$(am__dirstamp) \
 	src/core/devices/$(DEPDIR)/$(am__dirstamp)
 src/core/devices/libNetworkManager_la-nm-device-infiniband.lo:  \
@@ -10092,6 +10090,9 @@ src/libnm-client-impl/libnm_client_impl_la-nm-device-ethernet.lo:  \
 src/libnm-client-impl/libnm_client_impl_la-nm-device-generic.lo:  \
 	src/libnm-client-impl/$(am__dirstamp) \
 	src/libnm-client-impl/$(DEPDIR)/$(am__dirstamp)
+src/libnm-client-impl/libnm_client_impl_la-nm-device-hsr.lo:  \
+	src/libnm-client-impl/$(am__dirstamp) \
+	src/libnm-client-impl/$(DEPDIR)/$(am__dirstamp)
 src/libnm-client-impl/libnm_client_impl_la-nm-device-infiniband.lo:  \
 	src/libnm-client-impl/$(am__dirstamp) \
 	src/libnm-client-impl/$(DEPDIR)/$(am__dirstamp)
@@ -10314,6 +10315,9 @@ src/libnm-core-impl/libnm_core_impl_la-nm-setting-gsm.lo:  \
 src/libnm-core-impl/libnm_core_impl_la-nm-setting-hostname.lo:  \
 	src/libnm-core-impl/$(am__dirstamp) \
 	src/libnm-core-impl/$(DEPDIR)/$(am__dirstamp)
+src/libnm-core-impl/libnm_core_impl_la-nm-setting-hsr.lo:  \
+	src/libnm-core-impl/$(am__dirstamp) \
+	src/libnm-core-impl/$(DEPDIR)/$(am__dirstamp)
 src/libnm-core-impl/libnm_core_impl_la-nm-setting-infiniband.lo:  \
 	src/libnm-core-impl/$(am__dirstamp) \
 	src/libnm-core-impl/$(DEPDIR)/$(am__dirstamp)
@@ -10447,9 +10451,6 @@ src/libnm-core-impl/libnm_core_impl_la-nm-keyfile.lo:  \
 	src/libnm-core-impl/$(am__dirstamp) \
 	src/libnm-core-impl/$(DEPDIR)/$(am__dirstamp)
 src/libnm-core-impl/libnm_core_impl_la-nm-meta-setting-base-impl.lo:  \
-	src/libnm-core-impl/$(am__dirstamp) \
-	src/libnm-core-impl/$(DEPDIR)/$(am__dirstamp)
-src/libnm-core-impl/libnm_core_impl_la-nm-property-compare.lo:  \
 	src/libnm-core-impl/$(am__dirstamp) \
 	src/libnm-core-impl/$(DEPDIR)/$(am__dirstamp)
 src/libnm-core-impl/libnm_core_impl_la-nm-setting.lo:  \
@@ -11573,13 +11574,6 @@ src/libnm-core-impl/tests/$(am__dirstamp):
 src/libnm-core-impl/tests/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) src/libnm-core-impl/tests/$(DEPDIR)
 	@: > src/libnm-core-impl/tests/$(DEPDIR)/$(am__dirstamp)
-src/libnm-core-impl/tests/test_compare-test-compare.$(OBJEXT):  \
-	src/libnm-core-impl/tests/$(am__dirstamp) \
-	src/libnm-core-impl/tests/$(DEPDIR)/$(am__dirstamp)
-
-src/libnm-core-impl/tests/test-compare$(EXEEXT): $(src_libnm_core_impl_tests_test_compare_OBJECTS) $(src_libnm_core_impl_tests_test_compare_DEPENDENCIES) $(EXTRA_src_libnm_core_impl_tests_test_compare_DEPENDENCIES) src/libnm-core-impl/tests/$(am__dirstamp)
-	@rm -f src/libnm-core-impl/tests/test-compare$(EXEEXT)
-	$(AM_V_CCLD)$(src_libnm_core_impl_tests_test_compare_LINK) $(src_libnm_core_impl_tests_test_compare_OBJECTS) $(src_libnm_core_impl_tests_test_compare_LDADD) $(LIBS)
 src/libnm-core-impl/tests/test_crypto-test-crypto.$(OBJEXT):  \
 	src/libnm-core-impl/tests/$(am__dirstamp) \
 	src/libnm-core-impl/tests/$(DEPDIR)/$(am__dirstamp)
@@ -12145,6 +12139,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Bridge.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Dummy.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Generic.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Hsr.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.IPTunnel.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Infiniband.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Loopback.Plo@am__quote@ # am--include-marker
@@ -12233,6 +12228,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@src/core/devices/$(DEPDIR)/libNetworkManager_la-nm-device-ethernet.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/core/devices/$(DEPDIR)/libNetworkManager_la-nm-device-factory.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/core/devices/$(DEPDIR)/libNetworkManager_la-nm-device-generic.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@src/core/devices/$(DEPDIR)/libNetworkManager_la-nm-device-hsr.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/core/devices/$(DEPDIR)/libNetworkManager_la-nm-device-infiniband.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/core/devices/$(DEPDIR)/libNetworkManager_la-nm-device-ip-tunnel.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/core/devices/$(DEPDIR)/libNetworkManager_la-nm-device-loopback.Plo@am__quote@ # am--include-marker
@@ -12391,6 +12387,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-client-impl/$(DEPDIR)/libnm_client_impl_la-nm-device-dummy.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-client-impl/$(DEPDIR)/libnm_client_impl_la-nm-device-ethernet.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-client-impl/$(DEPDIR)/libnm_client_impl_la-nm-device-generic.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@src/libnm-client-impl/$(DEPDIR)/libnm_client_impl_la-nm-device-hsr.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-client-impl/$(DEPDIR)/libnm_client_impl_la-nm-device-infiniband.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-client-impl/$(DEPDIR)/libnm_client_impl_la-nm-device-ip-tunnel.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-client-impl/$(DEPDIR)/libnm_client_impl_la-nm-device-loopback.Plo@am__quote@ # am--include-marker
@@ -12446,7 +12443,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-keyfile-utils.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-keyfile.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-meta-setting-base-impl.Plo@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-property-compare.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-6lowpan.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-8021x.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-adsl.Plo@am__quote@ # am--include-marker
@@ -12463,6 +12459,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-generic.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-gsm.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-hostname.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-hsr.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-infiniband.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-ip-config.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-ip-tunnel.Plo@am__quote@ # am--include-marker
@@ -12509,7 +12506,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-utils.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-vpn-editor-plugin.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-vpn-plugin-info.Plo@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@src/libnm-core-impl/tests/$(DEPDIR)/test_compare-test-compare.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-core-impl/tests/$(DEPDIR)/test_crypto-test-crypto.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-core-impl/tests/$(DEPDIR)/test_general-nm-core-tests-enum-types.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-core-impl/tests/$(DEPDIR)/test_general-test-general.Po@am__quote@ # am--include-marker
@@ -13235,6 +13231,13 @@ introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Generic.lo: int
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Generic.lo `test -f 'introspection/org.freedesktop.NetworkManager.Device.Generic.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.Device.Generic.c
 
+introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Hsr.lo: introspection/org.freedesktop.NetworkManager.Device.Hsr.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Hsr.lo -MD -MP -MF introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Hsr.Tpo -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Hsr.lo `test -f 'introspection/org.freedesktop.NetworkManager.Device.Hsr.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.Device.Hsr.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Hsr.Tpo introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Hsr.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='introspection/org.freedesktop.NetworkManager.Device.Hsr.c' object='introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Hsr.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Hsr.lo `test -f 'introspection/org.freedesktop.NetworkManager.Device.Hsr.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.Device.Hsr.c
+
 introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.IPTunnel.lo: introspection/org.freedesktop.NetworkManager.Device.IPTunnel.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.IPTunnel.lo -MD -MP -MF introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.IPTunnel.Tpo -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.IPTunnel.lo `test -f 'introspection/org.freedesktop.NetworkManager.Device.IPTunnel.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.Device.IPTunnel.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.IPTunnel.Tpo introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.IPTunnel.Plo
@@ -13822,6 +13825,13 @@ src/core/devices/libNetworkManager_la-nm-device-ethernet.lo: src/core/devices/nm
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/core/devices/nm-device-ethernet.c' object='src/core/devices/libNetworkManager_la-nm-device-ethernet.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_core_libNetworkManager_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/core/devices/libNetworkManager_la-nm-device-ethernet.lo `test -f 'src/core/devices/nm-device-ethernet.c' || echo '$(srcdir)/'`src/core/devices/nm-device-ethernet.c
+
+src/core/devices/libNetworkManager_la-nm-device-hsr.lo: src/core/devices/nm-device-hsr.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_core_libNetworkManager_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/core/devices/libNetworkManager_la-nm-device-hsr.lo -MD -MP -MF src/core/devices/$(DEPDIR)/libNetworkManager_la-nm-device-hsr.Tpo -c -o src/core/devices/libNetworkManager_la-nm-device-hsr.lo `test -f 'src/core/devices/nm-device-hsr.c' || echo '$(srcdir)/'`src/core/devices/nm-device-hsr.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/core/devices/$(DEPDIR)/libNetworkManager_la-nm-device-hsr.Tpo src/core/devices/$(DEPDIR)/libNetworkManager_la-nm-device-hsr.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/core/devices/nm-device-hsr.c' object='src/core/devices/libNetworkManager_la-nm-device-hsr.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_core_libNetworkManager_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/core/devices/libNetworkManager_la-nm-device-hsr.lo `test -f 'src/core/devices/nm-device-hsr.c' || echo '$(srcdir)/'`src/core/devices/nm-device-hsr.c
 
 src/core/devices/libNetworkManager_la-nm-device-infiniband.lo: src/core/devices/nm-device-infiniband.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_core_libNetworkManager_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/core/devices/libNetworkManager_la-nm-device-infiniband.lo -MD -MP -MF src/core/devices/$(DEPDIR)/libNetworkManager_la-nm-device-infiniband.Tpo -c -o src/core/devices/libNetworkManager_la-nm-device-infiniband.lo `test -f 'src/core/devices/nm-device-infiniband.c' || echo '$(srcdir)/'`src/core/devices/nm-device-infiniband.c
@@ -14691,6 +14701,13 @@ src/libnm-client-impl/libnm_client_impl_la-nm-device-generic.lo: src/libnm-clien
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_libnm_client_impl_libnm_client_impl_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/libnm-client-impl/libnm_client_impl_la-nm-device-generic.lo `test -f 'src/libnm-client-impl/nm-device-generic.c' || echo '$(srcdir)/'`src/libnm-client-impl/nm-device-generic.c
 
+src/libnm-client-impl/libnm_client_impl_la-nm-device-hsr.lo: src/libnm-client-impl/nm-device-hsr.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_libnm_client_impl_libnm_client_impl_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/libnm-client-impl/libnm_client_impl_la-nm-device-hsr.lo -MD -MP -MF src/libnm-client-impl/$(DEPDIR)/libnm_client_impl_la-nm-device-hsr.Tpo -c -o src/libnm-client-impl/libnm_client_impl_la-nm-device-hsr.lo `test -f 'src/libnm-client-impl/nm-device-hsr.c' || echo '$(srcdir)/'`src/libnm-client-impl/nm-device-hsr.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/libnm-client-impl/$(DEPDIR)/libnm_client_impl_la-nm-device-hsr.Tpo src/libnm-client-impl/$(DEPDIR)/libnm_client_impl_la-nm-device-hsr.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/libnm-client-impl/nm-device-hsr.c' object='src/libnm-client-impl/libnm_client_impl_la-nm-device-hsr.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_libnm_client_impl_libnm_client_impl_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/libnm-client-impl/libnm_client_impl_la-nm-device-hsr.lo `test -f 'src/libnm-client-impl/nm-device-hsr.c' || echo '$(srcdir)/'`src/libnm-client-impl/nm-device-hsr.c
+
 src/libnm-client-impl/libnm_client_impl_la-nm-device-infiniband.lo: src/libnm-client-impl/nm-device-infiniband.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_libnm_client_impl_libnm_client_impl_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/libnm-client-impl/libnm_client_impl_la-nm-device-infiniband.lo -MD -MP -MF src/libnm-client-impl/$(DEPDIR)/libnm_client_impl_la-nm-device-infiniband.Tpo -c -o src/libnm-client-impl/libnm_client_impl_la-nm-device-infiniband.lo `test -f 'src/libnm-client-impl/nm-device-infiniband.c' || echo '$(srcdir)/'`src/libnm-client-impl/nm-device-infiniband.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/libnm-client-impl/$(DEPDIR)/libnm_client_impl_la-nm-device-infiniband.Tpo src/libnm-client-impl/$(DEPDIR)/libnm_client_impl_la-nm-device-infiniband.Plo
@@ -15104,6 +15121,13 @@ src/libnm-core-impl/libnm_core_impl_la-nm-setting-hostname.lo: src/libnm-core-im
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_libnm_core_impl_libnm_core_impl_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/libnm-core-impl/libnm_core_impl_la-nm-setting-hostname.lo `test -f 'src/libnm-core-impl/nm-setting-hostname.c' || echo '$(srcdir)/'`src/libnm-core-impl/nm-setting-hostname.c
 
+src/libnm-core-impl/libnm_core_impl_la-nm-setting-hsr.lo: src/libnm-core-impl/nm-setting-hsr.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_libnm_core_impl_libnm_core_impl_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/libnm-core-impl/libnm_core_impl_la-nm-setting-hsr.lo -MD -MP -MF src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-hsr.Tpo -c -o src/libnm-core-impl/libnm_core_impl_la-nm-setting-hsr.lo `test -f 'src/libnm-core-impl/nm-setting-hsr.c' || echo '$(srcdir)/'`src/libnm-core-impl/nm-setting-hsr.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-hsr.Tpo src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-hsr.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/libnm-core-impl/nm-setting-hsr.c' object='src/libnm-core-impl/libnm_core_impl_la-nm-setting-hsr.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_libnm_core_impl_libnm_core_impl_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/libnm-core-impl/libnm_core_impl_la-nm-setting-hsr.lo `test -f 'src/libnm-core-impl/nm-setting-hsr.c' || echo '$(srcdir)/'`src/libnm-core-impl/nm-setting-hsr.c
+
 src/libnm-core-impl/libnm_core_impl_la-nm-setting-infiniband.lo: src/libnm-core-impl/nm-setting-infiniband.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_libnm_core_impl_libnm_core_impl_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/libnm-core-impl/libnm_core_impl_la-nm-setting-infiniband.lo -MD -MP -MF src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-infiniband.Tpo -c -o src/libnm-core-impl/libnm_core_impl_la-nm-setting-infiniband.lo `test -f 'src/libnm-core-impl/nm-setting-infiniband.c' || echo '$(srcdir)/'`src/libnm-core-impl/nm-setting-infiniband.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-infiniband.Tpo src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-infiniband.Plo
@@ -15418,13 +15442,6 @@ src/libnm-core-impl/libnm_core_impl_la-nm-meta-setting-base-impl.lo: src/libnm-c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/libnm-core-impl/nm-meta-setting-base-impl.c' object='src/libnm-core-impl/libnm_core_impl_la-nm-meta-setting-base-impl.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_libnm_core_impl_libnm_core_impl_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/libnm-core-impl/libnm_core_impl_la-nm-meta-setting-base-impl.lo `test -f 'src/libnm-core-impl/nm-meta-setting-base-impl.c' || echo '$(srcdir)/'`src/libnm-core-impl/nm-meta-setting-base-impl.c
-
-src/libnm-core-impl/libnm_core_impl_la-nm-property-compare.lo: src/libnm-core-impl/nm-property-compare.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_libnm_core_impl_libnm_core_impl_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/libnm-core-impl/libnm_core_impl_la-nm-property-compare.lo -MD -MP -MF src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-property-compare.Tpo -c -o src/libnm-core-impl/libnm_core_impl_la-nm-property-compare.lo `test -f 'src/libnm-core-impl/nm-property-compare.c' || echo '$(srcdir)/'`src/libnm-core-impl/nm-property-compare.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-property-compare.Tpo src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-property-compare.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/libnm-core-impl/nm-property-compare.c' object='src/libnm-core-impl/libnm_core_impl_la-nm-property-compare.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_libnm_core_impl_libnm_core_impl_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/libnm-core-impl/libnm_core_impl_la-nm-property-compare.lo `test -f 'src/libnm-core-impl/nm-property-compare.c' || echo '$(srcdir)/'`src/libnm-core-impl/nm-property-compare.c
 
 src/libnm-core-impl/libnm_core_impl_la-nm-setting.lo: src/libnm-core-impl/nm-setting.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_libnm_core_impl_libnm_core_impl_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/libnm-core-impl/libnm_core_impl_la-nm-setting.lo -MD -MP -MF src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting.Tpo -c -o src/libnm-core-impl/libnm_core_impl_la-nm-setting.lo `test -f 'src/libnm-core-impl/nm-setting.c' || echo '$(srcdir)/'`src/libnm-core-impl/nm-setting.c
@@ -17098,20 +17115,6 @@ src/libnm-core-impl/gen_metadata_nm_settings_libnm_core-gen-metadata-nm-settings
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/libnm-core-impl/gen-metadata-nm-settings-libnm-core.c' object='src/libnm-core-impl/gen_metadata_nm_settings_libnm_core-gen-metadata-nm-settings-libnm-core.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_libnm_core_impl_gen_metadata_nm_settings_libnm_core_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/libnm-core-impl/gen_metadata_nm_settings_libnm_core-gen-metadata-nm-settings-libnm-core.obj `if test -f 'src/libnm-core-impl/gen-metadata-nm-settings-libnm-core.c'; then $(CYGPATH_W) 'src/libnm-core-impl/gen-metadata-nm-settings-libnm-core.c'; else $(CYGPATH_W) '$(srcdir)/src/libnm-core-impl/gen-metadata-nm-settings-libnm-core.c'; fi`
-
-src/libnm-core-impl/tests/test_compare-test-compare.o: src/libnm-core-impl/tests/test-compare.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_libnm_core_impl_tests_test_compare_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/libnm-core-impl/tests/test_compare-test-compare.o -MD -MP -MF src/libnm-core-impl/tests/$(DEPDIR)/test_compare-test-compare.Tpo -c -o src/libnm-core-impl/tests/test_compare-test-compare.o `test -f 'src/libnm-core-impl/tests/test-compare.c' || echo '$(srcdir)/'`src/libnm-core-impl/tests/test-compare.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/libnm-core-impl/tests/$(DEPDIR)/test_compare-test-compare.Tpo src/libnm-core-impl/tests/$(DEPDIR)/test_compare-test-compare.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/libnm-core-impl/tests/test-compare.c' object='src/libnm-core-impl/tests/test_compare-test-compare.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_libnm_core_impl_tests_test_compare_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/libnm-core-impl/tests/test_compare-test-compare.o `test -f 'src/libnm-core-impl/tests/test-compare.c' || echo '$(srcdir)/'`src/libnm-core-impl/tests/test-compare.c
-
-src/libnm-core-impl/tests/test_compare-test-compare.obj: src/libnm-core-impl/tests/test-compare.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_libnm_core_impl_tests_test_compare_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/libnm-core-impl/tests/test_compare-test-compare.obj -MD -MP -MF src/libnm-core-impl/tests/$(DEPDIR)/test_compare-test-compare.Tpo -c -o src/libnm-core-impl/tests/test_compare-test-compare.obj `if test -f 'src/libnm-core-impl/tests/test-compare.c'; then $(CYGPATH_W) 'src/libnm-core-impl/tests/test-compare.c'; else $(CYGPATH_W) '$(srcdir)/src/libnm-core-impl/tests/test-compare.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/libnm-core-impl/tests/$(DEPDIR)/test_compare-test-compare.Tpo src/libnm-core-impl/tests/$(DEPDIR)/test_compare-test-compare.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/libnm-core-impl/tests/test-compare.c' object='src/libnm-core-impl/tests/test_compare-test-compare.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_libnm_core_impl_tests_test_compare_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/libnm-core-impl/tests/test_compare-test-compare.obj `if test -f 'src/libnm-core-impl/tests/test-compare.c'; then $(CYGPATH_W) 'src/libnm-core-impl/tests/test-compare.c'; else $(CYGPATH_W) '$(srcdir)/src/libnm-core-impl/tests/test-compare.c'; fi`
 
 src/libnm-core-impl/tests/test_crypto-test-crypto.o: src/libnm-core-impl/tests/test-crypto.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_libnm_core_impl_tests_test_crypto_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/libnm-core-impl/tests/test_crypto-test-crypto.o -MD -MP -MF src/libnm-core-impl/tests/$(DEPDIR)/test_crypto-test-crypto.Tpo -c -o src/libnm-core-impl/tests/test_crypto-test-crypto.o `test -f 'src/libnm-core-impl/tests/test-crypto.c' || echo '$(srcdir)/'`src/libnm-core-impl/tests/test-crypto.c
@@ -19198,13 +19201,6 @@ src/libnm-glib-aux/tests/test-json-aux.log: src/libnm-glib-aux/tests/test-json-a
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
-src/libnm-core-impl/tests/test-compare.log: src/libnm-core-impl/tests/test-compare$(EXEEXT)
-	@p='src/libnm-core-impl/tests/test-compare$(EXEEXT)'; \
-	b='src/libnm-core-impl/tests/test-compare'; \
-	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
-	--log-file $$b.log --trs-file $$b.trs \
-	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
-	"$$tst" $(AM_TESTS_FD_REDIRECT)
 src/libnm-core-impl/tests/test-crypto.log: src/libnm-core-impl/tests/test-crypto$(EXEEXT)
 	@p='src/libnm-core-impl/tests/test-crypto$(EXEEXT)'; \
 	b='src/libnm-core-impl/tests/test-crypto'; \
@@ -20030,6 +20026,7 @@ distclean: distclean-recursive
 	-rm -f introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Bridge.Plo
 	-rm -f introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Dummy.Plo
 	-rm -f introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Generic.Plo
+	-rm -f introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Hsr.Plo
 	-rm -f introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.IPTunnel.Plo
 	-rm -f introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Infiniband.Plo
 	-rm -f introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Loopback.Plo
@@ -20118,6 +20115,7 @@ distclean: distclean-recursive
 	-rm -f src/core/devices/$(DEPDIR)/libNetworkManager_la-nm-device-ethernet.Plo
 	-rm -f src/core/devices/$(DEPDIR)/libNetworkManager_la-nm-device-factory.Plo
 	-rm -f src/core/devices/$(DEPDIR)/libNetworkManager_la-nm-device-generic.Plo
+	-rm -f src/core/devices/$(DEPDIR)/libNetworkManager_la-nm-device-hsr.Plo
 	-rm -f src/core/devices/$(DEPDIR)/libNetworkManager_la-nm-device-infiniband.Plo
 	-rm -f src/core/devices/$(DEPDIR)/libNetworkManager_la-nm-device-ip-tunnel.Plo
 	-rm -f src/core/devices/$(DEPDIR)/libNetworkManager_la-nm-device-loopback.Plo
@@ -20276,6 +20274,7 @@ distclean: distclean-recursive
 	-rm -f src/libnm-client-impl/$(DEPDIR)/libnm_client_impl_la-nm-device-dummy.Plo
 	-rm -f src/libnm-client-impl/$(DEPDIR)/libnm_client_impl_la-nm-device-ethernet.Plo
 	-rm -f src/libnm-client-impl/$(DEPDIR)/libnm_client_impl_la-nm-device-generic.Plo
+	-rm -f src/libnm-client-impl/$(DEPDIR)/libnm_client_impl_la-nm-device-hsr.Plo
 	-rm -f src/libnm-client-impl/$(DEPDIR)/libnm_client_impl_la-nm-device-infiniband.Plo
 	-rm -f src/libnm-client-impl/$(DEPDIR)/libnm_client_impl_la-nm-device-ip-tunnel.Plo
 	-rm -f src/libnm-client-impl/$(DEPDIR)/libnm_client_impl_la-nm-device-loopback.Plo
@@ -20331,7 +20330,6 @@ distclean: distclean-recursive
 	-rm -f src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-keyfile-utils.Plo
 	-rm -f src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-keyfile.Plo
 	-rm -f src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-meta-setting-base-impl.Plo
-	-rm -f src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-property-compare.Plo
 	-rm -f src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-6lowpan.Plo
 	-rm -f src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-8021x.Plo
 	-rm -f src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-adsl.Plo
@@ -20348,6 +20346,7 @@ distclean: distclean-recursive
 	-rm -f src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-generic.Plo
 	-rm -f src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-gsm.Plo
 	-rm -f src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-hostname.Plo
+	-rm -f src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-hsr.Plo
 	-rm -f src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-infiniband.Plo
 	-rm -f src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-ip-config.Plo
 	-rm -f src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-ip-tunnel.Plo
@@ -20394,7 +20393,6 @@ distclean: distclean-recursive
 	-rm -f src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-utils.Plo
 	-rm -f src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-vpn-editor-plugin.Plo
 	-rm -f src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-vpn-plugin-info.Plo
-	-rm -f src/libnm-core-impl/tests/$(DEPDIR)/test_compare-test-compare.Po
 	-rm -f src/libnm-core-impl/tests/$(DEPDIR)/test_crypto-test-crypto.Po
 	-rm -f src/libnm-core-impl/tests/$(DEPDIR)/test_general-nm-core-tests-enum-types.Po
 	-rm -f src/libnm-core-impl/tests/$(DEPDIR)/test_general-test-general.Po
@@ -20711,6 +20709,7 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Bridge.Plo
 	-rm -f introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Dummy.Plo
 	-rm -f introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Generic.Plo
+	-rm -f introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Hsr.Plo
 	-rm -f introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.IPTunnel.Plo
 	-rm -f introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Infiniband.Plo
 	-rm -f introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Loopback.Plo
@@ -20799,6 +20798,7 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f src/core/devices/$(DEPDIR)/libNetworkManager_la-nm-device-ethernet.Plo
 	-rm -f src/core/devices/$(DEPDIR)/libNetworkManager_la-nm-device-factory.Plo
 	-rm -f src/core/devices/$(DEPDIR)/libNetworkManager_la-nm-device-generic.Plo
+	-rm -f src/core/devices/$(DEPDIR)/libNetworkManager_la-nm-device-hsr.Plo
 	-rm -f src/core/devices/$(DEPDIR)/libNetworkManager_la-nm-device-infiniband.Plo
 	-rm -f src/core/devices/$(DEPDIR)/libNetworkManager_la-nm-device-ip-tunnel.Plo
 	-rm -f src/core/devices/$(DEPDIR)/libNetworkManager_la-nm-device-loopback.Plo
@@ -20957,6 +20957,7 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f src/libnm-client-impl/$(DEPDIR)/libnm_client_impl_la-nm-device-dummy.Plo
 	-rm -f src/libnm-client-impl/$(DEPDIR)/libnm_client_impl_la-nm-device-ethernet.Plo
 	-rm -f src/libnm-client-impl/$(DEPDIR)/libnm_client_impl_la-nm-device-generic.Plo
+	-rm -f src/libnm-client-impl/$(DEPDIR)/libnm_client_impl_la-nm-device-hsr.Plo
 	-rm -f src/libnm-client-impl/$(DEPDIR)/libnm_client_impl_la-nm-device-infiniband.Plo
 	-rm -f src/libnm-client-impl/$(DEPDIR)/libnm_client_impl_la-nm-device-ip-tunnel.Plo
 	-rm -f src/libnm-client-impl/$(DEPDIR)/libnm_client_impl_la-nm-device-loopback.Plo
@@ -21012,7 +21013,6 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-keyfile-utils.Plo
 	-rm -f src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-keyfile.Plo
 	-rm -f src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-meta-setting-base-impl.Plo
-	-rm -f src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-property-compare.Plo
 	-rm -f src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-6lowpan.Plo
 	-rm -f src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-8021x.Plo
 	-rm -f src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-adsl.Plo
@@ -21029,6 +21029,7 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-generic.Plo
 	-rm -f src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-gsm.Plo
 	-rm -f src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-hostname.Plo
+	-rm -f src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-hsr.Plo
 	-rm -f src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-infiniband.Plo
 	-rm -f src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-ip-config.Plo
 	-rm -f src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-ip-tunnel.Plo
@@ -21075,7 +21076,6 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-utils.Plo
 	-rm -f src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-vpn-editor-plugin.Plo
 	-rm -f src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-vpn-plugin-info.Plo
-	-rm -f src/libnm-core-impl/tests/$(DEPDIR)/test_compare-test-compare.Po
 	-rm -f src/libnm-core-impl/tests/$(DEPDIR)/test_crypto-test-crypto.Po
 	-rm -f src/libnm-core-impl/tests/$(DEPDIR)/test_general-nm-core-tests-enum-types.Po
 	-rm -f src/libnm-core-impl/tests/$(DEPDIR)/test_general-test-general.Po
@@ -21574,7 +21574,6 @@ src/libnm-core-impl/tests/nm-core-tests-enum-types.c.stamp: src/libnm-core-impl/
 
 $(src_libnm_core_impl_tests_test_general_OBJECTS): src/libnm-core-impl/tests/nm-core-tests-enum-types.h
 
-$(src_libnm_core_impl_tests_test_compare_OBJECTS): $(src_libnm_core_public_mkenums_h)
 $(src_libnm_core_impl_tests_test_crypto_OBJECTS): $(src_libnm_core_public_mkenums_h)
 $(src_libnm_core_impl_tests_test_general_OBJECTS): $(src_libnm_core_public_mkenums_h)
 $(src_libnm_core_impl_tests_test_keyfile_OBJECTS): $(src_libnm_core_public_mkenums_h)
@@ -21624,7 +21623,7 @@ src/libnm-client-impl/libnm.typelib: src/libnm-client-impl/libnm.gir
 @BUILD_DOCS_FALSE@	$(AM_V_GEN) cp $^ $@
 @BUILD_DOCS_FALSE@check-local-gen-metadata-nm-settings-libnm-core:
 
-src/libnm-client-impl/nm-property-infos-%.xml: tools/generate-docs-nm-property-infos.py src/libnm-core-impl/libnm-core-impl.la $(libnm_docs_sources)
+src/libnm-client-impl/nm-property-infos-%.xml: tools/generate-docs-nm-property-infos.py src/libnm-core-impl/libnm-core-impl.la src/libnm-client-impl/NM-1.0.gir $(libnm_docs_sources)
 	$(AM_V_GEN) \
 		"$(PYTHON)" \
 		$(srcdir)/tools/generate-docs-nm-property-infos.py \
@@ -21632,7 +21631,7 @@ src/libnm-client-impl/nm-property-infos-%.xml: tools/generate-docs-nm-property-i
 		$@ \
 		$(wordlist 3,1000,$^)
 
-src/libnm-client-impl/nm-settings-docs-gir.xml: tools/generate-docs-nm-settings-docs-gir.py src/libnm-client-impl/NM-1.0.gir src/libnm-client-impl/NM-1.0.typelib src/libnm-client-impl/libnm.la $(libnm_docs_sources)
+src/libnm-client-impl/nm-settings-docs-gir-%.xml: tools/generate-docs-nm-settings-docs-gir.py src/libnm-client-impl/NM-1.0.gir src/libnm-client-impl/NM-1.0.typelib src/libnm-client-impl/libnm.la $(libnm_docs_sources)
 	$(AM_V_GEN) \
 	export GI_TYPELIB_PATH=$(abs_builddir)/src/libnm-client-impl$${GI_TYPELIB_PATH:+:$$GI_TYPELIB_PATH}; \
 	export LD_LIBRARY_PATH=$(abs_builddir)/src/libnm-client-impl/.libs$${LD_LIBRARY_PATH:+:$$LD_LIBRARY_PATH}; \
@@ -21640,9 +21639,10 @@ src/libnm-client-impl/nm-settings-docs-gir.xml: tools/generate-docs-nm-settings-
 	"$(PYTHON)" \
 	$(srcdir)/tools/generate-docs-nm-settings-docs-gir.py \
 		--gir $(builddir)/src/libnm-client-impl/NM-1.0.gir \
-		--output $@
+		--output $@ \
+		--target $(patsubst nm-settings-docs-gir-%.xml,%,$(notdir $@))
 
-man/nm-settings-docs-nmcli.xml: src/nmcli/gen-metadata-nm-settings-nmcli.xml src/libnm-client-impl/nm-property-infos-nmcli.xml src/libnm-client-impl/nm-settings-docs-gir.xml tools/generate-docs-nm-settings-docs-merge.py man/common.ent
+man/nm-settings-docs-nmcli.xml: src/nmcli/gen-metadata-nm-settings-nmcli.xml src/libnm-client-impl/nm-property-infos-nmcli.xml src/libnm-client-impl/nm-settings-docs-gir-nmcli.xml tools/generate-docs-nm-settings-docs-merge.py man/common.ent
 	$(AM_V_GEN) \
 		"$(PYTHON)" \
 		"$(srcdir)/tools/generate-docs-nm-settings-docs-merge.py" \
@@ -21651,10 +21651,10 @@ man/nm-settings-docs-nmcli.xml: src/nmcli/gen-metadata-nm-settings-nmcli.xml src
 		"$<" \
 		$(wordlist 1,3,$^)
 
-src/libnmc-setting/settings-docs-input.xml: src/libnm-client-impl/nm-property-infos-nmcli.xml src/libnm-client-impl/nm-settings-docs-gir.xml tools/generate-docs-nm-settings-docs-merge.py
+src/libnmc-setting/settings-docs-input.xml: src/libnm-client-impl/nm-property-infos-nmcli.xml src/libnm-client-impl/nm-settings-docs-gir-nmcli.xml tools/generate-docs-nm-settings-docs-merge.py
 	$(AM_V_GEN) "$(PYTHON)" $(srcdir)/tools/generate-docs-nm-settings-docs-merge.py $@ $(wordlist 1,2,$^)
 
-man/nm-settings-docs-%.xml: src/libnm-client-impl/nm-property-infos-%.xml src/libnm-client-impl/nm-settings-docs-gir.xml tools/generate-docs-nm-settings-docs-merge.py man/common.ent
+man/nm-settings-docs-%.xml: src/libnm-client-impl/nm-property-infos-%.xml src/libnm-client-impl/nm-settings-docs-gir-%.xml tools/generate-docs-nm-settings-docs-merge.py man/common.ent
 	$(AM_V_GEN) "$(PYTHON)" $(srcdir)/tools/generate-docs-nm-settings-docs-merge.py $@ $(wordlist 1,2,$^)
 
 check-local-libnm-gir: $(builddir)/src/libnm-client-impl/NM-1.0.gir
@@ -21951,10 +21951,8 @@ check-local-gitlab-ci:
 @HAVE_SYSTEMD_TRUE@data/NetworkManager.service: $(srcdir)/data/NetworkManager.service.in
 @HAVE_SYSTEMD_TRUE@	$(AM_V_GEN) $(data_edit) $< >$@
 
-@HAVE_SYSTEMD_200_TRUE@@HAVE_SYSTEMD_TRUE@data/NetworkManager-wait-online.service: $(srcdir)/data/NetworkManager-wait-online.service.in
-@HAVE_SYSTEMD_200_TRUE@@HAVE_SYSTEMD_TRUE@	$(AM_V_GEN) $(data_edit) $< >$@
-@HAVE_SYSTEMD_200_FALSE@@HAVE_SYSTEMD_TRUE@data/NetworkManager-wait-online.service: $(srcdir)/data/NetworkManager-wait-online-systemd-pre200.service.in
-@HAVE_SYSTEMD_200_FALSE@@HAVE_SYSTEMD_TRUE@	$(AM_V_GEN) $(data_edit) $< >$@
+@HAVE_SYSTEMD_TRUE@data/NetworkManager-wait-online.service: $(srcdir)/data/NetworkManager-wait-online.service.in
+@HAVE_SYSTEMD_TRUE@	$(AM_V_GEN) $(data_edit) $< >$@
 
 @HAVE_SYSTEMD_TRUE@data/NetworkManager-dispatcher.service: $(srcdir)/data/NetworkManager-dispatcher.service.in
 @HAVE_SYSTEMD_TRUE@	$(AM_V_GEN) $(data_edit) $< >$@

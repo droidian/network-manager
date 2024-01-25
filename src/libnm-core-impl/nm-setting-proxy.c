@@ -41,19 +41,18 @@ typedef struct {
  * WWW Proxy Settings
  */
 struct _NMSettingProxy {
-    NMSetting parent;
+    NMSetting             parent;
+    NMSettingProxyPrivate _priv;
 };
 
 struct _NMSettingProxyClass {
     NMSettingClass parent;
-
-    gpointer padding[4];
 };
 
 G_DEFINE_TYPE(NMSettingProxy, nm_setting_proxy, NM_TYPE_SETTING)
 
 #define NM_SETTING_PROXY_GET_PRIVATE(o) \
-    (G_TYPE_INSTANCE_GET_PRIVATE((o), NM_TYPE_SETTING_PROXY, NMSettingProxyPrivate))
+    _NM_GET_PRIVATE(o, NMSettingProxy, NM_IS_SETTING_PROXY, NMSetting)
 
 /*****************************************************************************/
 
@@ -233,8 +232,6 @@ nm_setting_proxy_class_init(NMSettingProxyClass *klass)
     NMSettingClass *setting_class       = NM_SETTING_CLASS(klass);
     GArray         *properties_override = _nm_sett_info_property_override_create_array();
 
-    g_type_class_add_private(klass, sizeof(NMSettingProxyPrivate));
-
     object_class->get_property = _nm_setting_property_get_property_direct;
     object_class->set_property = _nm_setting_property_set_property_direct;
 
@@ -310,7 +307,8 @@ nm_setting_proxy_class_init(NMSettingProxyClass *klass)
                                               PROP_PAC_URL,
                                               NM_SETTING_PARAM_NONE,
                                               NMSettingProxyPrivate,
-                                              pac_url);
+                                              pac_url,
+                                              .direct_string_allow_empty = TRUE);
 
     /**
      * NMSettingProxy:pac-script:
@@ -342,7 +340,8 @@ nm_setting_proxy_class_init(NMSettingProxyClass *klass)
                                               PROP_PAC_SCRIPT,
                                               NM_SETTING_PARAM_NONE,
                                               NMSettingProxyPrivate,
-                                              pac_script);
+                                              pac_script,
+                                              .direct_string_allow_empty = TRUE);
 
     g_object_class_install_properties(object_class, _PROPERTY_ENUMS_LAST, obj_properties);
 
@@ -350,5 +349,5 @@ nm_setting_proxy_class_init(NMSettingProxyClass *klass)
                              NM_META_SETTING_TYPE_PROXY,
                              NULL,
                              properties_override,
-                             NM_SETT_INFO_PRIVATE_OFFSET_FROM_CLASS);
+                             G_STRUCT_OFFSET(NMSettingProxy, _priv));
 }

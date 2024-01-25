@@ -33,7 +33,8 @@ typedef struct {
  * Since: 1.14
  */
 struct _NMSetting6Lowpan {
-    NMSetting parent;
+    NMSetting               parent;
+    NMSetting6LowpanPrivate _priv;
 };
 
 struct _NMSetting6LowpanClass {
@@ -43,7 +44,7 @@ struct _NMSetting6LowpanClass {
 G_DEFINE_TYPE(NMSetting6Lowpan, nm_setting_6lowpan, NM_TYPE_SETTING)
 
 #define NM_SETTING_6LOWPAN_GET_PRIVATE(o) \
-    (G_TYPE_INSTANCE_GET_PRIVATE((o), NM_TYPE_SETTING_6LOWPAN, NMSetting6LowpanPrivate))
+    _NM_GET_PRIVATE(o, NMSetting6Lowpan, NM_IS_SETTING_6LOWPAN, NMSetting)
 
 /*****************************************************************************/
 
@@ -92,7 +93,7 @@ verify(NMSetting *setting, NMConnection *connection, GError **error)
         if (s_con) {
             const char *master = NULL, *slave_type = NULL;
 
-            slave_type = nm_setting_connection_get_slave_type(s_con);
+            slave_type = nm_setting_connection_get_port_type(s_con);
             if (!g_strcmp0(slave_type, NM_SETTING_6LOWPAN_SETTING_NAME))
                 master = nm_setting_connection_get_master(s_con);
 
@@ -102,7 +103,7 @@ verify(NMSetting *setting, NMConnection *connection, GError **error)
                             NM_CONNECTION_ERROR_INVALID_PROPERTY,
                             _("'%s' value doesn't match '%s=%s'"),
                             priv->parent,
-                            NM_SETTING_CONNECTION_MASTER,
+                            NM_SETTING_CONNECTION_CONTROLLER,
                             master);
                 g_prefix_error(error,
                                "%s.%s: ",
@@ -156,8 +157,6 @@ nm_setting_6lowpan_class_init(NMSetting6LowpanClass *klass)
     NMSettingClass *setting_class       = NM_SETTING_CLASS(klass);
     GArray         *properties_override = _nm_sett_info_property_override_create_array();
 
-    g_type_class_add_private(klass, sizeof(NMSetting6LowpanPrivate));
-
     object_class->get_property = _nm_setting_property_get_property_direct;
     object_class->set_property = _nm_setting_property_set_property_direct;
 
@@ -177,7 +176,8 @@ nm_setting_6lowpan_class_init(NMSetting6LowpanClass *klass)
                                               PROP_PARENT,
                                               NM_SETTING_PARAM_INFERRABLE,
                                               NMSetting6LowpanPrivate,
-                                              parent);
+                                              parent,
+                                              .direct_string_allow_empty = TRUE);
 
     g_object_class_install_properties(object_class, _PROPERTY_ENUMS_LAST, obj_properties);
 
@@ -185,5 +185,5 @@ nm_setting_6lowpan_class_init(NMSetting6LowpanClass *klass)
                              NM_META_SETTING_TYPE_6LOWPAN,
                              NULL,
                              properties_override,
-                             NM_SETT_INFO_PRIVATE_OFFSET_FROM_CLASS);
+                             G_STRUCT_OFFSET(NMSetting6Lowpan, _priv));
 }
