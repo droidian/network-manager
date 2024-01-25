@@ -67,7 +67,10 @@ Addresses  readable   aau
 <p>
 Array of arrays of IPv4 address/prefix/gateway. All 3 elements of each
 array are in network byte order. Essentially: [(addr, prefix, gateway),
-(addr, prefix, gateway), ...] Deprecated: use AddressData and Gateway
+(addr, prefix, gateway), ...].
+</p>
+<p>
+DEPRECATED: use AddressData and Gateway
 </p>
 </div>
 <hr>
@@ -103,7 +106,10 @@ Arrays of IPv4 route/prefix/next-hop/metric. All 4 elements of each tuple
 are in network byte order. 'route' and 'next hop' are IPv4 addresses,
 while prefix and metric are simple unsigned integers. Essentially:
 [(route, prefix, next-hop, metric), (route, prefix, next-hop, metric),
-...] Deprecated: use RouteData
+...].
+</p>
+<p>
+DEPRECATED: use RouteData
 </p>
 </div>
 <hr>
@@ -125,7 +131,10 @@ address string) and "prefix" (a uint). Some routes may include "next-hop"
 Nameservers  readable   au
 </pre>
 <p>
-The nameservers in use. Deprecated: use NameserverData
+The nameservers in use.
+</p>
+<p>
+DEPRECATED: use NameserverData
 </p>
 </div>
 <hr>
@@ -189,7 +198,10 @@ WinsServers  readable   au
 </pre>
 <p>
 The Windows Internet Name Service servers associated with the connection.
-Each address is in network byte order. Deprecated: use WinsServerData
+Each address is in network byte order.
+</p>
+<p>
+DEPRECATED: use WinsServerData
 </p>
 </div>
 <hr>

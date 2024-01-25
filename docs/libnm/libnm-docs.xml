@@ -34,15 +34,7 @@
 	Texts. You may obtain a copy of the <citetitle>GNU Free
 	Documentation License</citetitle> from the Free Software
 	Foundation by visiting <ulink type="http"
-	url="http://www.fsf.org">their Web site</ulink> or by writing
-	to:
-
-	<address>
-	  The Free Software Foundation, Inc.,
-	  <street>51 Franklin Street</street> - Fifth Floor,
-	  <city>Boston</city>, <state>MA</state> <postcode>02110-1301</postcode>,
-	  <country>USA</country>
-	</address>
+	url="http://www.fsf.org">their Web site</ulink>.
       </para>
     </legalnotice>
   </bookinfo>
@@ -327,6 +319,7 @@ print ("NetworkManager version " + client.get_version())]]></programlisting></in
     <xi:include href="xml/nm-setting-generic.xml"/>
     <xi:include href="xml/nm-setting-gsm.xml"/>
     <xi:include href="xml/nm-setting-hostname.xml"/>
+    <xi:include href="xml/nm-setting-hsr.xml"/>
     <xi:include href="xml/nm-setting-infiniband.xml"/>
     <xi:include href="xml/nm-setting-ip-config.xml"/>
     <xi:include href="xml/nm-setting-ip-tunnel.xml"/>
@@ -382,6 +375,7 @@ print ("NetworkManager version " + client.get_version())]]></programlisting></in
     <xi:include href="xml/nm-device-dummy.xml"/>
     <xi:include href="xml/nm-device-ethernet.xml"/>
     <xi:include href="xml/nm-device-generic.xml"/>
+    <xi:include href="xml/nm-device-hsr.xml"/>
     <xi:include href="xml/nm-device-infiniband.xml"/>
     <xi:include href="xml/nm-device-ip-tunnel.xml"/>
     <xi:include href="xml/nm-device-loopback.xml"/>
@@ -467,13 +461,7 @@ print ("NetworkManager version " + client.get_version())]]></programlisting></in
     <para>
       You should have received a copy of the <citetitle>GNU
       Lesser General Public License</citetitle> along with this
-      library; if not, write to the
-      <address>
-        Free Software Foundation, Inc.,
-        <street>51 Franklin Street</street> - Fifth Floor,
-        <city>Boston</city>, <state>MA</state> <postcode>02110-1301</postcode>,
-        <country>USA</country>
-      </address>
+      library.
     </para>
 
     <para>

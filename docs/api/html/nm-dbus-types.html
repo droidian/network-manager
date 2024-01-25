@@ -840,6 +840,21 @@
 </td>
 <td class="auto-generated"> </td>
 </tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_DEVICE_TYPE_HSR</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">33</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>A HSR/PRP device. Since: 1.46.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
 </tbody>
 </table></div>
 </div>
@@ -1129,6 +1144,21 @@
 </td>
 <td class="enum_member_description">
 <p>device supports 5GHz frequencies</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_WIFI_DEVICE_CAP_FREQ_6GHZ</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">0x00000800</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>device supports 6GHz frequencies. Since: 1.46.</p>
 <p></p>
 </td>
 <td class="auto-generated"> </td>
@@ -3106,7 +3136,7 @@
 <hr>
 <div class="refsect2">
 <a name="NMMetered"></a><h3>enum NMMetered</h3>
-<p>The NMMetered enum has two different purposes: one is to configure "connection.metered" setting of a connection profile in NMSettingConnection, and the other is to express the actual metered state of the <a href="/usr/share/gtk-doc/html/libnm/NMDevice.html#NMDevice-struct">NMDevice</a> at a given moment.</p>
+<p>The NMMetered enum has two different purposes: one is to configure "connection.metered" setting of a connection profile in NMSettingConnection, and the other is to express the actual metered state of the NMDevice at a given moment.</p>
 <p>For the connection profile only NM_METERED_UNKNOWN, NM_METERED_NO and NM_METERED_YES are allowed.</p>
 <p>The device's metered state at runtime is determined by the profile which is currently active. If the profile explicitly specifies NM_METERED_NO or NM_METERED_YES, then the device's metered state is as such. If the connection profile leaves it undecided at NM_METERED_UNKNOWN (the default), then NetworkManager tries to guess the metered state, for example based on the device type or on DHCP options (like Android devices exposing a "ANDROID_METERED" DHCP vendor option). This then leads to either NM_METERED_GUESS_NO or NM_METERED_GUESS_YES.</p>
 <p>Most applications probably should treat the runtime state NM_METERED_GUESS_YES like NM_METERED_YES, and all other states as not metered.</p>
@@ -4079,7 +4109,7 @@
 <p></p>
 </td>
 <td class="enum_member_description">
-<p>by default, creating a checkpoint fails if there are already existing checkoints that reference the same devices. With this flag, creation of such checkpoints is allowed, however, if an older checkpoint that references overlapping devices gets rolled back, it will automatically destroy this checkpoint during rollback. This allows to create several overlapping checkpoints in parallel, and rollback to them at will. With the special case that rolling back to an older checkpoint will invalidate all overlapping younger checkpoints. This opts-in that the checkpoint can be automatically destroyed by the rollback of an older checkpoint. Since: 1.12.</p>
+<p>by default, creating a checkpoint fails if there are already existing checkpoints that reference the same devices. With this flag, creation of such checkpoints is allowed, however, if an older checkpoint that references overlapping devices gets rolled back, it will automatically destroy this checkpoint during rollback. This allows to create several overlapping checkpoints in parallel, and rollback to them at will. With the special case that rolling back to an older checkpoint will invalidate all overlapping younger checkpoints. This opts-in that the checkpoint can be automatically destroyed by the rollback of an older checkpoint. Since: 1.12.</p>
 <p></p>
 </td>
 <td class="auto-generated"> </td>

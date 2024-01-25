@@ -38,7 +38,7 @@
             Properties
         </h2>
 <div class="table">
-<a name="id-1.3.3.2.2.2.1"></a><p class="title"><b>Table 36. </b></p>
+<a name="id-1.3.3.2.2.2.1"></a><p class="title"><b>Table 37. </b></p>
 <div class="table-contents"><table class="table" border="1">
 <colgroup>
 <col>
@@ -94,6 +94,12 @@ Depending on "connection.multi-connect", a profile can (auto)connect only once a
 <td>Whether or not slaves of this connection should be automatically brought up when NetworkManager activates this connection. This only has a real effect for master connections. The properties "autoconnect", "autoconnect-priority" and "autoconnect-retries" are unrelated to this setting. The permitted values are: 0: leave slave connections untouched, 1: activate all the slave connections with this connection, -1: default. If -1 (default) is set, global connection.autoconnect-slaves is read to determine the real value. If it is default as well, this fallbacks to 0.</td>
 </tr>
 <tr>
+<td><pre class="screen">controller</pre></td>
+<td><pre class="screen">string</pre></td>
+<td><pre class="screen"></pre></td>
+<td>Interface name of the controller device or UUID of the controller connection.</td>
+</tr>
+<tr>
 <td><pre class="screen">dns-over-tls</pre></td>
 <td><pre class="screen">int32</pre></td>
 <td><pre class="screen">-1</pre></td>
@@ -145,7 +151,9 @@ This feature requires a plugin which supports LLMNR. Otherwise, the setting has 
 <td><pre class="screen">master</pre></td>
 <td><pre class="screen">string</pre></td>
 <td><pre class="screen"></pre></td>
-<td>Interface name of the master device or UUID of the master connection.</td>
+<td>Interface name of the master device or UUID of the master connection.
+
+Deprecated 1.46. Use "controller" instead, this is just an alias.</td>
 </tr>
 <tr>
 <td><pre class="screen">mdns</pre></td>
@@ -212,6 +220,12 @@ If the per-profile value is unspecified (the default), a global connection defau
 At this time only the "user" [type] is allowed.  Any other values are ignored and reserved for future use.  [id] is the username that this permission refers to, which may not contain the ":" character. Any [reserved] information present must be ignored and is reserved for future use.  All of [type], [id], and [reserved] must be valid UTF-8.</td>
 </tr>
 <tr>
+<td><pre class="screen">port-type</pre></td>
+<td><pre class="screen">string</pre></td>
+<td><pre class="screen"></pre></td>
+<td>Setting name of the device type of this port's controller connection (eg, "bond"), or NULL if this connection is not a port.</td>
+</tr>
+<tr>
 <td><pre class="screen">read-only</pre></td>
 <td><pre class="screen">boolean</pre></td>
 <td><pre class="screen">FALSE</pre></td>
@@ -227,7 +241,9 @@ At this time only the "user" [type] is allowed.  Any other values are ignored an
 <td><pre class="screen">slave-type</pre></td>
 <td><pre class="screen">string</pre></td>
 <td><pre class="screen"></pre></td>
-<td>Setting name of the device type of this slave's master connection (eg, "bond"), or NULL if this connection is not a slave.</td>
+<td>Setting name of the device type of this slave's master connection (eg, "bond"), or NULL if this connection is not a slave.
+
+Deprecated 1.46. Use "port-type" instead, this is just an alias.</td>
 </tr>
 <tr>
 <td><pre class="screen">stable-id</pre></td>
@@ -239,7 +255,7 @@ The stable-id is used for generating IPv6 stable private addresses with ipv6.add
 
 Note that depending on the context where it is used, other parameters are also seeded into the generation algorithm. For example, a per-host key is commonly also included, so that different systems end up generating different IDs. Or with ipv6.addr-gen-mode=stable-privacy, also the device's name is included, so that different interfaces yield different addresses. The per-host key is the identity of your machine and stored in /var/lib/NetworkManager/secret_key. See NetworkManager(8) manual about the secret-key and the host identity.
 
-The '$' character is treated special to perform dynamic substitutions at activation time. Currently, supported are "${CONNECTION}", "${DEVICE}", "${MAC}", "${BOOT}", "${RANDOM}".  These effectively create unique IDs per-connection, per-device, per-boot, or every time. The "${CONNECTION}" uses the profile's connection.uuid, the "${DEVICE}" uses the interface name of the device and "${MAC}" the permanent MAC address of the device. Any unrecognized patterns following '$' are treated verbatim, however are reserved for future use. You are thus advised to avoid '$' or escape it as "$$".  For example, set it to "${CONNECTION}-${BOOT}-${DEVICE}" to create a unique id for this connection that changes with every reboot and differs depending on the interface where the profile activates.
+The '$' character is treated special to perform dynamic substitutions at activation time. Currently, supported are "${CONNECTION}", "${DEVICE}", "${MAC}", "${NETWORK_SSID}", "${BOOT}", "${RANDOM}".  These effectively create unique IDs per-connection, per-device, per-SSID, per-boot, or every time.  The "${CONNECTION}" uses the profile's connection.uuid, the "${DEVICE}" uses the interface name of the device and "${MAC}" the permanent MAC address of the device. "${NETWORK_SSID}" uses the SSID for Wi-Fi networks and falls back to "${CONNECTION}" on other networks. Any unrecognized patterns following '$' are treated verbatim, however are reserved for future use. You are thus advised to avoid '$' or escape it as "$$".  For example, set it to "${CONNECTION}-${BOOT}-${DEVICE}" to create a unique id for this connection that changes with every reboot and differs depending on the interface where the profile activates.
 
 If the value is unset, a global connection default is consulted. If the value is still unset, the default is "default${CONNECTION}" go generate an ID unique per connection profile.</td>
 </tr>

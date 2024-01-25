@@ -38,7 +38,7 @@
             Properties
         </h2>
 <div class="table">
-<a name="id-1.3.3.17.2.2.1"></a><p class="title"><b>Table 51. </b></p>
+<a name="id-1.3.3.17.2.2.1"></a><p class="title"><b>Table 52. </b></p>
 <div class="table-contents"><table class="table" border="1">
 <colgroup>
 <col>
@@ -78,9 +78,9 @@ For other connection types, adding such an automatic route is currently not supp
 <td><pre class="screen">dad-timeout</pre></td>
 <td><pre class="screen">int32</pre></td>
 <td><pre class="screen">-1</pre></td>
-<td>Timeout in milliseconds used to check for the presence of duplicate IP addresses on the network.  If an address conflict is detected, the activation will fail.  A zero value means that no duplicate address detection is performed, -1 means the default value (either configuration ipvx.dad-timeout override or zero).  A value greater than zero is a timeout in milliseconds.
+<td>Maximum timeout in milliseconds used to check for the presence of duplicate IP addresses on the network.  If an address conflict is detected, the activation will fail. The property is currently implemented only for IPv4.
 
-The property is currently implemented only for IPv4.</td>
+A zero value means that no duplicate address detection is performed, -1 means the default value (either the value configured globally in NetworkManger.conf or 200ms).  A value greater than zero is a timeout in milliseconds.  Note that the time intervals are subject to randomization as per RFC 5227 and so the actual duration can be between half and the full time specified in this property.</td>
 </tr>
 <tr>
 <td><pre class="screen">dhcp-client-id</pre></td>
@@ -96,7 +96,9 @@ The special value "duid" generates a RFC4361-compliant client identifier based o
 
 The special value "stable" is supported to generate a type 0 client identifier based on the stable-id (see connection.stable-id) and a per-host key. If you set the stable-id, you may want to include the "${DEVICE}" or "${MAC}" specifier to get a per-device key.
 
-If unset, a globally configured default is used. If still unset, the default depends on the DHCP plugin.</td>
+The special value "none" prevents any client identifier from being sent. Note that this is normally not recommended.
+
+If unset, a globally configured default from NetworkManager.conf is used. If still unset, the default depends on the DHCP plugin. The internal dhcp client will default to "mac" and the dhclient plugin will try to use one from its config file if present, or won't sent any client-id otherwise.</td>
 </tr>
 <tr>
 <td><pre class="screen">dhcp-fqdn</pre></td>
@@ -116,9 +118,9 @@ If unset, a globally configured default is used. If still unset, the default dep
 <td><pre class="screen">0</pre></td>
 <td>Flags for the DHCP hostname and FQDN.
 
-Currently, this property only includes flags to control the FQDN flags set in the DHCP FQDN option. Supported FQDN flags are NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE (0x1), NM_DHCP_HOSTNAME_FLAG_FQDN_ENCODED (0x2) and NM_DHCP_HOSTNAME_FLAG_FQDN_NO_UPDATE (0x4).  When no FQDN flag is set and NM_DHCP_HOSTNAME_FLAG_FQDN_CLEAR_FLAGS (0x8) is set, the DHCP FQDN option will contain no flag. Otherwise, if no FQDN flag is set and NM_DHCP_HOSTNAME_FLAG_FQDN_CLEAR_FLAGS (0x8) is not set, the standard FQDN flags are set in the request: NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE (0x1), NM_DHCP_HOSTNAME_FLAG_FQDN_ENCODED (0x2) for IPv4 and NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE (0x1) for IPv6.
+Currently, this property only includes flags to control the FQDN flags set in the DHCP FQDN option. Supported FQDN flags are 0x1 (fqdn-serv-update), 0x2 (fqdn-encoded) and 0x4 (fqdn-no-update).  When no FQDN flag is set and 0x8 (fqdn-clear-flags) is set, the DHCP FQDN option will contain no flag. Otherwise, if no FQDN flag is set and 0x8 (fqdn-clear-flags) is not set, the standard FQDN flags are set in the request: 0x1 (fqdn-serv-update), 0x2 (fqdn-encoded) for IPv4 and 0x1 (fqdn-serv-update) for IPv6.
 
-When this property is set to the default value NM_DHCP_HOSTNAME_FLAG_NONE (0x0), a global default is looked up in NetworkManager configuration. If that value is unset or also NM_DHCP_HOSTNAME_FLAG_NONE (0x0), then the standard FQDN flags described above are sent in the DHCP requests.</td>
+When this property is set to the default value 0x0 (none), a global default is looked up in NetworkManager configuration. If that value is unset or also 0x0 (none), then the standard FQDN flags described above are sent in the DHCP requests.</td>
 </tr>
 <tr>
 <td><pre class="screen">dhcp-iaid</pre></td>
@@ -178,15 +180,17 @@ Set to 2147483647 (MAXINT32) for infinity.</td>
 <td><pre class="screen">dns-options</pre></td>
 <td><pre class="screen">array of string</pre></td>
 <td><pre class="screen"></pre></td>
-<td>Array of DNS options as described in man 5 resolv.conf.
+<td>Array of DNS options to be added to resolv.conf.
 
 NULL means that the options are unset and left at the default. In this case NetworkManager will use default options. This is distinct from an empty list of properties.
 
-The currently supported options are "attempts", "debug", "edns0", "inet6", "ip6-bytestring", "ip6-dotint", "ndots", "no-aaaa", "no-check-names", "no-ip6-dotint", "no-reload", "no-tld-query", "rotate", "single-request", "single-request-reopen", "timeout", "trust-ad", "use-vc".
+The following options are directly added to resolv.conf: "attempts", "debug", "edns0", "inet6", "ip6-bytestring", "ip6-dotint", "ndots", "no-aaaa", "no-check-names", "no-ip6-dotint", "no-reload", "no-tld-query", "rotate", "single-request", "single-request-reopen", "timeout", "trust-ad", "use-vc". See the resolv.conf(5) man page for a detailed description of these options.
+
+In addition, NetworkManager supports the special options "_no-add-edns0" and "_no-add-trust-ad". They are not added to resolv.conf, and can be used to prevent the automatic addition of options "edns0" and "trust-ad" when using caching DNS plugins (see below).
 
 The "trust-ad" setting is only honored if the profile contributes name servers to resolv.conf, and if all contributing profiles have "trust-ad" enabled.
 
-When using a caching DNS plugin (dnsmasq or systemd-resolved in NetworkManager.conf) then "edns0" and "trust-ad" are automatically added.</td>
+When using a caching DNS plugin (dnsmasq or systemd-resolved in NetworkManager.conf) then "edns0" and "trust-ad" are automatically added, unless "_no-add-edns0" and "_no-add-trust-ad" are present.</td>
 </tr>
 <tr>
 <td><pre class="screen">dns-priority</pre></td>

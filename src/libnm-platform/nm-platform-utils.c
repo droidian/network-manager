@@ -554,7 +554,7 @@ _ASSERT_ethtool_feature_infos(void)
         for (k = 0; k < inf->n_kernel_names; k++) {
             const char *name = inf->kernel_names[k];
 
-            g_assert(nm_strv_find_first(inf->kernel_names, k, name) < 0);
+            g_assert(!nm_strv_contains(inf->kernel_names, k, name));
 
             /* these offload features are only informational and cannot be set from user-space
              * (NETIF_F_NEVER_CHANGE). We should not track them in _ethtool_feature_infos. */
@@ -1068,6 +1068,69 @@ nmp_utils_ethtool_set_ring(int ifindex, const NMEthtoolRingState *ring)
 }
 
 gboolean
+nmp_utils_ethtool_get_channels(int ifindex, NMEthtoolChannelsState *channels)
+{
+    struct ethtool_channels eth_data;
+
+    g_return_val_if_fail(ifindex > 0, FALSE);
+    g_return_val_if_fail(channels, FALSE);
+
+    eth_data.cmd = ETHTOOL_GCHANNELS;
+
+    if (_ethtool_call_once(ifindex, &eth_data, sizeof(eth_data)) < 0) {
+        nm_log_trace(LOGD_PLATFORM,
+                     "ethtool[%d]: %s: failure getting channels settings",
+                     ifindex,
+                     "get-channels");
+        return FALSE;
+    }
+
+    *channels = (NMEthtoolChannelsState){
+        .rx       = eth_data.rx_count,
+        .tx       = eth_data.tx_count,
+        .other    = eth_data.other_count,
+        .combined = eth_data.combined_count,
+    };
+
+    nm_log_trace(LOGD_PLATFORM,
+                 "ethtool[%d]: %s: retrieved kernel channels settings",
+                 ifindex,
+                 "get-channels");
+    return TRUE;
+}
+
+gboolean
+nmp_utils_ethtool_set_channels(int ifindex, const NMEthtoolChannelsState *channels)
+{
+    struct ethtool_channels eth_data;
+
+    g_return_val_if_fail(ifindex > 0, FALSE);
+    g_return_val_if_fail(channels, FALSE);
+
+    eth_data = (struct ethtool_channels){
+        .cmd            = ETHTOOL_SCHANNELS,
+        .rx_count       = channels->rx,
+        .tx_count       = channels->tx,
+        .other_count    = channels->other,
+        .combined_count = channels->combined,
+    };
+
+    if (_ethtool_call_once(ifindex, &eth_data, sizeof(eth_data)) < 0) {
+        nm_log_trace(LOGD_PLATFORM,
+                     "ethtool[%d]: %s: failure setting channels settings",
+                     ifindex,
+                     "set-channels");
+        return FALSE;
+    }
+
+    nm_log_trace(LOGD_PLATFORM,
+                 "ethtool[%d]: %s: set kernel channels settings",
+                 ifindex,
+                 "set-channels");
+    return TRUE;
+}
+
+gboolean
 nmp_utils_ethtool_get_pause(int ifindex, NMEthtoolPauseState *pause)
 {
     struct ethtool_pauseparam          eth_data;
@@ -1099,6 +1162,35 @@ nmp_utils_ethtool_get_pause(int ifindex, NMEthtoolPauseState *pause)
 }
 
 gboolean
+nmp_utils_ethtool_get_eee(int ifindex, NMEthtoolEEEState *eee)
+{
+    struct ethtool_eee                 eth_data;
+    nm_auto_socket_handle SocketHandle shandle = SOCKET_HANDLE_INIT(ifindex);
+
+    g_return_val_if_fail(ifindex > 0, FALSE);
+    g_return_val_if_fail(eee, FALSE);
+
+    eth_data.cmd = ETHTOOL_GEEE;
+    if (_ethtool_call_handle(&shandle, &eth_data, sizeof(struct ethtool_eee)) != 0) {
+        nm_log_trace(LOGD_PLATFORM,
+                     "ethtool[%d]: %s: failure getting eee settings",
+                     ifindex,
+                     "get-eee");
+        return FALSE;
+    }
+
+    *eee = (NMEthtoolEEEState){
+        .enabled = eth_data.eee_enabled == 1,
+    };
+
+    nm_log_trace(LOGD_PLATFORM,
+                 "ethtool[%d]: %s: retrieved kernel eee settings",
+                 ifindex,
+                 "get-eee");
+    return TRUE;
+}
+
+gboolean
 nmp_utils_ethtool_set_pause(int ifindex, const NMEthtoolPauseState *pause)
 {
     struct ethtool_pauseparam          eth_data;
@@ -1125,6 +1217,36 @@ nmp_utils_ethtool_set_pause(int ifindex, const NMEthtoolPauseState *pause)
     return TRUE;
 }
 
+gboolean
+nmp_utils_ethtool_set_eee(int ifindex, const NMEthtoolEEEState *eee)
+{
+    struct ethtool_eee                 eth_data;
+    nm_auto_socket_handle SocketHandle shandle = SOCKET_HANDLE_INIT(ifindex);
+
+    g_return_val_if_fail(ifindex > 0, FALSE);
+    g_return_val_if_fail(eee, FALSE);
+
+    eth_data.cmd = ETHTOOL_GEEE;
+    if (_ethtool_call_handle(&shandle, &eth_data, sizeof(struct ethtool_eee)) != 0) {
+        nm_log_trace(LOGD_PLATFORM,
+                     "ethtool[%d]: %s: failure getting eee settings",
+                     ifindex,
+                     "get-eee");
+        return FALSE;
+    }
+
+    eth_data.cmd = ETHTOOL_SEEE, eth_data.eee_enabled = eee->enabled ? 1 : 0;
+
+    if (_ethtool_call_handle(&shandle, &eth_data, sizeof(struct ethtool_eee)) != 0) {
+        nm_log_trace(LOGD_PLATFORM,
+                     "ethtool[%d]: %s: failure setting eee settings",
+                     ifindex,
+                     "set-eee");
+        return FALSE;
+    }
+    nm_log_trace(LOGD_PLATFORM, "ethtool[%d]: %s: set kernel eee settings", ifindex, "set-eee");
+    return TRUE;
+}
 /*****************************************************************************/
 
 gboolean
@@ -2055,7 +2177,7 @@ nmp_utils_new_vlan_name(const char *parent_iface, guint32 vlan_id)
     ifname = g_new(char, IFNAMSIZ);
 
     parent_len = strlen(parent_iface);
-    parent_len = MIN(parent_len, IFNAMSIZ - 1 - id_len);
+    parent_len = NM_MIN(parent_len, IFNAMSIZ - 1 - id_len);
     memcpy(ifname, parent_iface, parent_len);
     g_snprintf(&ifname[parent_len], IFNAMSIZ - parent_len, ".%u", vlan_id);
 
@@ -2134,7 +2256,7 @@ nmp_utils_lifetime_get(guint32  timestamp,
 
     t_preferred = nmp_utils_lifetime_rebase_relative_time_on_now(timestamp, preferred, now);
 
-    NM_SET_OUT(out_preferred, MIN(t_preferred, t_lifetime));
+    NM_SET_OUT(out_preferred, NM_MIN(t_preferred, t_lifetime));
 
     /* Assert that non-permanent addresses have a (positive) @timestamp. nmp_utils_lifetime_rebase_relative_time_on_now()
      * treats addresses with timestamp 0 as *now*. Addresses passed to _address_get_lifetime() always

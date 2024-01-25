@@ -90,22 +90,18 @@ typedef struct {
  * Wi-Fi Security Settings
  */
 struct _NMSettingWirelessSecurity {
-    NMSetting parent;
-    /* In the past, this struct was public API. Preserve ABI! */
+    NMSetting                        parent;
+    NMSettingWirelessSecurityPrivate _priv;
 };
 
 struct _NMSettingWirelessSecurityClass {
     NMSettingClass parent;
-    /* In the past, this struct was public API. Preserve ABI! */
-    gpointer padding[4];
 };
 
 G_DEFINE_TYPE(NMSettingWirelessSecurity, nm_setting_wireless_security, NM_TYPE_SETTING)
 
-#define NM_SETTING_WIRELESS_SECURITY_GET_PRIVATE(o)                 \
-    (G_TYPE_INSTANCE_GET_PRIVATE((o),                               \
-                                 NM_TYPE_SETTING_WIRELESS_SECURITY, \
-                                 NMSettingWirelessSecurityPrivate))
+#define NM_SETTING_WIRELESS_SECURITY_GET_PRIVATE(o) \
+    _NM_GET_PRIVATE(o, NMSettingWirelessSecurity, NM_IS_SETTING_WIRELESS_SECURITY, NMSetting)
 
 /*****************************************************************************/
 
@@ -1387,9 +1383,7 @@ nm_setting_wireless_security_class_init(NMSettingWirelessSecurityClass *klass)
 {
     GObjectClass   *object_class        = G_OBJECT_CLASS(klass);
     NMSettingClass *setting_class       = NM_SETTING_CLASS(klass);
-    GArray         *properties_override = _nm_sett_info_property_override_create_array();
-
-    g_type_class_add_private(klass, sizeof(NMSettingWirelessSecurityPrivate));
+    GArray         *properties_override = _nm_sett_info_property_override_create_array_sized(25);
 
     object_class->get_property = get_property;
     object_class->set_property = set_property;
@@ -1426,7 +1420,8 @@ nm_setting_wireless_security_class_init(NMSettingWirelessSecurityClass *klass)
                                               NM_SETTING_PARAM_REQUIRED,
                                               NMSettingWirelessSecurityPrivate,
                                               key_mgmt,
-                                              .direct_set_string_ascii_strdown = TRUE);
+                                              .direct_set_string_ascii_strdown = TRUE,
+                                              .direct_string_allow_empty       = TRUE);
 
     /**
      * NMSettingWirelessSecurity:wep-tx-keyidx:
@@ -1479,7 +1474,8 @@ nm_setting_wireless_security_class_init(NMSettingWirelessSecurityClass *klass)
                                               NM_SETTING_PARAM_NONE,
                                               NMSettingWirelessSecurityPrivate,
                                               auth_alg,
-                                              .direct_set_string_ascii_strdown = TRUE);
+                                              .direct_set_string_ascii_strdown = TRUE,
+                                              .direct_string_allow_empty       = TRUE);
 
     /**
      * NMSettingWirelessSecurity:proto:
@@ -1496,11 +1492,11 @@ nm_setting_wireless_security_class_init(NMSettingWirelessSecurityClass *klass)
      * description: Allowed WPA protocols, WPA and WPA2 (RSN).
      * ---end---
      */
-    obj_properties[PROP_PROTO] = g_param_spec_boxed(NM_SETTING_WIRELESS_SECURITY_PROTO,
-                                                    "",
-                                                    "",
-                                                    G_TYPE_STRV,
-                                                    G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS);
+    _nm_setting_property_define_gprop_strv_oldstyle(properties_override,
+                                                    obj_properties,
+                                                    NM_SETTING_WIRELESS_SECURITY_PROTO,
+                                                    PROP_PROTO,
+                                                    NM_SETTING_PARAM_NONE);
 
     /**
      * NMSettingWirelessSecurity:pairwise:
@@ -1518,11 +1514,11 @@ nm_setting_wireless_security_class_init(NMSettingWirelessSecurityClass *klass)
      *   separated list.
      * ---end---
      */
-    obj_properties[PROP_PAIRWISE] = g_param_spec_boxed(NM_SETTING_WIRELESS_SECURITY_PAIRWISE,
-                                                       "",
-                                                       "",
-                                                       G_TYPE_STRV,
-                                                       G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS);
+    _nm_setting_property_define_gprop_strv_oldstyle(properties_override,
+                                                    obj_properties,
+                                                    NM_SETTING_WIRELESS_SECURITY_PAIRWISE,
+                                                    PROP_PAIRWISE,
+                                                    NM_SETTING_PARAM_NONE);
 
     /**
      * NMSettingWirelessSecurity:group:
@@ -1540,11 +1536,11 @@ nm_setting_wireless_security_class_init(NMSettingWirelessSecurityClass *klass)
      *   separated list.
      * ---end---
      */
-    obj_properties[PROP_GROUP] = g_param_spec_boxed(NM_SETTING_WIRELESS_SECURITY_GROUP,
-                                                    "",
-                                                    "",
-                                                    G_TYPE_STRV,
-                                                    G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS);
+    _nm_setting_property_define_gprop_strv_oldstyle(properties_override,
+                                                    obj_properties,
+                                                    NM_SETTING_WIRELESS_SECURITY_GROUP,
+                                                    PROP_GROUP,
+                                                    NM_SETTING_PARAM_NONE);
 
     /**
      * NMSettingWirelessSecurity:pmf:
@@ -1597,7 +1593,8 @@ nm_setting_wireless_security_class_init(NMSettingWirelessSecurityClass *klass)
                                               PROP_LEAP_USERNAME,
                                               NM_SETTING_PARAM_NONE,
                                               NMSettingWirelessSecurityPrivate,
-                                              leap_username);
+                                              leap_username,
+                                              .direct_string_allow_empty = TRUE);
 
     /**
      * NMSettingWirelessSecurity:wep-key0:
@@ -1617,7 +1614,8 @@ nm_setting_wireless_security_class_init(NMSettingWirelessSecurityClass *klass)
                                               PROP_WEP_KEY0,
                                               NM_SETTING_PARAM_SECRET,
                                               NMSettingWirelessSecurityPrivate,
-                                              wep_key0);
+                                              wep_key0,
+                                              .direct_string_allow_empty = TRUE);
 
     /**
      * NMSettingWirelessSecurity:wep-key1:
@@ -1637,7 +1635,8 @@ nm_setting_wireless_security_class_init(NMSettingWirelessSecurityClass *klass)
                                               PROP_WEP_KEY1,
                                               NM_SETTING_PARAM_SECRET,
                                               NMSettingWirelessSecurityPrivate,
-                                              wep_key1);
+                                              wep_key1,
+                                              .direct_string_allow_empty = TRUE);
 
     /**
      * NMSettingWirelessSecurity:wep-key2:
@@ -1657,7 +1656,8 @@ nm_setting_wireless_security_class_init(NMSettingWirelessSecurityClass *klass)
                                               PROP_WEP_KEY2,
                                               NM_SETTING_PARAM_SECRET,
                                               NMSettingWirelessSecurityPrivate,
-                                              wep_key2);
+                                              wep_key2,
+                                              .direct_string_allow_empty = TRUE);
 
     /**
      * NMSettingWirelessSecurity:wep-key3:
@@ -1677,7 +1677,8 @@ nm_setting_wireless_security_class_init(NMSettingWirelessSecurityClass *klass)
                                               PROP_WEP_KEY3,
                                               NM_SETTING_PARAM_SECRET,
                                               NMSettingWirelessSecurityPrivate,
-                                              wep_key3);
+                                              wep_key3,
+                                              .direct_string_allow_empty = TRUE);
 
     /**
      * NMSettingWirelessSecurity:wep-key-flags:
@@ -1721,7 +1722,8 @@ nm_setting_wireless_security_class_init(NMSettingWirelessSecurityClass *klass)
                                               PROP_PSK,
                                               NM_SETTING_PARAM_SECRET,
                                               NMSettingWirelessSecurityPrivate,
-                                              psk);
+                                              psk,
+                                              .direct_string_allow_empty = TRUE);
 
     /**
      * NMSettingWirelessSecurity:psk-flags:
@@ -1763,7 +1765,8 @@ nm_setting_wireless_security_class_init(NMSettingWirelessSecurityClass *klass)
                                               PROP_LEAP_PASSWORD,
                                               NM_SETTING_PARAM_SECRET,
                                               NMSettingWirelessSecurityPrivate,
-                                              leap_password);
+                                              leap_password,
+                                              .direct_string_allow_empty = TRUE);
 
     /**
      * NMSettingWirelessSecurity:leap-password-flags:
@@ -1894,5 +1897,5 @@ nm_setting_wireless_security_class_init(NMSettingWirelessSecurityClass *klass)
                              NM_META_SETTING_TYPE_WIRELESS_SECURITY,
                              NULL,
                              properties_override,
-                             NM_SETT_INFO_PRIVATE_OFFSET_FROM_CLASS);
+                             G_STRUCT_OFFSET(NMSettingWirelessSecurity, _priv));
 }

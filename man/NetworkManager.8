@@ -2,12 +2,12 @@
 .\"     Title: NetworkManager
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 10/03/2023
+.\"      Date: 01/25/2024
 .\"    Manual: Network management daemons
-.\"    Source: NetworkManager 1.44.2
+.\"    Source: NetworkManager 1.45.90
 .\"  Language: English
 .\"
-.TH "NETWORKMANAGER" "8" "" "NetworkManager 1\&.44\&.2" "Network management daemons"
+.TH "NETWORKMANAGER" "8" "" "NetworkManager 1\&.45\&.90" "Network management daemons"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -143,6 +143,37 @@ or
 "device*\&.managed=1"
 in NetworkManager\&.conf\&.
 .RE
+.PP
+\fIID_NET_MANAGED_BY\fR
+.RS 4
+If
+\fINM_UNMANAGED\fR
+is set, this has no effect\&. Otherwise, if the attribute is set to anything but
+"org\&.freedesktop\&.NetworkManager", the device is unmanaged\&.
+.RE
+.PP
+\fINM_AUTO_DEFAULT_LINK_LOCAL_ONLY\fR
+.RS 4
+If set to
+"1"
+or
+"true", the automatically generated connections "Wired connection N" will only enable link local addressing for IPv4 and IPv6\&. This can be useful on thunderbolt devices or host\-to\-host USB devices\&.
+.RE
+.PP
+\fIID_NET_AUTO_LINK_LOCAL_ONLY\fR
+.RS 4
+Honored and treated the same as if
+\fINM_AUTO_DEFAULT_LINK_LOCAL_ONLY\fR
+were set\&.
+.RE
+.PP
+\fIID_NET_DHCP_BROADCAST\fR
+.RS 4
+If set to
+"1"
+or
+"true", use broadcast requests for DHCPv4 offers\&. This can make sense of devices that can\*(Aqt handle unicast messages until being configured\&.
+.RE
 .SH "SIGNALS"
 .PP
 NetworkManager process handles the following signals:
@@ -241,7 +272,7 @@ Please report any bugs you find in NetworkManager at the
 \fBnmcli\fR(1),
 \fBnmcli-examples\fR(7),
 \fBnm-online\fR(1),
-\fBnm-settings\fR(5),
+\fBnm-settings-nmcli\fR(5),
 \fBnm-applet\fR(1),
 \fBnm-connection-editor\fR(1),
 \fBudev\fR(7)

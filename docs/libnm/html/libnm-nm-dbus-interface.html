@@ -106,6 +106,10 @@
 </tr>
 <tr>
 <td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libnm-nm-dbus-interface.html#NM-DBUS-INTERFACE-DEVICE-HSR:CAPS" title="NM_DBUS_INTERFACE_DEVICE_HSR">NM_DBUS_INTERFACE_DEVICE_HSR</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="libnm-nm-dbus-interface.html#NM-DBUS-INTERFACE-DEVICE-INFINIBAND:CAPS" title="NM_DBUS_INTERFACE_DEVICE_INFINIBAND">NM_DBUS_INTERFACE_DEVICE_INFINIBAND</a></td>
 </tr>
 <tr>
@@ -672,6 +676,12 @@
 <div class="refsect2">
 <a name="NM-DBUS-INTERFACE-DEVICE-GRE:CAPS"></a><h3>NM_DBUS_INTERFACE_DEVICE_GRE</h3>
 <pre class="programlisting">#define NM_DBUS_INTERFACE_DEVICE_GRE           NM_DBUS_INTERFACE_DEVICE ".Gre"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-DBUS-INTERFACE-DEVICE-HSR:CAPS"></a><h3>NM_DBUS_INTERFACE_DEVICE_HSR</h3>
+<pre class="programlisting">#define NM_DBUS_INTERFACE_DEVICE_HSR           NM_DBUS_INTERFACE_DEVICE ".Hsr"
 </pre>
 </div>
 <hr>
@@ -1406,6 +1416,13 @@ GSM/UMTS, or LTE network access protocols</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-DEVICE-TYPE-HSR:CAPS"></a>NM_DEVICE_TYPE_HSR</p></td>
+<td class="enum_member_description">
+<p>A HSR/PRP device. Since: 1.46.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
 </tbody>
 </table></div>
 </div>
@@ -1556,6 +1573,13 @@ GSM/UMTS, or LTE network access protocols</p>
 <td class="enum_member_name"><p><a name="NM-WIFI-DEVICE-CAP-FREQ-5GHZ:CAPS"></a>NM_WIFI_DEVICE_CAP_FREQ_5GHZ</p></td>
 <td class="enum_member_description">
 <p>device supports 5GHz frequencies</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-WIFI-DEVICE-CAP-FREQ-6GHZ:CAPS"></a>NM_WIFI_DEVICE_CAP_FREQ_6GHZ</p></td>
+<td class="enum_member_description">
+<p>device supports 6GHz frequencies. Since: 1.46.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -3334,7 +3358,7 @@ disconnect any new device appeared after the checkpoint. Since: 1.6.</p>
 <td class="enum_member_name"><p><a name="NM-CHECKPOINT-CREATE-FLAG-ALLOW-OVERLAPPING:CAPS"></a>NM_CHECKPOINT_CREATE_FLAG_ALLOW_OVERLAPPING</p></td>
 <td class="enum_member_description">
 <p>by default, creating
-a checkpoint fails if there are already existing checkoints that
+a checkpoint fails if there are already existing checkpoints that
 reference the same devices. With this flag, creation of such
 checkpoints is allowed, however, if an older checkpoint
 that references overlapping devices gets rolled back, it will

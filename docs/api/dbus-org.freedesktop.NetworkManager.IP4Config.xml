@@ -40,7 +40,9 @@ Addresses  readable   aau
 <para>
 Array of arrays of IPv4 address/prefix/gateway. All 3 elements of each
 array are in network byte order. Essentially: [(addr, prefix, gateway),
-(addr, prefix, gateway), ...] Deprecated: use AddressData and Gateway
+(addr, prefix, gateway), ...].
+</para><para>
+DEPRECATED: use AddressData and Gateway
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-IP4Config.AddressData">
@@ -76,7 +78,9 @@ Arrays of IPv4 route/prefix/next-hop/metric. All 4 elements of each tuple
 are in network byte order. 'route' and 'next hop' are IPv4 addresses,
 while prefix and metric are simple unsigned integers. Essentially:
 [(route, prefix, next-hop, metric), (route, prefix, next-hop, metric),
-...] Deprecated: use RouteData
+...].
+</para><para>
+DEPRECATED: use RouteData
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-IP4Config.RouteData">
@@ -98,7 +102,9 @@ address string) and "prefix" (a uint). Some routes may include "next-hop"
 Nameservers  readable   au
 </programlisting>
 <para>
-The nameservers in use. Deprecated: use NameserverData
+The nameservers in use.
+</para><para>
+DEPRECATED: use NameserverData
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-IP4Config.NameserverData">
@@ -162,7 +168,9 @@ WinsServers  readable   au
 </programlisting>
 <para>
 The Windows Internet Name Service servers associated with the connection.
-Each address is in network byte order. Deprecated: use WinsServerData
+Each address is in network byte order.
+</para><para>
+DEPRECATED: use WinsServerData
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-IP4Config.WinsServerData">

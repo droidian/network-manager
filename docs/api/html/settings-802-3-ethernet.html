@@ -38,7 +38,7 @@
             Properties
         </h2>
 <div class="table">
-<a name="id-1.3.3.45.2.2.1"></a><p class="title"><b>Table 79. </b></p>
+<a name="id-1.3.3.45.2.2.1"></a><p class="title"><b>Table 80. </b></p>
 <div class="table-contents"><table class="table" border="1">
 <colgroup>
 <col>
@@ -151,7 +151,7 @@ Currently, NetworkManager itself does nothing with this information. However, s3
 <td><pre class="screen">wake-on-lan</pre></td>
 <td><pre class="screen">uint32</pre></td>
 <td><pre class="screen">1</pre></td>
-<td>The NMSettingWiredWakeOnLan options to enable. Not all devices support all options. May be any combination of NM_SETTING_WIRED_WAKE_ON_LAN_PHY (0x2), NM_SETTING_WIRED_WAKE_ON_LAN_UNICAST (0x4), NM_SETTING_WIRED_WAKE_ON_LAN_MULTICAST (0x8), NM_SETTING_WIRED_WAKE_ON_LAN_BROADCAST (0x10), NM_SETTING_WIRED_WAKE_ON_LAN_ARP (0x20), NM_SETTING_WIRED_WAKE_ON_LAN_MAGIC (0x40) or the special values NM_SETTING_WIRED_WAKE_ON_LAN_DEFAULT (0x1) (to use global settings) and NM_SETTING_WIRED_WAKE_ON_LAN_IGNORE (0x8000) (to disable management of Wake-on-LAN in NetworkManager).</td>
+<td>The NMSettingWiredWakeOnLan options to enable. Not all devices support all options. May be any combination of 0x2 (phy), 0x4 (unicast), 0x8 (multicast), 0x10 (broadcast), 0x20 (arp), 0x40 (magic) or the special values 0x1 (default) (to use global settings) and 0x8000 (ignore) (to disable management of Wake-on-LAN in NetworkManager).</td>
 </tr>
 <tr>
 <td><pre class="screen">wake-on-lan-password</pre></td>

@@ -1766,7 +1766,7 @@ _connection_autoconnect_retries_set(NMPolicy             *self,
             nm_assert(retry_time != 0);
 
             priv->reset_connections_retries_idle_source = nm_g_timeout_add_seconds_source(
-                MAX(0, retry_time - nm_utils_get_monotonic_timestamp_sec()),
+                NM_MAX(0, retry_time - nm_utils_get_monotonic_timestamp_sec()),
                 reset_connections_retries,
                 self);
         }
@@ -2635,11 +2635,15 @@ dns_config_changed(NMDnsManager *dns_manager, gpointer user_data)
     if (priv->updating_dns)
         return;
 
-    nm_manager_for_each_device (priv->manager, device, tmp_lst) {
-        nm_device_clear_dns_lookup_data(device, "DNS configuration changed");
+    if (!nm_dns_manager_is_unmanaged(dns_manager)) {
+        nm_manager_for_each_device (priv->manager, device, tmp_lst) {
+            nm_device_clear_dns_lookup_data(device, "DNS configuration changed");
+        }
+
+        update_system_hostname(self, "DNS configuration changed");
     }
 
-    update_system_hostname(self, "DNS configuration changed");
+    nm_dispatcher_call_dns_change();
 }
 
 static void

@@ -93,15 +93,11 @@ typedef struct {
     const NMEthtoolFeatureState states_list[];
 } NMEthtoolFeatureStates;
 
-/*****************************************************************************/
-
 typedef struct {
     guint32
         s[_NM_ETHTOOL_ID_COALESCE_NUM /* indexed by (NMEthtoolID - _NM_ETHTOOL_ID_COALESCE_FIRST) */
     ];
 } NMEthtoolCoalesceState;
-
-/*****************************************************************************/
 
 typedef struct {
     guint32 rx_pending;
@@ -115,6 +111,17 @@ typedef struct {
     bool rx : 1;
     bool tx : 1;
 } NMEthtoolPauseState;
+
+typedef struct {
+    guint32 rx;
+    guint32 tx;
+    guint32 other;
+    guint32 combined;
+} NMEthtoolChannelsState;
+
+typedef struct {
+    bool enabled : 1;
+} NMEthtoolEEEState;
 
 /*****************************************************************************/
 
@@ -152,6 +159,7 @@ typedef enum _nm_packed {
     NMP_OBJECT_TYPE_LNK_BRIDGE,
     NMP_OBJECT_TYPE_LNK_GRE,
     NMP_OBJECT_TYPE_LNK_GRETAP,
+    NMP_OBJECT_TYPE_LNK_HSR,
     NMP_OBJECT_TYPE_LNK_INFINIBAND,
     NMP_OBJECT_TYPE_LNK_IP6TNL,
     NMP_OBJECT_TYPE_LNK_IP6GRE,

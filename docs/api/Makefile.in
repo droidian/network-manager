@@ -167,7 +167,6 @@ ACLOCAL = @ACLOCAL@
 AMTAR = @AMTAR@
 AM_CFLAGS = @AM_CFLAGS@
 AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
-AM_TESTS_FD_REDIRECT = @AM_TESTS_FD_REDIRECT@
 AR = @AR@
 AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
@@ -356,8 +355,6 @@ SELINUX_LIBS = @SELINUX_LIBS@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 STRIP = @STRIP@
-SYSTEMD_200_CFLAGS = @SYSTEMD_200_CFLAGS@
-SYSTEMD_200_LIBS = @SYSTEMD_200_LIBS@
 SYSTEMD_INHIBIT_CFLAGS = @SYSTEMD_INHIBIT_CFLAGS@
 SYSTEMD_INHIBIT_LIBS = @SYSTEMD_INHIBIT_LIBS@
 SYSTEMD_JOURNAL_CFLAGS = @SYSTEMD_JOURNAL_CFLAGS@
@@ -489,6 +486,7 @@ content_files = $(GENERATED_FILES) \
 	dbus-org.freedesktop.NetworkManager.Device.Bridge.xml \
 	dbus-org.freedesktop.NetworkManager.Device.Dummy.xml \
 	dbus-org.freedesktop.NetworkManager.Device.Generic.xml \
+	dbus-org.freedesktop.NetworkManager.Device.Hsr.xml \
 	dbus-org.freedesktop.NetworkManager.Device.IPTunnel.xml \
 	dbus-org.freedesktop.NetworkManager.Device.Infiniband.xml \
 	dbus-org.freedesktop.NetworkManager.Device.Loopback.xml \

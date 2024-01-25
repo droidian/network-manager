@@ -181,8 +181,8 @@ _sort_files(LoadDirInfo *a, LoadDirInfo *b)
 {
     time_t ta, tb;
 
-    ta = MAX(a->stat.st_mtime, a->stat.st_ctime);
-    tb = MAX(b->stat.st_mtime, b->stat.st_ctime);
+    ta = NM_MAX(a->stat.st_mtime, a->stat.st_ctime);
+    tb = NM_MAX(b->stat.st_mtime, b->stat.st_ctime);
     if (ta < tb)
         return 1;
     if (ta > tb)
@@ -337,7 +337,7 @@ nm_vpn_plugin_info_list_load(void)
     uid = getuid();
 
     for (i = 0; i < G_N_ELEMENTS(dir); i++) {
-        if (!dir[i] || nm_strv_find_first(dir, i, dir[i]) >= 0)
+        if (!dir[i] || nm_strv_contains(dir, i, dir[i]))
             continue;
 
         infos = _nm_vpn_plugin_info_list_load_dir(dir[i], TRUE, uid, NULL, NULL);
@@ -552,7 +552,7 @@ _list_find_by_service(GSList *list, const char *name, const char *service)
         if (name && !nm_streq(name, priv->name))
             continue;
         if (service && !nm_streq(priv->service, service)
-            && (nm_strv_find_first(priv->aliases, -1, service) < 0))
+            && !nm_strv_contains(priv->aliases, -1, service))
             continue;
 
         return list->data;
@@ -639,7 +639,7 @@ nm_vpn_plugin_info_list_find_service_type(GSList *list, const char *name)
 
     /* check the hard-coded list of short-names. They all have the same
      * well-known prefix org.freedesktop.NetworkManager and the name. */
-    if (nm_strv_find_first(known_names, G_N_ELEMENTS(known_names), name) >= 0)
+    if (nm_strv_contains(known_names, G_N_ELEMENTS(known_names), name))
         return g_strdup_printf("%s.%s", NM_DBUS_INTERFACE, name);
 
     /* try, if there exists a plugin with @name under org.freedesktop.NetworkManager.
@@ -728,7 +728,7 @@ nm_vpn_plugin_info_list_get_service_types(GSList  *list,
 
     if (l->len <= 0) {
         g_ptr_array_free(l, TRUE);
-        return g_new0(char *, 1);
+        return nm_strv_empty_new();
     }
 
     /* sort the result and remove duplicates. */

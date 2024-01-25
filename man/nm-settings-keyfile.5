@@ -2,12 +2,12 @@
 .\"     Title: nm-settings-keyfile
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 10/03/2023
+.\"      Date: 01/25/2024
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.44.2
+.\"    Source: NetworkManager 1.45.90
 .\"  Language: English
 .\"
-.TH "NM\-SETTINGS\-KEYFILE" "5" "" "NetworkManager 1\&.44\&.2" "Configuration"
+.TH "NM\-SETTINGS\-KEYFILE" "5" "" "NetworkManager 1\&.45\&.90" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -32,7 +32,7 @@ nm-settings-keyfile \- Description of \fIkeyfile\fR settings plugin
 .SH "DESCRIPTION"
 .PP
 NetworkManager is based on the concept of connection profiles that contain network configuration (see
-\fBnm-settings\fR(5)
+\fBnm-settings-nmcli\fR(5)
 for details)\&. The profiles can be stored in various formats\&. NetworkManager uses plugins for reading and writing the data\&. The plugins can be configured in
 \fBNetworkManager.conf\fR(5)\&.
 .PP
@@ -47,13 +47,18 @@ and
 .PP
 The
 \fIkeyfile\fR
-config format is a simple \&.ini\-style format\&. It consists of sections (groups) of key\-value pairs\&. Each section corresponds to a setting name as described in the settings specification (\fBnm-settings\fR(5))\&. Each configuration key/value pair in the section is one of the properties listed in the settings specification\&. The majority of properties of the specification is written in the same format into the
-\fIkeyfile\fR
-too\&. However some values are inconvenient for people to use\&. These are stored in the files in more readable ways\&. These properties are described below\&. An example could be IP addresses that are not written as integer arrays, but more reasonably as "1\&.2\&.3\&.4/12 1\&.2\&.3\&.254"\&. More information of the generic key file format can be found at
+config format is a simple \&.ini\-style format\&. It consists of sections (groups) of key\-value pairs\&. More information of the generic key file format can be found at
 \m[blue]\fBGLib key file format\fR\m[]\&\s-2\u[1]\d\s+2
 (Lines beginning with a \*(Aq#\*(Aq are comments, lists are separated by character
 ;
 etc\&.)\&.
+.PP
+Each section corresponds to a setting name as described in the settings specification (\fBnm-settings-nmcli\fR(5))\&. Each key/value pair in a section is one of the properties from the specification\&.
+.PP
+The majority of properties are written in the same format as the specification into the
+\fIkeyfile\fR\&. However, some values are inconvenient for people to use so they are stored in the
+\fIkeyfile\fR
+in more readable ways\&. These properties that differ from the specification are described below\&. An example could be IP addresses that are not written as integer arrays, but more reasonably as "1\&.2\&.3\&.4/12 1\&.2\&.3\&.254"\&. Also, some lists of complex values (addresses, routes, routing\-rules), instead of using a semicolon separated list, use one key\-value pair per list element, with the key being the singular of the property name followed by the numeric index (i\&.e address1, address2, \&.\&.\&.)\&.
 .PP
 Users can create or modify the
 \fIkeyfile\fR
@@ -207,7 +212,7 @@ id=4
 plugin variables for the majority of NetworkManager properties have one\-to\-one mapping\&. It means a NetworkManager property is stored in the keyfile as a variable of the same name and in the same format\&. There are several exceptions to this rule, mainly for making keyfile syntax easier for humans\&. The exceptions handled specially by
 \fIkeyfile\fR
 plugin are listed below\&. Refer to
-\fBnm-settings\fR(5)
+\fBnm-settings-nmcli\fR(5)
 for all available settings and properties and their description\&.
 .PP
 \fBName aliases\fR. Some of the NetworkManager setting names are somewhat hard to type or remember\&. Therefore
@@ -431,6 +436,8 @@ T}
 l l l l
 l l l l
 l l l l
+l l l l
+l l l l
 l l l l.
 T{
 dns
@@ -476,6 +483,28 @@ List of IP routes\&.\fB
 
 Example: \fRroute1=8\&.8\&.8\&.0/24,10\&.1\&.1\&.1,77 route2=7\&.7\&.0\&.0/16
 T}
+T{
+routes (attributes)
+T}:T{
+route1_options, route2_options, \&.\&.\&.
+T}:T{
+key=val[,key=val\&.\&.\&.]
+T}:T{
+Attributes defined for the routes, if any\&. The supported attributes are explained in ipv4\&.routes entry in `man nm\-settings\-nmcli`\&.\fB
+
+Example: \fRroute1_options=mtu=1000,onlink=true
+T}
+T{
+routing\-rules
+T}:T{
+routing\-rule1, routing\-rule2, \&.\&.\&.
+T}:T{
+routing rule string
+T}:T{
+Routing rules as defined with `ip rule add`, but with mandatory fixed priority\&.\fB
+
+Example: \fRrouting\-rule1=priority 5 from 192\&.167\&.4\&.0/24 table 45
+T}
 .TE
 .sp 1
 .sp
@@ -497,6 +526,8 @@ T}:T{
 Description
 T}
 .T&
+l l l l
+l l l l
 l l l l
 l l l l
 l l l l
@@ -544,6 +575,28 @@ T}:T{
 List of IP routes\&.\fB
 
 Example: \fRroute1=2001:4860:4860::/64,2620:52:0:2219:222:68ff:fe11:5403
+T}
+T{
+routes (attributes)
+T}:T{
+route1_options, route2_options, \&.\&.\&.
+T}:T{
+key=val[,key=val\&.\&.\&.]
+T}:T{
+Attributes defined for the routes, if any\&. The supported attributes are explained in ipv6\&.routes entry in `man nm\-settings\-nmcli`\&.\fB
+
+Example: \fRroute1_options=mtu=1000,onlink=true
+T}
+T{
+routing\-rules
+T}:T{
+routing\-rule1, routing\-rule2, \&.\&.\&.
+T}:T{
+routing rule string
+T}:T{
+Routing rules as defined with `ip rule add`, but with mandatory fixed priority\&.\fB
+
+Example: \fRrouting\-rule1=priority 5 from 2001:4860:4860::/64 table 45
 T}
 .TE
 .sp 1
@@ -745,7 +798,7 @@ variable is a decimal number (0 \- 7) defined as a sum of the following values:
 /etc/NetworkManager/system\-connections/*
 .SH "SEE ALSO"
 .PP
-\fBnm-settings\fR(5),
+\fBnm-settings-nmcli\fR(5),
 \fBnm-settings-ifcfg-rh\fR(5),
 \fBNetworkManager\fR(8),
 \fBNetworkManager.conf\fR(5),

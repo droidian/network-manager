@@ -1,0 +1,274 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>NMSettingHsr: libnm Reference Manual</title>
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
+<link rel="home" href="index.html" title="libnm Reference Manual">
+<link rel="up" href="ch03.html" title="Connection and Setting API Reference">
+<link rel="prev" href="NMSettingHostname.html" title="NMSettingHostname">
+<link rel="next" href="NMSettingInfiniband.html" title="NMSettingInfiniband">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
+                  <a href="#NMSettingHsr.description" class="shortcut">Description</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="ch03.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="NMSettingHostname.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="NMSettingInfiniband.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="NMSettingHsr"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="NMSettingHsr.top_of_page"></a>NMSettingHsr</span></h2>
+<p>NMSettingHsr — Describes connection properties for HSR/PRP interfaces</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="NMSettingHsr.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="function_type">
+<a class="link" href="NMSetting.html" title="NMSetting"><span class="returnvalue">NMSetting</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="NMSettingHsr.html#nm-setting-hsr-new" title="nm_setting_hsr_new ()">nm_setting_hsr_new</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">char</span> *
+</td>
+<td class="function_name">
+<a class="link" href="NMSettingHsr.html#nm-setting-hsr-get-port1" title="nm_setting_hsr_get_port1 ()">nm_setting_hsr_get_port1</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">char</span> *
+</td>
+<td class="function_name">
+<a class="link" href="NMSettingHsr.html#nm-setting-hsr-get-port2" title="nm_setting_hsr_get_port2 ()">nm_setting_hsr_get_port2</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint32"><span class="returnvalue">guint32</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="NMSettingHsr.html#nm-setting-hsr-get-multicast-spec" title="nm_setting_hsr_get_multicast_spec ()">nm_setting_hsr_get_multicast_spec</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="NMSettingHsr.html#nm-setting-hsr-get-prp" title="nm_setting_hsr_get_prp ()">nm_setting_hsr_get_prp</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="NMSettingHsr.other"></a><h2>Types and Values</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="other_proto_type">
+<col class="other_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingHsr.html#NM-SETTING-HSR-SETTING-NAME:CAPS" title="NM_SETTING_HSR_SETTING_NAME">NM_SETTING_HSR_SETTING_NAME</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingHsr.html#NM-SETTING-HSR-PORT1:CAPS" title="NM_SETTING_HSR_PORT1">NM_SETTING_HSR_PORT1</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingHsr.html#NM-SETTING-HSR-PORT2:CAPS" title="NM_SETTING_HSR_PORT2">NM_SETTING_HSR_PORT2</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingHsr.html#NM-SETTING-HSR-MULTICAST-SPEC:CAPS" title="NM_SETTING_HSR_MULTICAST_SPEC">NM_SETTING_HSR_MULTICAST_SPEC</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingHsr.html#NM-SETTING-HSR-PRP:CAPS" title="NM_SETTING_HSR_PRP">NM_SETTING_HSR_PRP</a></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="NMSettingHsr.description"></a><h2>Description</h2>
+<p>The <a class="link" href="NMSettingHsr.html" title="NMSettingHsr"><span class="type">NMSettingHsr</span></a> object is a <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> subclass that describes properties
+necessary for HSR/PRP connections.</p>
+</div>
+<div class="refsect1">
+<a name="NMSettingHsr.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="nm-setting-hsr-new"></a><h3>nm_setting_hsr_new ()</h3>
+<pre class="programlisting"><a class="link" href="NMSetting.html" title="NMSetting"><span class="returnvalue">NMSetting</span></a> *
+nm_setting_hsr_new (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>Creates a new <a class="link" href="NMSettingHsr.html" title="NMSettingHsr"><span class="type">NMSettingHsr</span></a> object with default values.</p>
+<div class="refsect3">
+<a name="nm-setting-hsr-new.returns"></a><h4>Returns</h4>
+<p>the new empty <a class="link" href="NMSettingHsr.html" title="NMSettingHsr"><span class="type">NMSettingHsr</span></a> object. </p>
+<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
+</div>
+<p class="since">Since: 1.46</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-hsr-get-port1"></a><h3>nm_setting_hsr_get_port1 ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *
+nm_setting_hsr_get_port1 (<em class="parameter"><code><a class="link" href="NMSettingHsr.html" title="NMSettingHsr"><span class="type">NMSettingHsr</span></a> *setting</code></em>);</pre>
+<div class="refsect3">
+<a name="nm-setting-hsr-get-port1.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>setting</p></td>
+<td class="parameter_description"><p>the <a class="link" href="NMSettingHsr.html" title="NMSettingHsr"><span class="type">NMSettingHsr</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="nm-setting-hsr-get-port1.returns"></a><h4>Returns</h4>
+<p> the <span class="type">“port1”</span> property of the setting</p>
+</div>
+<p class="since">Since: 1.46</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-hsr-get-port2"></a><h3>nm_setting_hsr_get_port2 ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *
+nm_setting_hsr_get_port2 (<em class="parameter"><code><a class="link" href="NMSettingHsr.html" title="NMSettingHsr"><span class="type">NMSettingHsr</span></a> *setting</code></em>);</pre>
+<div class="refsect3">
+<a name="nm-setting-hsr-get-port2.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>setting</p></td>
+<td class="parameter_description"><p>the <a class="link" href="NMSettingHsr.html" title="NMSettingHsr"><span class="type">NMSettingHsr</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="nm-setting-hsr-get-port2.returns"></a><h4>Returns</h4>
+<p> the <span class="type">“port2”</span> property of the setting</p>
+</div>
+<p class="since">Since: 1.46</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-hsr-get-multicast-spec"></a><h3>nm_setting_hsr_get_multicast_spec ()</h3>
+<pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint32"><span class="returnvalue">guint32</span></a>
+nm_setting_hsr_get_multicast_spec (<em class="parameter"><code><a class="link" href="NMSettingHsr.html" title="NMSettingHsr"><span class="type">NMSettingHsr</span></a> *setting</code></em>);</pre>
+<div class="refsect3">
+<a name="nm-setting-hsr-get-multicast-spec.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>setting</p></td>
+<td class="parameter_description"><p>the <a class="link" href="NMSettingHsr.html" title="NMSettingHsr"><span class="type">NMSettingHsr</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="nm-setting-hsr-get-multicast-spec.returns"></a><h4>Returns</h4>
+<p> the <span class="type">“multicast_spec”</span> property of the setting</p>
+</div>
+<p class="since">Since: 1.46</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-hsr-get-prp"></a><h3>nm_setting_hsr_get_prp ()</h3>
+<pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
+nm_setting_hsr_get_prp (<em class="parameter"><code><a class="link" href="NMSettingHsr.html" title="NMSettingHsr"><span class="type">NMSettingHsr</span></a> *setting</code></em>);</pre>
+<div class="refsect3">
+<a name="nm-setting-hsr-get-prp.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>setting</p></td>
+<td class="parameter_description"><p>the <a class="link" href="NMSettingHsr.html" title="NMSettingHsr"><span class="type">NMSettingHsr</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="nm-setting-hsr-get-prp.returns"></a><h4>Returns</h4>
+<p> the <span class="type">“prp”</span> property of the setting</p>
+</div>
+<p class="since">Since: 1.46</p>
+</div>
+</div>
+<div class="refsect1">
+<a name="NMSettingHsr.other_details"></a><h2>Types and Values</h2>
+<div class="refsect2">
+<a name="NM-SETTING-HSR-SETTING-NAME:CAPS"></a><h3>NM_SETTING_HSR_SETTING_NAME</h3>
+<pre class="programlisting">#define NM_SETTING_HSR_SETTING_NAME "hsr"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-HSR-PORT1:CAPS"></a><h3>NM_SETTING_HSR_PORT1</h3>
+<pre class="programlisting">#define NM_SETTING_HSR_PORT1          "port1"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-HSR-PORT2:CAPS"></a><h3>NM_SETTING_HSR_PORT2</h3>
+<pre class="programlisting">#define NM_SETTING_HSR_PORT2          "port2"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-HSR-MULTICAST-SPEC:CAPS"></a><h3>NM_SETTING_HSR_MULTICAST_SPEC</h3>
+<pre class="programlisting">#define NM_SETTING_HSR_MULTICAST_SPEC "multicast-spec"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-HSR-PRP:CAPS"></a><h3>NM_SETTING_HSR_PRP</h3>
+<pre class="programlisting">#define NM_SETTING_HSR_PRP            "prp"
+</pre>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.33.1</div>
+</body>
+</html>

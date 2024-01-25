@@ -34,6 +34,7 @@
       <sub name="NMSettingGeneric" link="NMSettingGeneric.html"/>
       <sub name="NMSettingGsm" link="NMSettingGsm.html"/>
       <sub name="NMSettingHostname" link="NMSettingHostname.html"/>
+      <sub name="NMSettingHsr" link="NMSettingHsr.html"/>
       <sub name="NMSettingInfiniband" link="NMSettingInfiniband.html"/>
       <sub name="NMSettingIPConfig" link="NMSettingIPConfig.html"/>
       <sub name="NMSettingIPTunnel" link="NMSettingIPTunnel.html"/>
@@ -85,6 +86,7 @@
       <sub name="NMDeviceDummy" link="NMDeviceDummy.html"/>
       <sub name="NMDeviceEthernet" link="NMDeviceEthernet.html"/>
       <sub name="NMDeviceGeneric" link="NMDeviceGeneric.html"/>
+      <sub name="NMDeviceHsr" link="NMDeviceHsr.html"/>
       <sub name="NMDeviceInfiniband" link="NMDeviceInfiniband.html"/>
       <sub name="NMDeviceIPTunnel" link="NMDeviceIPTunnel.html"/>
       <sub name="NMDeviceLoopback" link="NMDeviceLoopback.html"/>
@@ -411,6 +413,7 @@
     <keyword type="macro" name="NM_DBUS_INTERFACE_DEVICE_DUMMY" link="libnm-nm-dbus-interface.html#NM-DBUS-INTERFACE-DEVICE-DUMMY:CAPS"/>
     <keyword type="macro" name="NM_DBUS_INTERFACE_DEVICE_GENERIC" link="libnm-nm-dbus-interface.html#NM-DBUS-INTERFACE-DEVICE-GENERIC:CAPS"/>
     <keyword type="macro" name="NM_DBUS_INTERFACE_DEVICE_GRE" link="libnm-nm-dbus-interface.html#NM-DBUS-INTERFACE-DEVICE-GRE:CAPS"/>
+    <keyword type="macro" name="NM_DBUS_INTERFACE_DEVICE_HSR" link="libnm-nm-dbus-interface.html#NM-DBUS-INTERFACE-DEVICE-HSR:CAPS"/>
     <keyword type="macro" name="NM_DBUS_INTERFACE_DEVICE_INFINIBAND" link="libnm-nm-dbus-interface.html#NM-DBUS-INTERFACE-DEVICE-INFINIBAND:CAPS"/>
     <keyword type="macro" name="NM_DBUS_INTERFACE_DEVICE_IP_TUNNEL" link="libnm-nm-dbus-interface.html#NM-DBUS-INTERFACE-DEVICE-IP-TUNNEL:CAPS"/>
     <keyword type="macro" name="NM_DBUS_INTERFACE_DEVICE_LOOPBACK" link="libnm-nm-dbus-interface.html#NM-DBUS-INTERFACE-DEVICE-LOOPBACK:CAPS"/>
@@ -749,9 +752,11 @@
     <keyword type="function" name="nm_setting_connection_add_permission ()" link="NMSettingConnection.html#nm-setting-connection-add-permission"/>
     <keyword type="function" name="nm_setting_connection_remove_permission ()" link="NMSettingConnection.html#nm-setting-connection-remove-permission"/>
     <keyword type="function" name="nm_setting_connection_remove_permission_by_value ()" link="NMSettingConnection.html#nm-setting-connection-remove-permission-by-value"/>
-    <keyword type="function" name="nm_setting_connection_get_master ()" link="NMSettingConnection.html#nm-setting-connection-get-master"/>
-    <keyword type="function" name="nm_setting_connection_is_slave_type ()" link="NMSettingConnection.html#nm-setting-connection-is-slave-type"/>
-    <keyword type="function" name="nm_setting_connection_get_slave_type ()" link="NMSettingConnection.html#nm-setting-connection-get-slave-type"/>
+    <keyword type="function" name="nm_setting_connection_get_master ()" link="NMSettingConnection.html#nm-setting-connection-get-master" deprecated=""/>
+    <keyword type="function" name="nm_setting_connection_get_controller ()" link="NMSettingConnection.html#nm-setting-connection-get-controller" since="1.46"/>
+    <keyword type="function" name="nm_setting_connection_is_slave_type ()" link="NMSettingConnection.html#nm-setting-connection-is-slave-type" deprecated="1.46."/>
+    <keyword type="function" name="nm_setting_connection_get_slave_type ()" link="NMSettingConnection.html#nm-setting-connection-get-slave-type" deprecated=""/>
+    <keyword type="function" name="nm_setting_connection_get_port_type ()" link="NMSettingConnection.html#nm-setting-connection-get-port-type" since="1.46"/>
     <keyword type="function" name="nm_setting_connection_get_autoconnect_slaves ()" link="NMSettingConnection.html#nm-setting-connection-get-autoconnect-slaves" since="1.2"/>
     <keyword type="function" name="nm_setting_connection_get_num_secondaries ()" link="NMSettingConnection.html#nm-setting-connection-get-num-secondaries"/>
     <keyword type="function" name="nm_setting_connection_get_secondary ()" link="NMSettingConnection.html#nm-setting-connection-get-secondary"/>
@@ -787,7 +792,9 @@
     <keyword type="macro" name="NM_SETTING_CONNECTION_PERMISSIONS" link="NMSettingConnection.html#NM-SETTING-CONNECTION-PERMISSIONS:CAPS"/>
     <keyword type="macro" name="NM_SETTING_CONNECTION_ZONE" link="NMSettingConnection.html#NM-SETTING-CONNECTION-ZONE:CAPS"/>
     <keyword type="macro" name="NM_SETTING_CONNECTION_MASTER" link="NMSettingConnection.html#NM-SETTING-CONNECTION-MASTER:CAPS"/>
+    <keyword type="macro" name="NM_SETTING_CONNECTION_CONTROLLER" link="NMSettingConnection.html#NM-SETTING-CONNECTION-CONTROLLER:CAPS"/>
     <keyword type="macro" name="NM_SETTING_CONNECTION_SLAVE_TYPE" link="NMSettingConnection.html#NM-SETTING-CONNECTION-SLAVE-TYPE:CAPS"/>
+    <keyword type="macro" name="NM_SETTING_CONNECTION_PORT_TYPE" link="NMSettingConnection.html#NM-SETTING-CONNECTION-PORT-TYPE:CAPS"/>
     <keyword type="macro" name="NM_SETTING_CONNECTION_AUTOCONNECT_SLAVES" link="NMSettingConnection.html#NM-SETTING-CONNECTION-AUTOCONNECT-SLAVES:CAPS"/>
     <keyword type="macro" name="NM_SETTING_CONNECTION_SECONDARIES" link="NMSettingConnection.html#NM-SETTING-CONNECTION-SECONDARIES:CAPS"/>
     <keyword type="macro" name="NM_SETTING_CONNECTION_GATEWAY_PING_TIMEOUT" link="NMSettingConnection.html#NM-SETTING-CONNECTION-GATEWAY-PING-TIMEOUT:CAPS"/>
@@ -1184,6 +1191,8 @@
     <keyword type="function" name="nm_ethtool_optname_is_coalesce ()" link="NMSettingEthtool.html#nm-ethtool-optname-is-coalesce" since="1.26"/>
     <keyword type="function" name="nm_ethtool_optname_is_ring ()" link="NMSettingEthtool.html#nm-ethtool-optname-is-ring" since="1.26"/>
     <keyword type="function" name="nm_ethtool_optname_is_pause ()" link="NMSettingEthtool.html#nm-ethtool-optname-is-pause" since="1.32"/>
+    <keyword type="function" name="nm_ethtool_optname_is_channels ()" link="NMSettingEthtool.html#nm-ethtool-optname-is-channels" since="1.46"/>
+    <keyword type="function" name="nm_ethtool_optname_is_eee ()" link="NMSettingEthtool.html#nm-ethtool-optname-is-eee" since="1.46"/>
     <keyword type="function" name="nm_setting_ethtool_new ()" link="NMSettingEthtool.html#nm-setting-ethtool-new" since="1.14"/>
     <keyword type="function" name="nm_setting_ethtool_get_optnames ()" link="NMSettingEthtool.html#nm-setting-ethtool-get-optnames" deprecated="1.26: use nm_setting_option_get_all_names() instead." since="1.20"/>
     <keyword type="function" name="nm_setting_ethtool_get_feature ()" link="NMSettingEthtool.html#nm-setting-ethtool-get-feature" deprecated="1.26: use nm_setting_option_get_boolean() instead." since="1.14"/>
@@ -1236,6 +1245,16 @@
     <keyword type="macro" name="NM_SETTING_HOSTNAME_FROM_DHCP" link="NMSettingHostname.html#NM-SETTING-HOSTNAME-FROM-DHCP:CAPS"/>
     <keyword type="macro" name="NM_SETTING_HOSTNAME_FROM_DNS_LOOKUP" link="NMSettingHostname.html#NM-SETTING-HOSTNAME-FROM-DNS-LOOKUP:CAPS"/>
     <keyword type="macro" name="NM_SETTING_HOSTNAME_ONLY_FROM_DEFAULT" link="NMSettingHostname.html#NM-SETTING-HOSTNAME-ONLY-FROM-DEFAULT:CAPS"/>
+    <keyword type="function" name="nm_setting_hsr_new ()" link="NMSettingHsr.html#nm-setting-hsr-new" since="1.46"/>
+    <keyword type="function" name="nm_setting_hsr_get_port1 ()" link="NMSettingHsr.html#nm-setting-hsr-get-port1" since="1.46"/>
+    <keyword type="function" name="nm_setting_hsr_get_port2 ()" link="NMSettingHsr.html#nm-setting-hsr-get-port2" since="1.46"/>
+    <keyword type="function" name="nm_setting_hsr_get_multicast_spec ()" link="NMSettingHsr.html#nm-setting-hsr-get-multicast-spec" since="1.46"/>
+    <keyword type="function" name="nm_setting_hsr_get_prp ()" link="NMSettingHsr.html#nm-setting-hsr-get-prp" since="1.46"/>
+    <keyword type="macro" name="NM_SETTING_HSR_SETTING_NAME" link="NMSettingHsr.html#NM-SETTING-HSR-SETTING-NAME:CAPS"/>
+    <keyword type="macro" name="NM_SETTING_HSR_PORT1" link="NMSettingHsr.html#NM-SETTING-HSR-PORT1:CAPS"/>
+    <keyword type="macro" name="NM_SETTING_HSR_PORT2" link="NMSettingHsr.html#NM-SETTING-HSR-PORT2:CAPS"/>
+    <keyword type="macro" name="NM_SETTING_HSR_MULTICAST_SPEC" link="NMSettingHsr.html#NM-SETTING-HSR-MULTICAST-SPEC:CAPS"/>
+    <keyword type="macro" name="NM_SETTING_HSR_PRP" link="NMSettingHsr.html#NM-SETTING-HSR-PRP:CAPS"/>
     <keyword type="function" name="nm_setting_infiniband_new ()" link="NMSettingInfiniband.html#nm-setting-infiniband-new"/>
     <keyword type="function" name="nm_setting_infiniband_get_mac_address ()" link="NMSettingInfiniband.html#nm-setting-infiniband-get-mac-address"/>
     <keyword type="function" name="nm_setting_infiniband_get_mtu ()" link="NMSettingInfiniband.html#nm-setting-infiniband-get-mtu"/>
@@ -1464,6 +1483,8 @@
     <keyword type="macro" name="NM_SETTING_DNS_OPTION_NO_RELOAD" link="NMSettingIPConfig.html#NM-SETTING-DNS-OPTION-NO-RELOAD:CAPS"/>
     <keyword type="macro" name="NM_SETTING_DNS_OPTION_TRUST_AD" link="NMSettingIPConfig.html#NM-SETTING-DNS-OPTION-TRUST-AD:CAPS"/>
     <keyword type="macro" name="NM_SETTING_DNS_OPTION_NO_AAAA" link="NMSettingIPConfig.html#NM-SETTING-DNS-OPTION-NO-AAAA:CAPS"/>
+    <keyword type="macro" name="NM_SETTING_DNS_OPTION_INTERNAL_NO_ADD_EDNS0" link="NMSettingIPConfig.html#NM-SETTING-DNS-OPTION-INTERNAL-NO-ADD-EDNS0:CAPS"/>
+    <keyword type="macro" name="NM_SETTING_DNS_OPTION_INTERNAL_NO_ADD_TRUST_AD" link="NMSettingIPConfig.html#NM-SETTING-DNS-OPTION-INTERNAL-NO-ADD-TRUST-AD:CAPS"/>
     <keyword type="enum" name="enum NMDhcpHostnameFlags" link="NMSettingIPConfig.html#NMDhcpHostnameFlags" since="1.22"/>
     <keyword type="function" name="nm_setting_ip_tunnel_new ()" link="NMSettingIPTunnel.html#nm-setting-ip-tunnel-new" since="1.2"/>
     <keyword type="function" name="nm_setting_ip_tunnel_get_parent ()" link="NMSettingIPTunnel.html#nm-setting-ip-tunnel-get-parent" since="1.2"/>
@@ -2506,6 +2527,22 @@
     <keyword type="macro" name="NM_DEVICE_GENERIC_TYPE_DESCRIPTION" link="NMDeviceGeneric.html#NM-DEVICE-GENERIC-TYPE-DESCRIPTION:CAPS"/>
     <keyword type="struct" name="NMDeviceGeneric" link="NMDeviceGeneric.html#NMDeviceGeneric-struct"/>
     <keyword type="property" name="The “type-description” property" link="NMDeviceGeneric.html#NMDeviceGeneric--type-description"/>
+    <keyword type="function" name="nm_device_hsr_get_port1 ()" link="NMDeviceHsr.html#nm-device-hsr-get-port1" since="1.46"/>
+    <keyword type="function" name="nm_device_hsr_get_port2 ()" link="NMDeviceHsr.html#nm-device-hsr-get-port2" since="1.46"/>
+    <keyword type="function" name="nm_device_hsr_get_supervision_address ()" link="NMDeviceHsr.html#nm-device-hsr-get-supervision-address" since="1.46"/>
+    <keyword type="function" name="nm_device_hsr_get_multicast_spec ()" link="NMDeviceHsr.html#nm-device-hsr-get-multicast-spec" since="1.46"/>
+    <keyword type="function" name="nm_device_hsr_get_prp ()" link="NMDeviceHsr.html#nm-device-hsr-get-prp" since="1.46"/>
+    <keyword type="macro" name="NM_DEVICE_HSR_PORT1" link="NMDeviceHsr.html#NM-DEVICE-HSR-PORT1:CAPS"/>
+    <keyword type="macro" name="NM_DEVICE_HSR_PORT2" link="NMDeviceHsr.html#NM-DEVICE-HSR-PORT2:CAPS"/>
+    <keyword type="macro" name="NM_DEVICE_HSR_SUPERVISION_ADDRESS" link="NMDeviceHsr.html#NM-DEVICE-HSR-SUPERVISION-ADDRESS:CAPS"/>
+    <keyword type="macro" name="NM_DEVICE_HSR_MULTICAST_SPEC" link="NMDeviceHsr.html#NM-DEVICE-HSR-MULTICAST-SPEC:CAPS"/>
+    <keyword type="macro" name="NM_DEVICE_HSR_PRP" link="NMDeviceHsr.html#NM-DEVICE-HSR-PRP:CAPS"/>
+    <keyword type="struct" name="NMDeviceHsr" link="NMDeviceHsr.html#NMDeviceHsr-struct"/>
+    <keyword type="property" name="The “multicast-spec” property" link="NMDeviceHsr.html#NMDeviceHsr--multicast-spec"/>
+    <keyword type="property" name="The “port1” property" link="NMDeviceHsr.html#NMDeviceHsr--port1"/>
+    <keyword type="property" name="The “port2” property" link="NMDeviceHsr.html#NMDeviceHsr--port2"/>
+    <keyword type="property" name="The “prp” property" link="NMDeviceHsr.html#NMDeviceHsr--prp"/>
+    <keyword type="property" name="The “supervision-address” property" link="NMDeviceHsr.html#NMDeviceHsr--supervision-address"/>
     <keyword type="function" name="nm_device_infiniband_get_hw_address ()" link="NMDeviceInfiniband.html#nm-device-infiniband-get-hw-address" deprecated="1.24: Use nm_device_get_hw_address() instead."/>
     <keyword type="function" name="nm_device_infiniband_get_carrier ()" link="NMDeviceInfiniband.html#nm-device-infiniband-get-carrier"/>
     <keyword type="macro" name="NM_DEVICE_INFINIBAND_HW_ADDRESS" link="NMDeviceInfiniband.html#NM-DEVICE-INFINIBAND-HW-ADDRESS:CAPS"/>
@@ -2523,6 +2560,7 @@
     <keyword type="function" name="nm_device_ip_tunnel_get_output_key ()" link="NMDeviceIPTunnel.html#nm-device-ip-tunnel-get-output-key" since="1.2"/>
     <keyword type="function" name="nm_device_ip_tunnel_get_encapsulation_limit ()" link="NMDeviceIPTunnel.html#nm-device-ip-tunnel-get-encapsulation-limit" since="1.2"/>
     <keyword type="function" name="nm_device_ip_tunnel_get_flow_label ()" link="NMDeviceIPTunnel.html#nm-device-ip-tunnel-get-flow-label" since="1.2"/>
+    <keyword type="function" name="nm_device_ip_tunnel_get_fwmark ()" link="NMDeviceIPTunnel.html#nm-device-ip-tunnel-get-fwmark" since="1.46"/>
     <keyword type="function" name="nm_device_ip_tunnel_get_flags ()" link="NMDeviceIPTunnel.html#nm-device-ip-tunnel-get-flags" since="1.12"/>
     <keyword type="macro" name="NM_DEVICE_IP_TUNNEL_MODE" link="NMDeviceIPTunnel.html#NM-DEVICE-IP-TUNNEL-MODE:CAPS"/>
     <keyword type="macro" name="NM_DEVICE_IP_TUNNEL_PARENT" link="NMDeviceIPTunnel.html#NM-DEVICE-IP-TUNNEL-PARENT:CAPS"/>
@@ -2535,11 +2573,13 @@
     <keyword type="macro" name="NM_DEVICE_IP_TUNNEL_OUTPUT_KEY" link="NMDeviceIPTunnel.html#NM-DEVICE-IP-TUNNEL-OUTPUT-KEY:CAPS"/>
     <keyword type="macro" name="NM_DEVICE_IP_TUNNEL_ENCAPSULATION_LIMIT" link="NMDeviceIPTunnel.html#NM-DEVICE-IP-TUNNEL-ENCAPSULATION-LIMIT:CAPS"/>
     <keyword type="macro" name="NM_DEVICE_IP_TUNNEL_FLOW_LABEL" link="NMDeviceIPTunnel.html#NM-DEVICE-IP-TUNNEL-FLOW-LABEL:CAPS"/>
+    <keyword type="macro" name="NM_DEVICE_IP_TUNNEL_FWMARK" link="NMDeviceIPTunnel.html#NM-DEVICE-IP-TUNNEL-FWMARK:CAPS"/>
     <keyword type="macro" name="NM_DEVICE_IP_TUNNEL_FLAGS" link="NMDeviceIPTunnel.html#NM-DEVICE-IP-TUNNEL-FLAGS:CAPS"/>
     <keyword type="struct" name="NMDeviceIPTunnel" link="NMDeviceIPTunnel.html#NMDeviceIPTunnel-struct"/>
     <keyword type="property" name="The “encapsulation-limit” property" link="NMDeviceIPTunnel.html#NMDeviceIPTunnel--encapsulation-limit"/>
     <keyword type="property" name="The “flags” property" link="NMDeviceIPTunnel.html#NMDeviceIPTunnel--flags"/>
     <keyword type="property" name="The “flow-label” property" link="NMDeviceIPTunnel.html#NMDeviceIPTunnel--flow-label"/>
+    <keyword type="property" name="The “fwmark” property" link="NMDeviceIPTunnel.html#NMDeviceIPTunnel--fwmark"/>
     <keyword type="property" name="The “input-key” property" link="NMDeviceIPTunnel.html#NMDeviceIPTunnel--input-key"/>
     <keyword type="property" name="The “local” property" link="NMDeviceIPTunnel.html#NMDeviceIPTunnel--local"/>
     <keyword type="property" name="The “mode” property" link="NMDeviceIPTunnel.html#NMDeviceIPTunnel--mode"/>
@@ -2907,6 +2947,7 @@
     <keyword type="function" name="nm_access_point_get_max_bitrate ()" link="NMAccessPoint.html#nm-access-point-get-max-bitrate"/>
     <keyword type="function" name="nm_access_point_get_strength ()" link="NMAccessPoint.html#nm-access-point-get-strength"/>
     <keyword type="function" name="nm_access_point_get_last_seen ()" link="NMAccessPoint.html#nm-access-point-get-last-seen" since="1.2"/>
+    <keyword type="function" name="nm_access_point_get_bandwidth ()" link="NMAccessPoint.html#nm-access-point-get-bandwidth" since="1.46"/>
     <keyword type="function" name="nm_access_point_filter_connections ()" link="NMAccessPoint.html#nm-access-point-filter-connections"/>
     <keyword type="function" name="nm_access_point_connection_valid ()" link="NMAccessPoint.html#nm-access-point-connection-valid"/>
     <keyword type="macro" name="NM_ACCESS_POINT_FLAGS" link="NMAccessPoint.html#NM-ACCESS-POINT-FLAGS:CAPS"/>
@@ -2919,8 +2960,10 @@
     <keyword type="macro" name="NM_ACCESS_POINT_MAX_BITRATE" link="NMAccessPoint.html#NM-ACCESS-POINT-MAX-BITRATE:CAPS"/>
     <keyword type="macro" name="NM_ACCESS_POINT_STRENGTH" link="NMAccessPoint.html#NM-ACCESS-POINT-STRENGTH:CAPS"/>
     <keyword type="macro" name="NM_ACCESS_POINT_LAST_SEEN" link="NMAccessPoint.html#NM-ACCESS-POINT-LAST-SEEN:CAPS"/>
+    <keyword type="macro" name="NM_ACCESS_POINT_BANDWIDTH" link="NMAccessPoint.html#NM-ACCESS-POINT-BANDWIDTH:CAPS"/>
     <keyword type="macro" name="NM_ACCESS_POINT_HW_ADDRESS" link="NMAccessPoint.html#NM-ACCESS-POINT-HW-ADDRESS:CAPS"/>
     <keyword type="struct" name="NMAccessPoint" link="NMAccessPoint.html#NMAccessPoint-struct"/>
+    <keyword type="property" name="The “bandwidth” property" link="NMAccessPoint.html#NMAccessPoint--bandwidth"/>
     <keyword type="property" name="The “bssid” property" link="NMAccessPoint.html#NMAccessPoint--bssid"/>
     <keyword type="property" name="The “flags” property" link="NMAccessPoint.html#NMAccessPoint--flags"/>
     <keyword type="property" name="The “frequency” property" link="NMAccessPoint.html#NMAccessPoint--frequency"/>
@@ -3032,7 +3075,7 @@
     <keyword type="enum" name="enum NMKeyfileWarnSeverity" link="libnm-nm-keyfile.html#NMKeyfileWarnSeverity" since="1.30"/>
     <keyword type="struct" name="NMKeyfileHandlerData" link="libnm-nm-keyfile.html#NMKeyfileHandlerData" since="1.30"/>
     <keyword type="function" name="nm_utils_is_empty_ssid ()" link="libnm-nm-utils.html#nm-utils-is-empty-ssid"/>
-    <keyword type="function" name="nm_utils_escape_ssid ()" link="libnm-nm-utils.html#nm-utils-escape-ssid"/>
+    <keyword type="function" name="nm_utils_escape_ssid ()" link="libnm-nm-utils.html#nm-utils-escape-ssid" deprecated="1.46: use nm_utils_ssid_to_utf8() or nm_utils_bin2hexstr()."/>
     <keyword type="function" name="nm_utils_same_ssid ()" link="libnm-nm-utils.html#nm-utils-same-ssid"/>
     <keyword type="function" name="nm_utils_ssid_to_utf8 ()" link="libnm-nm-utils.html#nm-utils-ssid-to-utf8"/>
     <keyword type="function" name="nm_utils_security_valid ()" link="libnm-nm-utils.html#nm-utils-security-valid"/>
@@ -3199,6 +3242,11 @@
     <keyword type="macro" name="NM_ETHTOOL_OPTNAME_PAUSE_AUTONEG" link="libnm-nm-ethtool-utils.html#NM-ETHTOOL-OPTNAME-PAUSE-AUTONEG:CAPS"/>
     <keyword type="macro" name="NM_ETHTOOL_OPTNAME_PAUSE_RX" link="libnm-nm-ethtool-utils.html#NM-ETHTOOL-OPTNAME-PAUSE-RX:CAPS"/>
     <keyword type="macro" name="NM_ETHTOOL_OPTNAME_PAUSE_TX" link="libnm-nm-ethtool-utils.html#NM-ETHTOOL-OPTNAME-PAUSE-TX:CAPS"/>
+    <keyword type="macro" name="NM_ETHTOOL_OPTNAME_CHANNELS_RX" link="libnm-nm-ethtool-utils.html#NM-ETHTOOL-OPTNAME-CHANNELS-RX:CAPS"/>
+    <keyword type="macro" name="NM_ETHTOOL_OPTNAME_CHANNELS_TX" link="libnm-nm-ethtool-utils.html#NM-ETHTOOL-OPTNAME-CHANNELS-TX:CAPS"/>
+    <keyword type="macro" name="NM_ETHTOOL_OPTNAME_CHANNELS_OTHER" link="libnm-nm-ethtool-utils.html#NM-ETHTOOL-OPTNAME-CHANNELS-OTHER:CAPS"/>
+    <keyword type="macro" name="NM_ETHTOOL_OPTNAME_CHANNELS_COMBINED" link="libnm-nm-ethtool-utils.html#NM-ETHTOOL-OPTNAME-CHANNELS-COMBINED:CAPS"/>
+    <keyword type="macro" name="NM_ETHTOOL_OPTNAME_EEE_ENABLED" link="libnm-nm-ethtool-utils.html#NM-ETHTOOL-OPTNAME-EEE-ENABLED:CAPS"/>
     <keyword type="macro" name="NM_DEPRECATED_IN_0_9_10_FOR()" link="libnm-nm-version.html#NM-DEPRECATED-IN-0-9-10-FOR:CAPS"/>
     <keyword type="macro" name="NM_DEPRECATED_IN_1_0_FOR()" link="libnm-nm-version.html#NM-DEPRECATED-IN-1-0-FOR:CAPS"/>
     <keyword type="macro" name="NM_DEPRECATED_IN_1_2_FOR()" link="libnm-nm-version.html#NM-DEPRECATED-IN-1-2-FOR:CAPS"/>
@@ -3223,6 +3271,7 @@
     <keyword type="macro" name="NM_DEPRECATED_IN_1_40_FOR()" link="libnm-nm-version.html#NM-DEPRECATED-IN-1-40-FOR:CAPS"/>
     <keyword type="macro" name="NM_DEPRECATED_IN_1_42_FOR()" link="libnm-nm-version.html#NM-DEPRECATED-IN-1-42-FOR:CAPS"/>
     <keyword type="macro" name="NM_DEPRECATED_IN_1_44_FOR()" link="libnm-nm-version.html#NM-DEPRECATED-IN-1-44-FOR:CAPS"/>
+    <keyword type="macro" name="NM_DEPRECATED_IN_1_46_FOR()" link="libnm-nm-version.html#NM-DEPRECATED-IN-1-46-FOR:CAPS"/>
     <keyword type="macro" name="NM_VERSION_MIN_REQUIRED" link="libnm-nm-version.html#NM-VERSION-MIN-REQUIRED:CAPS"/>
     <keyword type="macro" name="NM_VERSION_MAX_ALLOWED" link="libnm-nm-version.html#NM-VERSION-MAX-ALLOWED:CAPS"/>
     <keyword type="macro" name="NM_DEPRECATED_IN_0_9_10" link="libnm-nm-version.html#NM-DEPRECATED-IN-0-9-10:CAPS"/>
@@ -3273,6 +3322,8 @@
     <keyword type="macro" name="NM_AVAILABLE_IN_1_42" link="libnm-nm-version.html#NM-AVAILABLE-IN-1-42:CAPS"/>
     <keyword type="macro" name="NM_DEPRECATED_IN_1_44" link="libnm-nm-version.html#NM-DEPRECATED-IN-1-44:CAPS"/>
     <keyword type="macro" name="NM_AVAILABLE_IN_1_44" link="libnm-nm-version.html#NM-AVAILABLE-IN-1-44:CAPS"/>
+    <keyword type="macro" name="NM_DEPRECATED_IN_1_46" link="libnm-nm-version.html#NM-DEPRECATED-IN-1-46:CAPS"/>
+    <keyword type="macro" name="NM_AVAILABLE_IN_1_46" link="libnm-nm-version.html#NM-AVAILABLE-IN-1-46:CAPS"/>
     <keyword type="macro" name="NM_CHECK_VERSION()" link="libnm-nm-version-macros.html#NM-CHECK-VERSION:CAPS"/>
     <keyword type="macro" name="NM_ENCODE_VERSION()" link="libnm-nm-version-macros.html#NM-ENCODE-VERSION:CAPS"/>
     <keyword type="macro" name="NM_MAJOR_VERSION" link="libnm-nm-version-macros.html#NM-MAJOR-VERSION:CAPS"/>
@@ -3303,6 +3354,7 @@
     <keyword type="macro" name="NM_VERSION_1_40" link="libnm-nm-version-macros.html#NM-VERSION-1-40:CAPS"/>
     <keyword type="macro" name="NM_VERSION_1_42" link="libnm-nm-version-macros.html#NM-VERSION-1-42:CAPS"/>
     <keyword type="macro" name="NM_VERSION_1_44" link="libnm-nm-version-macros.html#NM-VERSION-1-44:CAPS"/>
+    <keyword type="macro" name="NM_VERSION_1_46" link="libnm-nm-version-macros.html#NM-VERSION-1-46:CAPS"/>
     <keyword type="macro" name="NM_API_VERSION" link="libnm-nm-version-macros.html#NM-API-VERSION:CAPS"/>
     <keyword type="macro" name="NM_VERSION_CUR_STABLE" link="libnm-nm-version-macros.html#NM-VERSION-CUR-STABLE:CAPS"/>
     <keyword type="macro" name="NM_VERSION_NEXT_STABLE" link="libnm-nm-version-macros.html#NM-VERSION-NEXT-STABLE:CAPS"/>
@@ -3544,6 +3596,7 @@
     <keyword type="constant" name="NM_DEVICE_TYPE_WIFI_P2P" link="libnm-nm-dbus-interface.html#NM-DEVICE-TYPE-WIFI-P2P:CAPS"/>
     <keyword type="constant" name="NM_DEVICE_TYPE_VRF" link="libnm-nm-dbus-interface.html#NM-DEVICE-TYPE-VRF:CAPS"/>
     <keyword type="constant" name="NM_DEVICE_TYPE_LOOPBACK" link="libnm-nm-dbus-interface.html#NM-DEVICE-TYPE-LOOPBACK:CAPS"/>
+    <keyword type="constant" name="NM_DEVICE_TYPE_HSR" link="libnm-nm-dbus-interface.html#NM-DEVICE-TYPE-HSR:CAPS"/>
     <keyword type="constant" name="NM_DEVICE_CAP_NONE" link="libnm-nm-dbus-interface.html#NM-DEVICE-CAP-NONE:CAPS"/>
     <keyword type="constant" name="NM_DEVICE_CAP_NM_SUPPORTED" link="libnm-nm-dbus-interface.html#NM-DEVICE-CAP-NM-SUPPORTED:CAPS"/>
     <keyword type="constant" name="NM_DEVICE_CAP_CARRIER_DETECT" link="libnm-nm-dbus-interface.html#NM-DEVICE-CAP-CARRIER-DETECT:CAPS"/>
@@ -3561,6 +3614,7 @@
     <keyword type="constant" name="NM_WIFI_DEVICE_CAP_FREQ_VALID" link="libnm-nm-dbus-interface.html#NM-WIFI-DEVICE-CAP-FREQ-VALID:CAPS"/>
     <keyword type="constant" name="NM_WIFI_DEVICE_CAP_FREQ_2GHZ" link="libnm-nm-dbus-interface.html#NM-WIFI-DEVICE-CAP-FREQ-2GHZ:CAPS"/>
     <keyword type="constant" name="NM_WIFI_DEVICE_CAP_FREQ_5GHZ" link="libnm-nm-dbus-interface.html#NM-WIFI-DEVICE-CAP-FREQ-5GHZ:CAPS"/>
+    <keyword type="constant" name="NM_WIFI_DEVICE_CAP_FREQ_6GHZ" link="libnm-nm-dbus-interface.html#NM-WIFI-DEVICE-CAP-FREQ-6GHZ:CAPS"/>
     <keyword type="constant" name="NM_WIFI_DEVICE_CAP_MESH" link="libnm-nm-dbus-interface.html#NM-WIFI-DEVICE-CAP-MESH:CAPS"/>
     <keyword type="constant" name="NM_WIFI_DEVICE_CAP_IBSS_RSN" link="libnm-nm-dbus-interface.html#NM-WIFI-DEVICE-CAP-IBSS-RSN:CAPS"/>
     <keyword type="constant" name="NM_802_11_AP_FLAGS_NONE" link="libnm-nm-dbus-interface.html#NM-802-11-AP-FLAGS-NONE:CAPS"/>

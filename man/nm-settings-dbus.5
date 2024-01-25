@@ -2,12 +2,12 @@
 .\"     Title: nm-settings-dbus
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 10/03/2023
+.\"      Date: 01/25/2024
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.44.2
+.\"    Source: NetworkManager 1.45.90
 .\"  Language: English
 .\"
-.TH "NM\-SETTINGS\-DBUS" "5" "" "NetworkManager 1\&.44\&.2" "Configuration"
+.TH "NM\-SETTINGS\-DBUS" "5" "" "NetworkManager 1\&.45\&.90" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -101,6 +101,8 @@ l l l l
 l l l l
 l l l l
 l l l l
+l l l l
+l l l l
 l l l l.
 T{
 auth\-retries
@@ -156,6 +158,15 @@ T}:T{
 \ \&
 T}:T{
 Whether or not slaves of this connection should be automatically brought up when NetworkManager activates this connection\&. This only has a real effect for master connections\&. The properties "autoconnect", "autoconnect\-priority" and "autoconnect\-retries" are unrelated to this setting\&. The permitted values are: 0: leave slave connections untouched, 1: activate all the slave connections with this connection, \-1: default\&. If \-1 (default) is set, global connection\&.autoconnect\-slaves is read to determine the real value\&. If it is default as well, this fallbacks to 0\&.
+T}
+T{
+controller
+T}:T{
+string
+T}:T{
+\ \&
+T}:T{
+Interface name of the controller device or UUID of the controller connection\&.
 T}
 T{
 dns\-over\-tls
@@ -231,6 +242,8 @@ T}:T{
 \ \&
 T}:T{
 Interface name of the master device or UUID of the master connection\&.
+
+Deprecated 1\&.46\&. Use "controller" instead, this is just an alias\&.
 T}
 T{
 mdns
@@ -315,6 +328,15 @@ An array of strings defining what access a given user has to this connection\&. 
 At this time only the "user" [type] is allowed\&.  Any other values are ignored and reserved for future use\&.  [id] is the username that this permission refers to, which may not contain the ":" character\&. Any [reserved] information present must be ignored and is reserved for future use\&.  All of [type], [id], and [reserved] must be valid UTF\-8\&.
 T}
 T{
+port\-type
+T}:T{
+string
+T}:T{
+\ \&
+T}:T{
+Setting name of the device type of this port\*(Aqs controller connection (eg, "bond"), or NULL if this connection is not a port\&.
+T}
+T{
 read\-only
 T}:T{
 boolean
@@ -342,6 +364,8 @@ T}:T{
 \ \&
 T}:T{
 Setting name of the device type of this slave\*(Aqs master connection (eg, "bond"), or NULL if this connection is not a slave\&.
+
+Deprecated 1\&.46\&. Use "port\-type" instead, this is just an alias\&.
 T}
 T{
 stable\-id
@@ -356,7 +380,7 @@ The stable\-id is used for generating IPv6 stable private addresses with ipv6\&.
 
 Note that depending on the context where it is used, other parameters are also seeded into the generation algorithm\&. For example, a per\-host key is commonly also included, so that different systems end up generating different IDs\&. Or with ipv6\&.addr\-gen\-mode=stable\-privacy, also the device\*(Aqs name is included, so that different interfaces yield different addresses\&. The per\-host key is the identity of your machine and stored in /var/lib/NetworkManager/secret_key\&. See NetworkManager(8) manual about the secret\-key and the host identity\&.
 
-The \*(Aq$\*(Aq character is treated special to perform dynamic substitutions at activation time\&. Currently, supported are "${CONNECTION}", "${DEVICE}", "${MAC}", "${BOOT}", "${RANDOM}"\&.  These effectively create unique IDs per\-connection, per\-device, per\-boot, or every time\&. The "${CONNECTION}" uses the profile\*(Aqs connection\&.uuid, the "${DEVICE}" uses the interface name of the device and "${MAC}" the permanent MAC address of the device\&. Any unrecognized patterns following \*(Aq$\*(Aq are treated verbatim, however are reserved for future use\&. You are thus advised to avoid \*(Aq$\*(Aq or escape it as "$$"\&.  For example, set it to "${CONNECTION}\-${BOOT}\-${DEVICE}" to create a unique id for this connection that changes with every reboot and differs depending on the interface where the profile activates\&.
+The \*(Aq$\*(Aq character is treated special to perform dynamic substitutions at activation time\&. Currently, supported are "${CONNECTION}", "${DEVICE}", "${MAC}", "${NETWORK_SSID}", "${BOOT}", "${RANDOM}"\&.  These effectively create unique IDs per\-connection, per\-device, per\-SSID, per\-boot, or every time\&.  The "${CONNECTION}" uses the profile\*(Aqs connection\&.uuid, the "${DEVICE}" uses the interface name of the device and "${MAC}" the permanent MAC address of the device\&. "${NETWORK_SSID}" uses the SSID for Wi\-Fi networks and falls back to "${CONNECTION}" on other networks\&. Any unrecognized patterns following \*(Aq$\*(Aq are treated verbatim, however are reserved for future use\&. You are thus advised to avoid \*(Aq$\*(Aq or escape it as "$$"\&.  For example, set it to "${CONNECTION}\-${BOOT}\-${DEVICE}" to create a unique id for this connection that changes with every reboot and differs depending on the interface where the profile activates\&.
 
 If the value is unset, a global connection default is consulted\&. If the value is still unset, the default is "default${CONNECTION}" go generate an ID unique per connection profile\&.
 T}
@@ -1616,7 +1640,7 @@ NMSettingDcbFlags (uint32)
 T}:T{
 \ \&
 T}:T{
-Specifies the NMSettingDcbFlags for the DCB FCoE application\&.  Flags may be any combination of NM_SETTING_DCB_FLAG_ENABLE (0x1), NM_SETTING_DCB_FLAG_ADVERTISE (0x2), and NM_SETTING_DCB_FLAG_WILLING (0x4)\&.
+Specifies the NMSettingDcbFlags for the DCB FCoE application\&.  Flags may be any combination of 0x1 (enable), 0x2 (advertise), and 0x4 (willing)\&.
 T}
 T{
 app\-fcoe\-mode
@@ -1636,7 +1660,7 @@ int32
 T}:T{
 \-1
 T}:T{
-The highest User Priority (0 \- 7) which FCoE frames should use, or \-1 for default priority\&.  Only used when the "app\-fcoe\-flags" property includes the NM_SETTING_DCB_FLAG_ENABLE (0x1) flag\&.
+The highest User Priority (0 \- 7) which FCoE frames should use, or \-1 for default priority\&.  Only used when the "app\-fcoe\-flags" property includes the 0x1 (enable) flag\&.
 T}
 T{
 app\-fip\-flags
@@ -1645,7 +1669,7 @@ NMSettingDcbFlags (uint32)
 T}:T{
 \ \&
 T}:T{
-Specifies the NMSettingDcbFlags for the DCB FIP application\&.  Flags may be any combination of NM_SETTING_DCB_FLAG_ENABLE (0x1), NM_SETTING_DCB_FLAG_ADVERTISE (0x2), and NM_SETTING_DCB_FLAG_WILLING (0x4)\&.
+Specifies the NMSettingDcbFlags for the DCB FIP application\&.  Flags may be any combination of 0x1 (enable), 0x2 (advertise), and 0x4 (willing)\&.
 T}
 T{
 app\-fip\-priority
@@ -1654,7 +1678,7 @@ int32
 T}:T{
 \-1
 T}:T{
-The highest User Priority (0 \- 7) which FIP frames should use, or \-1 for default priority\&.  Only used when the "app\-fip\-flags" property includes the NM_SETTING_DCB_FLAG_ENABLE (0x1) flag\&.
+The highest User Priority (0 \- 7) which FIP frames should use, or \-1 for default priority\&.  Only used when the "app\-fip\-flags" property includes the 0x1 (enable) flag\&.
 T}
 T{
 app\-iscsi\-flags
@@ -1663,7 +1687,7 @@ NMSettingDcbFlags (uint32)
 T}:T{
 \ \&
 T}:T{
-Specifies the NMSettingDcbFlags for the DCB iSCSI application\&.  Flags may be any combination of NM_SETTING_DCB_FLAG_ENABLE (0x1), NM_SETTING_DCB_FLAG_ADVERTISE (0x2), and NM_SETTING_DCB_FLAG_WILLING (0x4)\&.
+Specifies the NMSettingDcbFlags for the DCB iSCSI application\&.  Flags may be any combination of 0x1 (enable), 0x2 (advertise), and 0x4 (willing)\&.
 T}
 T{
 app\-iscsi\-priority
@@ -1672,7 +1696,7 @@ int32
 T}:T{
 \-1
 T}:T{
-The highest User Priority (0 \- 7) which iSCSI frames should use, or \-1 for default priority\&. Only used when the "app\-iscsi\-flags" property includes the NM_SETTING_DCB_FLAG_ENABLE (0x1) flag\&.
+The highest User Priority (0 \- 7) which iSCSI frames should use, or \-1 for default priority\&. Only used when the "app\-iscsi\-flags" property includes the 0x1 (enable) flag\&.
 T}
 T{
 priority\-bandwidth
@@ -1699,7 +1723,7 @@ NMSettingDcbFlags (uint32)
 T}:T{
 \ \&
 T}:T{
-Specifies the NMSettingDcbFlags for DCB Priority Flow Control (PFC)\&. Flags may be any combination of NM_SETTING_DCB_FLAG_ENABLE (0x1), NM_SETTING_DCB_FLAG_ADVERTISE (0x2), and NM_SETTING_DCB_FLAG_WILLING (0x4)\&.
+Specifies the NMSettingDcbFlags for DCB Priority Flow Control (PFC)\&. Flags may be any combination of 0x1 (enable), 0x2 (advertise), and 0x4 (willing)\&.
 T}
 T{
 priority\-group\-bandwidth
@@ -1717,7 +1741,7 @@ NMSettingDcbFlags (uint32)
 T}:T{
 \ \&
 T}:T{
-Specifies the NMSettingDcbFlags for DCB Priority Groups\&.  Flags may be any combination of NM_SETTING_DCB_FLAG_ENABLE (0x1), NM_SETTING_DCB_FLAG_ADVERTISE (0x2), and NM_SETTING_DCB_FLAG_WILLING (0x4)\&.
+Specifies the NMSettingDcbFlags for DCB Priority Groups\&.  Flags may be any combination of 0x1 (enable), 0x2 (advertise), and 0x4 (willing)\&.
 T}
 T{
 priority\-group\-id
@@ -1845,6 +1869,8 @@ T}:T{
 \ \&
 T}:T{
 The GPRS Access Point Name specifying the APN used when establishing a data session with the GSM\-based network\&.  The APN often determines how the user will be billed for their network usage and whether the user has access to the Internet or just a provider\-specific walled\-garden, so it is important to use the correct APN for the user\*(Aqs mobile broadband plan\&. The APN may only be composed of the characters a\-z, 0\-9, \&., and \- per GSM 03\&.60 Section 14\&.9\&.
+
+If the APN is unset (the default) then it may be detected based on "auto\-config" setting\&. The property can be explicitly set to the empty string to prevent that and use no APN\&.
 T}
 T{
 auto\-config
@@ -2142,9 +2168,9 @@ int32
 T}:T{
 \-1
 T}:T{
-Timeout in milliseconds used to check for the presence of duplicate IP addresses on the network\&.  If an address conflict is detected, the activation will fail\&.  A zero value means that no duplicate address detection is performed, \-1 means the default value (either configuration ipvx\&.dad\-timeout override or zero)\&.  A value greater than zero is a timeout in milliseconds\&.
+Maximum timeout in milliseconds used to check for the presence of duplicate IP addresses on the network\&.  If an address conflict is detected, the activation will fail\&. The property is currently implemented only for IPv4\&.
 
-The property is currently implemented only for IPv4\&.
+A zero value means that no duplicate address detection is performed, \-1 means the default value (either the value configured globally in NetworkManger\&.conf or 200ms)\&.  A value greater than zero is a timeout in milliseconds\&.  Note that the time intervals are subject to randomization as per RFC 5227 and so the actual duration can be between half and the full time specified in this property\&.
 T}
 T{
 dhcp\-client\-id
@@ -2163,7 +2189,9 @@ The special value "duid" generates a RFC4361\-compliant client identifier based 
 
 The special value "stable" is supported to generate a type 0 client identifier based on the stable\-id (see connection\&.stable\-id) and a per\-host key\&. If you set the stable\-id, you may want to include the "${DEVICE}" or "${MAC}" specifier to get a per\-device key\&.
 
-If unset, a globally configured default is used\&. If still unset, the default depends on the DHCP plugin\&.
+The special value "none" prevents any client identifier from being sent\&. Note that this is normally not recommended\&.
+
+If unset, a globally configured default from NetworkManager\&.conf is used\&. If still unset, the default depends on the DHCP plugin\&. The internal dhcp client will default to "mac" and the dhclient plugin will try to use one from its config file if present, or won\*(Aqt sent any client\-id otherwise\&.
 T}
 T{
 dhcp\-fqdn
@@ -2192,9 +2220,9 @@ T}:T{
 T}:T{
 Flags for the DHCP hostname and FQDN\&.
 
-Currently, this property only includes flags to control the FQDN flags set in the DHCP FQDN option\&. Supported FQDN flags are NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE (0x1), NM_DHCP_HOSTNAME_FLAG_FQDN_ENCODED (0x2) and NM_DHCP_HOSTNAME_FLAG_FQDN_NO_UPDATE (0x4)\&.  When no FQDN flag is set and NM_DHCP_HOSTNAME_FLAG_FQDN_CLEAR_FLAGS (0x8) is set, the DHCP FQDN option will contain no flag\&. Otherwise, if no FQDN flag is set and NM_DHCP_HOSTNAME_FLAG_FQDN_CLEAR_FLAGS (0x8) is not set, the standard FQDN flags are set in the request: NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE (0x1), NM_DHCP_HOSTNAME_FLAG_FQDN_ENCODED (0x2) for IPv4 and NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE (0x1) for IPv6\&.
+Currently, this property only includes flags to control the FQDN flags set in the DHCP FQDN option\&. Supported FQDN flags are 0x1 (fqdn\-serv\-update), 0x2 (fqdn\-encoded) and 0x4 (fqdn\-no\-update)\&.  When no FQDN flag is set and 0x8 (fqdn\-clear\-flags) is set, the DHCP FQDN option will contain no flag\&. Otherwise, if no FQDN flag is set and 0x8 (fqdn\-clear\-flags) is not set, the standard FQDN flags are set in the request: 0x1 (fqdn\-serv\-update), 0x2 (fqdn\-encoded) for IPv4 and 0x1 (fqdn\-serv\-update) for IPv6\&.
 
-When this property is set to the default value NM_DHCP_HOSTNAME_FLAG_NONE (0x0), a global default is looked up in NetworkManager configuration\&. If that value is unset or also NM_DHCP_HOSTNAME_FLAG_NONE (0x0), then the standard FQDN flags described above are sent in the DHCP requests\&.
+When this property is set to the default value 0x0 (none), a global default is looked up in NetworkManager configuration\&. If that value is unset or also 0x0 (none), then the standard FQDN flags described above are sent in the DHCP requests\&.
 T}
 T{
 dhcp\-iaid
@@ -2278,15 +2306,17 @@ array of string
 T}:T{
 \ \&
 T}:T{
-Array of DNS options as described in man 5 resolv\&.conf\&.
+Array of DNS options to be added to resolv\&.conf\&.
 
 NULL means that the options are unset and left at the default\&. In this case NetworkManager will use default options\&. This is distinct from an empty list of properties\&.
 
-The currently supported options are "attempts", "debug", "edns0", "inet6", "ip6\-bytestring", "ip6\-dotint", "ndots", "no\-aaaa", "no\-check\-names", "no\-ip6\-dotint", "no\-reload", "no\-tld\-query", "rotate", "single\-request", "single\-request\-reopen", "timeout", "trust\-ad", "use\-vc"\&.
+The following options are directly added to resolv\&.conf: "attempts", "debug", "edns0", "inet6", "ip6\-bytestring", "ip6\-dotint", "ndots", "no\-aaaa", "no\-check\-names", "no\-ip6\-dotint", "no\-reload", "no\-tld\-query", "rotate", "single\-request", "single\-request\-reopen", "timeout", "trust\-ad", "use\-vc"\&. See the resolv\&.conf(5) man page for a detailed description of these options\&.
+
+In addition, NetworkManager supports the special options "_no\-add\-edns0" and "_no\-add\-trust\-ad"\&. They are not added to resolv\&.conf, and can be used to prevent the automatic addition of options "edns0" and "trust\-ad" when using caching DNS plugins (see below)\&.
 
 The "trust\-ad" setting is only honored if the profile contributes name servers to resolv\&.conf, and if all contributing profiles have "trust\-ad" enabled\&.
 
-When using a caching DNS plugin (dnsmasq or systemd\-resolved in NetworkManager\&.conf) then "edns0" and "trust\-ad" are automatically added\&.
+When using a caching DNS plugin (dnsmasq or systemd\-resolved in NetworkManager\&.conf) then "edns0" and "trust\-ad" are automatically added, unless "_no\-add\-edns0" and "_no\-add\-trust\-ad" are present\&.
 T}
 T{
 dns\-priority
@@ -2539,7 +2569,7 @@ T}:T{
 T}:T{
 Configure the method for creating the IPv6 interface identifier of addresses for RFC4862 IPv6 Stateless Address Autoconfiguration and IPv6 Link Local\&.
 
-The permitted values are: NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_EUI64 (0), NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_STABLE_PRIVACY (1)\&. NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_DEFAULT_OR_EUI64 (2) or NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_DEFAULT (3)\&.
+The permitted values are: 0 (eui64), 1 (stable\-privacy)\&. 2 (default\-or\-eui64) or 3 (default)\&.
 
 If the property is set to "eui64", the addresses will be generated using the interface token derived from the hardware address\&. This makes the host part of the address constant, making it possible to track the host\*(Aqs presence when it changes networks\&. The address changes when the interface hardware is replaced\&. If a duplicate address is detected, there is no fallback to generate another address\&. When configured, the "ipv6\&.token" is used instead of the MAC address to generate addresses for stateless autoconfiguration\&.
 
@@ -2588,9 +2618,9 @@ int32
 T}:T{
 \-1
 T}:T{
-Timeout in milliseconds used to check for the presence of duplicate IP addresses on the network\&.  If an address conflict is detected, the activation will fail\&.  A zero value means that no duplicate address detection is performed, \-1 means the default value (either configuration ipvx\&.dad\-timeout override or zero)\&.  A value greater than zero is a timeout in milliseconds\&.
+Maximum timeout in milliseconds used to check for the presence of duplicate IP addresses on the network\&.  If an address conflict is detected, the activation will fail\&. The property is currently implemented only for IPv4\&.
 
-The property is currently implemented only for IPv4\&.
+A zero value means that no duplicate address detection is performed, \-1 means the default value (either the value configured globally in NetworkManger\&.conf or 200ms)\&.  A value greater than zero is a timeout in milliseconds\&.  Note that the time intervals are subject to randomization as per RFC 5227 and so the actual duration can be between half and the full time specified in this property\&.
 T}
 T{
 dhcp\-duid
@@ -2627,9 +2657,9 @@ T}:T{
 T}:T{
 Flags for the DHCP hostname and FQDN\&.
 
-Currently, this property only includes flags to control the FQDN flags set in the DHCP FQDN option\&. Supported FQDN flags are NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE (0x1), NM_DHCP_HOSTNAME_FLAG_FQDN_ENCODED (0x2) and NM_DHCP_HOSTNAME_FLAG_FQDN_NO_UPDATE (0x4)\&.  When no FQDN flag is set and NM_DHCP_HOSTNAME_FLAG_FQDN_CLEAR_FLAGS (0x8) is set, the DHCP FQDN option will contain no flag\&. Otherwise, if no FQDN flag is set and NM_DHCP_HOSTNAME_FLAG_FQDN_CLEAR_FLAGS (0x8) is not set, the standard FQDN flags are set in the request: NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE (0x1), NM_DHCP_HOSTNAME_FLAG_FQDN_ENCODED (0x2) for IPv4 and NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE (0x1) for IPv6\&.
+Currently, this property only includes flags to control the FQDN flags set in the DHCP FQDN option\&. Supported FQDN flags are 0x1 (fqdn\-serv\-update), 0x2 (fqdn\-encoded) and 0x4 (fqdn\-no\-update)\&.  When no FQDN flag is set and 0x8 (fqdn\-clear\-flags) is set, the DHCP FQDN option will contain no flag\&. Otherwise, if no FQDN flag is set and 0x8 (fqdn\-clear\-flags) is not set, the standard FQDN flags are set in the request: 0x1 (fqdn\-serv\-update), 0x2 (fqdn\-encoded) for IPv4 and 0x1 (fqdn\-serv\-update) for IPv6\&.
 
-When this property is set to the default value NM_DHCP_HOSTNAME_FLAG_NONE (0x0), a global default is looked up in NetworkManager configuration\&. If that value is unset or also NM_DHCP_HOSTNAME_FLAG_NONE (0x0), then the standard FQDN flags described above are sent in the DHCP requests\&.
+When this property is set to the default value 0x0 (none), a global default is looked up in NetworkManager configuration\&. If that value is unset or also 0x0 (none), then the standard FQDN flags described above are sent in the DHCP requests\&.
 T}
 T{
 dhcp\-iaid
@@ -2713,15 +2743,17 @@ array of string
 T}:T{
 \ \&
 T}:T{
-Array of DNS options as described in man 5 resolv\&.conf\&.
+Array of DNS options to be added to resolv\&.conf\&.
 
 NULL means that the options are unset and left at the default\&. In this case NetworkManager will use default options\&. This is distinct from an empty list of properties\&.
 
-The currently supported options are "attempts", "debug", "edns0", "inet6", "ip6\-bytestring", "ip6\-dotint", "ndots", "no\-aaaa", "no\-check\-names", "no\-ip6\-dotint", "no\-reload", "no\-tld\-query", "rotate", "single\-request", "single\-request\-reopen", "timeout", "trust\-ad", "use\-vc"\&.
+The following options are directly added to resolv\&.conf: "attempts", "debug", "edns0", "inet6", "ip6\-bytestring", "ip6\-dotint", "ndots", "no\-aaaa", "no\-check\-names", "no\-ip6\-dotint", "no\-reload", "no\-tld\-query", "rotate", "single\-request", "single\-request\-reopen", "timeout", "trust\-ad", "use\-vc"\&. See the resolv\&.conf(5) man page for a detailed description of these options\&.
+
+In addition, NetworkManager supports the special options "_no\-add\-edns0" and "_no\-add\-trust\-ad"\&. They are not added to resolv\&.conf, and can be used to prevent the automatic addition of options "edns0" and "trust\-ad" when using caching DNS plugins (see below)\&.
 
 The "trust\-ad" setting is only honored if the profile contributes name servers to resolv\&.conf, and if all contributing profiles have "trust\-ad" enabled\&.
 
-When using a caching DNS plugin (dnsmasq or systemd\-resolved in NetworkManager\&.conf) then "edns0" and "trust\-ad" are automatically added\&.
+When using a caching DNS plugin (dnsmasq or systemd\-resolved in NetworkManager\&.conf) then "edns0" and "trust\-ad" are automatically added, unless "_no\-add\-edns0" and "_no\-add\-trust\-ad" are present\&.
 T}
 T{
 dns\-priority
@@ -2986,7 +3018,7 @@ uint32
 T}:T{
 0
 T}:T{
-How many additional levels of encapsulation are permitted to be prepended to packets\&. This property applies only to IPv6 tunnels\&. To disable this option, add NM_IP_TUNNEL_FLAG_IP6_IGN_ENCAP_LIMIT (0x1) to ip\-tunnel flags\&.
+How many additional levels of encapsulation are permitted to be prepended to packets\&. This property applies only to IPv6 tunnels\&. To disable this option, add 0x1 (ip6\-ign\-encap\-limit) to ip\-tunnel flags\&.
 T}
 T{
 flags
@@ -2995,7 +3027,7 @@ uint32
 T}:T{
 0
 T}:T{
-Tunnel flags\&. Currently, the following values are supported: NM_IP_TUNNEL_FLAG_IP6_IGN_ENCAP_LIMIT (0x1), NM_IP_TUNNEL_FLAG_IP6_USE_ORIG_TCLASS (0x2), NM_IP_TUNNEL_FLAG_IP6_USE_ORIG_FLOWLABEL (0x4), NM_IP_TUNNEL_FLAG_IP6_MIP6_DEV (0x8), NM_IP_TUNNEL_FLAG_IP6_RCV_DSCP_COPY (0x10), NM_IP_TUNNEL_FLAG_IP6_USE_ORIG_FWMARK (0x20)\&. They are valid only for IPv6 tunnels\&.
+Tunnel flags\&. Currently, the following values are supported: 0x1 (ip6\-ign\-encap\-limit), 0x2 (ip6\-use\-orig\-tclass), 0x4 (ip6\-use\-orig\-flowlabel), 0x8 (ip6\-mip6\-dev), 0x10 (ip6\-rcv\-dscp\-copy), 0x20 (ip6\-use\-orig\-fwmark)\&. They are valid only for IPv6 tunnels\&.
 T}
 T{
 flow\-label
@@ -3040,7 +3072,7 @@ uint32
 T}:T{
 0
 T}:T{
-The tunneling mode\&. Valid values: NM_IP_TUNNEL_MODE_IPIP (1), NM_IP_TUNNEL_MODE_GRE (2), NM_IP_TUNNEL_MODE_SIT (3), NM_IP_TUNNEL_MODE_ISATAP (4), NM_IP_TUNNEL_MODE_VTI (5), NM_IP_TUNNEL_MODE_IP6IP6 (6), NM_IP_TUNNEL_MODE_IPIP6 (7), NM_IP_TUNNEL_MODE_IP6GRE (8), NM_IP_TUNNEL_MODE_VTI6 (9), NM_IP_TUNNEL_MODE_GRETAP (10) and NM_IP_TUNNEL_MODE_IP6GRETAP (11)
+The tunneling mode\&. Valid values: 1 (ipip), 2 (gre), 3 (sit), 4 (isatap), 5 (vti), 6 (ip6ip6), 7 (ipip6), 8 (ip6gre), 9 (vti6), 10 (gretap) and 11 (ip6gretap)
 T}
 T{
 mtu
@@ -3979,7 +4011,7 @@ int32
 T}:T{
 0
 T}:T{
-Method for proxy configuration, Default is NM_SETTING_PROXY_METHOD_NONE (0)
+Method for proxy configuration, Default is 0 (none)
 T}
 T{
 pac\-script
@@ -4097,11 +4129,11 @@ T}:T{
 T}:T{
 Whether to autoprobe virtual functions by a compatible driver\&.
 
-If set to NM_TERNARY_TRUE (1), the kernel will try to bind VFs to a compatible driver and if this succeeds a new network interface will be instantiated for each VF\&.
+If set to 1 (true), the kernel will try to bind VFs to a compatible driver and if this succeeds a new network interface will be instantiated for each VF\&.
 
-If set to NM_TERNARY_FALSE (0), VFs will not be claimed and no network interfaces will be created for them\&.
+If set to 0 (false), VFs will not be claimed and no network interfaces will be created for them\&.
 
-When set to NM_TERNARY_DEFAULT (\-1), the global default is used; in case the global default is unspecified it is assumed to be NM_TERNARY_TRUE (1)\&.
+When set to \-1 (default), the global default is used; in case the global default is unspecified it is assumed to be 1 (true)\&.
 T}
 T{
 total\-vfs
@@ -4503,7 +4535,7 @@ uint32
 T}:T{
 1
 T}:T{
-The operating mode of the virtual device\&. Allowed values are NM_SETTING_TUN_MODE_TUN (1) to create a layer 3 device and NM_SETTING_TUN_MODE_TAP (2) to create an Ethernet\-like layer 2 one\&.
+The operating mode of the virtual device\&. Allowed values are 1 (tun) to create a layer 3 device and 2 (tap) to create an Ethernet\-like layer 2 one\&.
 T}
 T{
 multi\-queue
@@ -4610,7 +4642,7 @@ NMVlanFlags (uint32)
 T}:T{
 \ \&
 T}:T{
-One or more flags which control the behavior and features of the VLAN interface\&.  Flags include NM_VLAN_FLAG_REORDER_HEADERS (0x1) (reordering of output packet headers), NM_VLAN_FLAG_GVRP (0x2) (use of the GVRP protocol), and NM_VLAN_FLAG_LOOSE_BINDING (0x4) (loose binding of the interface to its master device\*(Aqs operating state)\&. NM_VLAN_FLAG_MVRP (0x8) (use of the MVRP protocol)\&.
+One or more flags which control the behavior and features of the VLAN interface\&.  Flags include 0x1 (reorder\-headers) (reordering of output packet headers), 0x2 (gvrp) (use of the GVRP protocol), and 0x4 (loose\-binding) (loose binding of the interface to its master device\*(Aqs operating state)\&. 0x8 (mvrp) (use of the MVRP protocol)\&.
 
 The default value of this property is NM_VLAN_FLAG_REORDER_HEADERS, but it used to be 0\&. To preserve backward compatibility, the default\-value in the D\-Bus API continues to be 0 and a missing property on D\-Bus is still considered as 0\&.
 T}
@@ -5216,7 +5248,7 @@ uint32
 T}:T{
 1
 T}:T{
-The NMSettingWiredWakeOnLan options to enable\&. Not all devices support all options\&. May be any combination of NM_SETTING_WIRED_WAKE_ON_LAN_PHY (0x2), NM_SETTING_WIRED_WAKE_ON_LAN_UNICAST (0x4), NM_SETTING_WIRED_WAKE_ON_LAN_MULTICAST (0x8), NM_SETTING_WIRED_WAKE_ON_LAN_BROADCAST (0x10), NM_SETTING_WIRED_WAKE_ON_LAN_ARP (0x20), NM_SETTING_WIRED_WAKE_ON_LAN_MAGIC (0x40) or the special values NM_SETTING_WIRED_WAKE_ON_LAN_DEFAULT (0x1) (to use global settings) and NM_SETTING_WIRED_WAKE_ON_LAN_IGNORE (0x8000) (to disable management of Wake\-on\-LAN in NetworkManager)\&.
+The NMSettingWiredWakeOnLan options to enable\&. Not all devices support all options\&. May be any combination of 0x2 (phy), 0x4 (unicast), 0x8 (multicast), 0x10 (broadcast), 0x20 (arp), 0x40 (magic) or the special values 0x1 (default) (to use global settings) and 0x8000 (ignore) (to disable management of Wake\-on\-LAN in NetworkManager)\&.
 T}
 T{
 wake\-on\-lan\-password
@@ -5390,13 +5422,13 @@ NMTernary (int32)
 T}:T{
 \ \&
 T}:T{
-Configures AP isolation, which prevents communication between wireless devices connected to this AP\&. This property can be set to a value different from NM_TERNARY_DEFAULT (\-1) only when the interface is configured in AP mode\&.
+Configures AP isolation, which prevents communication between wireless devices connected to this AP\&. This property can be set to a value different from \-1 (default) only when the interface is configured in AP mode\&.
 
-If set to NM_TERNARY_TRUE (1), devices are not able to communicate with each other\&. This increases security because it protects devices against attacks from other clients in the network\&. At the same time, it prevents devices to access resources on the same wireless networks as file shares, printers, etc\&.
+If set to 1 (true), devices are not able to communicate with each other\&. This increases security because it protects devices against attacks from other clients in the network\&. At the same time, it prevents devices to access resources on the same wireless networks as file shares, printers, etc\&.
 
-If set to NM_TERNARY_FALSE (0), devices can talk to each other\&.
+If set to 0 (false), devices can talk to each other\&.
 
-When set to NM_TERNARY_DEFAULT (\-1), the global default is used; in case the global default is unspecified it is assumed to be NM_TERNARY_FALSE (0)\&.
+When set to \-1 (default), the global default is used; in case the global default is unspecified it is assumed to be 0 (false)\&.
 T}
 T{
 assigned\-mac\-address
@@ -5502,7 +5534,7 @@ uint32
 T}:T{
 0
 T}:T{
-One of NM_SETTING_MAC_RANDOMIZATION_DEFAULT (0) (never randomize unless the user has set a global default to randomize and the supplicant supports randomization),  NM_SETTING_MAC_RANDOMIZATION_NEVER (1) (never randomize the MAC address), or NM_SETTING_MAC_RANDOMIZATION_ALWAYS (2) (always randomize the MAC address)\&.
+One of 0 (default) (never randomize unless the user has set a global default to randomize and the supplicant supports randomization),  1 (never) (never randomize the MAC address), or 2 (always) (always randomize the MAC address)\&.
 
 This property is deprecated since version 1\&.4\&.Use the "cloned\-mac\-address" property instead\&.
 T}
@@ -5531,7 +5563,7 @@ uint32
 T}:T{
 0
 T}:T{
-One of NM_SETTING_WIRELESS_POWERSAVE_DISABLE (2) (disable Wi\-Fi power saving), NM_SETTING_WIRELESS_POWERSAVE_ENABLE (3) (enable Wi\-Fi power saving), NM_SETTING_WIRELESS_POWERSAVE_IGNORE (1) (don\*(Aqt touch currently configure setting) or NM_SETTING_WIRELESS_POWERSAVE_DEFAULT (0) (use the globally configured value)\&. All other values are reserved\&.
+One of 2 (disable) (disable Wi\-Fi power saving), 3 (enable) (enable Wi\-Fi power saving), 1 (ignore) (don\*(Aqt touch currently configure setting) or 0 (default) (use the globally configured value)\&. All other values are reserved\&.
 T}
 T{
 rate
@@ -5591,7 +5623,7 @@ uint32
 T}:T{
 1
 T}:T{
-The NMSettingWirelessWakeOnWLan options to enable\&. Not all devices support all options\&. May be any combination of NM_SETTING_WIRELESS_WAKE_ON_WLAN_ANY (0x2), NM_SETTING_WIRELESS_WAKE_ON_WLAN_DISCONNECT (0x4), NM_SETTING_WIRELESS_WAKE_ON_WLAN_MAGIC (0x8), NM_SETTING_WIRELESS_WAKE_ON_WLAN_GTK_REKEY_FAILURE (0x10), NM_SETTING_WIRELESS_WAKE_ON_WLAN_EAP_IDENTITY_REQUEST (0x20), NM_SETTING_WIRELESS_WAKE_ON_WLAN_4WAY_HANDSHAKE (0x40), NM_SETTING_WIRELESS_WAKE_ON_WLAN_RFKILL_RELEASE (0x80), NM_SETTING_WIRELESS_WAKE_ON_WLAN_TCP (0x100) or the special values NM_SETTING_WIRELESS_WAKE_ON_WLAN_DEFAULT (0x1) (to use global settings) and NM_SETTING_WIRELESS_WAKE_ON_WLAN_IGNORE (0x8000) (to disable management of Wake\-on\-LAN in NetworkManager)\&.
+The NMSettingWirelessWakeOnWLan options to enable\&. Not all devices support all options\&. May be any combination of 0x2 (any), 0x4 (disconnect), 0x8 (magic), 0x10 (gtk\-rekey\-failure), 0x20 (eap\-identity\-request), 0x40 (4way\-handshake), 0x80 (rfkill\-release), 0x100 (tcp) or the special values 0x1 (default) (to use global settings) and 0x8000 (ignore) (to disable management of Wake\-on\-LAN in NetworkManager)\&.
 T}
 .TE
 .sp 1
@@ -5647,7 +5679,7 @@ int32
 T}:T{
 0
 T}:T{
-Indicates whether Fast Initial Link Setup (802\&.11ai) must be enabled for the connection\&.  One of NM_SETTING_WIRELESS_SECURITY_FILS_DEFAULT (0) (use global default value), NM_SETTING_WIRELESS_SECURITY_FILS_DISABLE (1) (disable FILS), NM_SETTING_WIRELESS_SECURITY_FILS_OPTIONAL (2) (enable FILS if the supplicant and the access point support it) or NM_SETTING_WIRELESS_SECURITY_FILS_REQUIRED (3) (enable FILS and fail if not supported)\&.  When set to NM_SETTING_WIRELESS_SECURITY_FILS_DEFAULT (0) and no global default is set, FILS will be optionally enabled\&.
+Indicates whether Fast Initial Link Setup (802\&.11ai) must be enabled for the connection\&.  One of 0 (default) (use global default value), 1 (disable) (disable FILS), 2 (optional) (enable FILS if the supplicant and the access point support it) or 3 (required) (enable FILS and fail if not supported)\&.  When set to 0 (default) and no global default is set, FILS will be optionally enabled\&.
 T}
 T{
 group
@@ -5712,7 +5744,7 @@ int32
 T}:T{
 0
 T}:T{
-Indicates whether Protected Management Frames (802\&.11w) must be enabled for the connection\&.  One of NM_SETTING_WIRELESS_SECURITY_PMF_DEFAULT (0) (use global default value), NM_SETTING_WIRELESS_SECURITY_PMF_DISABLE (1) (disable PMF), NM_SETTING_WIRELESS_SECURITY_PMF_OPTIONAL (2) (enable PMF if the supplicant and the access point support it) or NM_SETTING_WIRELESS_SECURITY_PMF_REQUIRED (3) (enable PMF and fail if not supported)\&.  When set to NM_SETTING_WIRELESS_SECURITY_PMF_DEFAULT (0) and no global default is set, PMF will be optionally enabled\&.
+Indicates whether Protected Management Frames (802\&.11w) must be enabled for the connection\&.  One of 0 (default) (use global default value), 1 (disable) (disable PMF), 2 (optional) (enable PMF if the supplicant and the access point support it) or 3 (required) (enable PMF and fail if not supported)\&.  When set to 0 (default) and no global default is set, PMF will be optionally enabled\&.
 T}
 T{
 proto
@@ -5757,7 +5789,7 @@ NMWepKeyType (uint32)
 T}:T{
 \ \&
 T}:T{
-Controls the interpretation of WEP keys\&.  Allowed values are NM_WEP_KEY_TYPE_KEY (1), in which case the key is either a 10\- or 26\-character hexadecimal string, or a 5\- or 13\-character ASCII password; or NM_WEP_KEY_TYPE_PASSPHRASE (2), in which case the passphrase is provided as a string and will be hashed using the de\-facto MD5 method to derive the actual WEP key\&.
+Controls the interpretation of WEP keys\&.  Allowed values are 1 (key), in which case the key is either a 10\- or 26\-character hexadecimal string, or a 5\- or 13\-character ASCII password; or 2 (passphrase), in which case the passphrase is provided as a string and will be hashed using the de\-facto MD5 method to derive the actual WEP key\&.
 T}
 T{
 wep\-key0
@@ -5954,7 +5986,7 @@ T}:T{
 T}:T{
 Whether the system hostname can be determined from DHCP on this connection\&.
 
-When set to NM_TERNARY_DEFAULT (\-1), the value from global configuration is used\&. If the property doesn\*(Aqt have a value in the global configuration, NetworkManager assumes the value to be NM_TERNARY_TRUE (1)\&.
+When set to \-1 (default), the value from global configuration is used\&. If the property doesn\*(Aqt have a value in the global configuration, NetworkManager assumes the value to be 1 (true)\&.
 T}
 T{
 from\-dns\-lookup
@@ -5965,7 +5997,7 @@ T}:T{
 T}:T{
 Whether the system hostname can be determined from reverse DNS lookup of addresses on this device\&.
 
-When set to NM_TERNARY_DEFAULT (\-1), the value from global configuration is used\&. If the property doesn\*(Aqt have a value in the global configuration, NetworkManager assumes the value to be NM_TERNARY_TRUE (1)\&.
+When set to \-1 (default), the value from global configuration is used\&. If the property doesn\*(Aqt have a value in the global configuration, NetworkManager assumes the value to be 1 (true)\&.
 T}
 T{
 only\-from\-default
@@ -5974,11 +6006,11 @@ NMTernary (int32)
 T}:T{
 \ \&
 T}:T{
-If set to NM_TERNARY_TRUE (1), NetworkManager attempts to get the hostname via DHCPv4/DHCPv6 or reverse DNS lookup on this device only when the device has the default route for the given address family (IPv4/IPv6)\&.
+If set to 1 (true), NetworkManager attempts to get the hostname via DHCPv4/DHCPv6 or reverse DNS lookup on this device only when the device has the default route for the given address family (IPv4/IPv6)\&.
 
-If set to NM_TERNARY_FALSE (0), the hostname can be set from this device even if it doesn\*(Aqt have the default route\&.
+If set to 0 (false), the hostname can be set from this device even if it doesn\*(Aqt have the default route\&.
 
-When set to NM_TERNARY_DEFAULT (\-1), the value from global configuration is used\&. If the property doesn\*(Aqt have a value in the global configuration, NetworkManager assumes the value to be NM_TERNARY_FALSE (0)\&.
+When set to \-1 (default), the value from global configuration is used\&. If the property doesn\*(Aqt have a value in the global configuration, NetworkManager assumes the value to be 0 (false)\&.
 T}
 T{
 priority
@@ -5992,6 +6024,64 @@ The relative priority of this connection to determine the system hostname\&. A l
 If the value is zero, it can be overridden by a global value from NetworkManager configuration\&. If the property doesn\*(Aqt have a value in the global configuration, the value is assumed to be 100\&.
 
 Negative values have the special effect of excluding other connections with a greater numerical priority value; so in presence of at least one negative priority, only connections with the lowest priority value will be used to determine the hostname\&.
+T}
+.TE
+.sp 1
+.SS "hsr setting"
+.PP
+HSR/PRP Settings\&.
+.TS
+allbox tab(:);
+lB lB lB lB.
+T{
+Key Name
+T}:T{
+Value Type
+T}:T{
+Default Value
+T}:T{
+Value Description
+T}
+.T&
+l l l l
+l l l l
+l l l l
+l l l l.
+T{
+multicast\-spec
+T}:T{
+uint32
+T}:T{
+0
+T}:T{
+The last byte of supervision address\&.
+T}
+T{
+port1
+T}:T{
+string
+T}:T{
+\ \&
+T}:T{
+The port1 interface name of the HSR\&. This property is mandatory\&.
+T}
+T{
+port2
+T}:T{
+string
+T}:T{
+\ \&
+T}:T{
+The port2 interface name of the HSR\&. This property is mandatory\&.
+T}
+T{
+prp
+T}:T{
+boolean
+T}:T{
+FALSE
+T}:T{
+The protocol used by the interface, whether it is PRP or HSR\&.
 T}
 .TE
 .sp 1

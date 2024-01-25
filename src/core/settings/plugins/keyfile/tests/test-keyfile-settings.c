@@ -2004,7 +2004,7 @@ test_read_bridge_component(void)
     g_assert_cmpstr(nm_setting_connection_get_id(s_con), ==, expected_id);
     g_assert_cmpstr(nm_setting_connection_get_uuid(s_con), ==, expected_uuid);
     g_assert_cmpstr(nm_setting_connection_get_master(s_con), ==, "br0");
-    g_assert(nm_setting_connection_is_slave_type(s_con, NM_SETTING_BRIDGE_SETTING_NAME));
+    g_assert_cmpstr(nm_setting_connection_get_port_type(s_con), ==, NM_SETTING_BRIDGE_SETTING_NAME);
 
     s_wired = nm_connection_get_setting_wired(connection);
     g_assert(s_wired);
@@ -2046,9 +2046,9 @@ test_write_bridge_component(void)
                  TRUE,
                  NM_SETTING_CONNECTION_TYPE,
                  NM_SETTING_WIRED_SETTING_NAME,
-                 NM_SETTING_CONNECTION_MASTER,
+                 NM_SETTING_CONNECTION_CONTROLLER,
                  "br0",
-                 NM_SETTING_CONNECTION_SLAVE_TYPE,
+                 NM_SETTING_CONNECTION_PORT_TYPE,
                  NM_SETTING_BRIDGE_SETTING_NAME,
                  NULL);
 
@@ -2357,9 +2357,9 @@ test_read_minimal_slave(void)
                                                     NM_SETTING_WIRED_SETTING_NAME,
                                                     &s_con);
     g_object_set(s_con,
-                 NM_SETTING_CONNECTION_MASTER,
+                 NM_SETTING_CONNECTION_CONTROLLER,
                  "br0",
-                 NM_SETTING_CONNECTION_SLAVE_TYPE,
+                 NM_SETTING_CONNECTION_PORT_TYPE,
                  "bridge",
                  NULL);
     nmtst_connection_normalize(con_archetype);

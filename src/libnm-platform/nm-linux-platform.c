@@ -163,7 +163,7 @@ typedef enum _nm_packed {
 G_STATIC_ASSERT(RTA_MAX == (__RTA_MAX - 1));
 #define RTA_PREF 20
 #undef RTA_MAX
-#define RTA_MAX (MAX((__RTA_MAX - 1), RTA_PREF))
+#define RTA_MAX (NM_MAX_CONST((__RTA_MAX - 1), RTA_PREF))
 
 #ifndef MACVLAN_FLAG_NOPROMISC
 #define MACVLAN_FLAG_NOPROMISC 1
@@ -226,6 +226,18 @@ G_STATIC_ASSERT(RTA_MAX == (__RTA_MAX - 1));
 #define IFLA_MACSEC_VALIDATION     13
 #define IFLA_MACSEC_PAD            14
 #define __IFLA_MACSEC_MAX          15
+
+/*****************************************************************************/
+
+#define IFLA_HSR_UNSPEC           0
+#define IFLA_HSR_PORT1            1
+#define IFLA_HSR_PORT2            2
+#define IFLA_HSR_MULTICAST_SPEC   3
+#define IFLA_HSR_SUPERVISION_ADDR 4
+#define IFLA_HSR_SEQ_NR           5
+#define IFLA_HSR_VERSION          6
+#define IFLA_HSR_PROTOCOL         7
+#define __IFLA_HSR_MAX            8
 
 /*****************************************************************************/
 
@@ -847,6 +859,7 @@ static const LinkDesc link_descs[] = {
 
     [NM_LINK_TYPE_BRIDGE] = {"bridge", "bridge", "bridge"},
     [NM_LINK_TYPE_BOND]   = {"bond", "bond", "bond"},
+    [NM_LINK_TYPE_HSR]    = {"hsr", "hsr", "hsr"},
     [NM_LINK_TYPE_TEAM]   = {"team", "team", NULL},
 };
 
@@ -869,6 +882,7 @@ _link_type_from_rtnl_type(const char *name)
         NM_LINK_TYPE_DUMMY,       /* "dummy"       */
         NM_LINK_TYPE_GRE,         /* "gre"         */
         NM_LINK_TYPE_GRETAP,      /* "gretap"      */
+        NM_LINK_TYPE_HSR,         /* "hsr"         */
         NM_LINK_TYPE_IFB,         /* "ifb"         */
         NM_LINK_TYPE_IP6GRE,      /* "ip6gre"      */
         NM_LINK_TYPE_IP6GRETAP,   /* "ip6gretap"   */
@@ -943,6 +957,7 @@ _link_type_from_devtype(const char *name)
         NM_LINK_TYPE_BNEP,      /* "bluetooth" */
         NM_LINK_TYPE_BOND,      /* "bond"      */
         NM_LINK_TYPE_BRIDGE,    /* "bridge"    */
+        NM_LINK_TYPE_HSR,       /* "hsr"       */
         NM_LINK_TYPE_PPP,       /* "ppp"       */
         NM_LINK_TYPE_VLAN,      /* "vlan"      */
         NM_LINK_TYPE_VRF,       /* "vrf"       */
@@ -1096,7 +1111,7 @@ _addrtime_extend_lifetime(guint32 lifetime, guint32 seconds)
         return lifetime;
 
     v = (guint64) lifetime + (guint64) seconds;
-    return MIN(v, NM_PLATFORM_LIFETIME_PERMANENT - 1);
+    return NM_MIN(v, NM_PLATFORM_LIFETIME_PERMANENT - 1);
 }
 
 /* The rtnl_addr object contains relative lifetimes @valid and @preferred
@@ -1799,6 +1814,51 @@ _parse_lnk_gre(const char *kind, struct nlattr *info_data)
     props->ttl                = tb[IFLA_GRE_TTL] ? nla_get_u8(tb[IFLA_GRE_TTL]) : 0;
     props->path_mtu_discovery = !tb[IFLA_GRE_PMTUDISC] || !!nla_get_u8(tb[IFLA_GRE_PMTUDISC]);
     props->is_tap             = is_tap;
+
+    return obj;
+}
+
+/*****************************************************************************/
+
+static NMPObject *
+_parse_lnk_hsr(const char *kind, struct nlattr *info_data)
+{
+    static const struct nla_policy policy[] = {
+        [IFLA_HSR_PORT1]            = {.type = NLA_U32},
+        [IFLA_HSR_PORT2]            = {.type = NLA_U32},
+        [IFLA_HSR_MULTICAST_SPEC]   = {.type = NLA_U8},
+        [IFLA_HSR_SUPERVISION_ADDR] = {.minlen = sizeof(NMEtherAddr)},
+        [IFLA_HSR_PROTOCOL]         = {.type = NLA_U8},
+    };
+    NMPlatformLnkHsr *props;
+    struct nlattr    *tb[G_N_ELEMENTS(policy)];
+    NMPObject        *obj;
+    guint32           v_u32;
+
+    if (!info_data || !kind)
+        return NULL;
+
+    if (nla_parse_nested_arr(tb, info_data, policy) < 0)
+        return NULL;
+
+    obj   = nmp_object_new(NMP_OBJECT_TYPE_LNK_HSR, NULL);
+    props = &obj->lnk_hsr;
+    if (tb[IFLA_HSR_PORT1]) {
+        v_u32 = nla_get_u32(tb[IFLA_HSR_PORT1]);
+        if (v_u32 <= (unsigned) G_MAXINT)
+            props->port1 = v_u32;
+    }
+    if (tb[IFLA_HSR_PORT2]) {
+        v_u32 = nla_get_u32(tb[IFLA_HSR_PORT2]);
+        if (v_u32 <= (unsigned) G_MAXINT)
+            props->port2 = v_u32;
+    }
+    if (tb[IFLA_HSR_MULTICAST_SPEC])
+        props->multicast_spec = nla_get_u8(tb[IFLA_HSR_MULTICAST_SPEC]);
+    if (tb[IFLA_HSR_SUPERVISION_ADDR])
+        nla_memcpy(&props->supervision_address, tb[IFLA_HSR_SUPERVISION_ADDR], sizeof(NMEtherAddr));
+    if (tb[IFLA_HSR_PROTOCOL])
+        props->prp = nla_get_u8(tb[IFLA_HSR_PROTOCOL]);
 
     return obj;
 }
@@ -3408,6 +3468,8 @@ _new_from_nl_link(NMPlatform            *platform,
 
             if (nm_streq(s, "bond"))
                 obj->link.port_kind = NM_PORT_KIND_BOND;
+            else if (nm_streq(s, "bridge"))
+                obj->link.port_kind = NM_PORT_KIND_BRIDGE;
         }
 
         if (li[IFLA_INFO_SLAVE_DATA]) {
@@ -3415,7 +3477,13 @@ _new_from_nl_link(NMPlatform            *platform,
                 [IFLA_BOND_SLAVE_QUEUE_ID] = {.type = NLA_U16},
                 [IFLA_BOND_SLAVE_PRIO]     = {.type = NLA_S32},
             };
-            struct nlattr *bp[G_N_ELEMENTS(policy_bond_port)];
+            struct nlattr                 *bp[G_N_ELEMENTS(policy_bond_port)];
+            static const struct nla_policy policy_bridge_port[] = {
+                [IFLA_BRPORT_COST]     = {.type = NLA_U32},
+                [IFLA_BRPORT_PRIORITY] = {.type = NLA_U16},
+                [IFLA_BRPORT_MODE]     = {.type = NLA_U8},
+            };
+            struct nlattr *brp[G_N_ELEMENTS(policy_bridge_port)];
 
             switch (obj->link.port_kind) {
             case NM_PORT_KIND_BOND:
@@ -3440,6 +3508,19 @@ _new_from_nl_link(NMPlatform            *platform,
                             1);
                     }
                 }
+                break;
+            case NM_PORT_KIND_BRIDGE:
+                if (nla_parse_nested_arr(brp, li[IFLA_INFO_SLAVE_DATA], policy_bridge_port) < 0)
+                    return NULL;
+
+                if (brp[IFLA_BRPORT_COST])
+                    obj->link.port_data.bridge.path_cost = nla_get_u32(brp[IFLA_BRPORT_COST]);
+
+                if (brp[IFLA_BRPORT_PRIORITY])
+                    obj->link.port_data.bridge.priority = nla_get_u16(brp[IFLA_BRPORT_PRIORITY]);
+
+                if (brp[IFLA_BRPORT_MODE])
+                    obj->link.port_data.bridge.hairpin = nla_get_u8(brp[IFLA_BRPORT_MODE]);
                 break;
             case NM_PORT_KIND_NONE:
                 break;
@@ -3546,6 +3627,9 @@ _new_from_nl_link(NMPlatform            *platform,
     case NM_LINK_TYPE_GRE:
     case NM_LINK_TYPE_GRETAP:
         lnk_data = _parse_lnk_gre(nl_info_kind, nl_info_data);
+        break;
+    case NM_LINK_TYPE_HSR:
+        lnk_data = _parse_lnk_hsr(nl_info_kind, nl_info_data);
         break;
     case NM_LINK_TYPE_INFINIBAND:
         lnk_data = _parse_lnk_infiniband(nl_info_kind, nl_info_data);
@@ -3922,7 +4006,7 @@ _new_from_nl_route(const struct nlmsghdr *nlh, gboolean id_only, ParseNlmsgIter 
                  * hops in this list). */
                 nm_assert(v4_n_nexthops > 0u);
                 if (v4_n_nexthops - 1u >= v4_nh_extra_alloc) {
-                    v4_nh_extra_alloc = NM_MAX(4, v4_nh_extra_alloc * 2u);
+                    v4_nh_extra_alloc = NM_MAX(4u, v4_nh_extra_alloc * 2u);
                     if (!v4_nh_extra_nexthops_heap) {
                         v4_nh_extra_nexthops_heap =
                             g_new(NMPlatformIP4RtNextHop, v4_nh_extra_alloc);
@@ -4975,6 +5059,24 @@ _nl_msg_new_link_set_linkinfo(struct nl_msg *msg, NMLinkType link_type, gconstpo
         NLA_PUT_U32(msg, IFLA_GRE_OKEY, htonl(props->output_key));
         NLA_PUT_U16(msg, IFLA_GRE_IFLAGS, htons(props->input_flags));
         NLA_PUT_U16(msg, IFLA_GRE_OFLAGS, htons(props->output_flags));
+        break;
+    }
+    case NM_LINK_TYPE_HSR:
+    {
+        const NMPlatformLnkHsr *props = extra_data;
+
+        nm_assert(props);
+
+        if (!(data = nla_nest_start(msg, IFLA_INFO_DATA)))
+            goto nla_put_failure;
+
+        NLA_PUT_U32(msg, IFLA_HSR_PORT1, props->port1);
+        NLA_PUT_U32(msg, IFLA_HSR_PORT2, props->port2);
+
+        if (props->multicast_spec)
+            NLA_PUT_U8(msg, IFLA_HSR_MULTICAST_SPEC, props->multicast_spec);
+
+        NLA_PUT_U8(msg, IFLA_HSR_PROTOCOL, props->prp);
         break;
     }
     case NM_LINK_TYPE_SIT:
@@ -8533,6 +8635,26 @@ link_change(NMPlatform                   *platform,
         nla_nest_end(nlmsg, nl_port_data);
         nla_nest_end(nlmsg, nl_info);
         break;
+    case NM_PORT_KIND_BRIDGE:
+
+        nm_assert(port_data);
+
+        if (!(nl_info = nla_nest_start(nlmsg, IFLA_LINKINFO)))
+            goto nla_put_failure;
+
+        nm_assert(nm_streq0("bridge", nm_link_type_to_rtnl_type_string(NM_LINK_TYPE_BRIDGE)));
+        NLA_PUT_STRING(nlmsg, IFLA_INFO_SLAVE_KIND, "bridge");
+
+        if (!(nl_port_data = nla_nest_start(nlmsg, IFLA_INFO_SLAVE_DATA)))
+            goto nla_put_failure;
+
+        NLA_PUT_U32(nlmsg, IFLA_BRPORT_COST, port_data->bridge.path_cost);
+        NLA_PUT_U16(nlmsg, IFLA_BRPORT_PRIORITY, port_data->bridge.priority);
+        NLA_PUT_U8(nlmsg, IFLA_BRPORT_MODE, port_data->bridge.hairpin);
+
+        nla_nest_end(nlmsg, nl_port_data);
+        nla_nest_end(nlmsg, nl_info);
+        break;
     case NM_PORT_KIND_NONE:
         break;
     }
@@ -9549,22 +9671,6 @@ wifi_set_wake_on_wlan(NMPlatform *platform, int ifindex, _NMSettingWirelessWakeO
     WIFI_GET_WIFI_DATA_NETNS(wifi_data, platform, ifindex, FALSE);
 
     return nm_wifi_utils_set_wake_on_wlan(wifi_data, wowl);
-}
-
-static gboolean
-wifi_get_csme_conn_info(NMPlatform *platform, int ifindex, NMPlatformCsmeConnInfo *out_conn_info)
-{
-    WIFI_GET_WIFI_DATA_NETNS(wifi_data, platform, ifindex, FALSE);
-
-    return nm_wifi_utils_get_csme_conn_info(wifi_data, out_conn_info);
-}
-
-static gboolean
-wifi_get_device_from_csme(NMPlatform *platform, int ifindex)
-{
-    WIFI_GET_WIFI_DATA_NETNS(wifi_data, platform, ifindex, FALSE);
-
-    return nm_wifi_utils_get_device_from_csme(wifi_data);
 }
 
 /*****************************************************************************/
@@ -11446,8 +11552,6 @@ nm_linux_platform_class_init(NMLinuxPlatformClass *klass)
     platform_class->wifi_indicate_addressing_running = wifi_indicate_addressing_running;
     platform_class->wifi_get_wake_on_wlan            = wifi_get_wake_on_wlan;
     platform_class->wifi_set_wake_on_wlan            = wifi_set_wake_on_wlan;
-    platform_class->wifi_get_csme_conn_info          = wifi_get_csme_conn_info;
-    platform_class->wifi_get_device_from_csme        = wifi_get_device_from_csme;
 
     platform_class->mesh_get_channel = mesh_get_channel;
     platform_class->mesh_set_channel = mesh_set_channel;

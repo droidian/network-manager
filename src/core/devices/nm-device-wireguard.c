@@ -598,7 +598,7 @@ _peers_add(NMDeviceWireGuard *self, NMWireGuardPeer *peer)
     };
 
     c_list_link_tail(&priv->lst_peers_head, &peer_data->lst_peers);
-    if (!nm_g_hash_table_add(priv->peers, peer_data))
+    if (!g_hash_table_add(priv->peers, peer_data))
         nm_assert_not_reached();
     return peer_data;
 }
@@ -720,7 +720,7 @@ _peers_retry_in_msec(PeerData *peer_data, gboolean after_failure)
         return RETRY_IN_MSEC_MAX;
 
     /* double the retry-time, starting with one second. */
-    return NM_MIN(RETRY_IN_MSEC_MAX, (1u << peer_data->ep_resolv.resolv_fail_count) * 500);
+    return NM_MIN(RETRY_IN_MSEC_MAX, (1l << peer_data->ep_resolv.resolv_fail_count) * 500);
 }
 
 static void

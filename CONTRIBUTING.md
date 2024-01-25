@@ -9,13 +9,62 @@ Check out website https://networkmanager.dev and our [GNOME page](https://wiki.g
 
 The release tarballs can be found at [download.gnome.org](https://download.gnome.org/sources/NetworkManager/).
 
-Our mailing list is networkmanager@lists.freedesktop.org ([archive](https://lists.freedesktop.org/archives/networkmanager/),
-[old-archive](https://mail.gnome.org/archives/networkmanager-list/)).
+Find our available communication channels at https://networkmanager.dev/community/.
 
-Find us on IRC channel `#nm` on Libera.Chat.
 
-Report issues and send patches via [gitlab.freedesktop.org](https://gitlab.freedesktop.org/NetworkManager/NetworkManager/)
-or our mailing list.
+Report issues
+-------------
+
+Report issues or feature requests in our [Gitlab's issue tracker](https://gitlab.freedesktop.org/NetworkManager/NetworkManager/-/issues)
+or our maling list.
+
+For bug reports usually NetworkManager's logs will be needed to understand the
+problem. Attach the full logs to the issue. For WiFi related issues, attach also
+the logs from wpa_supplicant, or iwd if you are using it (i.e.
+`journalctl -u NetworkManager -u wpa_supplicant`).
+
+To get more useful logs, increase the log level as explained in
+["logging SECTION" in NetworkManager.conf](https://networkmanager.dev/docs/api/latest/NetworkManager.conf.html).
+
+Logfiles contain no passwords and little sensitive information, but please
+check before posting the file online. The script [anonymize-logs.py](contrib/scripts/anonymize-logs.py)
+can do some basic data anonymization but makes a bit harder to analyze the logs
+and you still need to review them. You can also personally hand over the logfile
+to a NM developer to treat it confidential.
+
+
+Contribute
+----------
+
+Send patches to our repository at [gitlab.freedesktop.org](https://gitlab.freedesktop.org/NetworkManager/NetworkManager/).
+If you are willing to contribute, please read these guidelines first:
+
+- Find bugs or features to work on in our [Gitlab's issue tracker](https://gitlab.freedesktop.org/NetworkManager/NetworkManager/-/issues).
+
+- Work on any issue you want, but please put a comment to indicate that you are
+  willing to work on it so others don't do the same work in parallel, or to
+  check whether anyone is already doing so.
+
+- Issues marked as `help-wanted` are those where the NetworkManager developers
+  are explicitly asking for contributors' help, probably due to lack of capacity
+  to work on it.
+
+- Issues marked as `good-first-issue` indicate that they are probably quite
+  simple fixes, well suited for first time contributors.
+
+- Contributions for features or bugs not reported in the issue tracker are also
+  welcome, but if they require a high amount of work, it is always better to
+  open an issue explaining what you intend to do first. That way, you won't
+  waste your valuable time if your idea doesn't fit well into the project or a
+  different approach would be desirable.
+
+- Reference related issues in your Merge Request description, and if the issue
+  gets resolved with it, indicate it with a line `Resolves: https://issue-url`.
+  Please use full URLs because they are clickable both from the web UI and from
+  the terminal.
+
+- Read the rest of this document to learn about the code style, code
+  organization, tests and other useful stuff.
 
 
 Documentation
@@ -49,7 +98,7 @@ Coding Style
 
 The formatting is automated using [clang-format](https://clang.llvm.org/docs/ClangFormat.html).
 Run `./contrib/scripts/nm-code-format.sh -i` ([[1]](contrib/scripts/nm-code-format.sh)) to reformat
-the code or run `clang-format` directly.
+the code or run `clang-format` directly. Pass `--help` for the list of options.
 
 As the generated format depends on the version of clang-format, you need to use the
 correct clang-format version. That is basically the version that our [gitlab-ci
@@ -58,6 +107,7 @@ for the "check-tree" test. This is the version from a recent Fedora installation
 
 You may also run `./contrib/scripts/nm-code-format-container.sh` which uses a
 Fedora container with podman and the correct version of clang-format.
+This accepts the same arguments as `./contrib/scripts/nm-code-format.sh`.
 
 You are welcome to not bother and open a merge request with wrong formatting,
 but note that we then will automatically adjust your contribution before
@@ -216,6 +266,7 @@ Code Structure
 [`./src`](src/)- source code for libnm, nmcli, nm-cloud-setup, nmtui…
 
 `./tools`- tools for generating the intermediate files or merging the file.
+
 
 Cscope/ctags
 ---------------------------
@@ -419,6 +470,7 @@ To resync our local notes use:
 ```
 $ git fetch origin refs/notes/bugs:refs/notes/bugs -f
 ```
-### Testing NetworkManager with nm-in-container script.
 
-See [the readme](tools/nm-in-container/README.md) for details.
+### Testing NetworkManager with nm-in-container or nm-in-vm scripts.
+
+See [the readme](tools/nm-guest-data/README.md) for details.

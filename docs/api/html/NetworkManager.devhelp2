@@ -70,6 +70,7 @@
         <sub name="" link="settings-wpan.html"/>
         <sub name="" link="settings-bond-port.html"/>
         <sub name="" link="settings-hostname.html"/>
+        <sub name="" link="settings-hsr.html"/>
         <sub name="" link="settings-link.html"/>
         <sub name="" link="settings-loopback.html"/>
         <sub name="" link="settings-ovs-external-ids.html"/>
@@ -103,6 +104,7 @@
         <sub name="org.freedesktop.NetworkManager.Device.Bridge" link="gdbus-org.freedesktop.NetworkManager.Device.Bridge.html"/>
         <sub name="org.freedesktop.NetworkManager.Device.Dummy" link="gdbus-org.freedesktop.NetworkManager.Device.Dummy.html"/>
         <sub name="org.freedesktop.NetworkManager.Device.Generic" link="gdbus-org.freedesktop.NetworkManager.Device.Generic.html"/>
+        <sub name="org.freedesktop.NetworkManager.Device.Hsr" link="gdbus-org.freedesktop.NetworkManager.Device.Hsr.html"/>
         <sub name="org.freedesktop.NetworkManager.Device.IPTunnel" link="gdbus-org.freedesktop.NetworkManager.Device.IPTunnel.html"/>
         <sub name="org.freedesktop.NetworkManager.Device.Infiniband" link="gdbus-org.freedesktop.NetworkManager.Device.Infiniband.html"/>
         <sub name="org.freedesktop.NetworkManager.Device.Loopback" link="gdbus-org.freedesktop.NetworkManager.Device.Loopback.html"/>
@@ -309,6 +311,11 @@
     <keyword type="property" name="The &quot;HwAddress&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Dummy.html#gdbus-property-org-freedesktop-NetworkManager-Device-Dummy.HwAddress"/>
     <keyword type="property" name="The &quot;HwAddress&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Generic.html#gdbus-property-org-freedesktop-NetworkManager-Device-Generic.HwAddress"/>
     <keyword type="property" name="The &quot;TypeDescription&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Generic.html#gdbus-property-org-freedesktop-NetworkManager-Device-Generic.TypeDescription"/>
+    <keyword type="property" name="The &quot;Port1&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Hsr.html#gdbus-property-org-freedesktop-NetworkManager-Device-Hsr.Port1"/>
+    <keyword type="property" name="The &quot;Port2&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Hsr.html#gdbus-property-org-freedesktop-NetworkManager-Device-Hsr.Port2"/>
+    <keyword type="property" name="The &quot;SupervisionAddress&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Hsr.html#gdbus-property-org-freedesktop-NetworkManager-Device-Hsr.SupervisionAddress"/>
+    <keyword type="property" name="The &quot;MulticastSpec&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Hsr.html#gdbus-property-org-freedesktop-NetworkManager-Device-Hsr.MulticastSpec"/>
+    <keyword type="property" name="The &quot;Prp&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Hsr.html#gdbus-property-org-freedesktop-NetworkManager-Device-Hsr.Prp"/>
     <keyword type="property" name="The &quot;Mode&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.IPTunnel.html#gdbus-property-org-freedesktop-NetworkManager-Device-IPTunnel.Mode"/>
     <keyword type="property" name="The &quot;Parent&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.IPTunnel.html#gdbus-property-org-freedesktop-NetworkManager-Device-IPTunnel.Parent"/>
     <keyword type="property" name="The &quot;Local&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.IPTunnel.html#gdbus-property-org-freedesktop-NetworkManager-Device-IPTunnel.Local"/>
@@ -474,6 +481,7 @@
     <keyword type="property" name="The &quot;HwAddress&quot; property" link="gdbus-org.freedesktop.NetworkManager.AccessPoint.html#gdbus-property-org-freedesktop-NetworkManager-AccessPoint.HwAddress"/>
     <keyword type="property" name="The &quot;Mode&quot; property" link="gdbus-org.freedesktop.NetworkManager.AccessPoint.html#gdbus-property-org-freedesktop-NetworkManager-AccessPoint.Mode"/>
     <keyword type="property" name="The &quot;MaxBitrate&quot; property" link="gdbus-org.freedesktop.NetworkManager.AccessPoint.html#gdbus-property-org-freedesktop-NetworkManager-AccessPoint.MaxBitrate"/>
+    <keyword type="property" name="The &quot;Bandwidth&quot; property" link="gdbus-org.freedesktop.NetworkManager.AccessPoint.html#gdbus-property-org-freedesktop-NetworkManager-AccessPoint.Bandwidth"/>
     <keyword type="property" name="The &quot;Strength&quot; property" link="gdbus-org.freedesktop.NetworkManager.AccessPoint.html#gdbus-property-org-freedesktop-NetworkManager-AccessPoint.Strength"/>
     <keyword type="property" name="The &quot;LastSeen&quot; property" link="gdbus-org.freedesktop.NetworkManager.AccessPoint.html#gdbus-property-org-freedesktop-NetworkManager-AccessPoint.LastSeen"/>
     <keyword type="property" name="The &quot;Name&quot; property" link="gdbus-org.freedesktop.NetworkManager.WifiP2PPeer.html#gdbus-property-org-freedesktop-NetworkManager-WifiP2PPeer.Name"/>
@@ -598,6 +606,7 @@
     <keyword type="constant" name="NM_DEVICE_TYPE_WIFI_P2P" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.7.4.2.1.4.31.1.1id-1.4.17.2.7.4.2.1.4.31.1.2"/>
     <keyword type="constant" name="NM_DEVICE_TYPE_VRF" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.7.4.2.1.4.32.1.1id-1.4.17.2.7.4.2.1.4.32.1.2"/>
     <keyword type="constant" name="NM_DEVICE_TYPE_LOOPBACK" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.7.4.2.1.4.33.1.1id-1.4.17.2.7.4.2.1.4.33.1.2"/>
+    <keyword type="constant" name="NM_DEVICE_TYPE_HSR" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.7.4.2.1.4.34.1.1id-1.4.17.2.7.4.2.1.4.34.1.2"/>
     <keyword type="constant" name="NM_DEVICE_CAP_NONE" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.8.4.2.1.4.1.1.1id-1.4.17.2.8.4.2.1.4.1.1.2"/>
     <keyword type="constant" name="NM_DEVICE_CAP_NM_SUPPORTED" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.8.4.2.1.4.2.1.1id-1.4.17.2.8.4.2.1.4.2.1.2"/>
     <keyword type="constant" name="NM_DEVICE_CAP_CARRIER_DETECT" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.8.4.2.1.4.3.1.1id-1.4.17.2.8.4.2.1.4.3.1.2"/>
@@ -615,8 +624,9 @@
     <keyword type="constant" name="NM_WIFI_DEVICE_CAP_FREQ_VALID" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.9.4.2.1.4.10.1.1id-1.4.17.2.9.4.2.1.4.10.1.2"/>
     <keyword type="constant" name="NM_WIFI_DEVICE_CAP_FREQ_2GHZ" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.9.4.2.1.4.11.1.1id-1.4.17.2.9.4.2.1.4.11.1.2"/>
     <keyword type="constant" name="NM_WIFI_DEVICE_CAP_FREQ_5GHZ" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.9.4.2.1.4.12.1.1id-1.4.17.2.9.4.2.1.4.12.1.2"/>
-    <keyword type="constant" name="NM_WIFI_DEVICE_CAP_MESH" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.9.4.2.1.4.13.1.1id-1.4.17.2.9.4.2.1.4.13.1.2"/>
-    <keyword type="constant" name="NM_WIFI_DEVICE_CAP_IBSS_RSN" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.9.4.2.1.4.14.1.1id-1.4.17.2.9.4.2.1.4.14.1.2"/>
+    <keyword type="constant" name="NM_WIFI_DEVICE_CAP_FREQ_6GHZ" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.9.4.2.1.4.13.1.1id-1.4.17.2.9.4.2.1.4.13.1.2"/>
+    <keyword type="constant" name="NM_WIFI_DEVICE_CAP_MESH" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.9.4.2.1.4.14.1.1id-1.4.17.2.9.4.2.1.4.14.1.2"/>
+    <keyword type="constant" name="NM_WIFI_DEVICE_CAP_IBSS_RSN" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.9.4.2.1.4.15.1.1id-1.4.17.2.9.4.2.1.4.15.1.2"/>
     <keyword type="constant" name="NM_802_11_AP_FLAGS_NONE" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.10.4.2.1.4.1.1.1id-1.4.17.2.10.4.2.1.4.1.1.2"/>
     <keyword type="constant" name="NM_802_11_AP_FLAGS_PRIVACY" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.10.4.2.1.4.2.1.1id-1.4.17.2.10.4.2.1.4.2.1.2"/>
     <keyword type="constant" name="NM_802_11_AP_FLAGS_WPS" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.10.4.2.1.4.3.1.1id-1.4.17.2.10.4.2.1.4.3.1.2"/>

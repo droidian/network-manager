@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
+               "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd" [
+]>
+<refentry id="gdbus-org.freedesktop.NetworkManager.Device.Hsr">
+  <refmeta>    <refentrytitle role="top_of_page" id="gdbus-interface-org-freedesktop-NetworkManager-Device-Hsr.top_of_page">org.freedesktop.NetworkManager.Device.Hsr</refentrytitle>
+  <indexterm zone="gdbus-interface-org-freedesktop-NetworkManager-Device-Hsr.top_of_page"><primary sortas=".Device.Hsr">org.freedesktop.NetworkManager.Device.Hsr</primary></indexterm>
+  </refmeta>  <refnamediv>    <refname>org.freedesktop.NetworkManager.Device.Hsr</refname>    <refpurpose>HSR Device.</refpurpose>  </refnamediv>  <refsect1 role="properties">
+    <title role="properties.title">Properties</title>
+    <synopsis>
+<link linkend="gdbus-property-org-freedesktop-NetworkManager-Device-Hsr.Port1">Port1</link>               readable   o
+<link linkend="gdbus-property-org-freedesktop-NetworkManager-Device-Hsr.Port2">Port2</link>               readable   o
+<link linkend="gdbus-property-org-freedesktop-NetworkManager-Device-Hsr.SupervisionAddress">SupervisionAddress</link>  readable   s
+<link linkend="gdbus-property-org-freedesktop-NetworkManager-Device-Hsr.MulticastSpec">MulticastSpec</link>       readable   y
+<link linkend="gdbus-property-org-freedesktop-NetworkManager-Device-Hsr.Prp">Prp</link>                 readable   b
+</synopsis>
+  </refsect1>
+<refsect1 role="desc" id="gdbus-interface-org-freedesktop-NetworkManager-Device-Hsr">
+  <title role="desc.title">Description</title>
+  <para>
+</para><para>
+</para>
+</refsect1>
+<refsect1 role="details" id="gdbus-properties-org.freedesktop.NetworkManager.Device.Hsr">
+  <title role="details.title">Property Details</title>
+<refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-Hsr.Port1">
+  <title>The "Port1" property</title>
+  <indexterm zone="gdbus-property-org-freedesktop-NetworkManager-Device-Hsr.Port1"><primary sortas=".Device.Hsr:Port1">org.freedesktop.NetworkManager.Device.Hsr:Port1</primary></indexterm>
+<programlisting>
+Port1  readable   o
+</programlisting>
+<para>
+The device's port1 device.
+</para>
+<para role="since">Since 1.46</para>
+</refsect2>
+<refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-Hsr.Port2">
+  <title>The "Port2" property</title>
+  <indexterm zone="gdbus-property-org-freedesktop-NetworkManager-Device-Hsr.Port2"><primary sortas=".Device.Hsr:Port2">org.freedesktop.NetworkManager.Device.Hsr:Port2</primary></indexterm>
+<programlisting>
+Port2  readable   o
+</programlisting>
+<para>
+The device's port2 device.
+</para>
+<para role="since">Since 1.46</para>
+</refsect2>
+<refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-Hsr.SupervisionAddress">
+  <title>The "SupervisionAddress" property</title>
+  <indexterm zone="gdbus-property-org-freedesktop-NetworkManager-Device-Hsr.SupervisionAddress"><primary sortas=".Device.Hsr:SupervisionAddress">org.freedesktop.NetworkManager.Device.Hsr:SupervisionAddress</primary></indexterm>
+<programlisting>
+SupervisionAddress  readable   s
+</programlisting>
+<para>
+The supervision MAC address.
+</para>
+<para role="since">Since 1.46</para>
+</refsect2>
+<refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-Hsr.MulticastSpec">
+  <title>The "MulticastSpec" property</title>
+  <indexterm zone="gdbus-property-org-freedesktop-NetworkManager-Device-Hsr.MulticastSpec"><primary sortas=".Device.Hsr:MulticastSpec">org.freedesktop.NetworkManager.Device.Hsr:MulticastSpec</primary></indexterm>
+<programlisting>
+MulticastSpec  readable   y
+</programlisting>
+<para>
+The last byte of the supervision address.
+</para>
+<para role="since">Since 1.46</para>
+</refsect2>
+<refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-Hsr.Prp">
+  <title>The "Prp" property</title>
+  <indexterm zone="gdbus-property-org-freedesktop-NetworkManager-Device-Hsr.Prp"><primary sortas=".Device.Hsr:Prp">org.freedesktop.NetworkManager.Device.Hsr:Prp</primary></indexterm>
+<programlisting>
+Prp  readable   b
+</programlisting>
+<para>
+Whether the PRP protocol is used or not.
+</para>
+<para role="since">Since 1.46</para>
+</refsect2>
+</refsect1>
+</refentry>
+

@@ -47,20 +47,18 @@ typedef struct {
  * Infiniband Settings
  */
 struct _NMSettingInfiniband {
-    NMSetting parent;
-    /* In the past, this struct was public API. Preserve ABI! */
+    NMSetting                  parent;
+    NMSettingInfinibandPrivate _priv;
 };
 
 struct _NMSettingInfinibandClass {
     NMSettingClass parent;
-    /* In the past, this struct was public API. Preserve ABI! */
-    gpointer padding[4];
 };
 
 G_DEFINE_TYPE(NMSettingInfiniband, nm_setting_infiniband, NM_TYPE_SETTING)
 
 #define NM_SETTING_INFINIBAND_GET_PRIVATE(o) \
-    (G_TYPE_INSTANCE_GET_PRIVATE((o), NM_TYPE_SETTING_INFINIBAND, NMSettingInfinibandPrivate))
+    _NM_GET_PRIVATE(o, NMSettingInfiniband, NM_IS_SETTING_INFINIBAND, NMSetting)
 
 /*****************************************************************************/
 
@@ -332,8 +330,6 @@ nm_setting_infiniband_class_init(NMSettingInfinibandClass *klass)
     NMSettingClass *setting_class       = NM_SETTING_CLASS(klass);
     GArray         *properties_override = _nm_sett_info_property_override_create_array();
 
-    g_type_class_add_private(klass, sizeof(NMSettingInfinibandPrivate));
-
     object_class->get_property = _nm_setting_property_get_property_direct;
     object_class->set_property = _nm_setting_property_set_property_direct;
 
@@ -418,7 +414,8 @@ nm_setting_infiniband_class_init(NMSettingInfinibandClass *klass)
                                               PROP_TRANSPORT_MODE,
                                               NM_SETTING_PARAM_INFERRABLE,
                                               NMSettingInfinibandPrivate,
-                                              transport_mode);
+                                              transport_mode,
+                                              .direct_string_allow_empty = TRUE);
 
     /**
      * NMSettingInfiniband:p-key:
@@ -484,7 +481,8 @@ nm_setting_infiniband_class_init(NMSettingInfinibandClass *klass)
                                               PROP_PARENT,
                                               NM_SETTING_PARAM_INFERRABLE,
                                               NMSettingInfinibandPrivate,
-                                              parent);
+                                              parent,
+                                              .direct_string_allow_empty = TRUE);
 
     g_object_class_install_properties(object_class, _PROPERTY_ENUMS_LAST, obj_properties);
 
@@ -492,5 +490,5 @@ nm_setting_infiniband_class_init(NMSettingInfinibandClass *klass)
                              NM_META_SETTING_TYPE_INFINIBAND,
                              NULL,
                              properties_override,
-                             NM_SETT_INFO_PRIVATE_OFFSET_FROM_CLASS);
+                             G_STRUCT_OFFSET(NMSettingInfiniband, _priv));
 }

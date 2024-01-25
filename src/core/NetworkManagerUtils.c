@@ -120,7 +120,7 @@ get_new_connection_name(NMConnection *const *existing_connections,
          * connection id. */
         temp = g_strdup_printf(C_("connection id fallback", "%s %u"), fallback_prefix, i);
 
-        if (nm_strv_find_first(existing_names, existing_len, temp) < 0)
+        if (!nm_strv_contains(existing_names, existing_len, temp))
             return temp;
 
         g_free(temp);
@@ -670,9 +670,9 @@ check_connection_cloned_mac_address(NMConnection *orig,
         cand_mac = nm_setting_wired_get_cloned_mac_address(s_wired_cand);
 
     /* special cloned mac address entries are accepted. */
-    if (NM_CLONED_MAC_IS_SPECIAL(orig_mac))
+    if (NM_CLONED_MAC_IS_SPECIAL(orig_mac, FALSE))
         orig_mac = NULL;
-    if (NM_CLONED_MAC_IS_SPECIAL(cand_mac))
+    if (NM_CLONED_MAC_IS_SPECIAL(cand_mac, FALSE))
         cand_mac = NULL;
 
     if (!orig_mac || !cand_mac) {
@@ -695,7 +695,8 @@ check_connection_controller(NMConnection *orig, NMConnection *candidate, GHashTa
 
     props = check_property_in_hash(settings,
                                    NM_SETTING_CONNECTION_SETTING_NAME,
-                                   NM_SETTING_CONNECTION_MASTER);
+                                   NM_SETTING_CONNECTION_CONTROLLER);
+
     if (!props)
         return TRUE;
 
@@ -722,6 +723,10 @@ check_connection_controller(NMConnection *orig, NMConnection *candidate, GHashTa
                                  props,
                                  NM_SETTING_CONNECTION_SETTING_NAME,
                                  NM_SETTING_CONNECTION_MASTER);
+                remove_from_hash(settings,
+                                 props,
+                                 NM_SETTING_CONNECTION_SETTING_NAME,
+                                 NM_SETTING_CONNECTION_CONTROLLER);
                 return TRUE;
             } else {
                 return FALSE;
@@ -892,8 +897,8 @@ nm_utils_match_connection(NMConnection *const   *connections,
             if (!nm_streq0(nm_setting_connection_get_connection_type(s_orig),
                            nm_setting_connection_get_connection_type(s_cand)))
                 continue;
-            if (!nm_streq0(nm_setting_connection_get_slave_type(s_orig),
-                           nm_setting_connection_get_slave_type(s_cand)))
+            if (!nm_streq0(nm_setting_connection_get_port_type(s_orig),
+                           nm_setting_connection_get_port_type(s_cand)))
                 continue;
 
             /* this is good enough for a match */
@@ -1558,7 +1563,8 @@ nm_utils_ip_addresses_to_dbus(int                          addr_family,
     char             addr_str[NM_INET_ADDRSTRLEN];
     NMDedupMultiIter iter;
     const NMPObject *obj;
-    guint            i;
+    const gsize      MAX_ADDRESSES = 100;
+    gsize            i;
 
     nm_assert_addr_family(addr_family);
 
@@ -1579,6 +1585,11 @@ nm_utils_ip_addresses_to_dbus(int                          addr_family,
     while (
         nm_platform_dedup_multi_iter_next_obj(&iter, &obj, NMP_OBJECT_TYPE_IP_ADDRESS(IS_IPv4))) {
         const NMPlatformIPXAddress *address = NMP_OBJECT_CAST_IPX_ADDRESS(obj);
+
+        if (i > MAX_ADDRESSES) {
+            /* Limited. The rest is hidden. */
+            break;
+        }
 
         if (out_address_data) {
             GVariantBuilder addr_builder;
@@ -1669,6 +1680,8 @@ nm_utils_ip_routes_to_dbus(int                          addr_family,
     GVariantBuilder  builder_data;
     GVariantBuilder  builder_legacy;
     char             addr_str[NM_INET_ADDRSTRLEN];
+    const gsize      MAX_ROUTES = 100;
+    gsize            i;
 
     nm_assert_addr_family(addr_family);
 
@@ -1681,6 +1694,7 @@ nm_utils_ip_routes_to_dbus(int                          addr_family,
             g_variant_builder_init(&builder_legacy, G_VARIANT_TYPE("a(ayuayu)"));
     }
 
+    i = 0;
     nm_dedup_multi_iter_init(&iter, head_entry);
     while (nm_platform_dedup_multi_iter_next_obj(&iter, &obj, NMP_OBJECT_TYPE_IP_ROUTE(IS_IPv4))) {
         const NMPlatformIPXRoute *r = NMP_OBJECT_CAST_IPX_ROUTE(obj);
@@ -1698,6 +1712,13 @@ nm_utils_ip_routes_to_dbus(int                          addr_family,
 
         if (r->rx.type_coerced != nm_platform_route_type_coerce(RTN_UNICAST))
             continue;
+
+        if (i >= MAX_ROUTES) {
+            /* Limited. The rest is hidden. */
+            break;
+        }
+
+        i++;
 
         if (out_route_data) {
             GVariantBuilder route_builder;

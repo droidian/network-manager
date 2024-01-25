@@ -2,12 +2,12 @@
 .\"     Title: NetworkManager.conf
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 10/03/2023
+.\"      Date: 01/25/2024
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.44.2
+.\"    Source: NetworkManager 1.45.90
 .\"  Language: English
 .\"
-.TH "NETWORKMANAGER\&.CONF" "5" "" "NetworkManager 1\&.44\&.2" "Configuration"
+.TH "NETWORKMANAGER\&.CONF" "5" "" "NetworkManager 1\&.45\&.90" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -370,15 +370,6 @@ connection\&.autoconnect\-retries
 property set to \-1\&. If not specified, connections will be tried 4 times\&. Setting this value to 1 means to try activation once, without retry\&.
 .RE
 .PP
-\fIslaves\-order\fR
-.RS 4
-This key specifies in which order slave connections are auto\-activated on boot or when the master activates them\&. Allowed values are
-name
-(order connection by interface name, the default), or
-index
-(order slaves by their kernel index)\&.
-.RE
-.PP
 \fIfirewall\-backend\fR
 .RS 4
 The firewall backend for configuring masquerading with shared mode\&. Set to either
@@ -509,7 +500,9 @@ domains=ALL
 .sp
 and restart the daemon with
 \fBsystemctl restart NetworkManager\fR\&. Then reproduce the problem\&. You can find the logs in syslog (for example
-\fBjournalctl\fR)\&.
+\fBjournalctl\fR, or
+\fBjournalctl \-u NetworkManager\fR
+to show only logs from NetworkManager)\&.
 .PP
 Any settings here are overridden by the
 \fB\-\-log\-level\fR
@@ -770,7 +763,7 @@ ipv6\&.ip6\-privacy=0
 .SS "Supported Properties"
 .PP
 Not all properties can be overwritten, only the following properties are supported to have their default values configured (see
-\fBnm-settings\fR(5)
+\fBnm-settings-nmcli\fR(5)
 for details)\&.
 .PP
 
@@ -1215,7 +1208,7 @@ Like the per\-connection settings
 ethernet\&.generate\-mac\-address\-mask
 and
 wifi\&.generate\-mac\-address\-mask, this allows to configure the generated MAC addresses during scanning\&. See
-\fBnm-settings\fR(5)
+\fBnm-settings-nmcli\fR(5)
 for details\&.
 .RE
 .PP
@@ -1426,7 +1419,7 @@ plugin is the generic plugin that supports all the connection types and capabili
 for details about the file format\&.
 .sp
 The stored connection file may contain passwords, secrets and private keys in plain text, so it will be made readable only to root, and the plugin will ignore files that are readable or writable by any user or group other than root\&. See "Secret flag types" in
-\fBnm-settings\fR(5)
+\fBnm-settings-nmcli\fR(5)
 for how to avoid storing passwords in plain text\&.
 .sp
 This plugin is always active, and will automatically be used to store any connections that aren\*(Aqt supported by any other active plugin\&.
@@ -1621,6 +1614,6 @@ Backslash is supported to escape the separators \*(Aq;\*(Aq and \*(Aq,\*(Aq, and
 \fBnmcli\fR(1),
 \fBnmcli-examples\fR(7),
 \fBnm-online\fR(1),
-\fBnm-settings\fR(5),
+\fBnm-settings-nmcli\fR(5),
 \fBnm-applet\fR(1),
 \fBnm-connection-editor\fR(1)

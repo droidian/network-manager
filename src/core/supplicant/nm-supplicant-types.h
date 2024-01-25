@@ -55,9 +55,9 @@ typedef enum {
     _NM_SUPPL_CAP_TYPE_NUM,
 } NMSupplCapType;
 
-#define NM_SUPPL_CAP_MASK_NO(type)   ((NMSupplCapMask) (1llu << ((type) *2u)))
-#define NM_SUPPL_CAP_MASK_YES(type)  ((NMSupplCapMask) (2llu << ((type) *2u)))
-#define NM_SUPPL_CAP_MASK_MASK(type) ((NMSupplCapMask) (3llu << ((type) *2u)))
+#define NM_SUPPL_CAP_MASK_NO(type)   ((NMSupplCapMask) (1llu << ((type) * 2u)))
+#define NM_SUPPL_CAP_MASK_YES(type)  ((NMSupplCapMask) (2llu << ((type) * 2u)))
+#define NM_SUPPL_CAP_MASK_MASK(type) ((NMSupplCapMask) (3llu << ((type) * 2u)))
 
 typedef enum {
     NM_SUPPL_CAP_MASK_NONE = 0,
@@ -178,6 +178,8 @@ typedef struct _NMSupplicantBssInfo {
     guint32 frequency;
 
     guint32 max_rate;
+
+    guint32 bandwidth;
 
     guint8 signal_percent;
 

@@ -23,6 +23,7 @@ libnm_core_headers = files(
   'nm-setting-ethtool.h',
   'nm-setting-generic.h',
   'nm-setting-gsm.h',
+  'nm-setting-hsr.h',
   'nm-setting-hostname.h',
   'nm-setting-infiniband.h',
   'nm-setting-ip-config.h',
@@ -128,5 +129,5 @@ foreach docbook: docbooks
     build_by_default: true,
   )
 
-  content_files += xml.full_path()
+  content_files += xml
 endforeach

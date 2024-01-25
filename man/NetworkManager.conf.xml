@@ -7,20 +7,11 @@
 ]>
 
 <!--
+  SPDX-License-Identifier: GFDL-1.1-no-invariants-or-later
+
   NetworkManager.conf(5) manual page
 
-  Copyright 2010 - 2016 Red Hat, Inc.
-
-  Permission is granted to copy, distribute and/or modify this document
-  under the terms of the GNU Free Documentation License, Version 1.1
-  or any later version published by the Free Software Foundation;
-  with no Invariant Sections, no Front-Cover Texts, and no Back-Cover
-  Texts. You may obtain a copy of the GNU Free Documentation License
-  from the Free Software Foundation by visiting their Web site or by
-  writing to:
-
-  Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+  Copyright 2010 - 2023 Red Hat, Inc.
 -->
 
 <refentry id="NetworkManager.conf">
@@ -470,20 +461,6 @@ no-auto-default=*
       </varlistentry>
 
       <varlistentry>
-        <term><varname>slaves-order</varname></term>
-        <listitem>
-          <para>
-            This key specifies in which order slave connections are
-            auto-activated on boot or when the master activates
-            them. Allowed values are <literal>name</literal> (order
-            connection by interface name, the default), or
-            <literal>index</literal> (order slaves by their kernel
-            index).
-          </para>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry>
         <term><varname>firewall-backend</varname></term>
         <listitem>
           <para>
@@ -657,7 +634,9 @@ level=TRACE
 domains=ALL
 </programlisting>
     and restart the daemon with <command>systemctl restart NetworkManager</command>. Then
-    reproduce the problem. You can find the logs in syslog (for example <command>journalctl</command>).
+    reproduce the problem. You can find the logs in syslog (for example
+    <command>journalctl</command>, or <command>journalctl -u NetworkManager</command>
+    to show only logs from NetworkManager).
     </para>
 
     <para>
@@ -856,7 +835,7 @@ ipv6.ip6-privacy=0
     <para>
       Not all properties can be overwritten, only the following
       properties are supported to have their default values configured
-      (see <link linkend='nm-settings'><citerefentry><refentrytitle>nm-settings</refentrytitle><manvolnum>5</manvolnum></citerefentry></link> for details).
+      (see <link linkend='nm-settings-nmcli'><citerefentry><refentrytitle>nm-settings-nmcli</refentrytitle><manvolnum>5</manvolnum></citerefentry></link> for details).
     </para>
     <para>
       <!-- The following comment is used by check-config-options.sh, don't remove it. -->
@@ -1353,7 +1332,7 @@ managed=1
             <para>
               Like the per-connection settings <literal>ethernet.generate-mac-address-mask</literal>
               and <literal>wifi.generate-mac-address-mask</literal>, this allows to configure the
-              generated MAC addresses during scanning. See <citerefentry><refentrytitle>nm-settings</refentrytitle><manvolnum>5</manvolnum></citerefentry>
+              generated MAC addresses during scanning. See <citerefentry><refentrytitle>nm-settings-nmcli</refentrytitle><manvolnum>5</manvolnum></citerefentry>
               for details.
             </para>
           </listitem>
@@ -1656,7 +1635,7 @@ enable=nm-version-min:1.3,nm-version-min:1.2.6,nm-version-min:1.0.16
             private keys in plain text, so it will be made readable only to
             root, and the plugin will ignore files that are readable or
             writable by any user or group other than root. See "Secret flag types"
-            in <link linkend='nm-settings'><citerefentry><refentrytitle>nm-settings</refentrytitle><manvolnum>5</manvolnum></citerefentry></link>
+            in <link linkend='nm-settings-nmcli'><citerefentry><refentrytitle>nm-settings-nmcli</refentrytitle><manvolnum>5</manvolnum></citerefentry></link>
             for how to avoid storing passwords in plain text.
           </para>
           <para>
@@ -1881,7 +1860,7 @@ interface-name:vboxnet*,except:interface-name:vboxnet2
       <link linkend='nmcli'><citerefentry><refentrytitle>nmcli</refentrytitle><manvolnum>1</manvolnum></citerefentry></link>,
       <link linkend='nmcli-examples'><citerefentry><refentrytitle>nmcli-examples</refentrytitle><manvolnum>7</manvolnum></citerefentry></link>,
       <link linkend='nm-online'><citerefentry><refentrytitle>nm-online</refentrytitle><manvolnum>1</manvolnum></citerefentry></link>,
-      <link linkend='nm-settings'><citerefentry><refentrytitle>nm-settings</refentrytitle><manvolnum>5</manvolnum></citerefentry></link>,
+      <link linkend='nm-settings-nmcli'><citerefentry><refentrytitle>nm-settings-nmcli</refentrytitle><manvolnum>5</manvolnum></citerefentry></link>,
       <citerefentry><refentrytitle>nm-applet</refentrytitle><manvolnum>1</manvolnum></citerefentry>,
       <citerefentry><refentrytitle>nm-connection-editor</refentrytitle><manvolnum>1</manvolnum></citerefentry>
     </para>

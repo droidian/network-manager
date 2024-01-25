@@ -2,9 +2,9 @@
 .\"     Title: NetworkManager-dispatcher
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 10/03/2023
+.\"      Date: 01/25/2024
 .\"    Manual: Network management daemons
-.\"    Source: NetworkManager-dispatcher 1.44.2
+.\"    Source: NetworkManager-dispatcher 1.45.90
 .\"  Language: English
 .\"
 .TH "NETWORKMANAGER\-DISPATCHER" "8" "" "NetworkManager\-dispatcher 1\&" "Network management daemons"
@@ -43,9 +43,10 @@ directory or subdirectories in alphabetical order in response to network events\
 Each script receives two arguments, the first being the interface name of the device an operation just happened on, and second the action\&. For device actions, the interface is the name of the kernel interface suitable for IP configuration\&. Thus it is either VPN_IP_IFACE, DEVICE_IP_IFACE, or DEVICE_IFACE, as applicable\&. For the
 \fIhostname\fR
 action the device name is always
-"none"
-and for
+"none"\&. For
 \fIconnectivity\-change\fR
+and
+\fIdns\-change\fR
 it is empty\&.
 .PP
 The actions are:
@@ -121,6 +122,12 @@ The network connectivity state has changed (no connectivity, went online, etc)\&
 \fIreapply\fR
 .RS 4
 The connection was reapplied on the device\&.
+.RE
+.PP
+\fIdns\-change\fR
+.RS 4
+The DNS configuration has changed\&. This action is raised even if NetworkManager is configured to not manage resolv\&.conf (for example, via dns=none)\&. In such case, the dispatch script can discover the DNS configuration provided by currently active connections by looking at file
+/run/NetworkManager/resolv\&.conf
 .RE
 .PP
 The environment contains more information about the interface and the connection\&. The following variables are available for the use in the dispatcher scripts:

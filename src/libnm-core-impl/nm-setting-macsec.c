@@ -55,20 +55,18 @@ typedef struct {
  * MACSec Settings
  */
 struct _NMSettingMacsec {
-    NMSetting parent;
-    /* In the past, this struct was public API. Preserve ABI! */
+    NMSetting              parent;
+    NMSettingMacsecPrivate _priv;
 };
 
 struct _NMSettingMacsecClass {
     NMSettingClass parent;
-    /* In the past, this struct was public API. Preserve ABI! */
-    gpointer padding[4];
 };
 
 G_DEFINE_TYPE(NMSettingMacsec, nm_setting_macsec, NM_TYPE_SETTING)
 
 #define NM_SETTING_MACSEC_GET_PRIVATE(o) \
-    (G_TYPE_INSTANCE_GET_PRIVATE((o), NM_TYPE_SETTING_MACSEC, NMSettingMacsecPrivate))
+    _NM_GET_PRIVATE(o, NMSettingMacsec, NM_IS_SETTING_MACSEC, NMSetting)
 
 /*****************************************************************************/
 
@@ -306,7 +304,7 @@ verify(NMSetting *setting, NMConnection *connection, GError **error)
             if (s_con) {
                 const char *master = NULL, *slave_type = NULL;
 
-                slave_type = nm_setting_connection_get_slave_type(s_con);
+                slave_type = nm_setting_connection_get_port_type(s_con);
                 if (!g_strcmp0(slave_type, NM_SETTING_MACSEC_SETTING_NAME))
                     master = nm_setting_connection_get_master(s_con);
 
@@ -316,7 +314,7 @@ verify(NMSetting *setting, NMConnection *connection, GError **error)
                                 NM_CONNECTION_ERROR_INVALID_PROPERTY,
                                 _("'%s' value doesn't match '%s=%s'"),
                                 priv->parent,
-                                NM_SETTING_CONNECTION_MASTER,
+                                NM_SETTING_CONNECTION_CONTROLLER,
                                 master);
                     g_prefix_error(error,
                                    "%s.%s: ",
@@ -436,8 +434,6 @@ nm_setting_macsec_class_init(NMSettingMacsecClass *klass)
     NMSettingClass *setting_class       = NM_SETTING_CLASS(klass);
     GArray         *properties_override = _nm_sett_info_property_override_create_array();
 
-    g_type_class_add_private(klass, sizeof(NMSettingMacsecPrivate));
-
     object_class->get_property = _nm_setting_property_get_property_direct;
     object_class->set_property = _nm_setting_property_set_property_direct;
 
@@ -460,7 +456,8 @@ nm_setting_macsec_class_init(NMSettingMacsecClass *klass)
                                               PROP_PARENT,
                                               NM_SETTING_PARAM_INFERRABLE,
                                               NMSettingMacsecPrivate,
-                                              parent);
+                                              parent,
+                                              .direct_string_allow_empty = TRUE);
 
     /**
      * NMSettingMacsec:mode:
@@ -511,7 +508,8 @@ nm_setting_macsec_class_init(NMSettingMacsecClass *klass)
                                               PROP_MKA_CAK,
                                               NM_SETTING_PARAM_SECRET,
                                               NMSettingMacsecPrivate,
-                                              mka_cak);
+                                              mka_cak,
+                                              .direct_string_allow_empty = TRUE);
 
     /**
      * NMSettingMacsec:mka-cak-flags:
@@ -543,7 +541,8 @@ nm_setting_macsec_class_init(NMSettingMacsecClass *klass)
                                               PROP_MKA_CKN,
                                               NM_SETTING_PARAM_NONE,
                                               NMSettingMacsecPrivate,
-                                              mka_ckn);
+                                              mka_ckn,
+                                              .direct_string_allow_empty = TRUE);
 
     /**
      * NMSettingMacsec:port:
@@ -604,5 +603,5 @@ nm_setting_macsec_class_init(NMSettingMacsecClass *klass)
                              NM_META_SETTING_TYPE_MACSEC,
                              NULL,
                              properties_override,
-                             NM_SETT_INFO_PRIVATE_OFFSET_FROM_CLASS);
+                             G_STRUCT_OFFSET(NMSettingMacsec, _priv));
 }

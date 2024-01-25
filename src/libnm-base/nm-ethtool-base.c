@@ -41,6 +41,7 @@ const NMEthtoolData *const nm_ethtool_data[_NM_ETHTOOL_ID_NUM + 1] = {
     ETHT_DATA(COALESCE_TX_USECS_HIGH),
     ETHT_DATA(COALESCE_TX_USECS_IRQ),
     ETHT_DATA(COALESCE_TX_USECS_LOW),
+    ETHT_DATA(EEE_ENABLED),
     ETHT_DATA(FEATURE_ESP_HW_OFFLOAD),
     ETHT_DATA(FEATURE_ESP_TX_CSUM_HW_OFFLOAD),
     ETHT_DATA(FEATURE_FCOE_MTU),
@@ -106,11 +107,19 @@ const NMEthtoolData *const nm_ethtool_data[_NM_ETHTOOL_ID_NUM + 1] = {
     ETHT_DATA(RING_RX_JUMBO),
     ETHT_DATA(RING_RX_MINI),
     ETHT_DATA(RING_TX),
+    ETHT_DATA(CHANNELS_RX),
+    ETHT_DATA(CHANNELS_TX),
+    ETHT_DATA(CHANNELS_OTHER),
+    ETHT_DATA(CHANNELS_COMBINED),
     [_NM_ETHTOOL_ID_NUM] = NULL,
 };
 
 static const guint8 _by_name[_NM_ETHTOOL_ID_NUM] = {
     /* sorted by optname. */
+    NM_ETHTOOL_ID_CHANNELS_COMBINED,
+    NM_ETHTOOL_ID_CHANNELS_OTHER,
+    NM_ETHTOOL_ID_CHANNELS_RX,
+    NM_ETHTOOL_ID_CHANNELS_TX,
     NM_ETHTOOL_ID_COALESCE_ADAPTIVE_RX,
     NM_ETHTOOL_ID_COALESCE_ADAPTIVE_TX,
     NM_ETHTOOL_ID_COALESCE_PKT_RATE_HIGH,
@@ -133,6 +142,7 @@ static const guint8 _by_name[_NM_ETHTOOL_ID_NUM] = {
     NM_ETHTOOL_ID_COALESCE_TX_USECS_HIGH,
     NM_ETHTOOL_ID_COALESCE_TX_USECS_IRQ,
     NM_ETHTOOL_ID_COALESCE_TX_USECS_LOW,
+    NM_ETHTOOL_ID_EEE_ENABLED,
     NM_ETHTOOL_ID_FEATURE_ESP_HW_OFFLOAD,
     NM_ETHTOOL_ID_FEATURE_ESP_TX_CSUM_HW_OFFLOAD,
     NM_ETHTOOL_ID_FEATURE_FCOE_MTU,
@@ -291,6 +301,10 @@ nm_ethtool_id_to_type(NMEthtoolID id)
         return NM_ETHTOOL_TYPE_RING;
     if (nm_ethtool_id_is_pause(id))
         return NM_ETHTOOL_TYPE_PAUSE;
+    if (nm_ethtool_id_is_channels(id))
+        return NM_ETHTOOL_TYPE_CHANNELS;
+    if (nm_ethtool_id_is_eee(id))
+        return NM_ETHTOOL_TYPE_EEE;
 
     return NM_ETHTOOL_TYPE_UNKNOWN;
 }
@@ -298,11 +312,18 @@ nm_ethtool_id_to_type(NMEthtoolID id)
 const GVariantType *
 nm_ethtool_id_get_variant_type(NMEthtoolID ethtool_id)
 {
-    if (nm_ethtool_id_is_feature(ethtool_id) || nm_ethtool_id_is_pause(ethtool_id))
+    switch (nm_ethtool_id_to_type(ethtool_id)) {
+    case NM_ETHTOOL_TYPE_FEATURE:
+    case NM_ETHTOOL_TYPE_PAUSE:
+    case NM_ETHTOOL_TYPE_EEE:
         return G_VARIANT_TYPE_BOOLEAN;
-
-    if (nm_ethtool_id_is_coalesce(ethtool_id) || nm_ethtool_id_is_ring(ethtool_id))
+    case NM_ETHTOOL_TYPE_CHANNELS:
+    case NM_ETHTOOL_TYPE_COALESCE:
+    case NM_ETHTOOL_TYPE_RING:
         return G_VARIANT_TYPE_UINT32;
-
-    return NULL;
+    case NM_ETHTOOL_TYPE_UNKNOWN:
+        nm_assert(ethtool_id == NM_ETHTOOL_ID_UNKNOWN);
+        return NULL;
+    }
+    return nm_assert_unreachable_val(NULL);
 }

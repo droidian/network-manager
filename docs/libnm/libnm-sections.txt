@@ -16,6 +16,7 @@ NM_ACCESS_POINT_MODE
 NM_ACCESS_POINT_MAX_BITRATE
 NM_ACCESS_POINT_STRENGTH
 NM_ACCESS_POINT_LAST_SEEN
+NM_ACCESS_POINT_BANDWIDTH
 NM_ACCESS_POINT_HW_ADDRESS
 nm_access_point_get_flags
 nm_access_point_get_wpa_flags
@@ -27,6 +28,7 @@ nm_access_point_get_mode
 nm_access_point_get_max_bitrate
 nm_access_point_get_strength
 nm_access_point_get_last_seen
+nm_access_point_get_bandwidth
 nm_access_point_filter_connections
 nm_access_point_connection_valid
 NMAccessPoint
@@ -573,6 +575,7 @@ NMSettingEthtool
 NMSettingGeneric
 NMSettingGsm
 NMSettingHostname
+NMSettingHsr
 NMSettingIP4Config
 NMSettingIP6Config
 NMSettingIPConfig
@@ -634,6 +637,7 @@ NM_DBUS_INTERFACE_DEVICE_BRIDGE
 NM_DBUS_INTERFACE_DEVICE_DUMMY
 NM_DBUS_INTERFACE_DEVICE_GENERIC
 NM_DBUS_INTERFACE_DEVICE_GRE
+NM_DBUS_INTERFACE_DEVICE_HSR
 NM_DBUS_INTERFACE_DEVICE_INFINIBAND
 NM_DBUS_INTERFACE_DEVICE_IP_TUNNEL
 NM_DBUS_INTERFACE_DEVICE_LOOPBACK
@@ -1013,6 +1017,31 @@ nm_device_generic_get_type
 </SECTION>
 
 <SECTION>
+<FILE>nm-device-hsr</FILE>
+<TITLE>NMDeviceHsr</TITLE>
+NM_DEVICE_HSR_PORT1
+NM_DEVICE_HSR_PORT2
+NM_DEVICE_HSR_SUPERVISION_ADDRESS
+NM_DEVICE_HSR_MULTICAST_SPEC
+NM_DEVICE_HSR_PRP
+nm_device_hsr_get_port1
+nm_device_hsr_get_port2
+nm_device_hsr_get_supervision_address
+nm_device_hsr_get_multicast_spec
+nm_device_hsr_get_prp
+NMDeviceHsr
+<SUBSECTION Standard>
+NMDeviceHsrClass
+NM_DEVICE_HSR
+NM_DEVICE_HSR_CLASS
+NM_DEVICE_HSR_GET_CLASS
+NM_IS_DEVICE_HSR
+NM_IS_DEVICE_HSR_CLASS
+NM_TYPE_DEVICE_HSR
+nm_device_hsr_get_type
+</SECTION>
+
+<SECTION>
 <FILE>nm-device-infiniband</FILE>
 <TITLE>NMDeviceInfiniband</TITLE>
 NM_DEVICE_INFINIBAND_HW_ADDRESS
@@ -1045,6 +1074,7 @@ NM_DEVICE_IP_TUNNEL_INPUT_KEY
 NM_DEVICE_IP_TUNNEL_OUTPUT_KEY
 NM_DEVICE_IP_TUNNEL_ENCAPSULATION_LIMIT
 NM_DEVICE_IP_TUNNEL_FLOW_LABEL
+NM_DEVICE_IP_TUNNEL_FWMARK
 NM_DEVICE_IP_TUNNEL_FLAGS
 nm_device_ip_tunnel_get_parent
 nm_device_ip_tunnel_get_mode
@@ -1057,6 +1087,7 @@ nm_device_ip_tunnel_get_input_key
 nm_device_ip_tunnel_get_output_key
 nm_device_ip_tunnel_get_encapsulation_limit
 nm_device_ip_tunnel_get_flow_label
+nm_device_ip_tunnel_get_fwmark
 nm_device_ip_tunnel_get_flags
 NMDeviceIPTunnel
 <SUBSECTION Standard>
@@ -1699,6 +1730,11 @@ NM_ETHTOOL_OPTNAME_RING_TX
 NM_ETHTOOL_OPTNAME_PAUSE_AUTONEG
 NM_ETHTOOL_OPTNAME_PAUSE_RX
 NM_ETHTOOL_OPTNAME_PAUSE_TX
+NM_ETHTOOL_OPTNAME_CHANNELS_RX
+NM_ETHTOOL_OPTNAME_CHANNELS_TX
+NM_ETHTOOL_OPTNAME_CHANNELS_OTHER
+NM_ETHTOOL_OPTNAME_CHANNELS_COMBINED
+NM_ETHTOOL_OPTNAME_EEE_ENABLED
 </SECTION>
 
 <SECTION>
@@ -2379,7 +2415,9 @@ NM_SETTING_CONNECTION_READ_ONLY
 NM_SETTING_CONNECTION_PERMISSIONS
 NM_SETTING_CONNECTION_ZONE
 NM_SETTING_CONNECTION_MASTER
+NM_SETTING_CONNECTION_CONTROLLER
 NM_SETTING_CONNECTION_SLAVE_TYPE
+NM_SETTING_CONNECTION_PORT_TYPE
 NM_SETTING_CONNECTION_AUTOCONNECT_SLAVES
 NM_SETTING_CONNECTION_SECONDARIES
 NM_SETTING_CONNECTION_GATEWAY_PING_TIMEOUT
@@ -2418,8 +2456,10 @@ nm_setting_connection_add_permission
 nm_setting_connection_remove_permission
 nm_setting_connection_remove_permission_by_value
 nm_setting_connection_get_master
+nm_setting_connection_get_controller
 nm_setting_connection_is_slave_type
 nm_setting_connection_get_slave_type
+nm_setting_connection_get_port_type
 nm_setting_connection_get_autoconnect_slaves
 nm_setting_connection_get_num_secondaries
 nm_setting_connection_get_secondary
@@ -2526,6 +2566,8 @@ nm_ethtool_optname_is_feature
 nm_ethtool_optname_is_coalesce
 nm_ethtool_optname_is_ring
 nm_ethtool_optname_is_pause
+nm_ethtool_optname_is_channels
+nm_ethtool_optname_is_eee
 NM_SETTING_ETHTOOL_SETTING_NAME
 nm_setting_ethtool_new
 nm_setting_ethtool_get_optnames
@@ -2629,6 +2671,29 @@ NM_SETTING_HOSTNAME_CLASS
 NM_SETTING_HOSTNAME_GET_CLASS
 NM_TYPE_SETTING_HOSTNAME
 nm_setting_hostname_get_type
+</SECTION>
+
+<SECTION>
+<FILE>nm-setting-hsr</FILE>
+<TITLE>NMSettingHsr</TITLE>
+NM_SETTING_HSR_SETTING_NAME
+NM_SETTING_HSR_PORT1
+NM_SETTING_HSR_PORT2
+NM_SETTING_HSR_MULTICAST_SPEC
+NM_SETTING_HSR_PRP
+nm_setting_hsr_new
+nm_setting_hsr_get_port1
+nm_setting_hsr_get_port2
+nm_setting_hsr_get_multicast_spec
+nm_setting_hsr_get_prp
+<SUBSECTION Standard>
+NMSettingHsrClass
+NM_IS_SETTING_HSR
+NM_IS_SETTING_HSR_CLASS
+NM_SETTING_HSR
+NM_SETTING_HSR_GET_CLASS
+NM_TYPE_SETTING_HSR
+nm_setting_hsr_get_type
 </SECTION>
 
 <SECTION>
@@ -2818,6 +2883,8 @@ NM_SETTING_DNS_OPTION_USE_VC
 NM_SETTING_DNS_OPTION_NO_RELOAD
 NM_SETTING_DNS_OPTION_TRUST_AD
 NM_SETTING_DNS_OPTION_NO_AAAA
+NM_SETTING_DNS_OPTION_INTERNAL_NO_ADD_EDNS0
+NM_SETTING_DNS_OPTION_INTERNAL_NO_ADD_TRUST_AD
 NMDhcpHostnameFlags
 nm_setting_ip_config_get_method
 nm_setting_ip_config_get_num_dns
@@ -4465,6 +4532,9 @@ NM_AVAILABLE_IN_1_42
 NM_DEPRECATED_IN_1_44
 NM_DEPRECATED_IN_1_44_FOR
 NM_AVAILABLE_IN_1_44
+NM_DEPRECATED_IN_1_46
+NM_DEPRECATED_IN_1_46_FOR
+NM_AVAILABLE_IN_1_46
 </SECTION>
 
 <SECTION>
@@ -4499,6 +4569,7 @@ NM_VERSION_1_38
 NM_VERSION_1_40
 NM_VERSION_1_42
 NM_VERSION_1_44
+NM_VERSION_1_46
 NM_API_VERSION
 NM_VERSION_CUR_STABLE
 NM_VERSION_NEXT_STABLE

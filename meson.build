@@ -6,7 +6,7 @@ project(
 #  - add corresponding NM_VERSION_x_y_z macros in
 #    "src/libnm-core-public/nm-version-macros.h.in"
 #  - update number in configure.ac
-  version: '1.44.2',
+  version: '1.45.90',
   license: 'GPL2+',
   default_options: [
     'buildtype=debugoptimized',
@@ -273,9 +273,8 @@ libsystemd_login_dep = dependency('libsystemd-login', version: '>= 183', require
 config_h.set10('HAVE_LIBSYSTEMD', libsystemd_dep.found())
 
 systemd_dep = dependency('systemd', required: false)
-have_systemd_200 = systemd_dep.found() and systemd_dep.version().version_compare('>= 200')
 
-gio_unix_dep = dependency('gio-unix-2.0', version: '>= 2.40')
+gio_unix_dep = dependency('gio-unix-2.0', version: '>= 2.42')
 
 glib_dep = declare_dependency(
   dependencies: [
@@ -283,8 +282,8 @@ glib_dep = declare_dependency(
     dependency('gmodule-2.0'),
   ],
   compile_args: [
-    '-DGLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_40',
-    '-DGLIB_VERSION_MAX_ALLOWED=GLIB_VERSION_2_40',
+    '-DGLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_42',
+    '-DGLIB_VERSION_MAX_ALLOWED=GLIB_VERSION_2_42',
   ]
 )
 
@@ -979,9 +978,13 @@ endif
 
 if enable_docs
   assert(enable_introspection, '-Ddocs=true requires -Dintrospection=true')
-  assert(meson.version().version_compare('>= 0.46.0'), '-Ddocs requires meson >= 0.46')
+  assert(meson.version().version_compare('>= 0.49.0'), '-Ddocs requires meson >= 0.49')
   subdir('man')
   subdir('docs')
+  meson.add_dist_script(
+    'tools/meson-dist-data.sh',
+    '--build-root', build_root
+  )
 endif
 
 configure_file(

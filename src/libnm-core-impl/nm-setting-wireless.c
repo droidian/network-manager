@@ -72,20 +72,18 @@ typedef struct {
  * Wi-Fi Settings
  */
 struct _NMSettingWireless {
-    NMSetting parent;
-    /* In the past, this struct was public API. Preserve ABI! */
+    NMSetting                parent;
+    NMSettingWirelessPrivate _priv;
 };
 
 struct _NMSettingWirelessClass {
     NMSettingClass parent;
-    /* In the past, this struct was public API. Preserve ABI! */
-    gpointer padding[4];
 };
 
 G_DEFINE_TYPE(NMSettingWireless, nm_setting_wireless, NM_TYPE_SETTING)
 
 #define NM_SETTING_WIRELESS_GET_PRIVATE(o) \
-    (G_TYPE_INSTANCE_GET_PRIVATE((o), NM_TYPE_SETTING_WIRELESS, NMSettingWirelessPrivate))
+    _NM_GET_PRIVATE(o, NMSettingWireless, NM_IS_SETTING_WIRELESS, NMSetting)
 
 /*****************************************************************************/
 
@@ -499,6 +497,8 @@ nm_setting_wireless_get_num_mac_blacklist_items(NMSettingWireless *setting)
  * @setting: the #NMSettingWireless
  * @idx: the zero-based index of the MAC address entry
  *
+ * Since 1.46, access at index "len" is allowed and returns NULL.
+ *
  * Returns: the blacklisted MAC address string (hex-digits-and-colons notation)
  * at index @idx
  **/
@@ -510,7 +510,12 @@ nm_setting_wireless_get_mac_blacklist_item(NMSettingWireless *setting, guint32 i
     g_return_val_if_fail(NM_IS_SETTING_WIRELESS(setting), NULL);
 
     priv = NM_SETTING_WIRELESS_GET_PRIVATE(setting);
-    g_return_val_if_fail(idx <= priv->mac_address_blacklist->len, NULL);
+
+    if (idx == priv->mac_address_blacklist->len) {
+        return NULL;
+    }
+
+    g_return_val_if_fail(idx < priv->mac_address_blacklist->len, NULL);
 
     return nm_g_array_index(priv->mac_address_blacklist, const char *, idx);
 }
@@ -824,6 +829,49 @@ nm_setting_wireless_get_ap_isolation(NMSettingWireless *setting)
 
 /*****************************************************************************/
 
+void
+_nm_setting_wireless_normalize_mac_address_randomization(
+    NMSettingWireless         *s_wifi,
+    const char               **out_cloned_mac_address,
+    NMSettingMacRandomization *out_mac_address_randomization)
+{
+    NMSettingWirelessPrivate *priv = NM_SETTING_WIRELESS_GET_PRIVATE(s_wifi);
+    guint32                   mac_address_randomization;
+    const char               *cloned_mac_address;
+
+    mac_address_randomization = priv->mac_address_randomization;
+    cloned_mac_address        = priv->cloned_mac_address;
+
+    if (cloned_mac_address) {
+        /* If cloned_mac_address is set, it takes precedence and determines
+         * mac_address_randomization. */
+        if (nm_streq(cloned_mac_address, "random"))
+            mac_address_randomization = NM_SETTING_MAC_RANDOMIZATION_ALWAYS;
+        else if (nm_streq(cloned_mac_address, "permanent"))
+            mac_address_randomization = NM_SETTING_MAC_RANDOMIZATION_NEVER;
+        else
+            mac_address_randomization = NM_SETTING_MAC_RANDOMIZATION_DEFAULT;
+    } else if (!NM_IN_SET(mac_address_randomization,
+                          NM_SETTING_MAC_RANDOMIZATION_DEFAULT,
+                          NM_SETTING_MAC_RANDOMIZATION_NEVER,
+                          NM_SETTING_MAC_RANDOMIZATION_ALWAYS)) {
+        /* cloned_mac_address is NULL and mac_address_randomization is invalid. Normalize
+         * mac_address_randomization to the default. */
+        mac_address_randomization = NM_SETTING_MAC_RANDOMIZATION_DEFAULT;
+    } else if (mac_address_randomization != NM_SETTING_MAC_RANDOMIZATION_DEFAULT) {
+        /* mac_address_randomization is not (guint32)set to the default. cloned_mac_address gets
+         * overwritten. */
+        cloned_mac_address = mac_address_randomization == NM_SETTING_MAC_RANDOMIZATION_ALWAYS
+                                 ? "random"
+                                 : "permanent";
+    }
+
+    *out_cloned_mac_address        = cloned_mac_address;
+    *out_mac_address_randomization = mac_address_randomization;
+}
+
+/*****************************************************************************/
+
 static gboolean
 verify(NMSetting *setting, NMConnection *connection, GError **error)
 {
@@ -837,6 +885,8 @@ verify(NMSetting *setting, NMConnection *connection, GError **error)
     guint                     i;
     gsize                     length;
     GError                   *local = NULL;
+    const char               *desired_cloned_mac_address;
+    NMSettingMacRandomization desired_mac_address_randomization;
 
     if (!priv->ssid) {
         g_set_error_literal(error,
@@ -958,7 +1008,7 @@ verify(NMSetting *setting, NMConnection *connection, GError **error)
         return FALSE;
     }
 
-    if (priv->cloned_mac_address && !NM_CLONED_MAC_IS_SPECIAL(priv->cloned_mac_address)
+    if (priv->cloned_mac_address && !NM_CLONED_MAC_IS_SPECIAL(priv->cloned_mac_address, TRUE)
         && !nm_utils_hwaddr_valid(priv->cloned_mac_address, ETH_ALEN)) {
         g_set_error_literal(error,
                             NM_CONNECTION_ERROR,
@@ -1082,27 +1132,21 @@ verify(NMSetting *setting, NMConnection *connection, GError **error)
 
     /* from here on, check for NM_SETTING_VERIFY_NORMALIZABLE conditions. */
 
-    if (priv->cloned_mac_address) {
-        if (priv->mac_address_randomization == NM_SETTING_MAC_RANDOMIZATION_ALWAYS
-            && nm_streq(priv->cloned_mac_address, "random"))
-            goto mac_addr_rand_ok;
-        if (priv->mac_address_randomization == NM_SETTING_MAC_RANDOMIZATION_NEVER
-            && nm_streq(priv->cloned_mac_address, "permanent"))
-            goto mac_addr_rand_ok;
-        if (priv->mac_address_randomization == NM_SETTING_MAC_RANDOMIZATION_DEFAULT)
-            goto mac_addr_rand_ok;
-    } else if (priv->mac_address_randomization == NM_SETTING_MAC_RANDOMIZATION_DEFAULT)
-        goto mac_addr_rand_ok;
-    g_set_error(error,
-                NM_CONNECTION_ERROR,
-                NM_CONNECTION_ERROR_INVALID_PROPERTY,
-                _("conflicting value of mac-address-randomization and cloned-mac-address"));
-    g_prefix_error(error,
-                   "%s.%s: ",
-                   NM_SETTING_WIRELESS_SETTING_NAME,
-                   NM_SETTING_WIRELESS_CLONED_MAC_ADDRESS);
-    return NM_SETTING_VERIFY_NORMALIZABLE;
-mac_addr_rand_ok:
+    _nm_setting_wireless_normalize_mac_address_randomization(NM_SETTING_WIRELESS(setting),
+                                                             &desired_cloned_mac_address,
+                                                             &desired_mac_address_randomization);
+    if (desired_mac_address_randomization != priv->mac_address_randomization
+        || !nm_streq0(desired_cloned_mac_address, priv->cloned_mac_address)) {
+        g_set_error(error,
+                    NM_CONNECTION_ERROR,
+                    NM_CONNECTION_ERROR_INVALID_PROPERTY,
+                    _("conflicting value of mac-address-randomization and cloned-mac-address"));
+        g_prefix_error(error,
+                       "%s.%s: ",
+                       NM_SETTING_WIRELESS_SETTING_NAME,
+                       NM_SETTING_WIRELESS_CLONED_MAC_ADDRESS);
+        return NM_SETTING_VERIFY_NORMALIZABLE;
+    }
 
     if (priv->tx_power != 0 || priv->rate != 0) {
         g_set_error(error,
@@ -1209,25 +1253,33 @@ get_property(GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
 static void
 set_property(GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec)
 {
-    NMSettingWirelessPrivate *priv = NM_SETTING_WIRELESS_GET_PRIVATE(object);
+    NMSettingWireless        *self = NM_SETTING_WIRELESS(object);
+    NMSettingWirelessPrivate *priv = NM_SETTING_WIRELESS_GET_PRIVATE(self);
     const char *const        *blacklist;
     const char               *mac;
     gboolean                  bool_val;
+    _PropertyEnums            prop1 = PROP_0;
+    _PropertyEnums            prop2 = PROP_0;
 
     switch (prop_id) {
     case PROP_CLONED_MAC_ADDRESS:
         bool_val = !!priv->cloned_mac_address;
-        g_free(priv->cloned_mac_address);
-        priv->cloned_mac_address =
-            _nm_utils_hwaddr_canonical_or_invalid(g_value_get_string(value), ETH_ALEN);
+
+        if (nm_strdup_reset_take(
+                &priv->cloned_mac_address,
+                _nm_utils_hwaddr_canonical_or_invalid(g_value_get_string(value), ETH_ALEN)))
+            prop1 = prop_id;
+
         if (bool_val && !priv->cloned_mac_address) {
             /* cloned-mac-address was set before but was now explicitly cleared.
              * In this case, we also clear mac-address-randomization flag */
             if (priv->mac_address_randomization != NM_SETTING_MAC_RANDOMIZATION_DEFAULT) {
                 priv->mac_address_randomization = NM_SETTING_MAC_RANDOMIZATION_DEFAULT;
-                _notify(NM_SETTING_WIRELESS(object), PROP_MAC_ADDRESS_RANDOMIZATION);
+                prop2                           = PROP_MAC_ADDRESS_RANDOMIZATION;
             }
         }
+
+        nm_gobject_notify_together(self, prop1, prop2);
         break;
     case PROP_MAC_ADDRESS_BLACKLIST:
         blacklist = g_value_get_boxed(value);
@@ -1307,9 +1359,7 @@ nm_setting_wireless_class_init(NMSettingWirelessClass *klass)
 {
     GObjectClass   *object_class        = G_OBJECT_CLASS(klass);
     NMSettingClass *setting_class       = NM_SETTING_CLASS(klass);
-    GArray         *properties_override = _nm_sett_info_property_override_create_array();
-
-    g_type_class_add_private(klass, sizeof(NMSettingWirelessPrivate));
+    GArray         *properties_override = _nm_sett_info_property_override_create_array_sized(25);
 
     object_class->set_property = set_property;
     object_class->get_property = get_property;
@@ -1363,7 +1413,8 @@ nm_setting_wireless_class_init(NMSettingWirelessClass *klass)
                                               PROP_MODE,
                                               NM_SETTING_PARAM_NONE,
                                               NMSettingWirelessPrivate,
-                                              mode);
+                                              mode,
+                                              .direct_string_allow_empty = TRUE);
 
     /**
      * NMSettingWireless:band:
@@ -1390,7 +1441,8 @@ nm_setting_wireless_class_init(NMSettingWirelessClass *klass)
                                               PROP_BAND,
                                               NM_SETTING_PARAM_NONE,
                                               NMSettingWirelessPrivate,
-                                              band);
+                                              band,
+                                              .direct_string_allow_empty = TRUE);
 
     /**
      * NMSettingWireless:channel:
@@ -1539,12 +1591,14 @@ nm_setting_wireless_class_init(NMSettingWirelessClass *klass)
      * This is known as MAC cloning or spoofing.
      *
      * Beside explicitly specifying a MAC address, the special values "preserve", "permanent",
-     * "random" and "stable" are supported.
+     * "random", "stable" and "stable-ssid" are supported.
      * "preserve" means not to touch the MAC address on activation.
      * "permanent" means to use the permanent hardware address of the device.
      * "random" creates a random MAC address on each connect.
      * "stable" creates a hashed MAC address based on connection.stable-id and a
      * machine dependent key.
+     * "stable-ssid" creates a hashed MAC address based on the SSID, the same as setting the
+     * stable-id to "${NETWORK_SSID}".
      *
      * If unspecified, the value can be overwritten via global defaults, see manual
      * of NetworkManager.conf. If still unspecified, it defaults to "preserve"
@@ -1576,12 +1630,13 @@ nm_setting_wireless_class_init(NMSettingWirelessClass *klass)
      *    For libnm and nmcli, this field is called "cloned-mac-address".
      * ---end---
      */
-    obj_properties[PROP_CLONED_MAC_ADDRESS] = g_param_spec_string(
-        NM_SETTING_WIRELESS_CLONED_MAC_ADDRESS,
-        "",
-        "",
-        NULL,
-        G_PARAM_READWRITE | NM_SETTING_PARAM_INFERRABLE | G_PARAM_STATIC_STRINGS);
+    obj_properties[PROP_CLONED_MAC_ADDRESS] =
+        g_param_spec_string(NM_SETTING_WIRELESS_CLONED_MAC_ADDRESS,
+                            "",
+                            "",
+                            NULL,
+                            G_PARAM_READWRITE | G_PARAM_EXPLICIT_NOTIFY
+                                | NM_SETTING_PARAM_INFERRABLE | G_PARAM_STATIC_STRINGS);
     _nm_properties_override_gobj(
         properties_override,
         obj_properties[PROP_CLONED_MAC_ADDRESS],
@@ -1654,7 +1709,8 @@ nm_setting_wireless_class_init(NMSettingWirelessClass *klass)
                                               PROP_GENERATE_MAC_ADDRESS_MASK,
                                               NM_SETTING_PARAM_FUZZY_IGNORE,
                                               NMSettingWirelessPrivate,
-                                              generate_mac_address_mask);
+                                              generate_mac_address_mask,
+                                              .direct_string_allow_empty = TRUE);
 
     /**
      * NMSettingWireless:mac-address-blacklist:
@@ -1677,12 +1733,11 @@ nm_setting_wireless_class_init(NMSettingWirelessClass *klass)
      *   is listed.
      * ---end---
      */
-    obj_properties[PROP_MAC_ADDRESS_BLACKLIST] = g_param_spec_boxed(
-        NM_SETTING_WIRELESS_MAC_ADDRESS_BLACKLIST,
-        "",
-        "",
-        G_TYPE_STRV,
-        G_PARAM_READWRITE | NM_SETTING_PARAM_FUZZY_IGNORE | G_PARAM_STATIC_STRINGS);
+    _nm_setting_property_define_gprop_strv_oldstyle(properties_override,
+                                                    obj_properties,
+                                                    NM_SETTING_WIRELESS_MAC_ADDRESS_BLACKLIST,
+                                                    PROP_MAC_ADDRESS_BLACKLIST,
+                                                    NM_SETTING_PARAM_FUZZY_IGNORE);
 
     /**
      * NMSettingWireless:seen-bssids:
@@ -1925,5 +1980,5 @@ nm_setting_wireless_class_init(NMSettingWirelessClass *klass)
                              NM_META_SETTING_TYPE_WIRELESS,
                              NULL,
                              properties_override,
-                             NM_SETT_INFO_PRIVATE_OFFSET_FROM_CLASS);
+                             G_STRUCT_OFFSET(NMSettingWireless, _priv));
 }

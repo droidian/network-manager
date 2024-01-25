@@ -46,20 +46,18 @@ typedef struct {
  * ADSL Settings
  */
 struct _NMSettingAdsl {
-    NMSetting parent;
-    /* In the past, this struct was public API. Preserve ABI! */
+    NMSetting            parent;
+    NMSettingAdslPrivate _priv;
 };
 
 struct _NMSettingAdslClass {
     NMSettingClass parent;
-    /* In the past, this struct was public API. Preserve ABI! */
-    gpointer padding[4];
 };
 
 G_DEFINE_TYPE(NMSettingAdsl, nm_setting_adsl, NM_TYPE_SETTING)
 
 #define NM_SETTING_ADSL_GET_PRIVATE(o) \
-    (G_TYPE_INSTANCE_GET_PRIVATE((o), NM_TYPE_SETTING_ADSL, NMSettingAdslPrivate))
+    _NM_GET_PRIVATE(o, NMSettingAdsl, NM_IS_SETTING_ADSL, NMSetting)
 
 /*****************************************************************************/
 
@@ -267,8 +265,6 @@ nm_setting_adsl_class_init(NMSettingAdslClass *klass)
     NMSettingClass *setting_class       = NM_SETTING_CLASS(klass);
     GArray         *properties_override = _nm_sett_info_property_override_create_array();
 
-    g_type_class_add_private(klass, sizeof(NMSettingAdslPrivate));
-
     object_class->get_property = _nm_setting_property_get_property_direct;
     object_class->set_property = _nm_setting_property_set_property_direct;
 
@@ -287,7 +283,8 @@ nm_setting_adsl_class_init(NMSettingAdslClass *klass)
                                               PROP_USERNAME,
                                               NM_SETTING_PARAM_NONE,
                                               NMSettingAdslPrivate,
-                                              username);
+                                              username,
+                                              .direct_string_allow_empty = TRUE);
 
     /**
      * NMSettingAdsl:password:
@@ -300,7 +297,8 @@ nm_setting_adsl_class_init(NMSettingAdslClass *klass)
                                               PROP_PASSWORD,
                                               NM_SETTING_PARAM_SECRET,
                                               NMSettingAdslPrivate,
-                                              password);
+                                              password,
+                                              .direct_string_allow_empty = TRUE);
 
     /**
      * NMSettingAdsl:password-flags:
@@ -326,7 +324,8 @@ nm_setting_adsl_class_init(NMSettingAdslClass *klass)
                                               NM_SETTING_PARAM_NONE,
                                               NMSettingAdslPrivate,
                                               protocol,
-                                              .direct_set_string_ascii_strdown = TRUE);
+                                              .direct_set_string_ascii_strdown = TRUE,
+                                              .direct_string_allow_empty       = TRUE);
 
     /**
      * NMSettingAdsl:encapsulation:
@@ -340,7 +339,8 @@ nm_setting_adsl_class_init(NMSettingAdslClass *klass)
                                               NM_SETTING_PARAM_NONE,
                                               NMSettingAdslPrivate,
                                               encapsulation,
-                                              .direct_set_string_ascii_strdown = TRUE);
+                                              .direct_set_string_ascii_strdown = TRUE,
+                                              .direct_string_allow_empty       = TRUE);
 
     /**
      * NMSettingAdsl:vpi:
@@ -380,5 +380,5 @@ nm_setting_adsl_class_init(NMSettingAdslClass *klass)
                              NM_META_SETTING_TYPE_ADSL,
                              NULL,
                              properties_override,
-                             NM_SETT_INFO_PRIVATE_OFFSET_FROM_CLASS);
+                             G_STRUCT_OFFSET(NMSettingAdsl, _priv));
 }

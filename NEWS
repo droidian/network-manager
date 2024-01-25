@@ -1,15 +1,28 @@
-===============================================
-NetworkManager-1.44.2
-Overview of changes since NetworkManager-1.44.0
-===============================================
+=============================================
+NetworkManager-1.46
+Overview of changes since NetworkManager-1.44
+=============================================
 
-* Better log IPv4 Address Conflict Detection (ACD) conflicts
-* Remove the upper limit of 65535 for PIDs read from the PID file
-* Allow missing default gateway with oFono 
-* Honor the CLICOLOR_FORCE environment variable
-* Fix generating connection with IPv6 method disabled vs ignored
-* Fix possible segmentation fault when doing a checkpoint rollback
-* Documentation improvements
+* Support dynamic value "${NETWORK_SSID}" for connection.stable-id to generate
+  the stable ID based on the Wi-Fi's SSID.
+* Support new value "wifi.cloned-mac-address=stable-ssid" for randomizing the
+  MAC address based on the Wi-Fi network.
+* Change internal ABI of NMSetting types and NMSimpleConnection. The layout of
+  these structs was already hidden from public headers since 1.34 and this change
+  should not be noticeable.
+* Honor udev property ID_NET_AUTO_LINK_LOCAL_ONLY=1 for enabling
+  link local addresses on default wired connection.
+* Honor udev property ID_NET_MANAGED_BY to only manage an interface
+  when set to "org.freedesktop.NetworkManager".
+* D-Bus methods StartFind() and StopFind() on interface
+  "org.freedesktop.NetworkManager.Device.WifiP2P" now require the
+  "org.freedesktop.NetworkManager.wifi.scan" Polkit permission.
+* Drop build support with Python2. Python3 is now required.
+* nmcli: limit number of printed addresses/routes in `nmcli` overview to 10.
+* Limit number of exported IP addresses/routes on D-Bus to 100 to reduce
+  performance cost. Also, D-Bus updates for addresses/routes are now rate
+  limited to 3 per second.
+* cloud-setup: enable more sandboxing options in systemd service file.
 
 =============================================
 NetworkManager-1.44

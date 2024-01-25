@@ -66,7 +66,6 @@ typedef struct {
     bool user_enabled : 1;
     bool sw_enabled : 1;
     bool hw_enabled : 1;
-    bool os_owner : 1;
 } RfkillRadioState;
 
 #define AUTOCONNECT_RESET_RETRIES_TIMER_SEC 300
@@ -800,7 +799,7 @@ initited:
          * a lot of stale entries. We must from time to time clean them up.
          *
          * Do do this cleanup, whenever we have more entries then 2 times the number of links. */
-        if (G_UNLIKELY(g_hash_table_size(priv->device_route_metrics) > NM_MAX(20, n_links * 2))) {
+        if (G_UNLIKELY(g_hash_table_size(priv->device_route_metrics) > NM_MAX(20u, n_links * 2u))) {
             /* from time to time, we need to do some house-keeping and prune stale entries.
              * Otherwise, on a system where interfaces frequently come and go (docker), we
              * keep growing this cache for ifindexes that no longer exist. */
@@ -2893,9 +2892,6 @@ _rfkill_radio_state_get_enabled(const RfkillRadioState *rstate, gboolean check_c
 {
     gboolean enabled;
 
-    /* If the device is not owned by the os, hw_enabled will be FALSE, hence
-     * we don't need to consider os_owner here.
-     */
     enabled = rstate->user_enabled && rstate->hw_enabled;
     if (check_changeable)
         enabled &= rstate->sw_enabled;
@@ -2912,7 +2908,6 @@ _rfkill_radio_state_set_from_manager(NMManager *self, NMRfkillType rtype, Rfkill
     case NM_RFKILL_STATE_UNAVAILABLE:
         rstate->sw_enabled = TRUE;
         rstate->hw_enabled = TRUE;
-        rstate->os_owner   = TRUE;
 
         /* A rfkill-type is available when there is a compatible
          * killswitch or a compatible device. */
@@ -2928,26 +2923,16 @@ _rfkill_radio_state_set_from_manager(NMManager *self, NMRfkillType rtype, Rfkill
         rstate->available  = TRUE;
         rstate->sw_enabled = TRUE;
         rstate->hw_enabled = TRUE;
-        rstate->os_owner   = TRUE;
         return;
     case NM_RFKILL_STATE_SOFT_BLOCKED:
         rstate->available  = TRUE;
         rstate->sw_enabled = FALSE;
         rstate->hw_enabled = TRUE;
-        rstate->os_owner   = TRUE;
         return;
     case NM_RFKILL_STATE_HARD_BLOCKED:
         rstate->available  = TRUE;
         rstate->sw_enabled = FALSE;
         rstate->hw_enabled = FALSE;
-        /* In case the OS doesn't own the NIC, we would be in NM_RFKILL_STATE_HARD_BLOCKED */
-        rstate->os_owner = TRUE;
-        return;
-    case NM_RFKILL_STATE_HARD_BLOCKED_OS_NOT_OWNER:
-        rstate->available  = TRUE;
-        rstate->sw_enabled = FALSE;
-        rstate->hw_enabled = FALSE;
-        rstate->os_owner   = FALSE;
         return;
     }
     nm_assert_not_reached();
@@ -3011,12 +2996,11 @@ _rfkill_update_one_type(NMManager *self, NMRfkillType rtype)
 
     /* Print out all states affecting device enablement */
     _LOGD(LOGD_RFKILL,
-          "rfkill: %s available %d hw-enabled %d sw-enabled %d os-owner %d",
+          "rfkill: %s available %d hw-enabled %d sw-enabled %d",
           nm_rfkill_type_to_string(rtype),
           rstate->available,
           rstate->hw_enabled,
-          rstate->sw_enabled,
-          rstate->os_owner);
+          rstate->sw_enabled);
 
     /* Log new killswitch state */
     new_rfkilled = rstate->hw_enabled && rstate->sw_enabled;
@@ -4440,11 +4424,7 @@ platform_query_devices(NMManager *self)
     gs_free char                *order = NULL;
 
     guess_assume = nm_config_get_first_start(nm_config_get());
-    order        = nm_config_data_get_value(NM_CONFIG_GET_DATA,
-                                     NM_CONFIG_KEYFILE_GROUP_MAIN,
-                                     NM_CONFIG_KEYFILE_KEY_MAIN_SLAVES_ORDER,
-                                     NM_CONFIG_GET_VALUE_STRIP);
-    links        = nm_platform_link_get_all(priv->platform, !nm_streq0(order, "index"));
+    links        = nm_platform_link_get_all(priv->platform);
     if (!links)
         return;
     for (i = 0; i < links->len; i++) {
@@ -4867,7 +4847,7 @@ is_compatible_with_slave(NMConnection *master, NMConnection *slave)
     s_con = nm_connection_get_setting_connection(slave);
     g_assert(s_con);
 
-    return nm_connection_is_type(master, nm_setting_connection_get_slave_type(s_con));
+    return nm_connection_is_type(master, nm_setting_connection_get_port_type(s_con));
 }
 
 /**
@@ -5380,7 +5360,7 @@ out:
 }
 
 static int
-compare_slaves(gconstpointer a, gconstpointer b, gpointer sort_by_name)
+compare_slaves(gconstpointer a, gconstpointer b)
 {
     const SlaveConnectionInfo *a_info = a;
     const SlaveConnectionInfo *b_info = b;
@@ -5391,11 +5371,7 @@ compare_slaves(gconstpointer a, gconstpointer b, gpointer sort_by_name)
     if (!b_info->device)
         return -1;
 
-    if (GPOINTER_TO_INT(sort_by_name)) {
-        return nm_strcmp0(nm_device_get_iface(a_info->device), nm_device_get_iface(b_info->device));
-    }
-
-    return nm_device_get_ifindex(a_info->device) - nm_device_get_ifindex(b_info->device);
+    return nm_strcmp0(nm_device_get_iface(a_info->device), nm_device_get_iface(b_info->device));
 }
 
 static void
@@ -5415,17 +5391,7 @@ autoconnect_slaves(NMManager            *self,
 
         slaves = find_slaves(self, master_connection, master_device, &n_slaves, for_user_request);
         if (n_slaves > 1) {
-            gs_free char *value = NULL;
-
-            value = nm_config_data_get_value(NM_CONFIG_GET_DATA,
-                                             NM_CONFIG_KEYFILE_GROUP_MAIN,
-                                             NM_CONFIG_KEYFILE_KEY_MAIN_SLAVES_ORDER,
-                                             NM_CONFIG_GET_VALUE_STRIP);
-            g_qsort_with_data(slaves,
-                              n_slaves,
-                              sizeof(slaves[0]),
-                              compare_slaves,
-                              GINT_TO_POINTER(!nm_streq0(value, "index")));
+            qsort(slaves, n_slaves, sizeof(slaves[0]), compare_slaves);
         }
 
         bind_lifetime_to_profile_visibility =
@@ -7354,14 +7320,12 @@ do_sleep_wake(NMManager *self, gboolean sleeping_changed)
                 gboolean                enabled = _rfkill_radio_state_get_enabled(rstate, TRUE);
 
                 _LOGD(LOGD_RFKILL,
-                      "rfkill: %s %s devices (hw_enabled %d, sw_enabled %d, user_enabled %d, "
-                      "os_owner %d)",
+                      "rfkill: %s %s devices (hw_enabled %d, sw_enabled %d, user_enabled %d)",
                       enabled ? "enabling" : "disabling",
                       nm_rfkill_type_to_string(rtype),
                       rstate->hw_enabled,
                       rstate->sw_enabled,
-                      rstate->user_enabled,
-                      rstate->os_owner);
+                      rstate->user_enabled);
                 if (nm_device_get_rfkill_type(device) == rtype)
                     nm_device_set_enabled(device, enabled);
             }
@@ -8846,13 +8810,11 @@ nm_manager_init(NMManager *self)
         .user_enabled = TRUE,
         .sw_enabled   = FALSE,
         .hw_enabled   = TRUE,
-        .os_owner     = TRUE,
     };
     priv->radio_states[NM_RFKILL_TYPE_WWAN] = (RfkillRadioState){
         .user_enabled = TRUE,
         .sw_enabled   = FALSE,
         .hw_enabled   = TRUE,
-        .os_owner     = TRUE,
     };
 
     priv->sleeping = FALSE;
@@ -9402,10 +9364,13 @@ static const NMDBusInterfaceInfoExtended interface_info_manager = {
                 "b",
                 NM_MANAGER_WIMAX_ENABLED,
                 NM_AUTH_PERMISSION_ENABLE_DISABLE_WIMAX,
-                NM_AUDIT_OP_RADIO_CONTROL),
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("WimaxHardwareEnabled",
-                                                           "b",
-                                                           NM_MANAGER_WIMAX_HARDWARE_ENABLED),
+                NM_AUDIT_OP_RADIO_CONTROL,
+                .annotations = NM_GDBUS_ANNOTATION_INFO_LIST_DEPRECATED(), ),
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE(
+                "WimaxHardwareEnabled",
+                "b",
+                NM_MANAGER_WIMAX_HARDWARE_ENABLED,
+                .annotations = NM_GDBUS_ANNOTATION_INFO_LIST_DEPRECATED(), ),
             NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("RadioFlags",
                                                            "u",
                                                            NM_MANAGER_RADIO_FLAGS),

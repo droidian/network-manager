@@ -36,6 +36,7 @@
 #include "nm-setting-vlan.h"
 #include "nm-setting-wired.h"
 #include "nm-setting-wireless.h"
+#include "nm-errors.h"
 
 /**
  * SECTION:nm-utils
@@ -654,8 +655,13 @@ nm_utils_is_empty_ssid(const guint8 *ssid, gsize len)
  * representation of that character.  Intended for debugging only, should not
  * be used for display of SSIDs.
  *
+ * Warning: this function uses a static buffer. It is not thread-safe. Don't
+ *   use this function.
+ *
  * Returns: pointer to the escaped SSID, which uses an internal static buffer
  * and will be overwritten by subsequent calls to this function
+ *
+ * Deprecated: 1.46: use nm_utils_ssid_to_utf8() or nm_utils_bin2hexstr().
  **/
 const char *
 nm_utils_escape_ssid(const guint8 *ssid, gsize len)
@@ -669,7 +675,7 @@ nm_utils_escape_ssid(const guint8 *ssid, gsize len)
         return escaped;
     }
 
-    len = MIN(len, (guint32) NM_IW_ESSID_MAX_SIZE);
+    len = NM_MIN(len, (guint32) NM_IW_ESSID_MAX_SIZE);
     while (len--) {
         if (*s == '\0') {
             *d++ = '\\';
@@ -892,42 +898,6 @@ _nm_utils_slist_to_strv(const GSList *slist, gboolean deep_copy)
             strv[i] = iter->data;
         }
     }
-    strv[i] = NULL;
-
-    return strv;
-}
-
-GPtrArray *
-nm_strv_to_ptrarray(char **strv)
-{
-    GPtrArray *ptrarray;
-    gsize      i, l;
-
-    l = NM_PTRARRAY_LEN(strv);
-
-    ptrarray = g_ptr_array_new_full(l, g_free);
-
-    if (strv) {
-        for (i = 0; strv[i]; i++)
-            g_ptr_array_add(ptrarray, g_strdup(strv[i]));
-    }
-
-    return ptrarray;
-}
-
-char **
-_nm_utils_ptrarray_to_strv(const GPtrArray *ptrarray)
-{
-    char **strv;
-    guint  i;
-
-    if (!ptrarray)
-        return g_new0(char *, 1);
-
-    strv = g_new(char *, ptrarray->len + 1);
-
-    for (i = 0; i < ptrarray->len; i++)
-        strv[i] = g_strdup(ptrarray->pdata[i]);
     strv[i] = NULL;
 
     return strv;
@@ -1356,17 +1326,49 @@ nm_utils_dns_to_variant(int addr_family, const char *const *dns, gssize len)
  * Utility function to convert a #GVariant of type 'au' representing a list of
  * IPv4 addresses into an array of IP address strings.
  *
+ * Since 1.46, an empty list is returned if the variant type is not valid
+ * (before it was checked as assertion)
+ *
  * Returns: (transfer full) (type utf8): a %NULL-terminated array of IP address strings.
  **/
 char **
 nm_utils_ip4_dns_from_variant(GVariant *value)
+{
+    return _nm_utils_ip4_dns_from_variant(value, FALSE, NULL);
+}
+
+/**
+ * _nm_utils_ip4_dns_from_variant:
+ * @value: a #GVariant of type 'au'
+ * @strict: whether to parse in strict mode or best-effort mode
+ * @error: the error location
+ *
+ * Like #nm_utils_ip4_dns_from_variant, but allows to parse in strict mode. In
+ * strict mode, parsing is aborted on first error and %NULL is returned.
+ *
+ * Returns: (transfer full) (type utf8): a %NULL-terminated array of IP address
+ *   strings. In strict mode, %NULL is returned on error.
+ */
+char **
+_nm_utils_ip4_dns_from_variant(GVariant *value, bool strict, GError **error)
 {
     const guint32 *array;
     gsize          length;
     char         **dns;
     gsize          i;
 
-    g_return_val_if_fail(g_variant_is_of_type(value, G_VARIANT_TYPE("au")), NULL);
+    if (!g_variant_is_of_type(value, G_VARIANT_TYPE("au"))) {
+        if (strict) {
+            g_set_error_literal(error,
+                                NM_CONNECTION_ERROR,
+                                NM_CONNECTION_ERROR_INVALID_PROPERTY,
+                                _("Expected value of type \"au\""));
+            return NULL;
+        }
+        dns    = g_new(char *, 1);
+        dns[0] = NULL;
+        return dns;
+    }
 
     array = g_variant_get_fixed_array(value, &length, sizeof(guint32));
     dns   = g_new(char *, length + 1u);
@@ -1437,7 +1439,11 @@ nm_utils_ip4_addresses_to_variant(GPtrArray *addresses, const char *gateway)
  * NetworkManager IPv4 addresses (which are tuples of address, prefix, and
  * gateway) into a #GPtrArray of #NMIPAddress objects. The "gateway" field of
  * the first address (if set) will be returned in @out_gateway; the "gateway" fields
- * of the other addresses are ignored.
+ * of the other addresses are ignored. Note that invalid addresses are discarded
+ * but the valid addresses are still returned.
+ *
+ * Since 1.46, an empty list is returned if the variant type is not valid
+ * (before it was checked as assertion)
  *
  * Returns: (transfer full) (element-type NMIPAddress): a newly allocated
  *   #GPtrArray of #NMIPAddress objects
@@ -1445,46 +1451,132 @@ nm_utils_ip4_addresses_to_variant(GPtrArray *addresses, const char *gateway)
 GPtrArray *
 nm_utils_ip4_addresses_from_variant(GVariant *value, char **out_gateway)
 {
-    GPtrArray   *addresses;
-    GVariantIter iter;
-    GVariant    *addr_var;
+    return _nm_utils_ip4_addresses_from_variant(value, NULL, out_gateway, FALSE, NULL);
+}
 
-    g_return_val_if_fail(g_variant_is_of_type(value, G_VARIANT_TYPE("aau")), NULL);
+/**
+ * _nm_utils_ip4_addresses_from_variant:
+ * @value: a #GVariant of type 'aau'
+ * @labels: (optional) (nullable): a #GVariant of the type 'as'. If not-NULL,
+ *   each element must contain a string with the labels that corresponds to each
+ *   IP address in @value.
+ * @out_gateway: (out) (optional) (nullable) (transfer full): on return, will
+ *   contain the IP gateway
+ * @strict: whether to parse in strict mode or best-effort mode
+ * @error: the error location
+ *
+ * Like #nm_utils_ip4_addresses_from_variant, but allows to parse in strict mode. In
+ * strict mode, parsing is aborted on first error and %NULL is returned. It also
+ * allows to parse the address-labels at the same time than the addresses.
+ *
+ * The labels need to be processed at the same time than the addresses, inside
+ * this function, because if there are invalid addresses they are filtered out,
+ * and the returned array of addresses contains less elements than the original
+ * array. If that happens, the caller don't know what label corresponds to what
+ * address, because they are matched by position in the array. If you are not
+ * interested in the labels, just set @labels to NULL.
+ *
+ * Returns: (transfer full) (element-type NMIPAddress): a newly allocated
+ *   #GPtrArray of #NMIPAddress objects. In strict mode, %NULL is returned on error.
+ */
+GPtrArray *
+_nm_utils_ip4_addresses_from_variant(GVariant *value,
+                                     GVariant *labels,
+                                     char    **out_gateway,
+                                     bool      strict,
+                                     GError  **error)
+{
+    gs_unref_ptrarray GPtrArray *addresses = NULL;
+    GVariantIter                 iter;
+    GVariant                    *item;
+    const guint32               *addr_array;
+    gsize                        length;
+    NMIPAddress                 *addr;
+    const char                  *label;
+    gsize                        n_labels = 0;
+    guint                        i;
 
+    addresses = g_ptr_array_new_with_free_func((GDestroyNotify) nm_ip_address_unref);
     if (out_gateway)
         *out_gateway = NULL;
 
-    g_variant_iter_init(&iter, value);
-    addresses = g_ptr_array_new_with_free_func((GDestroyNotify) nm_ip_address_unref);
+    if (!g_variant_is_of_type(value, G_VARIANT_TYPE("aau"))) {
+        if (strict) {
+            g_set_error_literal(error,
+                                NM_CONNECTION_ERROR,
+                                NM_CONNECTION_ERROR_INVALID_PROPERTY,
+                                _("Expected value of type \"aau\""));
+            return NULL;
+        }
+        return g_steal_pointer(&addresses);
+    }
 
-    while (g_variant_iter_next(&iter, "@au", &addr_var)) {
-        const guint32 *addr_array;
-        gsize          length;
-        NMIPAddress   *addr;
-        GError        *error = NULL;
+    if (labels && !g_variant_is_of_type(labels, G_VARIANT_TYPE("as"))) {
+        if (strict) {
+            g_set_error_literal(error,
+                                NM_CONNECTION_ERROR,
+                                NM_CONNECTION_ERROR_INVALID_PROPERTY,
+                                _("Expected \"address-labels\" of type \"as\""));
+            return NULL;
+        }
+        /* We still can parse the addresses, without the labels */
+        labels = NULL;
+    }
+
+    if (labels)
+        n_labels = g_variant_n_children(labels);
+
+    g_variant_iter_init(&iter, value);
+
+    for (i = 0; g_variant_iter_next(&iter, "@au", &item); i++) {
+        gs_unref_variant GVariant *addr_var    = item;
+        gs_free_error GError      *local_error = NULL;
 
         addr_array = g_variant_get_fixed_array(addr_var, &length, sizeof(guint32));
         if (length < 3) {
-            g_warning("Ignoring invalid IP4 address");
-            g_variant_unref(addr_var);
+            if (strict) {
+                g_set_error(error,
+                            NM_CONNECTION_ERROR,
+                            NM_CONNECTION_ERROR_INVALID_PROPERTY,
+                            _("Incomplete IPv4 address (idx=%u)"),
+                            i);
+                return NULL;
+            }
             continue;
         }
 
-        addr = nm_ip_address_new_binary(AF_INET, &addr_array[0], addr_array[1], &error);
-        if (addr) {
-            g_ptr_array_add(addresses, addr);
-
-            if (addr_array[2] && out_gateway && !*out_gateway)
-                *out_gateway = nm_inet4_ntop_dup(addr_array[2]);
-        } else {
-            g_warning("Ignoring invalid IP4 address: %s", error->message);
-            g_clear_error(&error);
+        addr = nm_ip_address_new_binary(AF_INET, &addr_array[0], addr_array[1], &local_error);
+        if (!addr) {
+            if (strict) {
+                g_set_error(error,
+                            NM_CONNECTION_ERROR,
+                            NM_CONNECTION_ERROR_INVALID_PROPERTY,
+                            _("%s (idx=%u)"),
+                            local_error->message,
+                            i);
+                return NULL;
+            }
+            continue;
         }
 
-        g_variant_unref(addr_var);
+        /* We were accepting address-labels to be shorter than addresses, so
+         * let's continue doing so and not consider it as an error */
+        if (labels && i < n_labels) {
+            g_variant_get_child(labels, i, "&s", &label);
+
+            if (label && label[0]) {
+                nm_ip_address_set_attribute(addr,
+                                            NM_IP_ADDRESS_ATTRIBUTE_LABEL,
+                                            g_variant_new_string(label));
+            }
+        }
+
+        g_ptr_array_add(addresses, addr);
+        if (addr_array[2] && out_gateway && !*out_gateway)
+            *out_gateway = nm_inet4_ntop_dup(addr_array[2]);
     }
 
-    return addresses;
+    return g_steal_pointer(&addresses);
 }
 
 /**
@@ -1518,7 +1610,7 @@ nm_utils_ip4_routes_to_variant(GPtrArray *routes)
             array[1] = nm_ip_route_get_prefix(route);
             nm_ip_route_get_next_hop_binary(route, &array[2]);
             /* The old routes format uses "0" for default, not "-1" */
-            array[3] = MAX(0, nm_ip_route_get_metric(route));
+            array[3] = NM_MAX(0, nm_ip_route_get_metric(route));
 
             g_variant_builder_add(&builder, "@au", nm_g_variant_new_au(array, 4));
         }
@@ -1533,7 +1625,11 @@ nm_utils_ip4_routes_to_variant(GPtrArray *routes)
  *
  * Utility function to convert a #GVariant of type 'aau' representing an array
  * of NetworkManager IPv4 routes (which are tuples of route, prefix, next hop,
- * and metric) into a #GPtrArray of #NMIPRoute objects.
+ * and metric) into a #GPtrArray of #NMIPRoute objects. Note that invalid routes
+ * are discarded but the valid routes are still returned.
+ *
+ * Since 1.46, an empty list is returned if the variant type is not valid
+ * (before it was checked as assertion)
  *
  * Returns: (transfer full) (element-type NMIPRoute): a newly allocated
  *   #GPtrArray of #NMIPRoute objects
@@ -1541,25 +1637,61 @@ nm_utils_ip4_routes_to_variant(GPtrArray *routes)
 GPtrArray *
 nm_utils_ip4_routes_from_variant(GVariant *value)
 {
-    GVariantIter iter;
-    GVariant    *route_var;
-    GPtrArray   *routes;
+    return _nm_utils_ip4_routes_from_variant(value, FALSE, NULL);
+}
 
-    g_return_val_if_fail(g_variant_is_of_type(value, G_VARIANT_TYPE("aau")), NULL);
+/**
+ * _nm_utils_ip4_routes_from_variant:
+ * @value: #GVariant of type 'aau'
+ * @strict: whether to parse in strict mode or best-effort mode
+ * @error: the error location
+ *
+ * Like #nm_utils_ip4_routes_from_variant, but allows to parse in strict mode. In
+ * strict mode, parsing is aborted on first error and %NULL is returned.
+ *
+ * Returns: (transfer full) (element-type NMIPRoute): a newly allocated
+ *   #GPtrArray of #NMIPRoute objects. In strict mode, NULL is returned on error.
+ */
+GPtrArray *
+_nm_utils_ip4_routes_from_variant(GVariant *value, bool strict, GError **error)
+{
+    gs_unref_ptrarray GPtrArray *routes = NULL;
+    GVariantIter                 iter;
+    GVariant                    *item;
+    const guint32               *route_array;
+    gsize                        length;
+    NMIPRoute                   *route;
+    guint                        i;
 
-    g_variant_iter_init(&iter, value);
     routes = g_ptr_array_new_with_free_func((GDestroyNotify) nm_ip_route_unref);
 
-    while (g_variant_iter_next(&iter, "@au", &route_var)) {
-        const guint32 *route_array;
-        gsize          length;
-        NMIPRoute     *route;
-        GError        *error = NULL;
+    if (!g_variant_is_of_type(value, G_VARIANT_TYPE("aau"))) {
+        if (strict) {
+            g_set_error_literal(error,
+                                NM_CONNECTION_ERROR,
+                                NM_CONNECTION_ERROR_INVALID_PROPERTY,
+                                _("Expected value of type \"aau\""));
+            return NULL;
+        }
+        return g_steal_pointer(&routes);
+    }
+
+    g_variant_iter_init(&iter, value);
+
+    for (i = 0; g_variant_iter_next(&iter, "@au", &item); i++) {
+        gs_unref_variant GVariant *route_var   = item;
+        gs_free_error GError      *local_error = NULL;
 
         route_array = g_variant_get_fixed_array(route_var, &length, sizeof(guint32));
         if (length < 4) {
-            g_warning("Ignoring invalid IP4 route");
-            g_variant_unref(route_var);
+            if (strict) {
+                g_set_error(error,
+                            NM_CONNECTION_ERROR,
+                            NM_CONNECTION_ERROR_INVALID_PROPERTY,
+                            _("Incomplete IPv4 route (idx=%u)"),
+                            i);
+                return NULL;
+            }
             continue;
         }
 
@@ -1569,17 +1701,24 @@ nm_utils_ip4_routes_from_variant(GVariant *value)
                                        &route_array[2],
                                        /* The old routes format uses "0" for default, not "-1" */
                                        route_array[3] ? (gint64) route_array[3] : -1,
-                                       &error);
-        if (route)
-            g_ptr_array_add(routes, route);
-        else {
-            g_warning("Ignoring invalid IP4 route: %s", error->message);
-            g_clear_error(&error);
+                                       &local_error);
+        if (!route) {
+            if (strict) {
+                g_set_error(error,
+                            NM_CONNECTION_ERROR,
+                            NM_CONNECTION_ERROR_INVALID_PROPERTY,
+                            _("%s (idx=%u)"),
+                            local_error->message,
+                            i);
+                return NULL;
+            }
+            continue;
         }
-        g_variant_unref(route_var);
+
+        g_ptr_array_add(routes, route);
     }
 
-    return routes;
+    return g_steal_pointer(&routes);
 }
 
 /**
@@ -1641,34 +1780,79 @@ nm_utils_ip4_get_default_prefix(guint32 ip)
  * a IPv6 address in binary form (16 bytes long). Invalid entries are silently
  * ignored.
  *
+ * Since 1.46, an empty list is returned if the variant type is not valid
+ * (before it was checked as assertion)
+ *
  * Returns: (transfer full) (type utf8): a %NULL-terminated array of IP address strings.
  **/
 char **
 nm_utils_ip6_dns_from_variant(GVariant *value)
 {
-    GVariantIter iter;
-    GVariant    *ip_var;
-    char       **dns;
-    gsize        i;
+    return _nm_utils_ip6_dns_from_variant(value, FALSE, NULL);
+}
 
-    g_return_val_if_fail(g_variant_is_of_type(value, G_VARIANT_TYPE("aay")), NULL);
+/**
+ * _nm_utils_ip6_dns_from_variant:
+ * @value: a #GVariant of type 'aay'
+ * @strict: whether to parse in strict mode or best-effort mode
+ * @error: the error location
+ *
+ * Like #nm_utils_ip6_dns_from_variant, but allows to parse in strict mode. In
+ * strict mode, parsing is aborted on first error and %NULL is returned.
+ *
+ * Returns: (transfer full) (type utf8): a %NULL-terminated array of IP address
+ *   strings. In strict mode, %NULL is returned on error.
+ **/
+char **
+_nm_utils_ip6_dns_from_variant(GVariant *value, bool strict, GError **error)
+{
+    gs_strfreev char **dns = NULL;
+    GVariantIter       iter;
+    GVariant          *item;
+    guint              i, j;
 
-    dns = g_new(char *, g_variant_n_children(value) + 1);
+    if (!g_variant_is_of_type(value, G_VARIANT_TYPE("aay"))) {
+        if (strict) {
+            g_set_error_literal(error,
+                                NM_CONNECTION_ERROR,
+                                NM_CONNECTION_ERROR_INVALID_PROPERTY,
+                                _("Expected value of type \"aay\""));
+            return NULL;
+        }
+        dns    = g_new(char *, 1);
+        dns[0] = NULL;
+        return g_steal_pointer(&dns);
+    }
+
+    dns    = g_new(char *, g_variant_n_children(value) + 1);
+    dns[0] = NULL;
 
     g_variant_iter_init(&iter, value);
-    i = 0;
-    while (g_variant_iter_next(&iter, "@ay", &ip_var)) {
-        gsize                  length;
-        const struct in6_addr *ip = g_variant_get_fixed_array(ip_var, &length, 1);
 
-        if (length == sizeof(struct in6_addr))
-            dns[i++] = nm_inet6_ntop_dup(ip);
+    for (i = 0, j = 0; g_variant_iter_next(&iter, "@ay", &item); i++) {
+        gs_unref_variant GVariant *ip_var = item;
+        const struct in6_addr     *ip;
+        gsize                      length;
 
-        g_variant_unref(ip_var);
+        ip = g_variant_get_fixed_array(ip_var, &length, 1);
+
+        if (length != sizeof(struct in6_addr)) {
+            if (strict) {
+                g_set_error(error,
+                            NM_CONNECTION_ERROR,
+                            NM_CONNECTION_ERROR_INVALID_PROPERTY,
+                            _("Invalid IPv6 DNS address length (idx=%u)"),
+                            i);
+                return NULL;
+            }
+            continue;
+        }
+
+        dns[j]   = nm_inet6_ntop_dup(ip);
+        dns[++j] = NULL;
     }
-    dns[i] = NULL;
 
-    return dns;
+    return g_steal_pointer(&dns);
 }
 
 /**
@@ -1733,7 +1917,11 @@ nm_utils_ip6_addresses_to_variant(GPtrArray *addresses, const char *gateway)
  * list of NetworkManager IPv6 addresses (which are tuples of address, prefix,
  * and gateway) into a #GPtrArray of #NMIPAddress objects. The "gateway" field
  * of the first address (if set) will be returned in @out_gateway; the "gateway"
- * fields of the other addresses are ignored.
+ * fields of the other addresses are ignored. Note that invalid addresses are
+ * discarded but the valid addresses are still returned.
+ *
+ * Since 1.46, an empty list is returned if the variant type is not valid
+ * (before it was checked as assertion)
  *
  * Returns: (transfer full) (element-type NMIPAddress): a newly allocated
  *   #GPtrArray of #NMIPAddress objects
@@ -1741,63 +1929,123 @@ nm_utils_ip6_addresses_to_variant(GPtrArray *addresses, const char *gateway)
 GPtrArray *
 nm_utils_ip6_addresses_from_variant(GVariant *value, char **out_gateway)
 {
-    GVariantIter iter;
-    GVariant    *addr_var, *gateway_var;
-    guint32      prefix;
-    GPtrArray   *addresses;
+    return _nm_utils_ip6_addresses_from_variant(value, out_gateway, FALSE, NULL);
+}
 
-    g_return_val_if_fail(g_variant_is_of_type(value, G_VARIANT_TYPE("a(ayuay)")), NULL);
+/**
+ * _nm_utils_ip6_addresses_from_variant:
+ * @value: a #GVariant of type 'a(ayuay)'
+ * @out_gateway: (out) (optional) (nullable) (transfer full): on return, will
+ *   contain the IP gateway
+ * @strict: whether to parse in strict mode or best-effort mode
+ * @error: the error location
+ *
+ * Like #nm_utils_ip6_addresses_from_variant, but allows to parse in strict mode. In
+ * strict mode, parsing is aborted on first error and %NULL is returned.
+ *
+ * Returns: (transfer full) (element-type NMIPAddress): a newly allocated
+ *   #GPtrArray of #NMIPAddress objects. In strict mode, %NULL is returned on error.
+ **/
+GPtrArray *
+_nm_utils_ip6_addresses_from_variant(GVariant *value,
+                                     char    **out_gateway,
+                                     bool      strict,
+                                     GError  **error)
+{
+    gs_unref_ptrarray GPtrArray *addresses = NULL;
+    GVariantIter                 iter;
+    GVariant                    *addr_item;
+    GVariant                    *gateway_item;
+    guint32                      prefix;
+    guint                        i;
 
+    addresses = g_ptr_array_new_with_free_func((GDestroyNotify) nm_ip_address_unref);
     if (out_gateway)
         *out_gateway = NULL;
 
-    g_variant_iter_init(&iter, value);
-    addresses = g_ptr_array_new_with_free_func((GDestroyNotify) nm_ip_address_unref);
+    if (!g_variant_is_of_type(value, G_VARIANT_TYPE("a(ayuay)"))) {
+        if (strict) {
+            g_set_error_literal(error,
+                                NM_CONNECTION_ERROR,
+                                NM_CONNECTION_ERROR_INVALID_PROPERTY,
+                                _("Expected value of type \"a(ayuay)\""));
+            return NULL;
+        }
+        return g_steal_pointer(&addresses);
+    }
 
-    while (g_variant_iter_next(&iter, "(@ayu@ay)", &addr_var, &prefix, &gateway_var)) {
-        NMIPAddress           *addr;
-        const struct in6_addr *addr_bytes, *gateway_bytes;
-        gsize                  addr_len, gateway_len;
-        GError                *error = NULL;
+    g_variant_iter_init(&iter, value);
+
+    for (i = 0; g_variant_iter_next(&iter, "(@ayu@ay)", &addr_item, &prefix, &gateway_item); i++) {
+        gs_unref_variant GVariant *addr_var    = addr_item;
+        gs_unref_variant GVariant *gateway_var = gateway_item;
+        gs_free_error GError      *local_error = NULL;
+        NMIPAddress               *addr;
+        const struct in6_addr     *addr_bytes, *gateway_bytes;
+        gsize                      addr_len, gateway_len;
 
         if (!g_variant_is_of_type(addr_var, G_VARIANT_TYPE_BYTESTRING)
             || !g_variant_is_of_type(gateway_var, G_VARIANT_TYPE_BYTESTRING)) {
-            g_warning("%s: ignoring invalid IP6 address structure", __func__);
-            goto next;
+            if (strict) {
+                g_set_error(error,
+                            NM_CONNECTION_ERROR,
+                            NM_CONNECTION_ERROR_INVALID_PROPERTY,
+                            _("Expected value of type \"(ayuay)\" (idx=%u)"),
+                            i);
+                return NULL;
+            }
+            continue;
         }
 
         addr_bytes = g_variant_get_fixed_array(addr_var, &addr_len, 1);
         if (addr_len != 16) {
-            g_warning("%s: ignoring invalid IP6 address of length %d", __func__, (int) addr_len);
-            goto next;
-        }
-
-        addr = nm_ip_address_new_binary(AF_INET6, addr_bytes, prefix, &error);
-        if (addr) {
-            g_ptr_array_add(addresses, addr);
-
-            if (out_gateway && !*out_gateway) {
-                gateway_bytes = g_variant_get_fixed_array(gateway_var, &gateway_len, 1);
-                if (gateway_len != 16) {
-                    g_warning("%s: ignoring invalid IP6 address of length %d",
-                              __func__,
-                              (int) gateway_len);
-                    goto next;
-                }
-                if (!IN6_IS_ADDR_UNSPECIFIED(gateway_bytes))
-                    *out_gateway = nm_inet6_ntop_dup(gateway_bytes);
+            if (strict) {
+                g_set_error(error,
+                            NM_CONNECTION_ERROR,
+                            NM_CONNECTION_ERROR_INVALID_PROPERTY,
+                            _("IPv6 address with invalid length (idx=%u)"),
+                            i);
+                return NULL;
             }
-        } else {
-            g_warning("Ignoring invalid IP6 address: %s", error->message);
-            g_clear_error(&error);
+            continue;
         }
 
-next:
-        g_variant_unref(addr_var);
-        g_variant_unref(gateway_var);
+        addr = nm_ip_address_new_binary(AF_INET6, addr_bytes, prefix, &local_error);
+        if (!addr) {
+            if (strict) {
+                g_set_error(error,
+                            NM_CONNECTION_ERROR,
+                            NM_CONNECTION_ERROR_INVALID_PROPERTY,
+                            _("%s (idx=%u)"),
+                            local_error->message,
+                            i);
+                return NULL;
+            }
+            continue;
+        }
+
+        g_ptr_array_add(addresses, addr);
+
+        if (out_gateway && !*out_gateway) {
+            gateway_bytes = g_variant_get_fixed_array(gateway_var, &gateway_len, 1);
+            if (gateway_len != 16) {
+                if (strict) {
+                    g_set_error(error,
+                                NM_CONNECTION_ERROR,
+                                NM_CONNECTION_ERROR_INVALID_PROPERTY,
+                                _("IPv6 gateway with invalid length (idx=%u)"),
+                                i);
+                    return NULL;
+                }
+                continue;
+            }
+
+            if (!IN6_IS_ADDR_UNSPECIFIED(gateway_bytes))
+                NM_SET_OUT(out_gateway, nm_inet6_ntop_dup(gateway_bytes));
+        }
     }
 
-    return addresses;
+    return g_steal_pointer(&addresses);
 }
 
 /**
@@ -1853,7 +2101,11 @@ nm_utils_ip6_routes_to_variant(GPtrArray *routes)
  *
  * Utility function to convert a #GVariant of type 'a(ayuayu)' representing an
  * array of NetworkManager IPv6 routes (which are tuples of route, prefix, next
- * hop, and metric) into a #GPtrArray of #NMIPRoute objects.
+ * hop, and metric) into a #GPtrArray of #NMIPRoute objects. Note that invalid
+ * routes are ignored but the valid ones are still returned.
+ *
+ * Since 1.46, an empty list is returned if the variant type is not valid
+ * (before it was checked as assertion)
  *
  * Returns: (transfer full) (element-type NMIPRoute): a newly allocated
  *   #GPtrArray of #NMIPRoute objects
@@ -1861,40 +2113,93 @@ nm_utils_ip6_routes_to_variant(GPtrArray *routes)
 GPtrArray *
 nm_utils_ip6_routes_from_variant(GVariant *value)
 {
-    GPtrArray             *routes;
-    GVariantIter           iter;
-    GVariant              *dest_var, *next_hop_var;
-    const struct in6_addr *dest, *next_hop;
-    gsize                  dest_len, next_hop_len;
-    guint32                prefix, metric;
+    return _nm_utils_ip6_routes_from_variant(value, FALSE, NULL);
+}
 
-    g_return_val_if_fail(g_variant_is_of_type(value, G_VARIANT_TYPE("a(ayuayu)")), NULL);
+/**
+ * _nm_utils_ip6_routes_from_variant:
+ * @value: #GVariant of type 'a(ayuayu)'
+ * @strict: whether to parse in strict mode or best-effort mode
+ * @error: the error location
+ *
+ * Like #nm_utils_ip6_routes_from_variant, but allows to parse in strict mode. In
+ * strict mode, parsing is aborted on first error and %NULL is returned.
+ *
+ * Returns: (transfer full) (element-type NMIPRoute): a newly allocated
+ *   #GPtrArray of #NMIPRoute objects. In strict mode, %NULL is returned on error.
+ **/
+GPtrArray *
+_nm_utils_ip6_routes_from_variant(GVariant *value, bool strict, GError **error)
+{
+    gs_unref_ptrarray GPtrArray *routes = NULL;
+    GVariantIter                 iter;
+    GVariant                    *dest_item;
+    GVariant                    *next_hop_item;
+    guint32                      prefix, metric;
+    guint                        i;
 
     routes = g_ptr_array_new_with_free_func((GDestroyNotify) nm_ip_route_unref);
 
+    if (!g_variant_is_of_type(value, G_VARIANT_TYPE("a(ayuayu)"))) {
+        if (strict) {
+            g_set_error_literal(error,
+                                NM_CONNECTION_ERROR,
+                                NM_CONNECTION_ERROR_INVALID_PROPERTY,
+                                _("Expected value of type \"a(ayuayu)\""));
+            return NULL;
+        }
+        return g_steal_pointer(&routes);
+    }
+
     g_variant_iter_init(&iter, value);
-    while (g_variant_iter_next(&iter, "(@ayu@ayu)", &dest_var, &prefix, &next_hop_var, &metric)) {
-        NMIPRoute *route;
-        GError    *error = NULL;
+
+    for (i = 0;
+         g_variant_iter_next(&iter, "(@ayu@ayu)", &dest_item, &prefix, &next_hop_item, &metric);
+         i++) {
+        gs_unref_variant GVariant *dest_var     = dest_item;
+        gs_unref_variant GVariant *next_hop_var = next_hop_item;
+        gs_free_error GError      *local_error  = NULL;
+        NMIPRoute                 *route;
+        const struct in6_addr     *dest, *next_hop;
+        gsize                      dest_len, next_hop_len;
 
         if (!g_variant_is_of_type(dest_var, G_VARIANT_TYPE_BYTESTRING)
             || !g_variant_is_of_type(next_hop_var, G_VARIANT_TYPE_BYTESTRING)) {
-            g_warning("%s: ignoring invalid IP6 address structure", __func__);
-            goto next;
+            if (strict) {
+                g_set_error(error,
+                            NM_CONNECTION_ERROR,
+                            NM_CONNECTION_ERROR_INVALID_PROPERTY,
+                            _("Expected value of type \"(ayuayu)\" (idx=%u)"),
+                            i);
+                return NULL;
+            }
+            continue;
         }
 
         dest = g_variant_get_fixed_array(dest_var, &dest_len, 1);
         if (dest_len != 16) {
-            g_warning("%s: ignoring invalid IP6 address of length %d", __func__, (int) dest_len);
-            goto next;
+            if (strict) {
+                g_set_error(error,
+                            NM_CONNECTION_ERROR,
+                            NM_CONNECTION_ERROR_INVALID_PROPERTY,
+                            _("IPv6 dest address with invalid length (idx=%u)"),
+                            i);
+                return NULL;
+            }
+            continue;
         }
 
         next_hop = g_variant_get_fixed_array(next_hop_var, &next_hop_len, 1);
         if (next_hop_len != 16) {
-            g_warning("%s: ignoring invalid IP6 address of length %d",
-                      __func__,
-                      (int) next_hop_len);
-            goto next;
+            if (strict) {
+                g_set_error(error,
+                            NM_CONNECTION_ERROR,
+                            NM_CONNECTION_ERROR_INVALID_PROPERTY,
+                            _("IPv6 next-hop address with invalid length (idx=%u)"),
+                            i);
+                return NULL;
+            }
+            continue;
         }
 
         route = nm_ip_route_new_binary(AF_INET6,
@@ -1902,20 +2207,24 @@ nm_utils_ip6_routes_from_variant(GVariant *value)
                                        prefix,
                                        next_hop,
                                        metric ? (gint64) metric : -1,
-                                       &error);
-        if (route)
-            g_ptr_array_add(routes, route);
-        else {
-            g_warning("Ignoring invalid IP6 route: %s", error->message);
-            g_clear_error(&error);
+                                       &local_error);
+        if (!route) {
+            if (strict) {
+                g_set_error(error,
+                            NM_CONNECTION_ERROR,
+                            NM_CONNECTION_ERROR_INVALID_PROPERTY,
+                            _("%s (idx=%u)"),
+                            local_error->message,
+                            i);
+                return NULL;
+            }
+            continue;
         }
 
-next:
-        g_variant_unref(dest_var);
-        g_variant_unref(next_hop_var);
+        g_ptr_array_add(routes, route);
     }
 
-    return routes;
+    return g_steal_pointer(&routes);
 }
 
 /**
@@ -1980,7 +2289,11 @@ nm_utils_ip_addresses_to_variant(GPtrArray *addresses)
  * Utility function to convert a #GVariant representing a list of new-style
  * NetworkManager IPv4 or IPv6 addresses (as described in the documentation for
  * nm_utils_ip_addresses_to_variant()) into a #GPtrArray of #NMIPAddress
- * objects.
+ * objects. Note that invalid addresses are discarded but the valid addresses
+ * are still returned.
+ *
+ * Since 1.46, an empty list is returned if the variant type is not valid
+ * (before it was checked as assertion)
  *
  * Returns: (transfer full) (element-type NMIPAddress): a newly allocated
  *   #GPtrArray of #NMIPAddress objects
@@ -1990,49 +2303,92 @@ nm_utils_ip_addresses_to_variant(GPtrArray *addresses)
 GPtrArray *
 nm_utils_ip_addresses_from_variant(GVariant *value, int family)
 {
-    GPtrArray   *addresses;
-    GVariantIter iter, attrs_iter;
-    GVariant    *addr_var;
-    const char  *ip;
-    guint32      prefix;
-    const char  *attr_name;
-    GVariant    *attr_val;
-    NMIPAddress *addr;
-    GError      *error = NULL;
+    return _nm_utils_ip_addresses_from_variant(value, family, FALSE, NULL);
+}
 
-    g_return_val_if_fail(g_variant_is_of_type(value, G_VARIANT_TYPE("aa{sv}")), NULL);
+/**
+ * _nm_utils_ip_addresses_from_variant:
+ * @value: a #GVariant of type 'aa{sv}'
+ * @family: an IP address family
+ * @strict: whether to parse in strict mode or best-effort mode
+ * @error: the error location
+ *
+ * Like #nm_utils_ip_addresses_from_variant, but allows to parse in strict mode. In
+ * strict mode, parsing is aborted on first error and %NULL is returned.
+ *
+ * Returns: (transfer full) (element-type NMIPAddress): a newly allocated
+ *   #GPtrArray of #NMIPAddress objects. In strict mode, %NULL is returned on error.
+ */
+GPtrArray *
+_nm_utils_ip_addresses_from_variant(GVariant *value, int family, bool strict, GError **error)
+{
+    gs_unref_ptrarray GPtrArray *addresses = NULL;
+    GVariantIter                 iter, attrs_iter;
+    GVariant                    *item;
+    const char                  *ip;
+    guint32                      prefix;
+    NMIPAddress                 *addr;
+    const char                  *attr_name;
+    guint                        i;
 
-    g_variant_iter_init(&iter, value);
     addresses = g_ptr_array_new_with_free_func((GDestroyNotify) nm_ip_address_unref);
 
-    while (g_variant_iter_next(&iter, "@a{sv}", &addr_var)) {
+    if (!g_variant_is_of_type(value, G_VARIANT_TYPE("aa{sv}"))) {
+        if (strict) {
+            g_set_error_literal(error,
+                                NM_CONNECTION_ERROR,
+                                NM_CONNECTION_ERROR_INVALID_PROPERTY,
+                                _("Expected value of type \"aa{sv}\""));
+            return NULL;
+        }
+        return g_steal_pointer(&addresses);
+    }
+
+    g_variant_iter_init(&iter, value);
+
+    for (i = 0; g_variant_iter_next(&iter, "@a{sv}", &item); i++) {
+        gs_unref_variant GVariant *addr_var    = item;
+        gs_free_error GError      *local_error = NULL;
+
         if (!g_variant_lookup(addr_var, "address", "&s", &ip)
             || !g_variant_lookup(addr_var, "prefix", "u", &prefix)) {
-            g_warning("Ignoring invalid address");
-            g_variant_unref(addr_var);
+            if (strict) {
+                g_set_error(error,
+                            NM_CONNECTION_ERROR,
+                            NM_CONNECTION_ERROR_INVALID_PROPERTY,
+                            _("IP address requires fields \"dest\" and \"prefix\" (idx=%u)"),
+                            i);
+                return NULL;
+            }
             continue;
         }
 
-        addr = nm_ip_address_new(family, ip, prefix, &error);
+        addr = nm_ip_address_new(family, ip, prefix, &local_error);
         if (!addr) {
-            g_warning("Ignoring invalid address: %s", error->message);
-            g_clear_error(&error);
-            g_variant_unref(addr_var);
+            if (strict) {
+                g_set_error(error,
+                            NM_CONNECTION_ERROR,
+                            NM_CONNECTION_ERROR_INVALID_PROPERTY,
+                            _("%s (idx=%u)"),
+                            local_error->message,
+                            i);
+                return NULL;
+            }
             continue;
         }
 
         g_variant_iter_init(&attrs_iter, addr_var);
-        while (g_variant_iter_next(&attrs_iter, "{&sv}", &attr_name, &attr_val)) {
+        while (g_variant_iter_next(&attrs_iter, "{&sv}", &attr_name, &item)) {
+            gs_unref_variant GVariant *attr_val = item;
+
             if (!NM_IN_STRSET(attr_name, "address", "prefix"))
                 nm_ip_address_set_attribute(addr, attr_name, attr_val);
-            g_variant_unref(attr_val);
         }
 
-        g_variant_unref(addr_var);
         g_ptr_array_add(addresses, addr);
     }
 
-    return addresses;
+    return g_steal_pointer(&addresses);
 }
 
 /**
@@ -2041,8 +2397,11 @@ nm_utils_ip_addresses_from_variant(GVariant *value, int family)
  *
  * Utility function to convert a #GPtrArray of #NMIPRoute objects representing
  * IPv4 or IPv6 routes into a #GVariant of type 'aa{sv}' representing an array
- * of new-style NetworkManager IP routes (which are tuples of destination,
- * prefix, next hop, metric, and additional attributes).
+ * of new-style NetworkManager IP routes. All routes will include "dest" (an IP
+ * address string), "prefix" (an uint) and optionally "next-hop" (an IP address
+ * string) and "metric" (an uint). Some routes may include additional attributes.
+ * Note that invalid routes are discarded and only a warning is emitted, but the
+ * valid routes are still returned.
  *
  * Returns: (transfer none): a new floating #GVariant representing @routes.
  *
@@ -2107,9 +2466,12 @@ nm_utils_ip_routes_to_variant(GPtrArray *routes)
  * @family: an IP address family
  *
  * Utility function to convert a #GVariant representing a list of new-style
- * NetworkManager IPv4 or IPv6 addresses (which are tuples of destination,
- * prefix, next hop, metric, and additional attributes) into a #GPtrArray of
- * #NMIPRoute objects.
+ * NetworkManager IPv4 or IPv6 addresses (as described in the documentation for
+ * nm_utils_ip_routes_to_variant()) into a #GPtrArray of #NMIPRoute objects.
+ * Invalid routes are discarded but the valid routes are still returned.
+ *
+ * Since 1.46, an empty list is returned if the variant type is not valid
+ * (before it was checked as assertion)
  *
  * Returns: (transfer full) (element-type NMIPRoute): a newly allocated
  *   #GPtrArray of #NMIPRoute objects
@@ -2119,27 +2481,65 @@ nm_utils_ip_routes_to_variant(GPtrArray *routes)
 GPtrArray *
 nm_utils_ip_routes_from_variant(GVariant *value, int family)
 {
-    GPtrArray   *routes;
-    GVariantIter iter, attrs_iter;
-    GVariant    *route_var;
-    const char  *dest, *next_hop;
-    guint32      prefix, metric32;
-    gint64       metric;
-    const char  *attr_name;
-    GVariant    *attr_val;
-    NMIPRoute   *route;
-    GError      *error = NULL;
+    return _nm_utils_ip_routes_from_variant(value, family, FALSE, NULL);
+}
 
-    g_return_val_if_fail(g_variant_is_of_type(value, G_VARIANT_TYPE("aa{sv}")), NULL);
+/**
+ * _nm_utils_ip_routes_from_variant:
+ * @value: a #GVariant of type 'aa{sv}'
+ * @family: an IP address family
+ * @strict: whether to parse in strict mode or best-effort mode
+ * @error: the error location
+ *
+ * Like #nm_utils_ip_routes_from_variant, but allows to parse in strict mode. In
+ * strict mode, parsing is aborted on first error and %NULL is returned.
+ *
+ * Returns: (transfer full) (element-type NMIPRoute): a newly allocated
+ *   #GPtrArray of #NMIPRoute objects. In strict mode %NULL is returned on error.
+ */
+GPtrArray *
+_nm_utils_ip_routes_from_variant(GVariant *value, int family, bool strict, GError **error)
+{
+    gs_unref_ptrarray GPtrArray *routes = NULL;
+    GVariantIter                 iter, attrs_iter;
+    GVariant                    *item;
+    const char                  *dest, *next_hop;
+    guint32                      prefix, metric32;
+    gint64                       metric;
+    const char                  *attr_name;
+    NMIPRoute                   *route;
+    guint                        i;
 
-    g_variant_iter_init(&iter, value);
     routes = g_ptr_array_new_with_free_func((GDestroyNotify) nm_ip_route_unref);
 
-    while (g_variant_iter_next(&iter, "@a{sv}", &route_var)) {
+    if (!g_variant_is_of_type(value, G_VARIANT_TYPE("aa{sv}"))) {
+        if (strict) {
+            g_set_error_literal(error,
+                                NM_CONNECTION_ERROR,
+                                NM_CONNECTION_ERROR_INVALID_PROPERTY,
+                                _("Expected value of type \"aa{sv}\""));
+            return NULL;
+        }
+        return g_steal_pointer(&routes);
+    }
+
+    g_variant_iter_init(&iter, value);
+
+    for (i = 0; g_variant_iter_next(&iter, "@a{sv}", &item); i++) {
+        gs_unref_variant GVariant *route_var   = item;
+        gs_free_error GError      *local_error = NULL;
+
         if (!g_variant_lookup(route_var, "dest", "&s", &dest)
             || !g_variant_lookup(route_var, "prefix", "u", &prefix)) {
-            g_warning("Ignoring invalid address");
-            goto next;
+            if (strict) {
+                g_set_error(error,
+                            NM_CONNECTION_ERROR,
+                            NM_CONNECTION_ERROR_INVALID_PROPERTY,
+                            _("Route requires fields \"dest\" and \"prefix\" (idx=%u)"),
+                            i);
+                return NULL;
+            }
+            continue;
         }
         if (!g_variant_lookup(route_var, "next-hop", "&s", &next_hop))
             next_hop = NULL;
@@ -2148,26 +2548,32 @@ nm_utils_ip_routes_from_variant(GVariant *value, int family)
         else
             metric = -1;
 
-        route = nm_ip_route_new(family, dest, prefix, next_hop, metric, &error);
+        route = nm_ip_route_new(family, dest, prefix, next_hop, metric, &local_error);
         if (!route) {
-            g_warning("Ignoring invalid route: %s", error->message);
-            g_clear_error(&error);
-            goto next;
+            if (strict) {
+                g_set_error(error,
+                            NM_CONNECTION_ERROR,
+                            NM_CONNECTION_ERROR_INVALID_PROPERTY,
+                            _("%s (idx=%u)"),
+                            local_error->message,
+                            i);
+                return NULL;
+            }
+            continue;
         }
 
         g_variant_iter_init(&attrs_iter, route_var);
-        while (g_variant_iter_next(&attrs_iter, "{&sv}", &attr_name, &attr_val)) {
+        while (g_variant_iter_next(&attrs_iter, "{&sv}", &attr_name, &item)) {
+            gs_unref_variant GVariant *attr_val = item;
+
             if (!NM_IN_STRSET(attr_name, "dest", "prefix", "next-hop", "metric"))
                 nm_ip_route_set_attribute(route, attr_name, attr_val);
-            g_variant_unref(attr_val);
         }
 
         g_ptr_array_add(routes, route);
-next:
-        g_variant_unref(route_var);
     }
 
-    return routes;
+    return g_steal_pointer(&routes);
 }
 
 /*****************************************************************************/
@@ -4694,7 +5100,7 @@ _nm_utils_strstrdictkey_create(const char *v1, const char *v2)
 static gboolean
 validate_dns_option(const char                 *name,
                     gboolean                    numeric,
-                    gboolean                    ipv6,
+                    int                         addr_family,
                     const NMUtilsDNSOptionDesc *option_descs)
 {
     const NMUtilsDNSOptionDesc *desc;
@@ -4703,8 +5109,15 @@ validate_dns_option(const char                 *name,
         return !!*name;
 
     for (desc = option_descs; desc->name; desc++) {
-        if (nm_streq(name, desc->name) && numeric == desc->numeric && (!desc->ipv6_only || ipv6))
-            return TRUE;
+        if (!nm_streq(name, desc->name))
+            continue;
+        if ((!!numeric) != (!!desc->numeric))
+            continue;
+        if (addr_family != AF_UNSPEC) {
+            if (desc->ipv6_only && addr_family != AF_INET6)
+                continue;
+        }
+        return TRUE;
     }
 
     return FALSE;
@@ -4715,7 +5128,9 @@ validate_dns_option(const char                 *name,
  * @option: option string
  * @out_name: (out) (optional) (nullable): the option name
  * @out_value: (out) (optional): the option value
- * @ipv6: whether the option refers to a IPv6 configuration
+ * @addr_family: AF_INET/AF_INET6 to only allow options for the specified address
+ *   family. AF_UNSPEC to allow either. This argument is ignored, if @option_descs
+ *   is NULL.
  * @option_descs: (nullable): an array of NMUtilsDNSOptionDesc which describes the
  * valid options
  *
@@ -4731,7 +5146,7 @@ gboolean
 _nm_utils_dns_option_validate(const char                 *option,
                               char                      **out_name,
                               long                       *out_value,
-                              gboolean                    ipv6,
+                              int                         addr_family,
                               const NMUtilsDNSOptionDesc *option_descs)
 {
     gs_free char *option0_free = NULL;
@@ -4742,6 +5157,8 @@ _nm_utils_dns_option_validate(const char                 *option,
 
     g_return_val_if_fail(option != NULL, FALSE);
 
+    nm_assert_addr_family_or_unspec(addr_family);
+
     NM_SET_OUT(out_name, NULL);
     NM_SET_OUT(out_value, -1);
 
@@ -4750,7 +5167,7 @@ _nm_utils_dns_option_validate(const char                 *option,
 
     delim = strchr(option, ':');
     if (!delim) {
-        if (!validate_dns_option(option, FALSE, ipv6, option_descs))
+        if (!validate_dns_option(option, FALSE, addr_family, option_descs))
             return FALSE;
         NM_SET_OUT(out_name, g_strdup(option));
         return TRUE;
@@ -4765,7 +5182,7 @@ _nm_utils_dns_option_validate(const char                 *option,
 
     option0 = nm_strndup_a(300, option, delim - option, &option0_free);
 
-    if (!validate_dns_option(option0, TRUE, ipv6, option_descs))
+    if (!validate_dns_option(option0, TRUE, addr_family, option_descs))
         return FALSE;
 
     option1_num = _nm_utils_ascii_str_to_int64(option1, 10, 0, G_MAXINT32, -1);
@@ -4779,7 +5196,8 @@ _nm_utils_dns_option_validate(const char                 *option,
 
 /**
  * _nm_utils_dns_option_find_idx:
- * @array: an array of strings
+ * @strv: an array of strings of length @strv_len
+ * @strv_len: the length of @strv, or -1 for a NULL terminated strv array.
  * @option: a dns option string
  *
  * Searches for an option in an array of strings. The match is
@@ -4789,18 +5207,28 @@ _nm_utils_dns_option_validate(const char                 *option,
  * found.
  */
 gssize
-_nm_utils_dns_option_find_idx(GPtrArray *array, const char *option)
+_nm_utils_dns_option_find_idx(const char *const *strv, gssize strv_len, const char *option)
 {
     gs_free char *option_name = NULL;
-    guint         i;
+    gsize         l;
+    gsize         i;
 
-    if (!_nm_utils_dns_option_validate(option, &option_name, NULL, FALSE, NULL))
+    if (strv_len >= 0)
+        l = strv_len;
+    else
+        l = NM_PTRARRAY_LEN(strv);
+
+    if (l == 0)
         return -1;
 
-    for (i = 0; i < array->len; i++) {
+    if (!_nm_utils_dns_option_validate(option, &option_name, NULL, AF_UNSPEC, NULL))
+        return -1;
+
+    for (i = 0; i < l; i++) {
+        const char   *str      = strv[i];
         gs_free char *tmp_name = NULL;
 
-        if (_nm_utils_dns_option_validate(array->pdata[i], &tmp_name, NULL, FALSE, NULL)) {
+        if (_nm_utils_dns_option_validate(str, &tmp_name, NULL, AF_UNSPEC, NULL)) {
             if (nm_streq(tmp_name, option_name))
                 return i;
         }
@@ -5548,7 +5976,7 @@ _nm_utils_bridge_vlan_verify_list(GPtrArray  *vlans,
         nm_bridge_vlan_get_vid_range(vlan, &vid_start, &vid_end);
 
         for (v = vid_start; v <= vid_end; v++) {
-            if (!nm_g_hash_table_add(h, GUINT_TO_POINTER(v))) {
+            if (!g_hash_table_add(h, GUINT_TO_POINTER(v))) {
                 g_set_error(error,
                             NM_CONNECTION_ERROR,
                             NM_CONNECTION_ERROR_INVALID_PROPERTY,

@@ -486,12 +486,12 @@ _parse_ip_method(const char *kind)
     nm_strv_sort(strv, -1);
     nm_strv_cleanup_const(strv, TRUE, TRUE);
 
-    if (nm_strv_find_first(strv, -1, "auto") >= 0) {
+    if (nm_strv_contains(strv, -1, "auto")) {
         /* if "auto" is present, then "dhcp4", "dhcp6", and "local6" is implied. */
         _strv_remove(strv, "dhcp4");
         _strv_remove(strv, "dhcp6");
         _strv_remove(strv, "local6");
-    } else if (nm_strv_find_first(strv, -1, "dhcp6") >= 0) {
+    } else if (nm_strv_contains(strv, -1, "dhcp6")) {
         /* if "dhcp6" is present, then "local6" is implied. */
         _strv_remove(strv, "local6");
     }
@@ -924,9 +924,9 @@ reader_parse_master(Reader *reader, char *argument, const char *type_name, const
         connection = reader_get_connection(reader, slave, NULL, TRUE);
         s_con      = nm_connection_get_setting_connection(connection);
         g_object_set(s_con,
-                     NM_SETTING_CONNECTION_SLAVE_TYPE,
+                     NM_SETTING_CONNECTION_PORT_TYPE,
                      type_name,
-                     NM_SETTING_CONNECTION_MASTER,
+                     NM_SETTING_CONNECTION_CONTROLLER,
                      master,
                      NULL);
     } while (slaves && *slaves != '\0');
@@ -1435,7 +1435,7 @@ nmi_cmdline_reader_parse(const char        *etc_connections_dir,
         }
     }
 
-    reader->dhcp_timeout = NM_CLAMP(dhcp_timeout * dhcp_num_tries, 1, G_MAXINT32);
+    reader->dhcp_timeout = NM_CLAMP(dhcp_timeout * dhcp_num_tries, 1u, (guint32) G_MAXINT32);
 
     for (i = 0; argv[i]; i++) {
         gs_free char *argument_clone = NULL;

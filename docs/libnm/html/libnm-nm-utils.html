@@ -716,10 +716,16 @@ number of known SSID-cloaking methods.</p>
 <pre class="programlisting">const <span class="returnvalue">char</span> *
 nm_utils_escape_ssid (<em class="parameter"><code>const <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint8"><span class="type">guint8</span></a> *ssid</code></em>,
                       <em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gsize"><span class="type">gsize</span></a> len</code></em>);</pre>
+<div class="warning">
+<p><code class="literal">nm_utils_escape_ssid</code> has been deprecated since version 1.46 and should not be used in newly-written code.</p>
+<p>use <a class="link" href="libnm-nm-utils.html#nm-utils-ssid-to-utf8" title="nm_utils_ssid_to_utf8 ()"><code class="function">nm_utils_ssid_to_utf8()</code></a> or <a class="link" href="libnm-nm-utils.html#nm-utils-bin2hexstr" title="nm_utils_bin2hexstr ()"><code class="function">nm_utils_bin2hexstr()</code></a>.</p>
+</div>
 <p>This function does a quick printable character conversion of the SSID, simply
 replacing embedded NULLs and non-printable characters with the hexadecimal
 representation of that character.  Intended for debugging only, should not
 be used for display of SSIDs.</p>
+<p>Warning: this function uses a static buffer. It is not thread-safe. Don't
+  use this function.</p>
 <div class="refsect3">
 <a name="nm-utils-escape-ssid.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
@@ -1118,6 +1124,8 @@ type 'au' representing an array of IPv4 addresses.</p>
 nm_utils_ip4_dns_from_variant (<em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> *value</code></em>);</pre>
 <p>Utility function to convert a <a href="https://developer.gnome.org/glib/unstable/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> of type 'au' representing a list of
 IPv4 addresses into an array of IP address strings.</p>
+<p>Since 1.46, an empty list is returned if the variant type is not valid
+(before it was checked as assertion)</p>
 <div class="refsect3">
 <a name="nm-utils-ip4-dns-from-variant.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
@@ -1191,7 +1199,10 @@ NetworkManager IPv4 addresses (which are tuples of address, prefix, and
 gateway) into a <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> of <a class="link" href="NMSettingIPConfig.html#NMIPAddress"><span class="type">NMIPAddress</span></a> objects. The "gateway" field of
 the first address (if set) will be returned in <em class="parameter"><code>out_gateway</code></em>
 ; the "gateway" fields
-of the other addresses are ignored.</p>
+of the other addresses are ignored. Note that invalid addresses are discarded
+but the valid addresses are still returned.</p>
+<p>Since 1.46, an empty list is returned if the variant type is not valid
+(before it was checked as assertion)</p>
 <div class="refsect3">
 <a name="nm-utils-ip4-addresses-from-variant.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
@@ -1260,7 +1271,10 @@ metric).</p>
 nm_utils_ip4_routes_from_variant (<em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> *value</code></em>);</pre>
 <p>Utility function to convert a <a href="https://developer.gnome.org/glib/unstable/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> of type 'aau' representing an array
 of NetworkManager IPv4 routes (which are tuples of route, prefix, next hop,
-and metric) into a <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> of <a class="link" href="NMSettingIPConfig.html#NMIPRoute"><span class="type">NMIPRoute</span></a> objects.</p>
+and metric) into a <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> of <a class="link" href="NMSettingIPConfig.html#NMIPRoute"><span class="type">NMIPRoute</span></a> objects. Note that invalid routes
+are discarded but the valid routes are still returned.</p>
+<p>Since 1.46, an empty list is returned if the variant type is not valid
+(before it was checked as assertion)</p>
 <div class="refsect3">
 <a name="nm-utils-ip4-routes-from-variant.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
@@ -1407,6 +1421,8 @@ nm_utils_ip6_dns_from_variant (<em class="parameter"><code><a href="https://deve
 IPv6 addresses into an array of IP address strings. Each "ay" entry must be
 a IPv6 address in binary form (16 bytes long). Invalid entries are silently
 ignored.</p>
+<p>Since 1.46, an empty list is returned if the variant type is not valid
+(before it was checked as assertion)</p>
 <div class="refsect3">
 <a name="nm-utils-ip6-dns-from-variant.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
@@ -1481,7 +1497,10 @@ list of NetworkManager IPv6 addresses (which are tuples of address, prefix,
 and gateway) into a <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> of <a class="link" href="NMSettingIPConfig.html#NMIPAddress"><span class="type">NMIPAddress</span></a> objects. The "gateway" field
 of the first address (if set) will be returned in <em class="parameter"><code>out_gateway</code></em>
 ; the "gateway"
-fields of the other addresses are ignored.</p>
+fields of the other addresses are ignored. Note that invalid addresses are
+discarded but the valid addresses are still returned.</p>
+<p>Since 1.46, an empty list is returned if the variant type is not valid
+(before it was checked as assertion)</p>
 <div class="refsect3">
 <a name="nm-utils-ip6-addresses-from-variant.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
@@ -1550,7 +1569,10 @@ metric).</p>
 nm_utils_ip6_routes_from_variant (<em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> *value</code></em>);</pre>
 <p>Utility function to convert a <a href="https://developer.gnome.org/glib/unstable/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> of type 'a(ayuayu)' representing an
 array of NetworkManager IPv6 routes (which are tuples of route, prefix, next
-hop, and metric) into a <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> of <a class="link" href="NMSettingIPConfig.html#NMIPRoute"><span class="type">NMIPRoute</span></a> objects.</p>
+hop, and metric) into a <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> of <a class="link" href="NMSettingIPConfig.html#NMIPRoute"><span class="type">NMIPRoute</span></a> objects. Note that invalid
+routes are ignored but the valid ones are still returned.</p>
+<p>Since 1.46, an empty list is returned if the variant type is not valid
+(before it was checked as assertion)</p>
 <div class="refsect3">
 <a name="nm-utils-ip6-routes-from-variant.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
@@ -1615,7 +1637,10 @@ nm_utils_ip_addresses_from_variant (<em class="parameter"><code><a href="https:/
 <p>Utility function to convert a <a href="https://developer.gnome.org/glib/unstable/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> representing a list of new-style
 NetworkManager IPv4 or IPv6 addresses (as described in the documentation for
 <a class="link" href="libnm-nm-utils.html#nm-utils-ip-addresses-to-variant" title="nm_utils_ip_addresses_to_variant ()"><code class="function">nm_utils_ip_addresses_to_variant()</code></a>) into a <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> of <a class="link" href="NMSettingIPConfig.html#NMIPAddress"><span class="type">NMIPAddress</span></a>
-objects.</p>
+objects. Note that invalid addresses are discarded but the valid addresses
+are still returned.</p>
+<p>Since 1.46, an empty list is returned if the variant type is not valid
+(before it was checked as assertion)</p>
 <div class="refsect3">
 <a name="nm-utils-ip-addresses-from-variant.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
@@ -1653,8 +1678,11 @@ objects.</p>
 nm_utils_ip_routes_to_variant (<em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> *routes</code></em>);</pre>
 <p>Utility function to convert a <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> of <a class="link" href="NMSettingIPConfig.html#NMIPRoute"><span class="type">NMIPRoute</span></a> objects representing
 IPv4 or IPv6 routes into a <a href="https://developer.gnome.org/glib/unstable/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> of type 'aa{sv}' representing an array
-of new-style NetworkManager IP routes (which are tuples of destination,
-prefix, next hop, metric, and additional attributes).</p>
+of new-style NetworkManager IP routes. All routes will include "dest" (an IP
+address string), "prefix" (an uint) and optionally "next-hop" (an IP address
+string) and "metric" (an uint). Some routes may include additional attributes.
+Note that invalid routes are discarded and only a warning is emitted, but the
+valid routes are still returned.</p>
 <div class="refsect3">
 <a name="nm-utils-ip-routes-to-variant.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
@@ -1685,9 +1713,11 @@ prefix, next hop, metric, and additional attributes).</p>
 nm_utils_ip_routes_from_variant (<em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> *value</code></em>,
                                  <em class="parameter"><code><span class="type">int</span> family</code></em>);</pre>
 <p>Utility function to convert a <a href="https://developer.gnome.org/glib/unstable/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> representing a list of new-style
-NetworkManager IPv4 or IPv6 addresses (which are tuples of destination,
-prefix, next hop, metric, and additional attributes) into a <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> of
-<a class="link" href="NMSettingIPConfig.html#NMIPRoute"><span class="type">NMIPRoute</span></a> objects.</p>
+NetworkManager IPv4 or IPv6 addresses (as described in the documentation for
+<a class="link" href="libnm-nm-utils.html#nm-utils-ip-routes-to-variant" title="nm_utils_ip_routes_to_variant ()"><code class="function">nm_utils_ip_routes_to_variant()</code></a>) into a <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> of <a class="link" href="NMSettingIPConfig.html#NMIPRoute"><span class="type">NMIPRoute</span></a> objects.
+Invalid routes are discarded but the valid routes are still returned.</p>
+<p>Since 1.46, an empty list is returned if the variant type is not valid
+(before it was checked as assertion)</p>
 <div class="refsect3">
 <a name="nm-utils-ip-routes-from-variant.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">

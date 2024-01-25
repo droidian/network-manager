@@ -5435,11 +5435,25 @@ setting LIBNM_CLIENT_DEBUG and uses thereby <a href="https://developer.gnome.org
 <a href="https://developer.gnome.org/glib/unstable/glib-Warnings-and-Assertions.html#g-print"><code class="function">g_print()</code></a>. A plain "<code class="function">print()</code>" function in python is not in sync
 with these functions (it implements additional buffering). By
 using <a class="link" href="NMClient.html#nm-utils-print" title="nm_utils_print ()"><code class="function">nm_utils_print()</code></a>, the same logging mechanisms can be used.</p>
-<p>Also, libnm honors LIBNM_CLIENT_DEBUG_FILE environment. If this
-is set to a filename pattern (accepting "<code class="literal">p</code>" for the process ID),
-then the debug log is written to that file instead. With <em class="parameter"><code>output_mode</code></em>
-
-zero, the same location will be written. Since: 1.44.</p>
+<p>LIBNM_CLIENT_DEBUG is a list of keywords separated by commas. The keyword
+"trace" enables printing messages of the lowest up to the highest severity.
+Likewise, the severities "debug", "warn" ("warning") and "error" are honored
+in similar way. Setting the flags "ERROR" or "WARN" ("WARNING") implies that
+respective levels are enabled, but also are ERROR messages printed with
+<a href="https://developer.gnome.org/glib/unstable/glib-Message-Logging.html#g-critical"><code class="function">g_critical()</code></a> and WARN messages with <a href="https://developer.gnome.org/glib/unstable/glib-Message-Logging.html#g-warning"><code class="function">g_warning()</code></a>. Together with G_DEBUG="fatal-warnings"
+or G_DEBUG="fatal-critical" this can be used to abort the program on errors.
+Note that all &lt;error&gt; messages imply an unexpected data on the D-Bus API
+(due to a bug). &lt;warn&gt; also implies unexepected data, but that can happen
+when using different versions of libnm and daemon. For testing, it is
+good to turn these into assertions.</p>
+<p>By default, messages are printed to stderr, unless LIBNM_CLIENT_DEBUG
+contains "stdout" flag. Also, libnm honors LIBNM_CLIENT_DEBUG_FILE
+environment. If this is set to a filename pattern (accepting "%<code class="literal">p</code>" for the
+process ID), then the debug log is written to that file instead of
+stderr/stdout. With <em class="parameter"><code>output_mode</code></em>
+ zero, the same location will be written.</p>
+<p>LIBNM_CLIENT_DEBUG_FILE is supported since 1.44. "ERROR", "WARN" and "WARNING"
+are supported since 1.46.</p>
 <div class="refsect3">
 <a name="nm-utils-print.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">

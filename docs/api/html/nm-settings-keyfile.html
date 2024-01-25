@@ -32,7 +32,7 @@
 <a name="description"></a><h2>Description</h2>
 <p>
           NetworkManager is based on the concept of connection profiles that contain
-          network configuration (see <span class="citerefentry"><span class="refentrytitle">nm-settings</span>(5)</span> for details). The profiles can be
+          network configuration (see <span class="citerefentry"><span class="refentrytitle">nm-settings-nmcli</span>(5)</span> for details). The profiles can be
           stored in various formats. NetworkManager uses plugins for reading and writing
           the data. The plugins can be configured in <span class="citerefentry"><span class="refentrytitle">NetworkManager.conf</span>(5)</span>.
         </p>
@@ -53,20 +53,29 @@
 <a name="file_format"></a><h2>File Format</h2>
 <p>
           The <span class="emphasis"><em>keyfile</em></span> config format is a simple .ini-style
-          format. It consists of sections (groups) of key-value pairs. Each section
-          corresponds to a setting name as described in the settings specification
-          (<span class="citerefentry"><span class="refentrytitle">nm-settings</span>(5)</span>). Each configuration key/value
-          pair in the section is one of the properties listed in the settings
-          specification. The majority of properties of the specification is written
-          in the same format into the <span class="emphasis"><em>keyfile</em></span> too. However
-          some values are inconvenient for people to use. These are stored in the
-          files in more readable ways. These properties are described below.
-          An example could be IP addresses that are not written as integer arrays,
-          but more reasonably as "1.2.3.4/12 1.2.3.254".
+          format. It consists of sections (groups) of key-value pairs.
           More information of the generic key file format can be found at
           <a class="ulink" href="https://developer.gnome.org/glib/stable/glib-Key-value-file-parser.html#glib-Key-value-file-parser.description" target="_top">
           GLib key file format</a> (Lines beginning with a '#' are comments,
           lists are separated by character <code class="literal">;</code> etc.).
+        </p>
+<p>
+          Each section corresponds to a setting name as described in the settings
+          specification (<span class="citerefentry"><span class="refentrytitle">nm-settings-nmcli</span>(5)</span>). Each key/value pair in a
+          section is one of the properties from the specification.
+        </p>
+<p>
+          The majority of properties are written in the same format as the
+          specification into the <span class="emphasis"><em>keyfile</em></span>. However, some
+          values are inconvenient for people to use so they are stored in the
+          <span class="emphasis"><em>keyfile</em></span> in more readable ways. These properties
+          that differ from the specification are described below.
+          An example could be IP addresses that are not written as integer arrays,
+          but more reasonably as "1.2.3.4/12 1.2.3.254".
+          Also, some lists of complex values (addresses, routes, routing-rules),
+          instead of using a semicolon separated list, use one key-value pair
+          per list element, with the key being the singular of the property name
+          followed by the numeric index (i.e address1, address2, ...).
         </p>
 <p>
           Users can create or modify the <span class="emphasis"><em>keyfile</em></span> connection files
@@ -175,7 +184,7 @@ id=4
           There are several exceptions to this rule, mainly for making keyfile syntax easier
           for humans. The exceptions handled specially by <span class="emphasis"><em>keyfile</em></span>
           plugin are listed below. Refer to
-          <span class="citerefentry"><span class="refentrytitle">nm-settings</span>(5)</span>
+          <a class="link" href="nm-settings-nmcli.html" title="nm-settings-nmcli"><span class="citerefentry"><span class="refentrytitle">nm-settings-nmcli</span>(5)</span></a>
           for all available settings and properties and their description.
         </p>
 <p><b>Name aliases. </b>
@@ -372,6 +381,22 @@ Example: </strong></span>gateway=192.168.100.1</td>
 
 Example: </strong></span>route1=8.8.8.0/24,10.1.1.1,77 route2=7.7.0.0/16</td>
 </tr>
+<tr>
+<td align="left">routes (attributes)</td>
+<td align="left">route1_options, route2_options, ...</td>
+<td align="left">key=val[,key=val...]</td>
+<td align="left">Attributes defined for the routes, if any. The supported attributes are explained in ipv4.routes entry in `man nm-settings-nmcli`.<span class="bold"><strong>
+
+Example: </strong></span>route1_options=mtu=1000,onlink=true</td>
+</tr>
+<tr>
+<td align="left">routing-rules</td>
+<td align="left">routing-rule1, routing-rule2, ...</td>
+<td align="left">routing rule string</td>
+<td align="left">Routing rules as defined with `ip rule add`, but with mandatory fixed priority.<span class="bold"><strong>
+
+Example: </strong></span>routing-rule1=priority 5 from 192.167.4.0/24 table 45</td>
+</tr>
 </tbody>
 </table></div>
 </div>
@@ -422,6 +447,22 @@ Example: </strong></span>gateway=abbe::1</td>
 <td align="left">List of IP routes.<span class="bold"><strong>
 
 Example: </strong></span>route1=2001:4860:4860::/64,2620:52:0:2219:222:68ff:fe11:5403</td>
+</tr>
+<tr>
+<td align="left">routes (attributes)</td>
+<td align="left">route1_options, route2_options, ...</td>
+<td align="left">key=val[,key=val...]</td>
+<td align="left">Attributes defined for the routes, if any. The supported attributes are explained in ipv6.routes entry in `man nm-settings-nmcli`.<span class="bold"><strong>
+
+Example: </strong></span>route1_options=mtu=1000,onlink=true</td>
+</tr>
+<tr>
+<td align="left">routing-rules</td>
+<td align="left">routing-rule1, routing-rule2, ...</td>
+<td align="left">routing rule string</td>
+<td align="left">Routing rules as defined with `ip rule add`, but with mandatory fixed priority.<span class="bold"><strong>
+
+Example: </strong></span>routing-rule1=priority 5 from 2001:4860:4860::/64 table 45</td>
 </tr>
 </tbody>
 </table></div>
@@ -558,7 +599,7 @@ Example: </strong></span>password=Popocatepetl</td>
 </div>
 <div class="refsect1">
 <a name="see_also"></a><h2>See Also</h2>
-<p><span class="citerefentry"><span class="refentrytitle">nm-settings</span>(5)</span>,
+<p><a class="link" href="nm-settings-nmcli.html" title="nm-settings-nmcli"><span class="citerefentry"><span class="refentrytitle">nm-settings-nmcli</span>(5)</span></a>,
         <a class="link" href="nm-settings-ifcfg-rh.html" title="nm-settings-ifcfg-rh"><span class="citerefentry"><span class="refentrytitle">nm-settings-ifcfg-rh</span>(5)</span></a>,
         <a class="link" href="NetworkManager.html" title="NetworkManager"><span class="citerefentry"><span class="refentrytitle">NetworkManager</span>(8)</span></a>,
         <a class="link" href="NetworkManager.conf.html" title="NetworkManager.conf"><span class="citerefentry"><span class="refentrytitle">NetworkManager.conf</span>(5)</span></a>,
