@@ -29,9 +29,7 @@
 HwAddress  readable   s
 </programlisting>
 <para>
-Hardware address of the device.
-n
-DEPRECATED. Use the "HwAddress" property in "org.freedesktop.NetworkManager.Device" instead which exists since version NetworkManager 1.24.0.
+</para><para>
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-Vlan.Carrier">

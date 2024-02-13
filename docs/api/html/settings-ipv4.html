@@ -101,6 +101,14 @@ The special value "none" prevents any client identifier from being sent. Note th
 If unset, a globally configured default from NetworkManager.conf is used. If still unset, the default depends on the DHCP plugin. The internal dhcp client will default to "mac" and the dhclient plugin will try to use one from its config file if present, or won't sent any client-id otherwise.</td>
 </tr>
 <tr>
+<td><pre class="screen">dhcp-dscp</pre></td>
+<td><pre class="screen">string</pre></td>
+<td><pre class="screen"></pre></td>
+<td>Specifies the value for the DSCP field (traffic class) of the IP header. When empty, the global default value is used; if no global default is specified, it is assumed to be "CS0". Allowed values are: "CS0", "CS4" and "CS6".
+
+The property is currently valid only for IPv4, and it is supported only by the "internal" DHCP plugin.</td>
+</tr>
+<tr>
 <td><pre class="screen">dhcp-fqdn</pre></td>
 <td><pre class="screen">string</pre></td>
 <td><pre class="screen"></pre></td>

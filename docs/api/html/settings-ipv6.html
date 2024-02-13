@@ -101,6 +101,14 @@ For other connection types, adding such an automatic route is currently not supp
 A zero value means that no duplicate address detection is performed, -1 means the default value (either the value configured globally in NetworkManger.conf or 200ms).  A value greater than zero is a timeout in milliseconds.  Note that the time intervals are subject to randomization as per RFC 5227 and so the actual duration can be between half and the full time specified in this property.</td>
 </tr>
 <tr>
+<td><pre class="screen">dhcp-dscp</pre></td>
+<td><pre class="screen">string</pre></td>
+<td><pre class="screen"></pre></td>
+<td>Specifies the value for the DSCP field (traffic class) of the IP header. When empty, the global default value is used; if no global default is specified, it is assumed to be "CS0". Allowed values are: "CS0", "CS4" and "CS6".
+
+The property is currently valid only for IPv4, and it is supported only by the "internal" DHCP plugin.</td>
+</tr>
+<tr>
 <td><pre class="screen">dhcp-duid</pre></td>
 <td><pre class="screen">string</pre></td>
 <td><pre class="screen"></pre></td>

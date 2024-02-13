@@ -2,12 +2,12 @@
 .\"     Title: nm-initrd-generator
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 01/25/2024
+.\"      Date: 02/09/2024
 .\"    Manual: System Administration
-.\"    Source: NetworkManager 1.45.90
+.\"    Source: NetworkManager 1.45.91
 .\"  Language: English
 .\"
-.TH "NM\-INITRD\-GENERATOR" "8" "" "NetworkManager 1\&.45\&.90" "System Administration"
+.TH "NM\-INITRD\-GENERATOR" "8" "" "NetworkManager 1\&.45\&.91" "System Administration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -126,6 +126,9 @@ The options that appear on the kernel command line\&. The following options are 
 \fBrd\&.net\&.dhcp\&.vendor\-class\fR
 .RE
 .RS 4
+\fBrd\&.net\&.dhcp\&.dscp\fR
+.RE
+.RS 4
 \fBrd\&.net\&.timeout\&.carrier\fR
 .RE
 .RS 4
@@ -208,6 +211,18 @@ accepts string values,
 accepts boolean values (true and false / on or off / 0 or 1), and
 \fISPEED\fR
 accepts positive integer values\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+NetworkManager supports the
+\fBrd\&.net\&.dhcp\&.dscp\fR={\fICS0\fR|\fICS4\fR|\fICS6\fR} kernel command line option to set a specific DSCP (TOS) value in the IP header of DHCP messages\&.
 .RE
 .SH "EXIT STATUS"
 .PP

@@ -30,9 +30,8 @@
 Port1  readable   o
 </programlisting>
 <para>
-The device's port1 device.
+</para><para>
 </para>
-<para role="since">Since 1.46</para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-Hsr.Port2">
   <title>The "Port2" property</title>
@@ -41,9 +40,8 @@ The device's port1 device.
 Port2  readable   o
 </programlisting>
 <para>
-The device's port2 device.
+</para><para>
 </para>
-<para role="since">Since 1.46</para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-Hsr.SupervisionAddress">
   <title>The "SupervisionAddress" property</title>
@@ -52,9 +50,8 @@ The device's port2 device.
 SupervisionAddress  readable   s
 </programlisting>
 <para>
-The supervision MAC address.
+</para><para>
 </para>
-<para role="since">Since 1.46</para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-Hsr.MulticastSpec">
   <title>The "MulticastSpec" property</title>
@@ -63,9 +60,8 @@ The supervision MAC address.
 MulticastSpec  readable   y
 </programlisting>
 <para>
-The last byte of the supervision address.
+</para><para>
 </para>
-<para role="since">Since 1.46</para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-Hsr.Prp">
   <title>The "Prp" property</title>
@@ -74,9 +70,8 @@ The last byte of the supervision address.
 Prp  readable   b
 </programlisting>
 <para>
-Whether the PRP protocol is used or not.
+</para><para>
 </para>
-<para role="since">Since 1.46</para>
 </refsect2>
 </refsect1>
 </refentry>

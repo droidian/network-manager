@@ -2,12 +2,12 @@
 .\"     Title: nm-settings-dbus
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 01/25/2024
+.\"      Date: 02/09/2024
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.45.90
+.\"    Source: NetworkManager 1.45.91
 .\"  Language: English
 .\"
-.TH "NM\-SETTINGS\-DBUS" "5" "" "NetworkManager 1\&.45\&.90" "Configuration"
+.TH "NM\-SETTINGS\-DBUS" "5" "" "NetworkManager 1\&.45\&.91" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -103,6 +103,7 @@ l l l l
 l l l l
 l l l l
 l l l l
+l l l l
 l l l l.
 T{
 auth\-retries
@@ -131,6 +132,15 @@ Note that autoconnect is not implemented for VPN profiles\&. See "secondaries" a
 If multiple profiles are ready to autoconnect on the same device, the one with the better "connection\&.autoconnect\-priority" is chosen\&. If the priorities are equal, then the most recently connected profile is activated\&. If the profiles were not connected earlier or their "connection\&.timestamp" is identical, the choice is undefined\&.
 
 Depending on "connection\&.multi\-connect", a profile can (auto)connect only once at a time or multiple times\&.
+T}
+T{
+autoconnect\-ports
+T}:T{
+NMTernary (int32)
+T}:T{
+\ \&
+T}:T{
+Whether or not ports of this connection should be automatically brought up when NetworkManager activates this connection\&. This only has a real effect for controller connections\&. The properties "autoconnect", "autoconnect\-priority" and "autoconnect\-retries" are unrelated to this setting\&. The permitted values are: 0: leave port connections untouched, 1: activate all the port connections with this connection, \-1: default\&. If \-1 (default) is set, global connection\&.autoconnect\-ports is read to determine the real value\&. If it is default as well, this fallbacks to 0\&.
 T}
 T{
 autoconnect\-priority
@@ -2130,6 +2140,7 @@ l l l l
 l l l l
 l l l l
 l l l l
+l l l l
 l l l l.
 T{
 address\-data
@@ -2192,6 +2203,17 @@ The special value "stable" is supported to generate a type 0 client identifier b
 The special value "none" prevents any client identifier from being sent\&. Note that this is normally not recommended\&.
 
 If unset, a globally configured default from NetworkManager\&.conf is used\&. If still unset, the default depends on the DHCP plugin\&. The internal dhcp client will default to "mac" and the dhclient plugin will try to use one from its config file if present, or won\*(Aqt sent any client\-id otherwise\&.
+T}
+T{
+dhcp\-dscp
+T}:T{
+string
+T}:T{
+\ \&
+T}:T{
+Specifies the value for the DSCP field (traffic class) of the IP header\&. When empty, the global default value is used; if no global default is specified, it is assumed to be "CS0"\&. Allowed values are: "CS0", "CS4" and "CS6"\&.
+
+The property is currently valid only for IPv4, and it is supported only by the "internal" DHCP plugin\&.
 T}
 T{
 dhcp\-fqdn
@@ -2559,6 +2581,7 @@ l l l l
 l l l l
 l l l l
 l l l l
+l l l l
 l l l l.
 T{
 addr\-gen\-mode
@@ -2621,6 +2644,17 @@ T}:T{
 Maximum timeout in milliseconds used to check for the presence of duplicate IP addresses on the network\&.  If an address conflict is detected, the activation will fail\&. The property is currently implemented only for IPv4\&.
 
 A zero value means that no duplicate address detection is performed, \-1 means the default value (either the value configured globally in NetworkManger\&.conf or 200ms)\&.  A value greater than zero is a timeout in milliseconds\&.  Note that the time intervals are subject to randomization as per RFC 5227 and so the actual duration can be between half and the full time specified in this property\&.
+T}
+T{
+dhcp\-dscp
+T}:T{
+string
+T}:T{
+\ \&
+T}:T{
+Specifies the value for the DSCP field (traffic class) of the IP header\&. When empty, the global default value is used; if no global default is specified, it is assumed to be "CS0"\&. Allowed values are: "CS0", "CS4" and "CS6"\&.
+
+The property is currently valid only for IPv4, and it is supported only by the "internal" DHCP plugin\&.
 T}
 T{
 dhcp\-duid

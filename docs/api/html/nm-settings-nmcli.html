@@ -106,6 +106,16 @@
 </td>
 </tr>
 <tr>
+<td><p><span class="term"><code class="option"><a name="nm-settings-nmcli.property.connection.autoconnect-ports"></a>connection.autoconnect-ports</code></span></p></td>
+<td>
+<p>Whether or not ports of this connection should be automatically brought up when NetworkManager activates this connection. This only has a real effect for controller connections. The properties "autoconnect", "autoconnect-priority" and "autoconnect-retries" are unrelated to this setting. The permitted values are: 0: leave port connections untouched, 1: activate all the port connections with this connection, -1: default. If -1 (default) is set, global connection.autoconnect-ports is read to determine the real value. If it is default as well, this fallbacks to 0.</p>
+<p>
+            Format: choice (NMTernary)</p>
+<p>
+            Valid values: default (-1), false (0), true (1)</p>
+</td>
+</tr>
+<tr>
 <td><p><span class="term"><code class="option"><a name="nm-settings-nmcli.property.connection.autoconnect-priority"></a>connection.autoconnect-priority</code></span></p></td>
 <td>
 <p>The autoconnect priority in range -999 to 999. If the connection is set to autoconnect, connections with higher priority will be preferred. The higher number means higher priority. Defaults to 0. Note that this property only matters if there are more than one candidate profile to select for autoconnect. In case of equal priority, the profile used most recently is chosen.</p>
@@ -2779,6 +2789,17 @@
             Format: string</p>
 <p>
             Special values: mac, perm-mac, duid, ipv6-duid, stable, none</p>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="option"><a name="nm-settings-nmcli.property.ipv4.dhcp-dscp"></a>ipv4.dhcp-dscp</code></span></p></td>
+<td>
+<p>Specifies the value for the DSCP field (traffic class) of the IP header. When empty, the global default value is used; if no global default is specified, it is assumed to be "CS0". Allowed values are: "CS0", "CS4" and "CS6".</p>
+<p>The property is currently valid only for IPv4, and it is supported only by the "internal" DHCP plugin.</p>
+<p>
+            Format: string</p>
+<p>
+            Valid values: CS0, CS4, CS6</p>
 </td>
 </tr>
 <tr>

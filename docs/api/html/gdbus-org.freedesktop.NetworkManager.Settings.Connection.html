@@ -256,18 +256,18 @@ logically or-ed together:
 <tr>
 <td><p><span class="term"><code class="literal">0x2 (in-memory)</code>:</span></p></td>
 <td><p>The change is only made in memory (without touching an eventual
-profile on disk). If neither 0x1 nor 0x2 is set, the change is made in memory
-only, if the connection is already in memory only.</p></td>
+  profile on disk). If neither 0x1 nor 0x2 is set, the change is made in memory
+  only, if the connection is already in memory only.</p></td>
 </tr>
 <tr>
 <td><p><span class="term"><code class="literal">0x4 (in-memory-detached)</code>:</span></p></td>
 <td><p>Like "in-memory", but behaves slightly different when migrating
-the profile from disk to in-memory.</p></td>
+  the profile from disk to in-memory.</p></td>
 </tr>
 <tr>
 <td><p><span class="term"><code class="literal">0x8 (in-memory-only)</code>:</span></p></td>
 <td><p>Like "in-memory", but behaves slightly different when migrating
-the profile from disk to in-memory.</p></td>
+  the profile from disk to in-memory.</p></td>
 </tr>
 <tr>
 <td><p><span class="term"><code class="literal">0x10 (volatile)</code>:</span></p></td>
@@ -280,7 +280,7 @@ the profile from disk to in-memory.</p></td>
 <tr>
 <td><p><span class="term"><code class="literal">0x40 (no-reapply)</code>:</span></p></td>
 <td><p>Prevents "connection.zone" and "connection.metered" properties
-to take effect on currently active devices.</p></td>
+  to take effect on currently active devices.</p></td>
 </tr>
 </tbody>
 </table></div>
@@ -300,11 +300,11 @@ The <code class="constant">args</code> argument accepts the following keys:
 <td><p><span class="term"><code class="literal">plugin</code>:, </span><span class="term"><code class="literal">version-id</code>:</span></p></td>
 <td>
 <p>The settings plugin the connection will be migrated to
-such as "keyfile" or "ifcfg-rh".</p>
+  such as "keyfile" or "ifcfg-rh".</p>
 <p class="since">Since 1.38</p>
 <p>If specified, the update request is rejected if the
-profile's version-id does not match. This can be used to catch concurrent
-modifications. Zero means no version check.</p>
+  profile's version-id does not match. This can be used to catch concurrent
+  modifications. Zero means no version check.</p>
 <p class="since">Since 1.44</p>
 </td>
 </tr></tbody>
