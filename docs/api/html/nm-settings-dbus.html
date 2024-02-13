@@ -136,6 +136,13 @@ Depending on "connection.multi-connect", a profile can (auto)connect only once a
 </tr>
 <tr>
 <td align="left">
+<a name="nm-settings-dbus.property.connection.autoconnect-ports"></a>autoconnect-ports</td>
+<td align="left">NMTernary (int32)</td>
+<td align="left"> </td>
+<td>Whether or not ports of this connection should be automatically brought up when NetworkManager activates this connection. This only has a real effect for controller connections. The properties "autoconnect", "autoconnect-priority" and "autoconnect-retries" are unrelated to this setting. The permitted values are: 0: leave port connections untouched, 1: activate all the port connections with this connection, -1: default. If -1 (default) is set, global connection.autoconnect-ports is read to determine the real value. If it is default as well, this fallbacks to 0.</td>
+</tr>
+<tr>
+<td align="left">
 <a name="nm-settings-dbus.property.connection.autoconnect-priority"></a>autoconnect-priority</td>
 <td align="left">int32</td>
 <td align="left">0</td>
@@ -1740,6 +1747,15 @@ If unset, a globally configured default from NetworkManager.conf is used. If sti
 </tr>
 <tr>
 <td align="left">
+<a name="nm-settings-dbus.property.ipv4.dhcp-dscp"></a>dhcp-dscp</td>
+<td align="left">string</td>
+<td align="left"> </td>
+<td>Specifies the value for the DSCP field (traffic class) of the IP header. When empty, the global default value is used; if no global default is specified, it is assumed to be "CS0". Allowed values are: "CS0", "CS4" and "CS6".
+
+The property is currently valid only for IPv4, and it is supported only by the "internal" DHCP plugin.</td>
+</tr>
+<tr>
+<td align="left">
 <a name="nm-settings-dbus.property.ipv4.dhcp-fqdn"></a>dhcp-fqdn</td>
 <td align="left">string</td>
 <td align="left"> </td>
@@ -2070,6 +2086,15 @@ For other connection types, adding such an automatic route is currently not supp
 <td>Maximum timeout in milliseconds used to check for the presence of duplicate IP addresses on the network.  If an address conflict is detected, the activation will fail. The property is currently implemented only for IPv4.
 
 A zero value means that no duplicate address detection is performed, -1 means the default value (either the value configured globally in NetworkManger.conf or 200ms).  A value greater than zero is a timeout in milliseconds.  Note that the time intervals are subject to randomization as per RFC 5227 and so the actual duration can be between half and the full time specified in this property.</td>
+</tr>
+<tr>
+<td align="left">
+<a name="nm-settings-dbus.property.ipv6.dhcp-dscp"></a>dhcp-dscp</td>
+<td align="left">string</td>
+<td align="left"> </td>
+<td>Specifies the value for the DSCP field (traffic class) of the IP header. When empty, the global default value is used; if no global default is specified, it is assumed to be "CS0". Allowed values are: "CS0", "CS4" and "CS6".
+
+The property is currently valid only for IPv4, and it is supported only by the "internal" DHCP plugin.</td>
 </tr>
 <tr>
 <td align="left">

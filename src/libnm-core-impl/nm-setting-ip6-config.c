@@ -386,6 +386,18 @@ verify(NMSetting *setting, NMConnection *connection, GError **error)
         }
     }
 
+    if (nm_setting_ip_config_get_dhcp_dscp(s_ip)) {
+        g_set_error_literal(error,
+                            NM_CONNECTION_ERROR,
+                            NM_CONNECTION_ERROR_INVALID_PROPERTY,
+                            _("DHCP DSCP is not supported for IPv6"));
+        g_prefix_error(error,
+                       "%s.%s: ",
+                       NM_SETTING_IP6_CONFIG_SETTING_NAME,
+                       NM_SETTING_IP_CONFIG_DHCP_DSCP);
+        return FALSE;
+    }
+
     /* Failures from here on, are NORMALIZABLE_ERROR... */
 
     if (token_needs_normalization) {
@@ -936,6 +948,7 @@ nm_setting_ip6_config_class_init(NMSettingIP6ConfigClass *klass)
                                             NM_TYPE_SETTING_IP6_CONFIG_PRIVACY,
                                             NM_SETTING_IP6_CONFIG_PRIVACY_UNKNOWN,
                                             NM_SETTING_PARAM_NONE,
+                                            NULL,
                                             NMSettingIP6ConfigPrivate,
                                             ip6_privacy);
 

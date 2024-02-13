@@ -111,6 +111,7 @@
 <tr><td><code class="option">rd.net.timeout.dhcp</code></td></tr>
 <tr><td><code class="option">rd.net.dhcp.retry</code></td></tr>
 <tr><td><code class="option">rd.net.dhcp.vendor-class</code></td></tr>
+<tr><td><code class="option">rd.net.dhcp.dscp</code></td></tr>
 <tr><td><code class="option">rd.net.timeout.carrier</code></td></tr>
 <tr><td><code class="option">rd.znet</code></td></tr>
 <tr><td><code class="option">rd.znet_ifname</code></td></tr>
@@ -160,6 +161,11 @@
         accepts string values, <em class="replaceable"><code>AUTONEG</code></em> accepts 
         boolean values (true and false / on or off / 0 or 1), and 
         <em class="replaceable"><code>SPEED</code></em> accepts positive integer values.
+        </p></li>
+<li class="listitem"><p>NetworkManager supports the
+        <code class="option">rd.net.dhcp.dscp</code>={<em class="replaceable"><code>CS0</code></em>|<em class="replaceable"><code>CS4</code></em>|<em class="replaceable"><code>CS6</code></em>}
+        kernel command line option to set a specific DSCP (TOS) value
+        in the IP header of DHCP messages.
         </p></li>
 </ul></div>
 </div>

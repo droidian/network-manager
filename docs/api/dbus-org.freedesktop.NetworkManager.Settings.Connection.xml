@@ -196,36 +196,36 @@ logically or-ed together:
 </para><para>
 <variablelist>
 <varlistentry>
-<term><literal>0x1 (to-disk)</literal>:</term>
-<listitem><para>The connection is persisted to disk.</para></listitem>
+  <term><literal>0x1 (to-disk)</literal>:</term>
+  <listitem><para>The connection is persisted to disk.</para></listitem>
 </varlistentry>
 <varlistentry>
-<term><literal>0x2 (in-memory)</literal>:</term>
-<listitem><para>The change is only made in memory (without touching an eventual
-profile on disk). If neither 0x1 nor 0x2 is set, the change is made in memory
-only, if the connection is already in memory only.</para></listitem>
+  <term><literal>0x2 (in-memory)</literal>:</term>
+  <listitem><para>The change is only made in memory (without touching an eventual
+  profile on disk). If neither 0x1 nor 0x2 is set, the change is made in memory
+  only, if the connection is already in memory only.</para></listitem>
 </varlistentry>
 <varlistentry>
-<term><literal>0x4 (in-memory-detached)</literal>:</term>
-<listitem><para>Like "in-memory", but behaves slightly different when migrating
-the profile from disk to in-memory.</para></listitem>
+  <term><literal>0x4 (in-memory-detached)</literal>:</term>
+  <listitem><para>Like "in-memory", but behaves slightly different when migrating
+  the profile from disk to in-memory.</para></listitem>
 </varlistentry>
 <varlistentry>
-<term><literal>0x8 (in-memory-only)</literal>:</term>
-<listitem><para>Like "in-memory", but behaves slightly different when migrating
-the profile from disk to in-memory.</para></listitem>
+  <term><literal>0x8 (in-memory-only)</literal>:</term>
+  <listitem><para>Like "in-memory", but behaves slightly different when migrating
+  the profile from disk to in-memory.</para></listitem>
 </varlistentry>
 <varlistentry>
-<term><literal>0x10 (volatile)</literal>:</term>
+  <term><literal>0x10 (volatile)</literal>:</term>
 </varlistentry>
 <varlistentry>
-<term><literal>0x20 (block-autoconnect)</literal>:</term>
-<listitem><para>Blocks auto-connect on the updated profile</para></listitem>
+  <term><literal>0x20 (block-autoconnect)</literal>:</term>
+  <listitem><para>Blocks auto-connect on the updated profile</para></listitem>
 </varlistentry>
 <varlistentry>
-<term><literal>0x40 (no-reapply)</literal>:</term>
-<listitem><para>Prevents "connection.zone" and "connection.metered" properties
-to take effect on currently active devices.</para></listitem>
+  <term><literal>0x40 (no-reapply)</literal>:</term>
+  <listitem><para>Prevents "connection.zone" and "connection.metered" properties
+  to take effect on currently active devices.</para></listitem>
 </varlistentry>
 </variablelist>
 </para><para>
@@ -233,14 +233,14 @@ The <constant>args</constant> argument accepts the following keys:
 </para><para>
 <variablelist>
 <varlistentry>
-<term><literal>plugin</literal>:</term>
-<listitem><para>The settings plugin the connection will be migrated to
-such as "keyfile" or "ifcfg-rh".</para>
-<para role="since">Since 1.38</para></listitem>
-<term><literal>version-id</literal>:</term>
-<listitem><para>If specified, the update request is rejected if the
-profile's version-id does not match. This can be used to catch concurrent
-modifications. Zero means no version check.</para><para role="since">Since 1.44</para></listitem>
+  <term><literal>plugin</literal>:</term>
+  <listitem><para>The settings plugin the connection will be migrated to
+  such as "keyfile" or "ifcfg-rh".</para>
+  <para role="since">Since 1.38</para></listitem>
+  <term><literal>version-id</literal>:</term>
+  <listitem><para>If specified, the update request is rejected if the
+  profile's version-id does not match. This can be used to catch concurrent
+  modifications. Zero means no version check.</para><para role="since">Since 1.44</para></listitem>
 </varlistentry>
 </variablelist>
 </para><para>

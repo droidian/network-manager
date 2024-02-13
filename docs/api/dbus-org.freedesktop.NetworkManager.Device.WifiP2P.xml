@@ -48,9 +48,9 @@ The <constant>options</constant> argument accepts the following keys:
 </para><para>
 <variablelist>
 <varlistentry>
-<term><literal>i timeout</literal>:</term>
-<listitem><para>Timeout value in the range of 1-600 seconds.</para>
-<para>The default is 30 seconds.</para></listitem>
+  <term><literal>i timeout</literal>:</term>
+  <listitem><para>Timeout value in the range of 1-600 seconds.</para>
+  <para>The default is 30 seconds.</para></listitem>
 </varlistentry>
 </variablelist>
 </para>

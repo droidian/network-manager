@@ -1092,6 +1092,13 @@ addressing, routing, and name service properties</p>
 </td>
 </tr>
 <tr>
+<td class="function_type">const <span class="returnvalue">char</span> *
+</td>
+<td class="function_name">
+<a class="link" href="NMSettingIPConfig.html#nm-setting-ip-config-get-dhcp-dscp" title="nm_setting_ip_config_get_dhcp_dscp ()">nm_setting_ip_config_get_dhcp_dscp</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
 <td class="function_type">
 <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 </td>
@@ -1367,6 +1374,10 @@ addressing, routing, and name service properties</p>
 <tr>
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMSettingIPConfig.html#NM-SETTING-IP-CONFIG-DHCP-HOSTNAME-FLAGS:CAPS" title="NM_SETTING_IP_CONFIG_DHCP_HOSTNAME_FLAGS">NM_SETTING_IP_CONFIG_DHCP_HOSTNAME_FLAGS</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingIPConfig.html#NM-SETTING-IP-CONFIG-DHCP-DSCP:CAPS" title="NM_SETTING_IP_CONFIG_DHCP_DSCP">NM_SETTING_IP_CONFIG_DHCP_DSCP</a></td>
 </tr>
 <tr>
 <td class="define_keyword">#define</td>
@@ -5780,6 +5791,34 @@ update DNS information for this machine.</p>
 </div>
 <hr>
 <div class="refsect2">
+<a name="nm-setting-ip-config-get-dhcp-dscp"></a><h3>nm_setting_ip_config_get_dhcp_dscp ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *
+nm_setting_ip_config_get_dhcp_dscp (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a> *setting</code></em>);</pre>
+<p>Returns the value contained in the <span class="type">“dhcp-dscp”</span>
+property.</p>
+<div class="refsect3">
+<a name="nm-setting-ip-config-get-dhcp-dscp.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>setting</p></td>
+<td class="parameter_description"><p>the <a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="nm-setting-ip-config-get-dhcp-dscp.returns"></a><h4>Returns</h4>
+<p> the value for the DSCP field for DHCP</p>
+</div>
+<p class="since">Since: 1.46</p>
+</div>
+<hr>
+<div class="refsect2">
 <a name="nm-setting-ip-config-get-never-default"></a><h3>nm_setting_ip_config_get_never_default ()</h3>
 <pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 nm_setting_ip_config_get_never_default
@@ -6478,6 +6517,12 @@ rule verfies or fail.</p>
 <div class="refsect2">
 <a name="NM-SETTING-IP-CONFIG-DHCP-HOSTNAME-FLAGS:CAPS"></a><h3>NM_SETTING_IP_CONFIG_DHCP_HOSTNAME_FLAGS</h3>
 <pre class="programlisting">#define NM_SETTING_IP_CONFIG_DHCP_HOSTNAME_FLAGS "dhcp-hostname-flags"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-IP-CONFIG-DHCP-DSCP:CAPS"></a><h3>NM_SETTING_IP_CONFIG_DHCP_DSCP</h3>
+<pre class="programlisting">#define NM_SETTING_IP_CONFIG_DHCP_DSCP           "dhcp-dscp"
 </pre>
 </div>
 <hr>
