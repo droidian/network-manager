@@ -440,6 +440,7 @@ NM_TYPE_SETTING_IP4_LINK_LOCAL
 NM_TYPE_SETTING_IP6_CONFIG_ADDR_GEN_MODE
 NM_TYPE_SETTING_IP6_CONFIG_PRIVACY
 NM_TYPE_SETTING_MACSEC_MODE
+NM_TYPE_SETTING_MACSEC_OFFLOAD
 NM_TYPE_SETTING_MACSEC_VALIDATION
 NM_TYPE_SETTING_MACVLAN_MODE
 NM_TYPE_SETTING_MAC_RANDOMIZATION
@@ -453,6 +454,9 @@ NM_TYPE_SETTING_WIRELESS_SECURITY_FILS
 NM_TYPE_SETTING_WIRELESS_SECURITY_PMF
 NM_TYPE_SETTING_WIRELESS_SECURITY_WPS_METHOD
 NM_TYPE_SETTING_WIRELESS_WAKE_ON_WLAN
+NM_TYPE_SRIOV_ESWITCH_ENCAP_MODE
+NM_TYPE_SRIOV_ESWITCH_INLINE_MODE
+NM_TYPE_SRIOV_ESWITCH_MODE
 NM_TYPE_SRIOV_VF_VLAN_PROTOCOL
 NM_TYPE_STATE
 NM_TYPE_TEAM_LINK_WATCHER_ARP_PING_FLAGS
@@ -522,6 +526,7 @@ nm_setting_ip6_config_addr_gen_mode_get_type
 nm_setting_ip6_config_privacy_get_type
 nm_setting_mac_randomization_get_type
 nm_setting_macsec_mode_get_type
+nm_setting_macsec_offload_get_type
 nm_setting_macsec_validation_get_type
 nm_setting_macvlan_mode_get_type
 nm_setting_proxy_method_get_type
@@ -538,6 +543,9 @@ nm_settings_add_connection2_flags_get_type
 nm_settings_connection_flags_get_type
 nm_settings_error_get_type
 nm_settings_update2_flags_get_type
+nm_sriov_eswitch_encap_mode_get_type
+nm_sriov_eswitch_inline_mode_get_type
+nm_sriov_eswitch_mode_get_type
 nm_sriov_vf_vlan_protocol_get_type
 nm_state_get_type
 nm_team_link_watcher_arp_ping_flags_get_type
@@ -744,6 +752,9 @@ NMClientPermission
 NMClientPermissionResult
 NMRadioFlags
 NMMptcpFlags
+NM_SECRET_TAG_VPN_MSG
+NM_SECRET_TAG_DYNAMIC_CHALLENGE
+NM_SECRET_TAG_DYNAMIC_CHALLENGE_ECHO
 </SECTION>
 
 <SECTION>
@@ -1915,6 +1926,7 @@ nm_setting_option_set_boolean
 nm_setting_option_get_all_names
 nm_setting_option_clear_by_name
 nm_setting_get_dbus_property_type
+nm_setting_get_enum_property_type
 nm_range_new
 nm_range_ref
 nm_range_unref
@@ -2591,7 +2603,9 @@ nm_setting_ethtool_get_type
 <FILE>nm-setting-generic</FILE>
 <TITLE>NMSettingGeneric</TITLE>
 NM_SETTING_GENERIC_SETTING_NAME
+NM_SETTING_GENERIC_DEVICE_HANDLER
 nm_setting_generic_new
+nm_setting_generic_get_device_handler
 <SUBSECTION Standard>
 NMSettingGenericClass
 NM_IS_SETTING_GENERIC
@@ -3134,10 +3148,12 @@ NM_SETTING_MACSEC_MKA_CKN
 NM_SETTING_MACSEC_PORT
 NM_SETTING_MACSEC_VALIDATION
 NM_SETTING_MACSEC_SEND_SCI
+NM_SETTING_MACSEC_OFFLOAD
 NMSettingMacsecMode
 NMSettingMacsecValidation
 NM_SETTING_MACSEC_MKA_CAK_LENGTH
 NM_SETTING_MACSEC_MKA_CKN_LENGTH
+NMSettingMacsecOffload
 nm_setting_macsec_new
 nm_setting_macsec_get_parent
 nm_setting_macsec_get_mode
@@ -3148,6 +3164,7 @@ nm_setting_macsec_get_mka_ckn
 nm_setting_macsec_get_port
 nm_setting_macsec_get_validation
 nm_setting_macsec_get_send_sci
+nm_setting_macsec_get_offload
 <SUBSECTION Standard>
 NMSettingMacsecClass
 NM_IS_SETTING_MACSEC
@@ -3556,12 +3573,18 @@ NM_SETTING_SRIOV_SETTING_NAME
 NM_SETTING_SRIOV_TOTAL_VFS
 NM_SETTING_SRIOV_VFS
 NM_SETTING_SRIOV_AUTOPROBE_DRIVERS
+NM_SETTING_SRIOV_ESWITCH_MODE
+NM_SETTING_SRIOV_ESWITCH_INLINE_MODE
+NM_SETTING_SRIOV_ESWITCH_ENCAP_MODE
 NM_SRIOV_VF_ATTRIBUTE_MAC
 NM_SRIOV_VF_ATTRIBUTE_SPOOF_CHECK
 NM_SRIOV_VF_ATTRIBUTE_TRUST
 NM_SRIOV_VF_ATTRIBUTE_MIN_TX_RATE
 NM_SRIOV_VF_ATTRIBUTE_MAX_TX_RATE
 NMSriovVFVlanProtocol
+NMSriovEswitchMode
+NMSriovEswitchInlineMode
+NMSriovEswitchEncapMode
 nm_setting_sriov_new
 nm_setting_sriov_get_total_vfs
 nm_setting_sriov_get_num_vfs
@@ -3571,6 +3594,9 @@ nm_setting_sriov_remove_vf
 nm_setting_sriov_remove_vf_by_index
 nm_setting_sriov_clear_vfs
 nm_setting_sriov_get_autoprobe_drivers
+nm_setting_sriov_get_eswitch_mode
+nm_setting_sriov_get_eswitch_inline_mode
+nm_setting_sriov_get_eswitch_encap_mode
 nm_sriov_vf_add_vlan
 nm_sriov_vf_remove_vlan
 nm_sriov_vf_get_vlan_ids

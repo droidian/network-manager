@@ -2,12 +2,12 @@
 .\"     Title: NetworkManager.conf
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 02/09/2024
+.\"      Date: 02/22/2024
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.45.91
+.\"    Source: NetworkManager 1.46.0
 .\"  Language: English
 .\"
-.TH "NETWORKMANAGER\&.CONF" "5" "" "NetworkManager 1\&.45\&.91" "Configuration"
+.TH "NETWORKMANAGER\&.CONF" "5" "" "NetworkManager 1\&.46\&.0" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -983,6 +983,10 @@ If left unspecified, routes are only added to the main table\&. Note that this i
 \fIloopback\&.mtu\fR
 .RS 4
 If configured explicitly to 0, the MTU is not reconfigured during device activation unless it is required due to IPv6 constraints\&. If left unspecified, a DHCP/IPv6 SLAAC provided value is used or the MTU is left unspecified on activation\&.
+.RE
+.PP
+\fImacsec\&.offload\fR
+.RS 4
 .RE
 .PP
 \fIsriov\&.autoprobe\-drivers\fR

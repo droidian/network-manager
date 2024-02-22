@@ -520,6 +520,9 @@
     <keyword type="enum" name="enum NMClientPermissionResult" link="libnm-nm-dbus-interface.html#NMClientPermissionResult"/>
     <keyword type="enum" name="enum NMRadioFlags" link="libnm-nm-dbus-interface.html#NMRadioFlags" since="1.38"/>
     <keyword type="enum" name="enum NMMptcpFlags" link="libnm-nm-dbus-interface.html#NMMptcpFlags" since="1.40"/>
+    <keyword type="macro" name="NM_SECRET_TAG_VPN_MSG" link="libnm-nm-dbus-interface.html#NM-SECRET-TAG-VPN-MSG:CAPS"/>
+    <keyword type="macro" name="NM_SECRET_TAG_DYNAMIC_CHALLENGE" link="libnm-nm-dbus-interface.html#NM-SECRET-TAG-DYNAMIC-CHALLENGE:CAPS"/>
+    <keyword type="macro" name="NM_SECRET_TAG_DYNAMIC_CHALLENGE_ECHO" link="libnm-nm-dbus-interface.html#NM-SECRET-TAG-DYNAMIC-CHALLENGE-ECHO:CAPS"/>
     <keyword type="macro" name="NM_DEPRECATED_IN_1_8_FOR()" link="libnm-nm-vpn-dbus-interface.html#NM-DEPRECATED-IN-1-8-FOR:CAPS"/>
     <keyword type="macro" name="NM_DBUS_PATH_VPN" link="libnm-nm-vpn-dbus-interface.html#NM-DBUS-PATH-VPN:CAPS"/>
     <keyword type="macro" name="NM_DBUS_INTERFACE_VPN" link="libnm-nm-vpn-dbus-interface.html#NM-DBUS-INTERFACE-VPN:CAPS"/>
@@ -718,6 +721,7 @@
     <keyword type="function" name="nm_setting_option_get_all_names ()" link="NMSetting.html#nm-setting-option-get-all-names" since="1.26"/>
     <keyword type="function" name="nm_setting_option_clear_by_name ()" link="NMSetting.html#nm-setting-option-clear-by-name" since="1.26"/>
     <keyword type="function" name="nm_setting_get_dbus_property_type ()" link="NMSetting.html#nm-setting-get-dbus-property-type"/>
+    <keyword type="function" name="nm_setting_get_enum_property_type ()" link="NMSetting.html#nm-setting-get-enum-property-type" since="1.46"/>
     <keyword type="function" name="nm_range_new ()" link="NMSetting.html#nm-range-new" since="1.42"/>
     <keyword type="function" name="nm_range_ref ()" link="NMSetting.html#nm-range-ref" since="1.42"/>
     <keyword type="function" name="nm_range_unref ()" link="NMSetting.html#nm-range-unref" since="1.42"/>
@@ -1202,7 +1206,9 @@
     <keyword type="function" name="nm_setting_ethtool_clear_features ()" link="NMSettingEthtool.html#nm-setting-ethtool-clear-features" deprecated="1.26: use nm_setting_option_clear_by_name() with nm_ethtool_optname_is_feature() predicate instead." since="1.14"/>
     <keyword type="macro" name="NM_SETTING_ETHTOOL_SETTING_NAME" link="NMSettingEthtool.html#NM-SETTING-ETHTOOL-SETTING-NAME:CAPS"/>
     <keyword type="function" name="nm_setting_generic_new ()" link="NMSettingGeneric.html#nm-setting-generic-new"/>
+    <keyword type="function" name="nm_setting_generic_get_device_handler ()" link="NMSettingGeneric.html#nm-setting-generic-get-device-handler" since="1.46"/>
     <keyword type="macro" name="NM_SETTING_GENERIC_SETTING_NAME" link="NMSettingGeneric.html#NM-SETTING-GENERIC-SETTING-NAME:CAPS"/>
+    <keyword type="macro" name="NM_SETTING_GENERIC_DEVICE_HANDLER" link="NMSettingGeneric.html#NM-SETTING-GENERIC-DEVICE-HANDLER:CAPS"/>
     <keyword type="function" name="nm_setting_gsm_new ()" link="NMSettingGsm.html#nm-setting-gsm-new"/>
     <keyword type="function" name="nm_setting_gsm_get_auto_config ()" link="NMSettingGsm.html#nm-setting-gsm-get-auto-config" since="1.22"/>
     <keyword type="function" name="nm_setting_gsm_get_username ()" link="NMSettingGsm.html#nm-setting-gsm-get-username"/>
@@ -1586,6 +1592,7 @@
     <keyword type="function" name="nm_setting_macsec_get_port ()" link="NMSettingMacsec.html#nm-setting-macsec-get-port" since="1.6"/>
     <keyword type="function" name="nm_setting_macsec_get_validation ()" link="NMSettingMacsec.html#nm-setting-macsec-get-validation" since="1.6"/>
     <keyword type="function" name="nm_setting_macsec_get_send_sci ()" link="NMSettingMacsec.html#nm-setting-macsec-get-send-sci" since="1.12"/>
+    <keyword type="function" name="nm_setting_macsec_get_offload ()" link="NMSettingMacsec.html#nm-setting-macsec-get-offload" since="1.46"/>
     <keyword type="macro" name="NM_SETTING_MACSEC_SETTING_NAME" link="NMSettingMacsec.html#NM-SETTING-MACSEC-SETTING-NAME:CAPS"/>
     <keyword type="macro" name="NM_SETTING_MACSEC_PARENT" link="NMSettingMacsec.html#NM-SETTING-MACSEC-PARENT:CAPS"/>
     <keyword type="macro" name="NM_SETTING_MACSEC_MODE" link="NMSettingMacsec.html#NM-SETTING-MACSEC-MODE:CAPS"/>
@@ -1596,10 +1603,12 @@
     <keyword type="macro" name="NM_SETTING_MACSEC_PORT" link="NMSettingMacsec.html#NM-SETTING-MACSEC-PORT:CAPS"/>
     <keyword type="macro" name="NM_SETTING_MACSEC_VALIDATION" link="NMSettingMacsec.html#NM-SETTING-MACSEC-VALIDATION:CAPS"/>
     <keyword type="macro" name="NM_SETTING_MACSEC_SEND_SCI" link="NMSettingMacsec.html#NM-SETTING-MACSEC-SEND-SCI:CAPS"/>
+    <keyword type="macro" name="NM_SETTING_MACSEC_OFFLOAD" link="NMSettingMacsec.html#NM-SETTING-MACSEC-OFFLOAD:CAPS"/>
     <keyword type="enum" name="enum NMSettingMacsecMode" link="NMSettingMacsec.html#NMSettingMacsecMode" since="1.6"/>
     <keyword type="enum" name="enum NMSettingMacsecValidation" link="NMSettingMacsec.html#NMSettingMacsecValidation" since="1.6"/>
     <keyword type="macro" name="NM_SETTING_MACSEC_MKA_CAK_LENGTH" link="NMSettingMacsec.html#NM-SETTING-MACSEC-MKA-CAK-LENGTH:CAPS"/>
     <keyword type="macro" name="NM_SETTING_MACSEC_MKA_CKN_LENGTH" link="NMSettingMacsec.html#NM-SETTING-MACSEC-MKA-CKN-LENGTH:CAPS"/>
+    <keyword type="enum" name="enum NMSettingMacsecOffload" link="NMSettingMacsec.html#NMSettingMacsecOffload" since="1.46"/>
     <keyword type="function" name="nm_setting_macvlan_new ()" link="NMSettingMacvlan.html#nm-setting-macvlan-new" since="1.2"/>
     <keyword type="function" name="nm_setting_macvlan_get_parent ()" link="NMSettingMacvlan.html#nm-setting-macvlan-get-parent" since="1.2"/>
     <keyword type="function" name="nm_setting_macvlan_get_mode ()" link="NMSettingMacvlan.html#nm-setting-macvlan-get-mode" since="1.2"/>
@@ -1803,6 +1812,9 @@
     <keyword type="function" name="nm_setting_sriov_remove_vf_by_index ()" link="NMSettingSriov.html#nm-setting-sriov-remove-vf-by-index" since="1.14"/>
     <keyword type="function" name="nm_setting_sriov_clear_vfs ()" link="NMSettingSriov.html#nm-setting-sriov-clear-vfs" since="1.14"/>
     <keyword type="function" name="nm_setting_sriov_get_autoprobe_drivers ()" link="NMSettingSriov.html#nm-setting-sriov-get-autoprobe-drivers" since="1.14"/>
+    <keyword type="function" name="nm_setting_sriov_get_eswitch_mode ()" link="NMSettingSriov.html#nm-setting-sriov-get-eswitch-mode" since="1.46"/>
+    <keyword type="function" name="nm_setting_sriov_get_eswitch_inline_mode ()" link="NMSettingSriov.html#nm-setting-sriov-get-eswitch-inline-mode" since="1.46"/>
+    <keyword type="function" name="nm_setting_sriov_get_eswitch_encap_mode ()" link="NMSettingSriov.html#nm-setting-sriov-get-eswitch-encap-mode" since="1.46"/>
     <keyword type="function" name="nm_sriov_vf_add_vlan ()" link="NMSettingSriov.html#nm-sriov-vf-add-vlan" since="1.14"/>
     <keyword type="function" name="nm_sriov_vf_remove_vlan ()" link="NMSettingSriov.html#nm-sriov-vf-remove-vlan" since="1.14"/>
     <keyword type="function" name="nm_sriov_vf_get_vlan_ids ()" link="NMSettingSriov.html#nm-sriov-vf-get-vlan-ids" since="1.14"/>
@@ -1824,12 +1836,18 @@
     <keyword type="macro" name="NM_SETTING_SRIOV_TOTAL_VFS" link="NMSettingSriov.html#NM-SETTING-SRIOV-TOTAL-VFS:CAPS"/>
     <keyword type="macro" name="NM_SETTING_SRIOV_VFS" link="NMSettingSriov.html#NM-SETTING-SRIOV-VFS:CAPS"/>
     <keyword type="macro" name="NM_SETTING_SRIOV_AUTOPROBE_DRIVERS" link="NMSettingSriov.html#NM-SETTING-SRIOV-AUTOPROBE-DRIVERS:CAPS"/>
+    <keyword type="macro" name="NM_SETTING_SRIOV_ESWITCH_MODE" link="NMSettingSriov.html#NM-SETTING-SRIOV-ESWITCH-MODE:CAPS"/>
+    <keyword type="macro" name="NM_SETTING_SRIOV_ESWITCH_INLINE_MODE" link="NMSettingSriov.html#NM-SETTING-SRIOV-ESWITCH-INLINE-MODE:CAPS"/>
+    <keyword type="macro" name="NM_SETTING_SRIOV_ESWITCH_ENCAP_MODE" link="NMSettingSriov.html#NM-SETTING-SRIOV-ESWITCH-ENCAP-MODE:CAPS"/>
     <keyword type="macro" name="NM_SRIOV_VF_ATTRIBUTE_MAC" link="NMSettingSriov.html#NM-SRIOV-VF-ATTRIBUTE-MAC:CAPS"/>
     <keyword type="macro" name="NM_SRIOV_VF_ATTRIBUTE_SPOOF_CHECK" link="NMSettingSriov.html#NM-SRIOV-VF-ATTRIBUTE-SPOOF-CHECK:CAPS"/>
     <keyword type="macro" name="NM_SRIOV_VF_ATTRIBUTE_TRUST" link="NMSettingSriov.html#NM-SRIOV-VF-ATTRIBUTE-TRUST:CAPS"/>
     <keyword type="macro" name="NM_SRIOV_VF_ATTRIBUTE_MIN_TX_RATE" link="NMSettingSriov.html#NM-SRIOV-VF-ATTRIBUTE-MIN-TX-RATE:CAPS"/>
     <keyword type="macro" name="NM_SRIOV_VF_ATTRIBUTE_MAX_TX_RATE" link="NMSettingSriov.html#NM-SRIOV-VF-ATTRIBUTE-MAX-TX-RATE:CAPS"/>
     <keyword type="enum" name="enum NMSriovVFVlanProtocol" link="NMSettingSriov.html#NMSriovVFVlanProtocol" since="1.14"/>
+    <keyword type="enum" name="enum NMSriovEswitchMode" link="NMSettingSriov.html#NMSriovEswitchMode" since="1.46"/>
+    <keyword type="enum" name="enum NMSriovEswitchInlineMode" link="NMSettingSriov.html#NMSriovEswitchInlineMode" since="1.46"/>
+    <keyword type="enum" name="enum NMSriovEswitchEncapMode" link="NMSettingSriov.html#NMSriovEswitchEncapMode" since="1.46"/>
     <keyword type="function" name="nm_tc_qdisc_new ()" link="NMSettingTCConfig.html#nm-tc-qdisc-new" since="1.12"/>
     <keyword type="function" name="nm_tc_qdisc_ref ()" link="NMSettingTCConfig.html#nm-tc-qdisc-ref" since="1.12"/>
     <keyword type="function" name="nm_tc_qdisc_unref ()" link="NMSettingTCConfig.html#nm-tc-qdisc-unref" since="1.12"/>
@@ -3740,6 +3758,7 @@
     <keyword type="constant" name="NM_DEVICE_STATE_REASON_IP_METHOD_UNSUPPORTED" link="libnm-nm-dbus-interface.html#NM-DEVICE-STATE-REASON-IP-METHOD-UNSUPPORTED:CAPS"/>
     <keyword type="constant" name="NM_DEVICE_STATE_REASON_SRIOV_CONFIGURATION_FAILED" link="libnm-nm-dbus-interface.html#NM-DEVICE-STATE-REASON-SRIOV-CONFIGURATION-FAILED:CAPS"/>
     <keyword type="constant" name="NM_DEVICE_STATE_REASON_PEER_NOT_FOUND" link="libnm-nm-dbus-interface.html#NM-DEVICE-STATE-REASON-PEER-NOT-FOUND:CAPS"/>
+    <keyword type="constant" name="NM_DEVICE_STATE_REASON_DEVICE_HANDLER_FAILED" link="libnm-nm-dbus-interface.html#NM-DEVICE-STATE-REASON-DEVICE-HANDLER-FAILED:CAPS"/>
     <keyword type="constant" name="NM_METERED_UNKNOWN" link="libnm-nm-dbus-interface.html#NM-METERED-UNKNOWN:CAPS"/>
     <keyword type="constant" name="NM_METERED_YES" link="libnm-nm-dbus-interface.html#NM-METERED-YES:CAPS"/>
     <keyword type="constant" name="NM_METERED_NO" link="libnm-nm-dbus-interface.html#NM-METERED-NO:CAPS"/>
@@ -4013,6 +4032,10 @@
     <keyword type="constant" name="NM_SETTING_MACSEC_VALIDATION_DISABLE" link="NMSettingMacsec.html#NM-SETTING-MACSEC-VALIDATION-DISABLE:CAPS"/>
     <keyword type="constant" name="NM_SETTING_MACSEC_VALIDATION_CHECK" link="NMSettingMacsec.html#NM-SETTING-MACSEC-VALIDATION-CHECK:CAPS"/>
     <keyword type="constant" name="NM_SETTING_MACSEC_VALIDATION_STRICT" link="NMSettingMacsec.html#NM-SETTING-MACSEC-VALIDATION-STRICT:CAPS"/>
+    <keyword type="constant" name="NM_SETTING_MACSEC_OFFLOAD_DEFAULT" link="NMSettingMacsec.html#NM-SETTING-MACSEC-OFFLOAD-DEFAULT:CAPS"/>
+    <keyword type="constant" name="NM_SETTING_MACSEC_OFFLOAD_OFF" link="NMSettingMacsec.html#NM-SETTING-MACSEC-OFFLOAD-OFF:CAPS"/>
+    <keyword type="constant" name="NM_SETTING_MACSEC_OFFLOAD_PHY" link="NMSettingMacsec.html#NM-SETTING-MACSEC-OFFLOAD-PHY:CAPS"/>
+    <keyword type="constant" name="NM_SETTING_MACSEC_OFFLOAD_MAC" link="NMSettingMacsec.html#NM-SETTING-MACSEC-OFFLOAD-MAC:CAPS"/>
     <keyword type="constant" name="NM_SETTING_MACVLAN_MODE_UNKNOWN" link="NMSettingMacvlan.html#NM-SETTING-MACVLAN-MODE-UNKNOWN:CAPS"/>
     <keyword type="constant" name="NM_SETTING_MACVLAN_MODE_VEPA" link="NMSettingMacvlan.html#NM-SETTING-MACVLAN-MODE-VEPA:CAPS"/>
     <keyword type="constant" name="NM_SETTING_MACVLAN_MODE_BRIDGE" link="NMSettingMacvlan.html#NM-SETTING-MACVLAN-MODE-BRIDGE:CAPS"/>
@@ -4028,6 +4051,20 @@
     <keyword type="constant" name="NM_SETTING_SERIAL_PARITY_ODD" link="NMSettingSerial.html#NM-SETTING-SERIAL-PARITY-ODD:CAPS"/>
     <keyword type="constant" name="NM_SRIOV_VF_VLAN_PROTOCOL_802_1Q" link="NMSettingSriov.html#NM-SRIOV-VF-VLAN-PROTOCOL-802-1Q:CAPS"/>
     <keyword type="constant" name="NM_SRIOV_VF_VLAN_PROTOCOL_802_1AD" link="NMSettingSriov.html#NM-SRIOV-VF-VLAN-PROTOCOL-802-1AD:CAPS"/>
+    <keyword type="constant" name="NM_SRIOV_ESWITCH_MODE_PRESERVE" link="NMSettingSriov.html#NM-SRIOV-ESWITCH-MODE-PRESERVE:CAPS"/>
+    <keyword type="constant" name="NM_SRIOV_ESWITCH_MODE_UNKNOWN" link="NMSettingSriov.html#NM-SRIOV-ESWITCH-MODE-UNKNOWN:CAPS"/>
+    <keyword type="constant" name="NM_SRIOV_ESWITCH_MODE_LEGACY" link="NMSettingSriov.html#NM-SRIOV-ESWITCH-MODE-LEGACY:CAPS"/>
+    <keyword type="constant" name="NM_SRIOV_ESWITCH_MODE_SWITCHDEV" link="NMSettingSriov.html#NM-SRIOV-ESWITCH-MODE-SWITCHDEV:CAPS"/>
+    <keyword type="constant" name="NM_SRIOV_ESWITCH_INLINE_MODE_PRESERVE" link="NMSettingSriov.html#NM-SRIOV-ESWITCH-INLINE-MODE-PRESERVE:CAPS"/>
+    <keyword type="constant" name="NM_SRIOV_ESWITCH_INLINE_MODE_UNKNOWN" link="NMSettingSriov.html#NM-SRIOV-ESWITCH-INLINE-MODE-UNKNOWN:CAPS"/>
+    <keyword type="constant" name="NM_SRIOV_ESWITCH_INLINE_MODE_NONE" link="NMSettingSriov.html#NM-SRIOV-ESWITCH-INLINE-MODE-NONE:CAPS"/>
+    <keyword type="constant" name="NM_SRIOV_ESWITCH_INLINE_MODE_LINK" link="NMSettingSriov.html#NM-SRIOV-ESWITCH-INLINE-MODE-LINK:CAPS"/>
+    <keyword type="constant" name="NM_SRIOV_ESWITCH_INLINE_MODE_NETWORK" link="NMSettingSriov.html#NM-SRIOV-ESWITCH-INLINE-MODE-NETWORK:CAPS"/>
+    <keyword type="constant" name="NM_SRIOV_ESWITCH_INLINE_MODE_TRANSPORT" link="NMSettingSriov.html#NM-SRIOV-ESWITCH-INLINE-MODE-TRANSPORT:CAPS"/>
+    <keyword type="constant" name="NM_SRIOV_ESWITCH_ENCAP_MODE_PRESERVE" link="NMSettingSriov.html#NM-SRIOV-ESWITCH-ENCAP-MODE-PRESERVE:CAPS"/>
+    <keyword type="constant" name="NM_SRIOV_ESWITCH_ENCAP_MODE_UNKNOWN" link="NMSettingSriov.html#NM-SRIOV-ESWITCH-ENCAP-MODE-UNKNOWN:CAPS"/>
+    <keyword type="constant" name="NM_SRIOV_ESWITCH_ENCAP_MODE_NONE" link="NMSettingSriov.html#NM-SRIOV-ESWITCH-ENCAP-MODE-NONE:CAPS"/>
+    <keyword type="constant" name="NM_SRIOV_ESWITCH_ENCAP_MODE_BASIC" link="NMSettingSriov.html#NM-SRIOV-ESWITCH-ENCAP-MODE-BASIC:CAPS"/>
     <keyword type="constant" name="NM_TEAM_LINK_WATCHER_ARP_PING_FLAG_NONE" link="NMSettingTeam.html#NM-TEAM-LINK-WATCHER-ARP-PING-FLAG-NONE:CAPS"/>
     <keyword type="constant" name="NM_TEAM_LINK_WATCHER_ARP_PING_FLAG_VALIDATE_ACTIVE" link="NMSettingTeam.html#NM-TEAM-LINK-WATCHER-ARP-PING-FLAG-VALIDATE-ACTIVE:CAPS"/>
     <keyword type="constant" name="NM_TEAM_LINK_WATCHER_ARP_PING_FLAG_VALIDATE_INACTIVE" link="NMSettingTeam.html#NM-TEAM-LINK-WATCHER-ARP-PING-FLAG-VALIDATE-INACTIVE:CAPS"/>

@@ -66,6 +66,34 @@ If set to 0 (false), VFs will not be claimed and no network interfaces will be c
 When set to -1 (default), the global default is used; in case the global default is unspecified it is assumed to be 1 (true).</td>
 </tr>
 <tr>
+<td><pre class="screen">eswitch-encap-mode</pre></td>
+<td><pre class="screen">int32</pre></td>
+<td><pre class="screen">-1</pre></td>
+<td>Select the eswitch encapsulation support.
+
+Currently it's only supported for PCI PF devices, and only if the eswitch device is managed from the same PCI address than the PF.
+
+If set to -1 (preserve) (default) the eswitch encap-mode won't be modified by NetworkManager.</td>
+</tr>
+<tr>
+<td><pre class="screen">eswitch-inline-mode</pre></td>
+<td><pre class="screen">int32</pre></td>
+<td><pre class="screen">-1</pre></td>
+<td>Select the eswitch inline-mode of the device. Some HWs need the VF driver to put part of the packet headers on the TX descriptor so the e-switch can do proper matching and steering.
+
+Currently it's only supported for PCI PF devices, and only if the eswitch device is managed from the same PCI address than the PF.
+
+If set to -1 (preserve) (default) the eswitch inline-mode won't be modified by NetworkManager.</td>
+</tr>
+<tr>
+<td><pre class="screen">eswitch-mode</pre></td>
+<td><pre class="screen">int32</pre></td>
+<td><pre class="screen">-1</pre></td>
+<td>Select the eswitch mode of the device. Currently it's only supported for PCI PF devices, and only if the eswitch device is managed from the same PCI address than the PF.
+
+If set to -1 (preserve) (default) the eswitch mode won't be modified by NetworkManager.</td>
+</tr>
+<tr>
 <td><pre class="screen">total-vfs</pre></td>
 <td><pre class="screen">uint32</pre></td>
 <td><pre class="screen">0</pre></td>

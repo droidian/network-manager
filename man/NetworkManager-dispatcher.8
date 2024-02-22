@@ -2,9 +2,9 @@
 .\"     Title: NetworkManager-dispatcher
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 02/09/2024
+.\"      Date: 02/22/2024
 .\"    Manual: Network management daemons
-.\"    Source: NetworkManager-dispatcher 1.45.91
+.\"    Source: NetworkManager-dispatcher 1.46.0
 .\"  Language: English
 .\"
 .TH "NETWORKMANAGER\-DISPATCHER" "8" "" "NetworkManager\-dispatcher 1\&" "Network management daemons"
@@ -130,6 +130,41 @@ The DNS configuration has changed\&. This action is raised even if NetworkManage
 /run/NetworkManager/resolv\&.conf
 .RE
 .PP
+\fIdevice\-add\fR
+.RS 4
+This action is called when a connection of type
+generic
+has the
+generic\&.device\-handler
+property set\&. The property indicates the name of a dispatcher script to be executed in directory
+/{etc,usr/lib}/NetworkManager/dispatcher\&.d/device\&. Note that differently from other actions, only one script is executed\&.
+.sp
+The script needs to perform any action needed to create the device for the generic connection\&. On successful termination, the script returns zero\&. Otherwise, it returns a non\-zero value to indicate an error\&. The script can return values to NetworkManager by writing to standard output; each line should contain a key name followed by the equal sign \*(Aq=\*(Aq and a key value\&. The keys understood at the moment are:
+.PP
+\fIIFINDEX\fR
+.RS 4
+Indicates the interface index of the interface created by the script\&. This key is required when the script succeeds; if it is not set, the activation will fail\&. The key is ignored in case of script failure\&.
+.RE
+.PP
+\fIERROR\fR
+.RS 4
+Specifies an error message indicating the cause of the script failure\&. It is ignored when the script succeeds\&.
+.RE
+.sp
+Since the dispatcher service captures stdout for parsing those keys, anything written to stdout will not appear in the dispatcher service journal log\&. Use stderr if you want to print messages to the journal (for example, for debugging)\&. Only the first 8KiB of stdout are considered and among those, only the first 64 lines; the rest is ignored\&.
+.RE
+.PP
+\fIdevice\-delete\fR
+.RS 4
+This action is the counterpart of
+device\-add
+and is called to delete the device for a generic connection\&. All the aspects described for
+device\-add
+also apply to this action, with the only exception that key
+\fIIFINDEX\fR
+is ignored\&. It is not necessary to delete the kernel link in the handler because NetworkManager already does that; therefore the action is useful for any additional cleanup needed\&.
+.RE
+.PP
 The environment contains more information about the interface and the connection\&. The following variables are available for the use in the dispatcher scripts:
 .PP
 \fINM_DISPATCHER_ACTION\fR
@@ -230,6 +265,72 @@ FULL\&. Note: this variable will only be set for connectivity\-change actions\&.
 .RE
 .PP
 In case of VPN, VPN_IP_IFACE is set, and IP4_*, IP6_* variables with VPN prefix are exported too, like VPN_IP4_ADDRESS_0, VPN_IP4_NUM_ADDRESSES\&.
+.PP
+The content of the
+user
+setting for the connection being activated is also passed via environment variables\&. Each key is stored in a variable with name
+CONNECTION_USER_
+concatenated with the encoding of the key name\&. The encoding works as follows:
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+lowercase letters become uppercase
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+uppercase letters are prefixed with an underscore
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+numbers do not change
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+a dot is replaced with a double underscore
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+any other character is encoded with an underscore followed by its 3\-digit octal representation
+.RE
+.sp
+For example, key
+test\&.foo\-Bar2
+is stored in a variable named
+CONNECTION_USER_TEST__FOO_055_BAR2\&.
 .PP
 Dispatcher scripts are run one at a time, but asynchronously from the main NetworkManager process, and will be killed if they run for too long\&. If your script might take arbitrarily long to complete, you should spawn a child process and have the parent return immediately\&. Scripts that are symbolic links pointing inside the
 /etc/NetworkManager/dispatcher\&.d/no\-wait\&.d/

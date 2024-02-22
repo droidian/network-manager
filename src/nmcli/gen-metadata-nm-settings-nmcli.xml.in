@@ -1070,6 +1070,9 @@
                   values="0 - 4294967295" />
     </setting>
     <setting name="generic" >
+        <property name="device-handler"
+                  nmcli-description="Name of the device handler that will be invoked to add and delete the device for this connection. The name can only contain ASCII alphanumeric characters and &apos;-&apos;, &apos;_&apos;, &apos;.&apos;. It cannot start with &apos;.&apos;. See the NetworkManager-dispatcher(8) man page for more details about how to write the device handler. By setting this property the generic connection becomes &quot;virtual&quot;, meaning that it can be activated without an existing device; the device will be created at the time the connection is started by invoking the device-handler."
+                  format="string" />
     </setting>
     <setting name="gsm" >
         <property name="auto-config"
@@ -1548,6 +1551,10 @@
                   nmcli-description="Specifies whether the SCI (Secure Channel Identifier) is included in every packet."
                   format="boolean"
                   values="true/yes/on, false/no/off" />
+        <property name="offload"
+                  nmcli-description="Specifies the MACsec offload mode. &quot;off&quot; (0) disables MACsec offload. &quot;phy&quot; (1) and &quot;mac&quot; (2) request offload respectively to the PHY or to the MAC; if the selected mode is not available, the connection will fail. &quot;default&quot; (-1) uses the global default value specified in NetworkManager configuration; if no global default is defined, the built-in default is &quot;off&quot; (0)."
+                  format="choice (NMSettingMacsecOffload)"
+                  values="default (-1), off (0), phy (1), mac (2)" />
     </setting>
     <setting name="macvlan" >
         <property name="parent"
@@ -1820,6 +1827,18 @@
                   nmcli-description="Whether to autoprobe virtual functions by a compatible driver. If set to &quot;true&quot; (1), the kernel will try to bind VFs to a compatible driver and if this succeeds a new network interface will be instantiated for each VF. If set to &quot;false&quot; (0), VFs will not be claimed and no network interfaces will be created for them. When set to &quot;default&quot; (-1), the global default is used; in case the global default is unspecified it is assumed to be &quot;true&quot; (1)."
                   format="ternary"
                   values="true/yes/on, false/no/off, default/unknown" />
+        <property name="eswitch-mode"
+                  nmcli-description="Select the eswitch mode of the device. Currently it&apos;s only supported for PCI PF devices, and only if the eswitch device is managed from the same PCI address than the PF. If set to &quot;preserve&quot; (-1) (default) the eswitch mode won&apos;t be modified by NetworkManager."
+                  format="choice (NMSriovEswitchMode)"
+                  values="preserve (-1), legacy (0), switchdev (1)" />
+        <property name="eswitch-inline-mode"
+                  nmcli-description="Select the eswitch inline-mode of the device. Some HWs need the VF driver to put part of the packet headers on the TX descriptor so the e-switch can do proper matching and steering. Currently it&apos;s only supported for PCI PF devices, and only if the eswitch device is managed from the same PCI address than the PF. If set to &quot;preserve&quot; (-1) (default) the eswitch inline-mode won&apos;t be modified by NetworkManager."
+                  format="choice (NMSriovEswitchInlineMode)"
+                  values="preserve (-1), none (0), link (1), network (2), transport (3)" />
+        <property name="eswitch-encap-mode"
+                  nmcli-description="Select the eswitch encapsulation support. Currently it&apos;s only supported for PCI PF devices, and only if the eswitch device is managed from the same PCI address than the PF. If set to &quot;preserve&quot; (-1) (default) the eswitch encap-mode won&apos;t be modified by NetworkManager."
+                  format="choice (NMSriovEswitchEncapMode)"
+                  values="preserve (-1), none (0), basic (1)" />
     </setting>
     <setting name="tc" >
         <property name="qdiscs"

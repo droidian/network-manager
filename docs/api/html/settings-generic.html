@@ -52,7 +52,16 @@
 <th>Default Value</th>
 <th>Value Description</th>
 </tr></thead>
-<tbody></tbody>
+<tbody><tr>
+<td><pre class="screen">device-handler</pre></td>
+<td><pre class="screen">string</pre></td>
+<td><pre class="screen"></pre></td>
+<td>Name of the device handler that will be invoked to add and delete the device for this connection. The name can only contain ASCII alphanumeric characters and '-', '_', '.'. It cannot start with '.'.
+
+See the NetworkManager-dispatcher(8) man page for more details about how to write the device handler.
+
+By setting this property the generic connection becomes "virtual", meaning that it can be activated without an existing device; the device will be created at the time the connection is started by invoking the device-handler.</td>
+</tr></tbody>
 </table></div>
 </div>
 <p><br class="table-break"></p>

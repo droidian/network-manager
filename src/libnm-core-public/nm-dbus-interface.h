@@ -610,6 +610,8 @@ typedef enum {
  * @NM_DEVICE_STATE_REASON_IP_METHOD_UNSUPPORTED: The selected IP method is not supported
  * @NM_DEVICE_STATE_REASON_SRIOV_CONFIGURATION_FAILED: configuration of SR-IOV parameters failed
  * @NM_DEVICE_STATE_REASON_PEER_NOT_FOUND: The Wi-Fi P2P peer could not be found
+ * @NM_DEVICE_STATE_REASON_DEVICE_HANDLER_FAILED: The device handler dispatcher returned an
+ *   error. Since: 1.46
  *
  * Device state change reason codes
  */
@@ -682,6 +684,7 @@ typedef enum {
     NM_DEVICE_STATE_REASON_IP_METHOD_UNSUPPORTED          = 65,
     NM_DEVICE_STATE_REASON_SRIOV_CONFIGURATION_FAILED     = 66,
     NM_DEVICE_STATE_REASON_PEER_NOT_FOUND                 = 67,
+    NM_DEVICE_STATE_REASON_DEVICE_HANDLER_FAILED          = 68,
 } NMDeviceStateReason;
 
 /**
@@ -1414,5 +1417,22 @@ typedef enum /*< flags >*/ {
     NM_MPTCP_FLAGS_BACKUP   = 0x40,
     NM_MPTCP_FLAGS_FULLMESH = 0x80,
 } NMMptcpFlags;
+
+/* For secrets requests, hints starting with "x-vpn-message:" are a message to show, not
+ * a secret to request
+ */
+#define NM_SECRET_TAG_VPN_MSG "x-vpn-message:"
+
+/* For secrets requests, hints starting with "x-dynamic-challenge(-echo):" are dynamic
+ * 2FA challenges that are requested in a second authentication step, after the password
+ * (or whatever auth method is used) was already successfully validated. Because of
+ * that, the default secrets of the service mustn't be requested (again).
+ * When using the "-echo" variant, the user input doesn't need to be hidden even
+ * without --show-secrets
+ *
+ * Note: currently only implemented for VPN, but can be extended.
+ */
+#define NM_SECRET_TAG_DYNAMIC_CHALLENGE      "x-dynamic-challenge:"
+#define NM_SECRET_TAG_DYNAMIC_CHALLENGE_ECHO "x-dynamic-challenge-echo:"
 
 #endif /* __NM_DBUS_INTERFACE_H__ */
