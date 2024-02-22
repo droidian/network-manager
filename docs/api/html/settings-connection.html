@@ -77,8 +77,8 @@ Depending on "connection.multi-connect", a profile can (auto)connect only once a
 </tr>
 <tr>
 <td><pre class="screen">autoconnect-ports</pre></td>
-<td><pre class="screen">NMTernary (int32)</pre></td>
-<td><pre class="screen"></pre></td>
+<td><pre class="screen">int32</pre></td>
+<td><pre class="screen">-1</pre></td>
 <td>Whether or not ports of this connection should be automatically brought up when NetworkManager activates this connection. This only has a real effect for controller connections. The properties "autoconnect", "autoconnect-priority" and "autoconnect-retries" are unrelated to this setting. The permitted values are: 0: leave port connections untouched, 1: activate all the port connections with this connection, -1: default. If -1 (default) is set, global connection.autoconnect-ports is read to determine the real value. If it is default as well, this fallbacks to 0.</td>
 </tr>
 <tr>

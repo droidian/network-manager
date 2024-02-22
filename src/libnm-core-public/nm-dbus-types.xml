@@ -1247,6 +1247,11 @@
               <entry role="enum_member_value"><para>= <literal>67</literal></para><para></para></entry>
               <entry role="enum_member_description"><para>The Wi-Fi P2P peer could not be found</para><para></para></entry>
             </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_DEVICE_HANDLER_FAILED</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>68</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>The device handler dispatcher returned an error. Since: 1.46</para><para></para></entry>
+            </row>
           </tbody>
         </tgroup>
       </informaltable>

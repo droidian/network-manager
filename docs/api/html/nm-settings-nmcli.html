@@ -2488,7 +2488,31 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.10.4.18"></a><h3>gsm setting</h3>
+<a name="id-1.2.10.4.18"></a><h3>generic setting</h3>
+<p>Generic Link Settings.</p>
+<p>
+        Properties:
+        </p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody><tr>
+<td><p><span class="term"><code class="option"><a name="nm-settings-nmcli.property.generic.device-handler"></a>generic.device-handler</code></span></p></td>
+<td>
+<p>Name of the device handler that will be invoked to add and delete the device for this connection. The name can only contain ASCII alphanumeric characters and '-', '_', '.'. It cannot start with '.'.</p>
+<p>See the NetworkManager-dispatcher(8) man page for more details about how to write the device handler.</p>
+<p>By setting this property the generic connection becomes "virtual", meaning that it can be activated without an existing device; the device will be created at the time the connection is started by invoking the device-handler.</p>
+<p>
+            Format: string</p>
+</td>
+</tr></tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="id-1.2.10.4.19"></a><h3>gsm setting</h3>
 <p>GSM-based Mobile Broadband Settings.</p>
 <p>
         Properties:
@@ -2654,7 +2678,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.10.4.19"></a><h3>infiniband setting</h3>
+<a name="id-1.2.10.4.20"></a><h3>infiniband setting</h3>
 <p>Infiniband Settings.</p>
 <p>
         Properties:
@@ -2730,7 +2754,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.10.4.20"></a><h3>ipv4 setting</h3>
+<a name="id-1.2.10.4.21"></a><h3>ipv4 setting</h3>
 <p>IPv4 Settings.</p>
 <p>
         Properties:
@@ -3150,7 +3174,7 @@ Example: <code class="literal">priority 5 from 192.167.4.0/24 table 45</code>
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.10.4.21"></a><h3>ipv6 setting</h3>
+<a name="id-1.2.10.4.22"></a><h3>ipv6 setting</h3>
 <p>IPv6 Settings.</p>
 <p>
         Properties:
@@ -3563,7 +3587,7 @@ Example: <code class="literal">priority 5 from 1:2:3::5/128 table 45</code>
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.10.4.22"></a><h3>ip-tunnel setting</h3>
+<a name="id-1.2.10.4.23"></a><h3>ip-tunnel setting</h3>
 <p>IP Tunneling Settings.</p>
 <p>
         Properties:
@@ -3717,7 +3741,7 @@ Example: <code class="literal">priority 5 from 1:2:3::5/128 table 45</code>
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.10.4.23"></a><h3>macsec setting</h3>
+<a name="id-1.2.10.4.24"></a><h3>macsec setting</h3>
 <p>MACSec Settings.</p>
 <p>
         Properties:
@@ -3783,6 +3807,19 @@ Example: <code class="literal">priority 5 from 1:2:3::5/128 table 45</code>
 </td>
 </tr>
 <tr>
+<td><p><span class="term"><code class="option"><a name="nm-settings-nmcli.property.macsec.offload"></a>macsec.offload</code></span></p></td>
+<td>
+<p>Specifies the MACsec offload mode.</p>
+<p>"off" (0) disables MACsec offload.</p>
+<p>"phy" (1) and "mac" (2) request offload respectively to the PHY or to the MAC; if the selected mode is not available, the connection will fail.</p>
+<p>"default" (-1) uses the global default value specified in NetworkManager configuration; if no global default is defined, the built-in default is "off" (0).</p>
+<p>
+            Format: choice (NMSettingMacsecOffload)</p>
+<p>
+            Valid values: default (-1), off (0), phy (1), mac (2)</p>
+</td>
+</tr>
+<tr>
 <td><p><span class="term"><code class="option"><a name="nm-settings-nmcli.property.macsec.parent"></a>macsec.parent</code></span></p></td>
 <td>
 <p>
@@ -3829,7 +3866,7 @@ Example: <code class="literal">priority 5 from 1:2:3::5/128 table 45</code>
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.10.4.24"></a><h3>macvlan setting</h3>
+<a name="id-1.2.10.4.25"></a><h3>macvlan setting</h3>
 <p>MAC VLAN Settings.</p>
 <p>
         Properties:
@@ -3889,7 +3926,7 @@ Example: <code class="literal">priority 5 from 1:2:3::5/128 table 45</code>
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.10.4.25"></a><h3>match setting</h3>
+<a name="id-1.2.10.4.26"></a><h3>match setting</h3>
 <p>Match settings.</p>
 <p>
         Properties:
@@ -3944,7 +3981,7 @@ Example: <code class="literal">priority 5 from 1:2:3::5/128 table 45</code>
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.10.4.26"></a><h3>802-11-olpc-mesh setting</h3>
+<a name="id-1.2.10.4.27"></a><h3>802-11-olpc-mesh setting</h3>
 <p>
           Alias: olpc-mesh</p>
 <p>OLPC Wireless Mesh Settings.</p>
@@ -3995,7 +4032,7 @@ Example: <code class="literal">priority 5 from 1:2:3::5/128 table 45</code>
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.10.4.27"></a><h3>ovs-bridge setting</h3>
+<a name="id-1.2.10.4.28"></a><h3>ovs-bridge setting</h3>
 <p>OvsBridge Link Settings.</p>
 <p>
         Properties:
@@ -4061,7 +4098,7 @@ Example: <code class="literal">priority 5 from 1:2:3::5/128 table 45</code>
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.10.4.28"></a><h3>ovs-dpdk setting</h3>
+<a name="id-1.2.10.4.29"></a><h3>ovs-dpdk setting</h3>
 <p>OvsDpdk Link Settings.</p>
 <p>
         Properties:
@@ -4115,7 +4152,7 @@ Example: <code class="literal">priority 5 from 1:2:3::5/128 table 45</code>
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.10.4.29"></a><h3>ovs-interface setting</h3>
+<a name="id-1.2.10.4.30"></a><h3>ovs-interface setting</h3>
 <p>Open vSwitch Interface Settings.</p>
 <p>
         Properties:
@@ -4151,7 +4188,7 @@ Example: <code class="literal">priority 5 from 1:2:3::5/128 table 45</code>
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.10.4.30"></a><h3>ovs-patch setting</h3>
+<a name="id-1.2.10.4.31"></a><h3>ovs-patch setting</h3>
 <p>OvsPatch Link Settings.</p>
 <p>
         Properties:
@@ -4173,7 +4210,7 @@ Example: <code class="literal">priority 5 from 1:2:3::5/128 table 45</code>
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.10.4.31"></a><h3>ovs-port setting</h3>
+<a name="id-1.2.10.4.32"></a><h3>ovs-port setting</h3>
 <p>OvsPort Link Settings.</p>
 <p>
         Properties:
@@ -4258,7 +4295,7 @@ Example: <code class="literal">priority 5 from 1:2:3::5/128 table 45</code>
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.10.4.32"></a><h3>ppp setting</h3>
+<a name="id-1.2.10.4.33"></a><h3>ppp setting</h3>
 <p>Point-to-Point Protocol Settings.</p>
 <p>
         Properties:
@@ -4454,7 +4491,7 @@ Example: <code class="literal">priority 5 from 1:2:3::5/128 table 45</code>
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.10.4.33"></a><h3>pppoe setting</h3>
+<a name="id-1.2.10.4.34"></a><h3>pppoe setting</h3>
 <p>PPP-over-Ethernet Settings.</p>
 <p>
         Properties:
@@ -4520,7 +4557,7 @@ Example: <code class="literal">priority 5 from 1:2:3::5/128 table 45</code>
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.10.4.34"></a><h3>proxy setting</h3>
+<a name="id-1.2.10.4.35"></a><h3>proxy setting</h3>
 <p>WWW Proxy Settings.</p>
 <p>
         Properties:
@@ -4580,7 +4617,7 @@ Example: <code class="literal">priority 5 from 1:2:3::5/128 table 45</code>
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.10.4.35"></a><h3>serial setting</h3>
+<a name="id-1.2.10.4.36"></a><h3>serial setting</h3>
 <p>Serial Link Settings.</p>
 <p>
         Properties:
@@ -4646,7 +4683,7 @@ Example: <code class="literal">priority 5 from 1:2:3::5/128 table 45</code>
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.10.4.36"></a><h3>sriov setting</h3>
+<a name="id-1.2.10.4.37"></a><h3>sriov setting</h3>
 <p>SR-IOV settings.</p>
 <p>
         Properties:
@@ -4668,6 +4705,41 @@ Example: <code class="literal">priority 5 from 1:2:3::5/128 table 45</code>
             Format: ternary</p>
 <p>
             Valid values: true/yes/on, false/no/off, default/unknown</p>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="option"><a name="nm-settings-nmcli.property.sriov.eswitch-encap-mode"></a>sriov.eswitch-encap-mode</code></span></p></td>
+<td>
+<p>Select the eswitch encapsulation support.</p>
+<p>Currently it's only supported for PCI PF devices, and only if the eswitch device is managed from the same PCI address than the PF.</p>
+<p>If set to "preserve" (-1) (default) the eswitch encap-mode won't be modified by NetworkManager.</p>
+<p>
+            Format: choice (NMSriovEswitchEncapMode)</p>
+<p>
+            Valid values: preserve (-1), none (0), basic (1)</p>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="option"><a name="nm-settings-nmcli.property.sriov.eswitch-inline-mode"></a>sriov.eswitch-inline-mode</code></span></p></td>
+<td>
+<p>Select the eswitch inline-mode of the device. Some HWs need the VF driver to put part of the packet headers on the TX descriptor so the e-switch can do proper matching and steering.</p>
+<p>Currently it's only supported for PCI PF devices, and only if the eswitch device is managed from the same PCI address than the PF.</p>
+<p>If set to "preserve" (-1) (default) the eswitch inline-mode won't be modified by NetworkManager.</p>
+<p>
+            Format: choice (NMSriovEswitchInlineMode)</p>
+<p>
+            Valid values: preserve (-1), none (0), link (1), network (2), transport (3)</p>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="option"><a name="nm-settings-nmcli.property.sriov.eswitch-mode"></a>sriov.eswitch-mode</code></span></p></td>
+<td>
+<p>Select the eswitch mode of the device. Currently it's only supported for PCI PF devices, and only if the eswitch device is managed from the same PCI address than the PF.</p>
+<p>If set to "preserve" (-1) (default) the eswitch mode won't be modified by NetworkManager.</p>
+<p>
+            Format: choice (NMSriovEswitchMode)</p>
+<p>
+            Valid values: preserve (-1), legacy (0), switchdev (1)</p>
 </td>
 </tr>
 <tr>
@@ -4703,7 +4775,7 @@ Example: <code class="literal">priority 5 from 1:2:3::5/128 table 45</code>
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.10.4.37"></a><h3>tc setting</h3>
+<a name="id-1.2.10.4.38"></a><h3>tc setting</h3>
 <p>Linux Traffic Control Settings.</p>
 <p>
         Properties:
@@ -5080,7 +5152,7 @@ Linux traffic control subsystem
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.10.4.38"></a><h3>team setting</h3>
+<a name="id-1.2.10.4.39"></a><h3>team setting</h3>
 <p>Teaming Settings.</p>
 <p>
         Properties:
@@ -5268,7 +5340,7 @@ Linux traffic control subsystem
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.10.4.39"></a><h3>team-port setting</h3>
+<a name="id-1.2.10.4.40"></a><h3>team-port setting</h3>
 <p>Team Port Settings.</p>
 <p>
         Properties:
@@ -5360,7 +5432,7 @@ Linux traffic control subsystem
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.10.4.40"></a><h3>tun setting</h3>
+<a name="id-1.2.10.4.41"></a><h3>tun setting</h3>
 <p>Tunnel Settings.</p>
 <p>
         Properties:
@@ -5444,7 +5516,7 @@ Linux traffic control subsystem
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.10.4.41"></a><h3>vlan setting</h3>
+<a name="id-1.2.10.4.42"></a><h3>vlan setting</h3>
 <p>VLAN Settings.</p>
 <p>
         Properties:
@@ -5526,7 +5598,7 @@ Linux traffic control subsystem
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.10.4.42"></a><h3>vpn setting</h3>
+<a name="id-1.2.10.4.43"></a><h3>vpn setting</h3>
 <p>VPN Settings.</p>
 <p>
         Properties:
@@ -5598,7 +5670,7 @@ Linux traffic control subsystem
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.10.4.43"></a><h3>vrf setting</h3>
+<a name="id-1.2.10.4.44"></a><h3>vrf setting</h3>
 <p>VRF settings.</p>
 <p>
         Properties:
@@ -5624,7 +5696,7 @@ Linux traffic control subsystem
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.10.4.44"></a><h3>vxlan setting</h3>
+<a name="id-1.2.10.4.45"></a><h3>vxlan setting</h3>
 <p>VXLAN Settings.</p>
 <p>
         Properties:
@@ -5808,7 +5880,7 @@ Linux traffic control subsystem
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.10.4.45"></a><h3>wifi-p2p setting</h3>
+<a name="id-1.2.10.4.46"></a><h3>wifi-p2p setting</h3>
 <p>Wi-Fi P2P Settings.</p>
 <p>
         Properties:
@@ -5854,7 +5926,7 @@ Linux traffic control subsystem
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.10.4.46"></a><h3>wimax setting</h3>
+<a name="id-1.2.10.4.47"></a><h3>wimax setting</h3>
 <p>WiMax Settings.</p>
 <p>
         Properties:
@@ -5896,7 +5968,7 @@ Linux traffic control subsystem
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.10.4.47"></a><h3>802-3-ethernet setting</h3>
+<a name="id-1.2.10.4.48"></a><h3>802-3-ethernet setting</h3>
 <p>
           Alias: ethernet</p>
 <p>Wired Ethernet Settings.</p>
@@ -6064,7 +6136,7 @@ Linux traffic control subsystem
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.10.4.48"></a><h3>wireguard setting</h3>
+<a name="id-1.2.10.4.49"></a><h3>wireguard setting</h3>
 <p>WireGuard Settings.</p>
 <p>
         Properties:
@@ -6163,7 +6235,7 @@ Linux traffic control subsystem
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.10.4.49"></a><h3>802-11-wireless setting</h3>
+<a name="id-1.2.10.4.50"></a><h3>802-11-wireless setting</h3>
 <p>
           Alias: wifi</p>
 <p>Wi-Fi Settings.</p>
@@ -6357,7 +6429,7 @@ Linux traffic control subsystem
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.10.4.50"></a><h3>802-11-wireless-security setting</h3>
+<a name="id-1.2.10.4.51"></a><h3>802-11-wireless-security setting</h3>
 <p>
           Alias: wifi-sec</p>
 <p>Wi-Fi Security Settings.</p>
@@ -6564,7 +6636,7 @@ Linux traffic control subsystem
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.10.4.51"></a><h3>wpan setting</h3>
+<a name="id-1.2.10.4.52"></a><h3>wpan setting</h3>
 <p>IEEE 802.15.4 (WPAN) MAC Settings.</p>
 <p>
         Properties:
@@ -6646,7 +6718,7 @@ Linux traffic control subsystem
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.10.4.52"></a><h3>bond-port setting</h3>
+<a name="id-1.2.10.4.53"></a><h3>bond-port setting</h3>
 <p>Bond Port Settings.</p>
 <p>
         Properties:
@@ -6686,7 +6758,7 @@ Linux traffic control subsystem
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.10.4.53"></a><h3>hostname setting</h3>
+<a name="id-1.2.10.4.54"></a><h3>hostname setting</h3>
 <p>Hostname settings.</p>
 <p>
         Properties:
@@ -6748,7 +6820,7 @@ Linux traffic control subsystem
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.10.4.54"></a><h3>hsr setting</h3>
+<a name="id-1.2.10.4.55"></a><h3>hsr setting</h3>
 <p>HSR/PRP Settings.</p>
 <p>
         Properties:
@@ -6806,7 +6878,7 @@ Linux traffic control subsystem
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.10.4.55"></a><h3>link setting</h3>
+<a name="id-1.2.10.4.56"></a><h3>link setting</h3>
 <p>Link settings.</p>
 <p>
         Properties:
@@ -6870,7 +6942,7 @@ Linux traffic control subsystem
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.10.4.56"></a><h3>loopback setting</h3>
+<a name="id-1.2.10.4.57"></a><h3>loopback setting</h3>
 <p>Loopback Link Settings.</p>
 <p>
         Properties:
@@ -6896,7 +6968,7 @@ Linux traffic control subsystem
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.10.4.57"></a><h3>veth setting</h3>
+<a name="id-1.2.10.4.58"></a><h3>veth setting</h3>
 <p>Veth Settings.</p>
 <p>
         Properties:

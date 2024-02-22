@@ -532,6 +532,18 @@
 <td class="datatype_keyword">enum</td>
 <td class="function_name"><a class="link" href="libnm-nm-dbus-interface.html#NMMptcpFlags" title="enum NMMptcpFlags">NMMptcpFlags</a></td>
 </tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libnm-nm-dbus-interface.html#NM-SECRET-TAG-VPN-MSG:CAPS" title="NM_SECRET_TAG_VPN_MSG">NM_SECRET_TAG_VPN_MSG</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libnm-nm-dbus-interface.html#NM-SECRET-TAG-DYNAMIC-CHALLENGE:CAPS" title="NM_SECRET_TAG_DYNAMIC_CHALLENGE">NM_SECRET_TAG_DYNAMIC_CHALLENGE</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libnm-nm-dbus-interface.html#NM-SECRET-TAG-DYNAMIC-CHALLENGE-ECHO:CAPS" title="NM_SECRET_TAG_DYNAMIC_CHALLENGE_ECHO">NM_SECRET_TAG_DYNAMIC_CHALLENGE_ECHO</a></td>
+</tr>
 </tbody>
 </table></div>
 </div>
@@ -2614,6 +2626,14 @@ network and is cleaning up the connection request</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-DEVICE-STATE-REASON-DEVICE-HANDLER-FAILED:CAPS"></a>NM_DEVICE_STATE_REASON_DEVICE_HANDLER_FAILED</p></td>
+<td class="enum_member_description">
+<p>The device handler dispatcher returned an
+error. Since: 1.46</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
 </tbody>
 </table></div>
 </div>
@@ -4307,6 +4327,24 @@ sub-option will trigger creation of an additional subflow to generate a full mes
 </table></div>
 </div>
 <p class="since">Since: 1.40</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SECRET-TAG-VPN-MSG:CAPS"></a><h3>NM_SECRET_TAG_VPN_MSG</h3>
+<pre class="programlisting">#define NM_SECRET_TAG_VPN_MSG "x-vpn-message:"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SECRET-TAG-DYNAMIC-CHALLENGE:CAPS"></a><h3>NM_SECRET_TAG_DYNAMIC_CHALLENGE</h3>
+<pre class="programlisting">#define NM_SECRET_TAG_DYNAMIC_CHALLENGE      "x-dynamic-challenge:"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SECRET-TAG-DYNAMIC-CHALLENGE-ECHO:CAPS"></a><h3>NM_SECRET_TAG_DYNAMIC_CHALLENGE_ECHO</h3>
+<pre class="programlisting">#define NM_SECRET_TAG_DYNAMIC_CHALLENGE_ECHO "x-dynamic-challenge-echo:"
+</pre>
 </div>
 </div>
 </div>

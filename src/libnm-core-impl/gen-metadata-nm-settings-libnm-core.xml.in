@@ -769,7 +769,7 @@
                   />
         <property name="autoconnect-ports"
                   dbus-type="i"
-                  gprop-type="NMTernary"
+                  gprop-type="gint"
                   />
         <property name="autoconnect-priority"
                   dbus-type="i"
@@ -1331,6 +1331,10 @@
     <setting name="generic"
              gtype="NMSettingGeneric"
              >
+        <property name="device-handler"
+                  dbus-type="s"
+                  gprop-type="gchararray"
+                  />
     </setting>
     <setting name="gsm"
              gtype="NMSettingGsm"
@@ -1876,6 +1880,10 @@
                   dbus-type="i"
                   gprop-type="gint"
                   />
+        <property name="offload"
+                  dbus-type="i"
+                  gprop-type="gint"
+                  />
         <property name="parent"
                   dbus-type="s"
                   gprop-type="gchararray"
@@ -2197,6 +2205,18 @@
         <property name="autoprobe-drivers"
                   dbus-type="i"
                   gprop-type="NMTernary"
+                  />
+        <property name="eswitch-encap-mode"
+                  dbus-type="i"
+                  gprop-type="gint"
+                  />
+        <property name="eswitch-inline-mode"
+                  dbus-type="i"
+                  gprop-type="gint"
+                  />
+        <property name="eswitch-mode"
+                  dbus-type="i"
+                  gprop-type="gint"
                   />
         <property name="total-vfs"
                   dbus-type="u"

@@ -1496,6 +1496,8 @@ am__src_libnm_platform_libnm_platform_la_SOURCES_DIST =  \
 	src/libnm-platform/nmp-object.c \
 	src/libnm-platform/nmp-object.h src/libnm-platform/nmp-plobj.c \
 	src/libnm-platform/nmp-plobj.h \
+	src/libnm-platform/devlink/nm-devlink.c \
+	src/libnm-platform/devlink/nm-devlink.h \
 	src/libnm-platform/wifi/nm-wifi-utils-nl80211.c \
 	src/libnm-platform/wifi/nm-wifi-utils-nl80211.h \
 	src/libnm-platform/wifi/nm-wifi-utils-private.h \
@@ -1516,6 +1518,7 @@ am_src_libnm_platform_libnm_platform_la_OBJECTS =  \
 	src/libnm-platform/libnm_platform_la-nmp-netns.lo \
 	src/libnm-platform/libnm_platform_la-nmp-object.lo \
 	src/libnm-platform/libnm_platform_la-nmp-plobj.lo \
+	src/libnm-platform/devlink/libnm_platform_la-nm-devlink.lo \
 	src/libnm-platform/wifi/libnm_platform_la-nm-wifi-utils-nl80211.lo \
 	src/libnm-platform/wifi/libnm_platform_la-nm-wifi-utils.lo \
 	src/libnm-platform/wpan/libnm_platform_la-nm-wpan-utils.lo \
@@ -3159,6 +3162,7 @@ am__depfiles_remade = examples/C/glib/$(DEPDIR)/add_connection_gdbus-add-connect
 	src/libnm-platform/$(DEPDIR)/libnm_platform_la-nmp-netns.Plo \
 	src/libnm-platform/$(DEPDIR)/libnm_platform_la-nmp-object.Plo \
 	src/libnm-platform/$(DEPDIR)/libnm_platform_la-nmp-plobj.Plo \
+	src/libnm-platform/devlink/$(DEPDIR)/libnm_platform_la-nm-devlink.Plo \
 	src/libnm-platform/tests/$(DEPDIR)/test_nm_platform-test-nm-platform.Po \
 	src/libnm-platform/wifi/$(DEPDIR)/libnm_platform_la-nm-wifi-utils-nl80211.Plo \
 	src/libnm-platform/wifi/$(DEPDIR)/libnm_platform_la-nm-wifi-utils-wext.Plo \
@@ -5673,6 +5677,8 @@ src_libnm_platform_libnm_platform_la_SOURCES =  \
 	src/libnm-platform/nmp-object.c \
 	src/libnm-platform/nmp-object.h src/libnm-platform/nmp-plobj.c \
 	src/libnm-platform/nmp-plobj.h \
+	src/libnm-platform/devlink/nm-devlink.c \
+	src/libnm-platform/devlink/nm-devlink.h \
 	src/libnm-platform/wifi/nm-wifi-utils-nl80211.c \
 	src/libnm-platform/wifi/nm-wifi-utils-nl80211.h \
 	src/libnm-platform/wifi/nm-wifi-utils-private.h \
@@ -10652,6 +10658,15 @@ src/libnm-platform/libnm_platform_la-nmp-object.lo:  \
 src/libnm-platform/libnm_platform_la-nmp-plobj.lo:  \
 	src/libnm-platform/$(am__dirstamp) \
 	src/libnm-platform/$(DEPDIR)/$(am__dirstamp)
+src/libnm-platform/devlink/$(am__dirstamp):
+	@$(MKDIR_P) src/libnm-platform/devlink
+	@: > src/libnm-platform/devlink/$(am__dirstamp)
+src/libnm-platform/devlink/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) src/libnm-platform/devlink/$(DEPDIR)
+	@: > src/libnm-platform/devlink/$(DEPDIR)/$(am__dirstamp)
+src/libnm-platform/devlink/libnm_platform_la-nm-devlink.lo:  \
+	src/libnm-platform/devlink/$(am__dirstamp) \
+	src/libnm-platform/devlink/$(DEPDIR)/$(am__dirstamp)
 src/libnm-platform/wifi/$(am__dirstamp):
 	@$(MKDIR_P) src/libnm-platform/wifi
 	@: > src/libnm-platform/wifi/$(am__dirstamp)
@@ -12060,6 +12075,8 @@ mostlyclean-compile:
 	-rm -f src/libnm-log-null/*.lo
 	-rm -f src/libnm-platform/*.$(OBJEXT)
 	-rm -f src/libnm-platform/*.lo
+	-rm -f src/libnm-platform/devlink/*.$(OBJEXT)
+	-rm -f src/libnm-platform/devlink/*.lo
 	-rm -f src/libnm-platform/tests/*.$(OBJEXT)
 	-rm -f src/libnm-platform/wifi/*.$(OBJEXT)
 	-rm -f src/libnm-platform/wifi/*.lo
@@ -12555,6 +12572,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-platform/$(DEPDIR)/libnm_platform_la-nmp-netns.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-platform/$(DEPDIR)/libnm_platform_la-nmp-object.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-platform/$(DEPDIR)/libnm_platform_la-nmp-plobj.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@src/libnm-platform/devlink/$(DEPDIR)/libnm_platform_la-nm-devlink.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-platform/tests/$(DEPDIR)/test_nm_platform-test-nm-platform.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-platform/wifi/$(DEPDIR)/libnm_platform_la-nm-wifi-utils-nl80211.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-platform/wifi/$(DEPDIR)/libnm_platform_la-nm-wifi-utils-wext.Plo@am__quote@ # am--include-marker
@@ -15741,6 +15759,13 @@ src/libnm-platform/libnm_platform_la-nmp-plobj.lo: src/libnm-platform/nmp-plobj.
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_libnm_platform_libnm_platform_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/libnm-platform/libnm_platform_la-nmp-plobj.lo `test -f 'src/libnm-platform/nmp-plobj.c' || echo '$(srcdir)/'`src/libnm-platform/nmp-plobj.c
 
+src/libnm-platform/devlink/libnm_platform_la-nm-devlink.lo: src/libnm-platform/devlink/nm-devlink.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_libnm_platform_libnm_platform_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/libnm-platform/devlink/libnm_platform_la-nm-devlink.lo -MD -MP -MF src/libnm-platform/devlink/$(DEPDIR)/libnm_platform_la-nm-devlink.Tpo -c -o src/libnm-platform/devlink/libnm_platform_la-nm-devlink.lo `test -f 'src/libnm-platform/devlink/nm-devlink.c' || echo '$(srcdir)/'`src/libnm-platform/devlink/nm-devlink.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/libnm-platform/devlink/$(DEPDIR)/libnm_platform_la-nm-devlink.Tpo src/libnm-platform/devlink/$(DEPDIR)/libnm_platform_la-nm-devlink.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/libnm-platform/devlink/nm-devlink.c' object='src/libnm-platform/devlink/libnm_platform_la-nm-devlink.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_libnm_platform_libnm_platform_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/libnm-platform/devlink/libnm_platform_la-nm-devlink.lo `test -f 'src/libnm-platform/devlink/nm-devlink.c' || echo '$(srcdir)/'`src/libnm-platform/devlink/nm-devlink.c
+
 src/libnm-platform/wifi/libnm_platform_la-nm-wifi-utils-nl80211.lo: src/libnm-platform/wifi/nm-wifi-utils-nl80211.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_libnm_platform_libnm_platform_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/libnm-platform/wifi/libnm_platform_la-nm-wifi-utils-nl80211.lo -MD -MP -MF src/libnm-platform/wifi/$(DEPDIR)/libnm_platform_la-nm-wifi-utils-nl80211.Tpo -c -o src/libnm-platform/wifi/libnm_platform_la-nm-wifi-utils-nl80211.lo `test -f 'src/libnm-platform/wifi/nm-wifi-utils-nl80211.c' || echo '$(srcdir)/'`src/libnm-platform/wifi/nm-wifi-utils-nl80211.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/libnm-platform/wifi/$(DEPDIR)/libnm_platform_la-nm-wifi-utils-nl80211.Tpo src/libnm-platform/wifi/$(DEPDIR)/libnm_platform_la-nm-wifi-utils-nl80211.Plo
@@ -18387,6 +18412,7 @@ clean-libtool:
 	-rm -rf src/libnm-log-core/.libs src/libnm-log-core/_libs
 	-rm -rf src/libnm-log-null/.libs src/libnm-log-null/_libs
 	-rm -rf src/libnm-platform/.libs src/libnm-platform/_libs
+	-rm -rf src/libnm-platform/devlink/.libs src/libnm-platform/devlink/_libs
 	-rm -rf src/libnm-platform/tests/.libs src/libnm-platform/tests/_libs
 	-rm -rf src/libnm-platform/wifi/.libs src/libnm-platform/wifi/_libs
 	-rm -rf src/libnm-platform/wpan/.libs src/libnm-platform/wpan/_libs
@@ -19921,6 +19947,8 @@ distclean-generic:
 	-rm -f src/libnm-log-null/$(am__dirstamp)
 	-rm -f src/libnm-platform/$(DEPDIR)/$(am__dirstamp)
 	-rm -f src/libnm-platform/$(am__dirstamp)
+	-rm -f src/libnm-platform/devlink/$(DEPDIR)/$(am__dirstamp)
+	-rm -f src/libnm-platform/devlink/$(am__dirstamp)
 	-rm -f src/libnm-platform/tests/$(DEPDIR)/$(am__dirstamp)
 	-rm -f src/libnm-platform/tests/$(am__dirstamp)
 	-rm -f src/libnm-platform/wifi/$(DEPDIR)/$(am__dirstamp)
@@ -20442,6 +20470,7 @@ distclean: distclean-recursive
 	-rm -f src/libnm-platform/$(DEPDIR)/libnm_platform_la-nmp-netns.Plo
 	-rm -f src/libnm-platform/$(DEPDIR)/libnm_platform_la-nmp-object.Plo
 	-rm -f src/libnm-platform/$(DEPDIR)/libnm_platform_la-nmp-plobj.Plo
+	-rm -f src/libnm-platform/devlink/$(DEPDIR)/libnm_platform_la-nm-devlink.Plo
 	-rm -f src/libnm-platform/tests/$(DEPDIR)/test_nm_platform-test-nm-platform.Po
 	-rm -f src/libnm-platform/wifi/$(DEPDIR)/libnm_platform_la-nm-wifi-utils-nl80211.Plo
 	-rm -f src/libnm-platform/wifi/$(DEPDIR)/libnm_platform_la-nm-wifi-utils-wext.Plo
@@ -21125,6 +21154,7 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f src/libnm-platform/$(DEPDIR)/libnm_platform_la-nmp-netns.Plo
 	-rm -f src/libnm-platform/$(DEPDIR)/libnm_platform_la-nmp-object.Plo
 	-rm -f src/libnm-platform/$(DEPDIR)/libnm_platform_la-nmp-plobj.Plo
+	-rm -f src/libnm-platform/devlink/$(DEPDIR)/libnm_platform_la-nm-devlink.Plo
 	-rm -f src/libnm-platform/tests/$(DEPDIR)/test_nm_platform-test-nm-platform.Po
 	-rm -f src/libnm-platform/wifi/$(DEPDIR)/libnm_platform_la-nm-wifi-utils-nl80211.Plo
 	-rm -f src/libnm-platform/wifi/$(DEPDIR)/libnm_platform_la-nm-wifi-utils-wext.Plo

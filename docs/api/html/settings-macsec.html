@@ -84,6 +84,18 @@
 <td>Specifies how the CAK (Connectivity Association Key) for MKA (MACsec Key Agreement) is obtained.</td>
 </tr>
 <tr>
+<td><pre class="screen">offload</pre></td>
+<td><pre class="screen">int32</pre></td>
+<td><pre class="screen">-1</pre></td>
+<td>Specifies the MACsec offload mode.
+
+0 (off) disables MACsec offload.
+
+1 (phy) and 2 (mac) request offload respectively to the PHY or to the MAC; if the selected mode is not available, the connection will fail.
+
+-1 (default) uses the global default value specified in NetworkManager configuration; if no global default is defined, the built-in default is 0 (off).</td>
+</tr>
+<tr>
 <td><pre class="screen">parent</pre></td>
 <td><pre class="screen">string</pre></td>
 <td><pre class="screen"></pre></td>

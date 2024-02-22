@@ -2,12 +2,12 @@
 .\"     Title: nm-settings-nmcli
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 02/09/2024
+.\"      Date: 02/22/2024
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.45.91
+.\"    Source: NetworkManager 1.46.0
 .\"  Language: English
 .\"
-.TH "NM\-SETTINGS\-NMCLI" "5" "" "NetworkManager 1\&.45\&.91" "Configuration"
+.TH "NM\-SETTINGS\-NMCLI" "5" "" "NetworkManager 1\&.46\&.0" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -2098,6 +2098,22 @@ Format: integer
 .sp
 Valid values: 0 \- 4294967295
 .RE
+.SS "generic setting"
+.PP
+Generic Link Settings\&.
+.PP
+Properties:
+.PP
+\fBgeneric\&.device\-handler\fR
+.RS 4
+Name of the device handler that will be invoked to add and delete the device for this connection\&. The name can only contain ASCII alphanumeric characters and \*(Aq\-\*(Aq, \*(Aq_\*(Aq, \*(Aq\&.\*(Aq\&. It cannot start with \*(Aq\&.\*(Aq\&.
+.sp
+See the NetworkManager\-dispatcher(8) man page for more details about how to write the device handler\&.
+.sp
+By setting this property the generic connection becomes "virtual", meaning that it can be activated without an existing device; the device will be created at the time the connection is started by invoking the device\-handler\&.
+.sp
+Format: string
+.RE
 .SS "gsm setting"
 .PP
 GSM\-based Mobile Broadband Settings\&.
@@ -3842,6 +3858,21 @@ Format: choice (NMSettingMacsecMode)
 Valid values: psk (0), eap (1)
 .RE
 .PP
+\fBmacsec\&.offload\fR
+.RS 4
+Specifies the MACsec offload mode\&.
+.sp
+"off" (0) disables MACsec offload\&.
+.sp
+"phy" (1) and "mac" (2) request offload respectively to the PHY or to the MAC; if the selected mode is not available, the connection will fail\&.
+.sp
+"default" (\-1) uses the global default value specified in NetworkManager configuration; if no global default is defined, the built\-in default is "off" (0)\&.
+.sp
+Format: choice (NMSettingMacsecOffload)
+.sp
+Valid values: default (\-1), off (0), phy (1), mac (2)
+.RE
+.PP
 \fBmacsec\&.parent\fR
 .RS 4
 Alias: dev
@@ -4532,6 +4563,43 @@ When set to "default" (\-1), the global default is used; in case the global defa
 Format: ternary
 .sp
 Valid values: true/yes/on, false/no/off, default/unknown
+.RE
+.PP
+\fBsriov\&.eswitch\-encap\-mode\fR
+.RS 4
+Select the eswitch encapsulation support\&.
+.sp
+Currently it\*(Aqs only supported for PCI PF devices, and only if the eswitch device is managed from the same PCI address than the PF\&.
+.sp
+If set to "preserve" (\-1) (default) the eswitch encap\-mode won\*(Aqt be modified by NetworkManager\&.
+.sp
+Format: choice (NMSriovEswitchEncapMode)
+.sp
+Valid values: preserve (\-1), none (0), basic (1)
+.RE
+.PP
+\fBsriov\&.eswitch\-inline\-mode\fR
+.RS 4
+Select the eswitch inline\-mode of the device\&. Some HWs need the VF driver to put part of the packet headers on the TX descriptor so the e\-switch can do proper matching and steering\&.
+.sp
+Currently it\*(Aqs only supported for PCI PF devices, and only if the eswitch device is managed from the same PCI address than the PF\&.
+.sp
+If set to "preserve" (\-1) (default) the eswitch inline\-mode won\*(Aqt be modified by NetworkManager\&.
+.sp
+Format: choice (NMSriovEswitchInlineMode)
+.sp
+Valid values: preserve (\-1), none (0), link (1), network (2), transport (3)
+.RE
+.PP
+\fBsriov\&.eswitch\-mode\fR
+.RS 4
+Select the eswitch mode of the device\&. Currently it\*(Aqs only supported for PCI PF devices, and only if the eswitch device is managed from the same PCI address than the PF\&.
+.sp
+If set to "preserve" (\-1) (default) the eswitch mode won\*(Aqt be modified by NetworkManager\&.
+.sp
+Format: choice (NMSriovEswitchMode)
+.sp
+Valid values: preserve (\-1), legacy (0), switchdev (1)
 .RE
 .PP
 \fBsriov\&.total\-vfs\fR

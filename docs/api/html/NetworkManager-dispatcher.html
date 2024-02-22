@@ -169,6 +169,69 @@
             looking at file <code class="filename">/run/NetworkManager/resolv.conf</code>
         </p></td>
 </tr>
+<tr>
+<td><p><span class="term"><code class="varname">device-add</code></span></p></td>
+<td>
+<p>
+            This action is called when a connection of type <code class="literal">generic</code>
+            has the <code class="literal">generic.device-handler</code> property set. The property
+            indicates the name of a dispatcher script to be executed in directory
+            <code class="filename">/{etc,usr/lib}/NetworkManager/dispatcher.d/device</code>. Note
+            that differently from other actions, only one script is executed.
+          </p>
+<p>
+            The script needs to perform any action needed to create the device
+            for the generic connection. On successful termination, the script
+            returns zero. Otherwise, it returns a non-zero value to indicate an
+            error. The script can return values to NetworkManager by writing to
+            standard output; each line should contain a key name followed by the
+            equal sign '=' and a key value. The keys understood at the moment
+            are:
+            </p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><code class="varname">IFINDEX</code></span></p></td>
+<td><p> Indicates the interface index of the interface
+                created by the script. This key is required when the script
+                succeeds; if it is not set, the activation will fail. The key is
+                ignored in case of script failure. </p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="varname">ERROR</code></span></p></td>
+<td><p> Specifies an error message indicating the cause
+                of the script failure. It is ignored when the script succeeds.
+                </p></td>
+</tr>
+</tbody>
+</table></div>
+<p>
+            Since the dispatcher service captures stdout for parsing those keys,
+            anything written to stdout will not appear in the dispatcher service
+            journal log. Use stderr if you want to print messages to the journal
+            (for example, for debugging). Only the first 8KiB of stdout are
+            considered and among those, only the first 64 lines; the rest is
+            ignored.
+          </p>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="varname">device-delete</code></span></p></td>
+<td><p>
+            This action is the counterpart of <code class="literal">device-add</code> and
+            is called to delete the device for a generic connection. All the
+            aspects described for <code class="literal">device-add</code> also apply to
+            this action, with the only exception that key
+            <code class="varname">IFINDEX</code> is ignored. It is not necessary to delete
+            the kernel link in the handler because NetworkManager already does
+            that; therefore the action is useful for any additional cleanup
+            needed.
+          </p></td>
+</tr>
 </tbody>
 </table></div>
 <p>
@@ -313,6 +376,25 @@
 <p>
       In case of VPN, VPN_IP_IFACE is set, and IP4_*, IP6_* variables with VPN prefix are
       exported too, like VPN_IP4_ADDRESS_0, VPN_IP4_NUM_ADDRESSES.
+    </p>
+<p>
+      The content of the <code class="literal">user</code> setting for the connection
+      being activated is also passed via environment variables. Each key is
+      stored in a variable with name <code class="literal">CONNECTION_USER_</code>
+      concatenated with the encoding of the key name. The encoding works as
+      follows:
+      </p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p>lowercase letters become uppercase</p></li>
+<li class="listitem"><p>uppercase letters are prefixed with an underscore</p></li>
+<li class="listitem"><p>numbers do not change</p></li>
+<li class="listitem"><p>a dot is replaced with a double underscore</p></li>
+<li class="listitem"><p>any other character is encoded with an underscore followed by
+          its 3-digit octal representation</p></li>
+</ul></div>
+<p>
+      For example, key <code class="literal">test.foo-Bar2</code> is stored in a variable named
+      <code class="literal">CONNECTION_USER_TEST__FOO_055_BAR2</code>.
     </p>
 <p>
       Dispatcher scripts are run one at a time, but asynchronously from the main
