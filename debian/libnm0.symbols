@@ -36,7 +36,7 @@ libnm.so.0 libnm0 #MINVER#
  libnm_1_42_0@libnm_1_42_0 1.42.0
  libnm_1_42_2@libnm_1_42_2 1.42.2
  libnm_1_44_0@libnm_1_44_0 1.44.0
- libnm_1_46_0@libnm_1_46_0 1.45.90
+ libnm_1_46_0@libnm_1_46_0 1.46.0
  libnm_1_4_0@libnm_1_4_0 1.4.0
  libnm_1_6_0@libnm_1_6_0 1.6.0
  libnm_1_8_0@libnm_1_8_0 1.8.0
@@ -45,7 +45,7 @@ libnm.so.0 libnm0 #MINVER#
  nm_802_11_mode_get_type@libnm_1_0_0 1.0.0
  nm_access_point_connection_valid@libnm_1_0_0 1.0.0
  nm_access_point_filter_connections@libnm_1_0_0 1.0.0
- nm_access_point_get_bandwidth@libnm_1_46_0 1.45.90
+ nm_access_point_get_bandwidth@libnm_1_46_0 1.46.0
  nm_access_point_get_bssid@libnm_1_0_0 1.0.0
  nm_access_point_get_flags@libnm_1_0_0 1.0.0
  nm_access_point_get_frequency@libnm_1_0_0 1.0.0
@@ -357,12 +357,12 @@ libnm.so.0 libnm0 #MINVER#
  nm_device_get_type_description@libnm_1_0_0 1.0.0
  nm_device_get_udi@libnm_1_0_0 1.0.0
  nm_device_get_vendor@libnm_1_0_0 1.0.0
- nm_device_hsr_get_multicast_spec@libnm_1_46_0 1.45.90
- nm_device_hsr_get_port1@libnm_1_46_0 1.45.90
- nm_device_hsr_get_port2@libnm_1_46_0 1.45.90
- nm_device_hsr_get_prp@libnm_1_46_0 1.45.90
- nm_device_hsr_get_supervision_address@libnm_1_46_0 1.45.90
- nm_device_hsr_get_type@libnm_1_46_0 1.45.90
+ nm_device_hsr_get_multicast_spec@libnm_1_46_0 1.46.0
+ nm_device_hsr_get_port1@libnm_1_46_0 1.46.0
+ nm_device_hsr_get_port2@libnm_1_46_0 1.46.0
+ nm_device_hsr_get_prp@libnm_1_46_0 1.46.0
+ nm_device_hsr_get_supervision_address@libnm_1_46_0 1.46.0
+ nm_device_hsr_get_type@libnm_1_46_0 1.46.0
  nm_device_infiniband_get_carrier@libnm_1_0_0 1.0.0
  nm_device_infiniband_get_hw_address@libnm_1_0_0 1.0.0
  nm_device_infiniband_get_type@libnm_1_0_0 1.0.0
@@ -370,7 +370,7 @@ libnm.so.0 libnm0 #MINVER#
  nm_device_ip_tunnel_get_encapsulation_limit@libnm_1_2_0 1.2.0
  nm_device_ip_tunnel_get_flags@libnm_1_12_0 1.12.0
  nm_device_ip_tunnel_get_flow_label@libnm_1_2_0 1.2.0
- nm_device_ip_tunnel_get_fwmark@libnm_1_46_0 1.45.90
+ nm_device_ip_tunnel_get_fwmark@libnm_1_46_0 1.46.0
  nm_device_ip_tunnel_get_input_key@libnm_1_2_0 1.2.0
  nm_device_ip_tunnel_get_local@libnm_1_2_0 1.2.0
  nm_device_ip_tunnel_get_mode@libnm_1_2_0 1.2.0
@@ -525,9 +525,9 @@ libnm.so.0 libnm0 #MINVER#
  nm_dns_entry_get_type@libnm_1_6_0 1.6.0
  nm_dns_entry_get_vpn@libnm_1_6_0 1.6.0
  nm_dns_entry_unref@libnm_1_6_0 1.6.0
- nm_ethtool_optname_is_channels@libnm_1_46_0 1.45.90
+ nm_ethtool_optname_is_channels@libnm_1_46_0 1.46.0
  nm_ethtool_optname_is_coalesce@libnm_1_26_0 1.26.0
- nm_ethtool_optname_is_eee@libnm_1_46_0 1.45.90
+ nm_ethtool_optname_is_eee@libnm_1_46_0 1.46.0
  nm_ethtool_optname_is_feature@libnm_1_14_8 1.20.0
  nm_ethtool_optname_is_pause@libnm_1_32_0 1.32.12
  nm_ethtool_optname_is_ring@libnm_1_26_0 1.26.0
@@ -899,13 +899,13 @@ libnm.so.0 libnm0 #MINVER#
  nm_setting_connection_dns_over_tls_get_type@libnm_1_34_0 1.34.0
  nm_setting_connection_get_auth_retries@libnm_1_10_0 1.10.0
  nm_setting_connection_get_autoconnect@libnm_1_0_0 1.0.0
- nm_setting_connection_get_autoconnect_ports@libnm_1_46_0 1.45.91
+ nm_setting_connection_get_autoconnect_ports@libnm_1_46_0 1.46.0
  nm_setting_connection_get_autoconnect_priority@libnm_1_0_0 1.0.0
  nm_setting_connection_get_autoconnect_retries@libnm_1_6_0 1.6.0
  nm_setting_connection_get_autoconnect_slaves@libnm_1_0_4 1.0.4
  nm_setting_connection_get_autoconnect_slaves@libnm_1_2_0 1.2.0
  nm_setting_connection_get_connection_type@libnm_1_0_0 1.0.0
- nm_setting_connection_get_controller@libnm_1_46_0 1.45.90
+ nm_setting_connection_get_controller@libnm_1_46_0 1.46.0
  nm_setting_connection_get_dns_over_tls@libnm_1_34_0 1.34.0
  nm_setting_connection_get_gateway_ping_timeout@libnm_1_0_0 1.0.0
  nm_setting_connection_get_id@libnm_1_0_0 1.0.0
@@ -923,7 +923,7 @@ libnm.so.0 libnm0 #MINVER#
  nm_setting_connection_get_num_permissions@libnm_1_0_0 1.0.0
  nm_setting_connection_get_num_secondaries@libnm_1_0_0 1.0.0
  nm_setting_connection_get_permission@libnm_1_0_0 1.0.0
- nm_setting_connection_get_port_type@libnm_1_46_0 1.45.90
+ nm_setting_connection_get_port_type@libnm_1_46_0 1.46.0
  nm_setting_connection_get_read_only@libnm_1_0_0 1.0.0
  nm_setting_connection_get_secondary@libnm_1_0_0 1.0.0
  nm_setting_connection_get_slave_type@libnm_1_0_0 1.0.0
@@ -981,9 +981,11 @@ libnm.so.0 libnm0 #MINVER#
  nm_setting_ethtool_get_type@libnm_1_14_0 1.14.0
  nm_setting_ethtool_new@libnm_1_14_0 1.14.0
  nm_setting_ethtool_set_feature@libnm_1_14_0 1.14.0
+ nm_setting_generic_get_device_handler@libnm_1_46_0 1.46.0
  nm_setting_generic_get_type@libnm_1_0_0 1.0.0
  nm_setting_generic_new@libnm_1_0_0 1.0.0
  nm_setting_get_dbus_property_type@libnm_1_0_0 1.0.0
+ nm_setting_get_enum_property_type@libnm_1_46_0 1.46.0
  nm_setting_get_name@libnm_1_0_0 1.0.0
  nm_setting_get_secret_flags@libnm_1_0_0 1.0.0
  nm_setting_get_type@libnm_1_0_0 1.0.0
@@ -1011,12 +1013,12 @@ libnm.so.0 libnm0 #MINVER#
  nm_setting_hostname_get_priority@libnm_1_30_0 1.30.0
  nm_setting_hostname_get_type@libnm_1_30_0 1.30.0
  nm_setting_hostname_new@libnm_1_40_4 1.40.4
- nm_setting_hsr_get_multicast_spec@libnm_1_46_0 1.45.90
- nm_setting_hsr_get_port1@libnm_1_46_0 1.45.90
- nm_setting_hsr_get_port2@libnm_1_46_0 1.45.90
- nm_setting_hsr_get_prp@libnm_1_46_0 1.45.90
- nm_setting_hsr_get_type@libnm_1_46_0 1.45.90
- nm_setting_hsr_new@libnm_1_46_0 1.45.90
+ nm_setting_hsr_get_multicast_spec@libnm_1_46_0 1.46.0
+ nm_setting_hsr_get_port1@libnm_1_46_0 1.46.0
+ nm_setting_hsr_get_port2@libnm_1_46_0 1.46.0
+ nm_setting_hsr_get_prp@libnm_1_46_0 1.46.0
+ nm_setting_hsr_get_type@libnm_1_46_0 1.46.0
+ nm_setting_hsr_new@libnm_1_46_0 1.46.0
  nm_setting_infiniband_get_mac_address@libnm_1_0_0 1.0.0
  nm_setting_infiniband_get_mtu@libnm_1_0_0 1.0.0
  nm_setting_infiniband_get_p_key@libnm_1_0_0 1.0.0
@@ -1060,7 +1062,7 @@ libnm.so.0 libnm0 #MINVER#
  nm_setting_ip_config_get_address@libnm_1_0_0 1.0.0
  nm_setting_ip_config_get_auto_route_ext_gw@libnm_1_42_0 1.42.0
  nm_setting_ip_config_get_dad_timeout@libnm_1_2_0 1.1.91
- nm_setting_ip_config_get_dhcp_dscp@libnm_1_46_0 1.45.91
+ nm_setting_ip_config_get_dhcp_dscp@libnm_1_46_0 1.46.0
  nm_setting_ip_config_get_dhcp_hostname@libnm_1_0_0 1.0.0
  nm_setting_ip_config_get_dhcp_hostname_flags@libnm_1_22_0 1.22.0
  nm_setting_ip_config_get_dhcp_iaid@libnm_1_40_4 1.40.4
@@ -1137,6 +1139,7 @@ libnm.so.0 libnm0 #MINVER#
  nm_setting_macsec_get_mka_cak_flags@libnm_1_6_0 1.6.0
  nm_setting_macsec_get_mka_ckn@libnm_1_6_0 1.6.0
  nm_setting_macsec_get_mode@libnm_1_6_0 1.6.0
+ nm_setting_macsec_get_offload@libnm_1_46_0 1.46.0
  nm_setting_macsec_get_parent@libnm_1_6_0 1.6.0
  nm_setting_macsec_get_port@libnm_1_6_0 1.6.0
  nm_setting_macsec_get_send_sci@libnm_1_12_0 1.12.0
@@ -1144,6 +1147,7 @@ libnm.so.0 libnm0 #MINVER#
  nm_setting_macsec_get_validation@libnm_1_6_0 1.6.0
  nm_setting_macsec_mode_get_type@libnm_1_6_0 1.6.0
  nm_setting_macsec_new@libnm_1_6_0 1.6.0
+ nm_setting_macsec_offload_get_type@libnm_1_46_0 1.46.0
  nm_setting_macsec_validation_get_type@libnm_1_6_0 1.6.0
  nm_setting_macvlan_get_mode@libnm_1_2_0 1.2.0
  nm_setting_macvlan_get_parent@libnm_1_2_0 1.2.0
@@ -1288,6 +1292,9 @@ libnm.so.0 libnm0 #MINVER#
  nm_setting_sriov_add_vf@libnm_1_14_0 1.14.0
  nm_setting_sriov_clear_vfs@libnm_1_14_0 1.14.0
  nm_setting_sriov_get_autoprobe_drivers@libnm_1_14_0 1.14.0
+ nm_setting_sriov_get_eswitch_encap_mode@libnm_1_46_0 1.46.0
+ nm_setting_sriov_get_eswitch_inline_mode@libnm_1_46_0 1.46.0
+ nm_setting_sriov_get_eswitch_mode@libnm_1_46_0 1.46.0
  nm_setting_sriov_get_num_vfs@libnm_1_14_0 1.14.0
  nm_setting_sriov_get_total_vfs@libnm_1_14_0 1.14.0
  nm_setting_sriov_get_type@libnm_1_14_0 1.14.0
@@ -1568,6 +1575,9 @@ libnm.so.0 libnm0 #MINVER#
  nm_simple_connection_new@libnm_1_0_0 1.0.0
  nm_simple_connection_new_clone@libnm_1_0_0 1.0.0
  nm_simple_connection_new_from_dbus@libnm_1_0_0 1.0.0
+ nm_sriov_eswitch_encap_mode_get_type@libnm_1_46_0 1.46.0
+ nm_sriov_eswitch_inline_mode_get_type@libnm_1_46_0 1.46.0
+ nm_sriov_eswitch_mode_get_type@libnm_1_46_0 1.46.0
  nm_sriov_vf_add_vlan@libnm_1_14_0 1.14.0
  nm_sriov_vf_attribute_validate@libnm_1_40_4 1.40.4
  nm_sriov_vf_dup@libnm_1_14_0 1.14.0
