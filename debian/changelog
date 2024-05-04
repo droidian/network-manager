@@ -1,3 +1,9 @@
+network-manager (1.47.90-1) UNRELEASED; urgency=medium
+
+  * New upstream version 1.47.90 (1.48 rc1)
+
+ -- Michael Biebl <biebl@debian.org>  Sun, 05 May 2024 00:07:49 +0200
+
 network-manager (1.46.0-2) unstable; urgency=medium
 
   * Drop alternative Depends on obsolete policykit-1 package.
