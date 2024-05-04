@@ -1,0 +1,106 @@
+#!/bin/bash
+
+set -xe
+
+# A list of packages useful/needed to build and develop
+# NetworkManager on Debian and Ubuntu.
+#
+# Not all of these packages are available, depending
+# on your distribution/release. But the script will happily
+# skip them.
+#
+# Not all of these packages are strictly speaking necessary.
+# This is a generous list of related packages.
+
+SUDO=
+[ "$EUID" -eq 0 ] || SUDO=sudo
+
+install() {
+    if [ "$NM_INSTALL" != "" ]; then
+        $NM_INSTALL "$@"
+    else
+        $SUDO apt-get install -y "$@"
+    fi
+}
+
+install_ignore_missing() {
+    for p; do
+        install "$p" || :
+    done
+}
+
+
+install \
+    \
+    autoconf \
+    automake \
+    autopoint \
+    clang \
+    dbus \
+    dbus-x11 \
+    dnsmasq \
+    git \
+    gobject-introspection \
+    gtk-doc-tools \
+    intltool \
+    iproute2 \
+    iptables \
+    libaudit-dev \
+    libcurl4-gnutls-dev \
+    libdbus-1-dev \
+    libgirepository1.0-dev \
+    libglib2.0-dev \
+    libglib2.0-doc \
+    libgnutls28-dev \
+    libiw-dev \
+    libjansson-dev \
+    libjansson4 \
+    libmm-glib-dev \
+    libndp-dev \
+    libnewt-dev \
+    libnss3-dev \
+    libpolkit-gobject-1-dev \
+    libpsl-dev \
+    libreadline-dev \
+    libsystemd-dev \
+    libteam-dev \
+    libtool \
+    libudev-dev \
+    locales \
+    make \
+    meson \
+    mobile-broadband-provider-info \
+    pkg-config \
+    policykit-1 \
+    ppp \
+    ppp-dev \
+    python3-dbus \
+    python3-gi \
+    python3-pip \
+    python3-setuptools \
+    python3-pexpect \
+    udev \
+    uuid-dev \
+    valgrind \
+    \
+    #end
+
+install_ignore_missing \
+    python-setuptools \
+    \
+    #end
+
+# Old. Present in Ubuntu 20.04, not in Ubuntu 22.04
+# software-properties-common
+install_ignore_missing \
+    python-dbus \
+    python-gi \
+    \
+    #end
+
+# Old. Present in Ubuntu 18.04, not in Ubuntu 20.04
+# software-properties-common
+install_ignore_missing \
+    libgcrypt11-dev \
+    \
+    #end

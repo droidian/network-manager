@@ -354,6 +354,13 @@ Example: </strong></span>BSSID=00:1E:BD:64:83:21</td>
 <td align="left">It denies usage of the connection for any device whose address is listed.</td>
 </tr>
 <tr>
+<td align="left">mac-address-denylist</td>
+<td align="left">HWADDR_BLACKLIST<span class="emphasis"><em>(+)</em></span>
+</td>
+<td align="left"> </td>
+<td align="left">It denies usage of the connection for any device whose address is listed.</td>
+</tr>
+<tr>
 <td align="left">seen-bssids</td>
 <td align="left">(none)</td>
 <td align="left"> </td>
@@ -913,6 +920,13 @@ Example: </strong></span>IEEE_8021X_PRIVATE_KEY=/home/joe/mykey.p12</td>
 <td align="left"> </td>
 <td align="left">whether the 802.1X authentication is optional</td>
 </tr>
+<tr>
+<td align="left">openssl-ciphers</td>
+<td align="left">IEEE_8021X_OPENSSL_CIPHERS<span class="emphasis"><em>(+)</em></span>
+</td>
+<td align="left"> </td>
+<td align="left">Cipher string for tls setup of wpa_supplicant.</td>
+</tr>
 </tbody>
 </table></div>
 </div>
@@ -977,6 +991,15 @@ Example: </strong></span>IEEE_8021X_PRIVATE_KEY=/home/joe/mykey.p12</td>
 </tr>
 <tr>
 <td align="left">mac-address-blacklist</td>
+<td align="left">HWADDR_BLACKLIST<span class="emphasis"><em>(+)</em></span>
+</td>
+<td align="left"> </td>
+<td align="left">It denies usage of the connection for any device whose address is listed.<span class="bold"><strong>
+
+Example: </strong></span>HWADDR_BLACKLIST="00:22:68:11:69:08 00:11:22:11:44:55"</td>
+</tr>
+<tr>
+<td align="left">mac-address-denylist</td>
 <td align="left">HWADDR_BLACKLIST<span class="emphasis"><em>(+)</em></span>
 </td>
 <td align="left"> </td>

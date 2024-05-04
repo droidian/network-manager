@@ -2,12 +2,12 @@
 .\"     Title: nm-settings-ifcfg-rh
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 02/22/2024
+.\"      Date: 05/03/2024
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.46.0
+.\"    Source: NetworkManager 1.47.90
 .\"  Language: English
 .\"
-.TH "NM\-SETTINGS\-IFCFG\-RH" "5" "" "NetworkManager 1\&.46\&.0" "Configuration"
+.TH "NM\-SETTINGS\-IFCFG\-RH" "5" "" "NetworkManager 1\&.47\&.90" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -377,6 +377,7 @@ l l l l
 l l l l
 l l l l
 l l l l
+l l l l
 l l l l.
 T{
 ssid
@@ -482,6 +483,15 @@ the MAC address mask for generating randomized and stable cloned\-mac\-address\&
 T}
 T{
 mac\-address\-blacklist
+T}:T{
+HWADDR_BLACKLIST\fI(+)\fR
+T}:T{
+\ \&
+T}:T{
+It denies usage of the connection for any device whose address is listed\&.
+T}
+T{
+mac\-address\-denylist
 T}:T{
 HWADDR_BLACKLIST\fI(+)\fR
 T}:T{
@@ -821,6 +831,7 @@ T}:T{
 Description
 T}
 .T&
+l l l l
 l l l l
 l l l l
 l l l l
@@ -1245,6 +1256,15 @@ T}:T{
 T}:T{
 whether the 802\&.1X authentication is optional
 T}
+T{
+openssl\-ciphers
+T}:T{
+IEEE_8021X_OPENSSL_CIPHERS\fI(+)\fR
+T}:T{
+\ \&
+T}:T{
+Cipher string for tls setup of wpa_supplicant\&.
+T}
 .TE
 .sp 1
 .sp
@@ -1266,6 +1286,7 @@ T}:T{
 Description
 T}
 .T&
+l l l l
 l l l l
 l l l l
 l l l l
@@ -1346,6 +1367,17 @@ the MAC address mask for generating randomized and stable cloned\-mac\-address\&
 T}
 T{
 mac\-address\-blacklist
+T}:T{
+HWADDR_BLACKLIST\fI(+)\fR
+T}:T{
+\ \&
+T}:T{
+It denies usage of the connection for any device whose address is listed\&.\fB
+
+Example: \fRHWADDR_BLACKLIST="00:22:68:11:69:08 00:11:22:11:44:55"
+T}
+T{
+mac\-address\-denylist
 T}:T{
 HWADDR_BLACKLIST\fI(+)\fR
 T}:T{

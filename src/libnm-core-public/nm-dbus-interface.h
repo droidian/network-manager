@@ -612,6 +612,25 @@ typedef enum {
  * @NM_DEVICE_STATE_REASON_PEER_NOT_FOUND: The Wi-Fi P2P peer could not be found
  * @NM_DEVICE_STATE_REASON_DEVICE_HANDLER_FAILED: The device handler dispatcher returned an
  *   error. Since: 1.46
+ * @NM_DEVICE_STATE_REASON_UNMANAGED_BY_DEFAULT: The device is unmanaged because the device type
+ *   is unmanaged by default. Since: 1.48
+ * @NM_DEVICE_STATE_REASON_UNMANAGED_EXTERNAL_DOWN: The device is unmanaged because it is an
+ *   external device and is unconfigured (down or without addresses). Since: 1.48
+ * @NM_DEVICE_STATE_REASON_UNMANAGED_LINK_NOT_INIT: The device is unmanaged because the link is
+ *   not initialized by udev. Since: 1.48
+ * @NM_DEVICE_STATE_REASON_UNMANAGED_QUITTING: The device is unmanaged because NetworkManager is
+ *   quitting. Since: 1.48
+ * @NM_DEVICE_STATE_REASON_UNMANAGED_SLEEPING: The device is unmanaged because networking is
+ *   disabled or the system is suspended. Since: 1.48
+ * @NM_DEVICE_STATE_REASON_UNMANAGED_USER_CONF: The device is unmanaged by user decision in
+ *   NetworkManager.conf ('unmanaged' in a [device*] section). Since: 1.48
+ * @NM_DEVICE_STATE_REASON_UNMANAGED_USER_EXPLICIT: The device is unmanaged by explicit user
+ *   decision (e.g. 'nmcli device set $DEV managed no'). Since: 1.48
+ * @NM_DEVICE_STATE_REASON_UNMANAGED_USER_SETTINGS: The device is unmanaged by user decision
+ *   via settings plugin ('unmanaged-devices' for keyfile or 'NM_CONTROLLED=no' for ifcfg-rh).
+ *   Since: 1.48
+ * @NM_DEVICE_STATE_REASON_UNMANAGED_USER_UDEV: The device is unmanaged via udev rule. Since: 1.48
+
  *
  * Device state change reason codes
  */
@@ -685,6 +704,15 @@ typedef enum {
     NM_DEVICE_STATE_REASON_SRIOV_CONFIGURATION_FAILED     = 66,
     NM_DEVICE_STATE_REASON_PEER_NOT_FOUND                 = 67,
     NM_DEVICE_STATE_REASON_DEVICE_HANDLER_FAILED          = 68,
+    NM_DEVICE_STATE_REASON_UNMANAGED_BY_DEFAULT           = 69,
+    NM_DEVICE_STATE_REASON_UNMANAGED_EXTERNAL_DOWN        = 70,
+    NM_DEVICE_STATE_REASON_UNMANAGED_LINK_NOT_INIT        = 71,
+    NM_DEVICE_STATE_REASON_UNMANAGED_QUITTING             = 72,
+    NM_DEVICE_STATE_REASON_UNMANAGED_SLEEPING             = 73,
+    NM_DEVICE_STATE_REASON_UNMANAGED_USER_CONF            = 74,
+    NM_DEVICE_STATE_REASON_UNMANAGED_USER_EXPLICIT        = 75,
+    NM_DEVICE_STATE_REASON_UNMANAGED_USER_SETTINGS        = 76,
+    NM_DEVICE_STATE_REASON_UNMANAGED_USER_UDEV            = 77,
 } NMDeviceStateReason;
 
 /**
@@ -991,6 +1019,11 @@ typedef enum {
  *   With this flag, the rollback detaches all external ports.
  *   This only has an effect for bridge ports. Before 1.38, this was the default
  *   behavior. Since: 1.38.
+ * @NM_CHECKPOINT_CREATE_FLAG_TRACK_INTERNAL_GLOBAL_DNS: during rollback,
+ *   by default changes to global DNS via D-BUS interface are preserved.
+ *   With this flag, the rollback reverts the global DNS changes made via D-Bus
+ *   interface. Global DNS defined in [global-dns] section of
+ *   NetworkManager.conf is not impacted by this flag. Since: 1.48.
  *
  * The flags for CheckpointCreate call
  *
@@ -1003,6 +1036,7 @@ typedef enum /*< flags >*/ {
     NM_CHECKPOINT_CREATE_FLAG_DISCONNECT_NEW_DEVICES     = 0x04,
     NM_CHECKPOINT_CREATE_FLAG_ALLOW_OVERLAPPING          = 0x08,
     NM_CHECKPOINT_CREATE_FLAG_NO_PRESERVE_EXTERNAL_PORTS = 0x10,
+    NM_CHECKPOINT_CREATE_FLAG_TRACK_INTERNAL_GLOBAL_DNS  = 0x20,
 } NMCheckpointCreateFlags;
 
 /**

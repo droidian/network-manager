@@ -23,6 +23,7 @@
 #include "random-util.h"
 #include "set.h"
 #include "siphash24.h"
+#include "sort-util.h"
 #include "string-util.h"
 #include "strv.h"
 
@@ -176,9 +177,9 @@ struct _packed_ indirect_storage {
 };
 
 struct direct_storage {
-        /* This gives us 39 bytes on 64bit, or 35 bytes on 32bit.
-         * That's room for 4 set_entries + 4 DIB bytes + 3 unused bytes on 64bit,
-         *              or 7 set_entries + 7 DIB bytes + 0 unused bytes on 32bit. */
+        /* This gives us 39 bytes on 64-bit, or 35 bytes on 32-bit.
+         * That's room for 4 set_entries + 4 DIB bytes + 3 unused bytes on 64-bit,
+         *              or 7 set_entries + 7 DIB bytes + 0 unused bytes on 32-bit. */
         uint8_t storage[sizeof(struct indirect_storage)];
 };
 
@@ -2111,4 +2112,92 @@ bool set_fnmatch(Set *include_patterns, Set *exclude_patterns, const char *needl
                 return true;
 
         return set_fnmatch_one(include_patterns, needle);
+}
+
+static int hashmap_entry_compare(
+                struct hashmap_base_entry * const *a,
+                struct hashmap_base_entry * const *b,
+                compare_func_t compare) {
+
+        assert(a && *a);
+        assert(b && *b);
+        assert(compare);
+
+        return compare((*a)->key, (*b)->key);
+}
+
+static int _hashmap_dump_entries_sorted(
+                HashmapBase *h,
+                void ***ret,
+                size_t *ret_n) {
+        _cleanup_free_ void **entries = NULL;
+        Iterator iter;
+        unsigned idx;
+        size_t n = 0;
+
+        assert(ret);
+        assert(ret_n);
+
+        if (_hashmap_size(h) == 0) {
+                *ret = NULL;
+                *ret_n = 0;
+                return 0;
+        }
+
+        /* We append one more element than needed so that the resulting array can be used as a strv. We
+         * don't count this entry in the returned size. */
+        entries = new(void*, _hashmap_size(h) + 1);
+        if (!entries)
+                return -ENOMEM;
+
+        HASHMAP_FOREACH_IDX(idx, h, iter)
+                entries[n++] = bucket_at(h, idx);
+
+        assert(n == _hashmap_size(h));
+        entries[n] = NULL;
+
+        typesafe_qsort_r((struct hashmap_base_entry**) entries, n,
+                         hashmap_entry_compare, h->hash_ops->compare);
+
+        *ret = TAKE_PTR(entries);
+        *ret_n = n;
+        return 0;
+}
+
+int _hashmap_dump_keys_sorted(HashmapBase *h, void ***ret, size_t *ret_n) {
+        _cleanup_free_ void **entries = NULL;
+        size_t n;
+        int r;
+
+        r = _hashmap_dump_entries_sorted(h, &entries, &n);
+        if (r < 0)
+                return r;
+
+        /* Reuse the array. */
+        FOREACH_ARRAY(e, entries, n)
+                *e = (void*) (*(struct hashmap_base_entry**) e)->key;
+
+        *ret = TAKE_PTR(entries);
+        if (ret_n)
+                *ret_n = n;
+        return 0;
+}
+
+int _hashmap_dump_sorted(HashmapBase *h, void ***ret, size_t *ret_n) {
+        _cleanup_free_ void **entries = NULL;
+        size_t n;
+        int r;
+
+        r = _hashmap_dump_entries_sorted(h, &entries, &n);
+        if (r < 0)
+                return r;
+
+        /* Reuse the array. */
+        FOREACH_ARRAY(e, entries, n)
+                *e = entry_value(h, *(struct hashmap_base_entry**) e);
+
+        *ret = TAKE_PTR(entries);
+        if (ret_n)
+                *ret_n = n;
+        return 0;
 }

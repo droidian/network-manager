@@ -146,6 +146,12 @@ Certificate data is specified using a "scheme"; two are currently supported: blo
 <td>Identity string for EAP authentication methods.  Often the user's user or login name.</td>
 </tr>
 <tr>
+<td><pre class="screen">openssl-ciphers</pre></td>
+<td><pre class="screen">string</pre></td>
+<td><pre class="screen"></pre></td>
+<td>Define openssl_ciphers for wpa_supplicant. Openssl sometimes moves ciphers among SECLEVELs, thus compiled-in default value in wpa_supplicant (as modified by some linux distributions) sometimes prevents to connect to old servers that do not support new protocols.</td>
+</tr>
+<tr>
 <td><pre class="screen">optional</pre></td>
 <td><pre class="screen">boolean</pre></td>
 <td><pre class="screen">FALSE</pre></td>

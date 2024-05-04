@@ -88,8 +88,8 @@ nm_simple_connection_new (<em class="parameter"><code><span class="type">void</s
 <div class="refsect2">
 <a name="nm-simple-connection-new-from-dbus"></a><h3>nm_simple_connection_new_from_dbus ()</h3>
 <pre class="programlisting"><a class="link" href="NMConnection.html" title="NMConnection"><span class="returnvalue">NMConnection</span></a> *
-nm_simple_connection_new_from_dbus (<em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> *dict</code></em>,
-                                    <em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
+nm_simple_connection_new_from_dbus (<em class="parameter"><code><a href="../glib/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> *dict</code></em>,
+                                    <em class="parameter"><code><a href="../glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
 <p>Creates a new <a class="link" href="NMSimpleConnection.html" title="NMSimpleConnection"><span class="type">NMSimpleConnection</span></a> from a hash table describing the
 connection and normalize the connection.  See <a class="link" href="NMConnection.html#nm-connection-to-dbus" title="nm_connection_to_dbus ()"><code class="function">nm_connection_to_dbus()</code></a> for a
 description of the expected hash table.</p>
@@ -104,7 +104,7 @@ description of the expected hash table.</p>
 <tbody>
 <tr>
 <td class="parameter_name"><p>dict</p></td>
-<td class="parameter_description"><p>a <a href="https://developer.gnome.org/glib/unstable/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> of type <code class="literal">NM_VARIANT_TYPE_CONNECTION</code> describing the connection</p></td>
+<td class="parameter_description"><p>a <a href="../glib/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> of type <code class="literal">NM_VARIANT_TYPE_CONNECTION</code> describing the connection</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 <tr>
@@ -118,7 +118,7 @@ description of the expected hash table.</p>
 <div class="refsect3">
 <a name="nm-simple-connection-new-from-dbus.returns"></a><h4>Returns</h4>
 <p>the new <a class="link" href="NMSimpleConnection.html" title="NMSimpleConnection"><span class="type">NMSimpleConnection</span></a> object, populated with
-settings created from the values in the hash table, or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if the
+settings created from the values in the hash table, or <a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if the
 connection failed to normalize. </p>
 <p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>

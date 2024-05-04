@@ -107,7 +107,7 @@
 </div>
 <div class="refsect1">
 <a name="NMObject.object-hierarchy"></a><h2>Object Hierarchy</h2>
-<pre class="screen">    <a href="https://developer.gnome.org/gobject/unstable/gobject-The-Base-Object-Type.html#GObject-struct">GObject</a>
+<pre class="screen">    <a href="../gobject/gobject-The-Base-Object-Type.html#GObject-struct">GObject</a>
     <span class="lineart">╰──</span> NMObject
         <span class="lineart">├──</span> <a class="link" href="NMAccessPoint.html" title="NMAccessPoint">NMAccessPoint</a>
         <span class="lineart">├──</span> <a class="link" href="NMActiveConnection.html" title="NMActiveConnection">NMActiveConnection</a>
@@ -161,7 +161,7 @@ whether the object is still alive/cached, check <a class="link" href="NMObject.h
 nm_object_get_client (<em class="parameter"><code><a class="link" href="NMObject.html" title="NMObject"><span class="type">NMObject</span></a> *object</code></em>);</pre>
 <p>Returns the <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> instance in which object is cached.
 Also, if the object got removed from the client cached,
-this returns <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. So it can be used to check whether the
+this returns <a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. So it can be used to check whether the
 object is still alive.</p>
 <div class="refsect3">
 <a name="nm-object-get-client.parameters"></a><h4>Parameters</h4>
@@ -181,7 +181,7 @@ object is still alive.</p>
 <div class="refsect3">
 <a name="nm-object-get-client.returns"></a><h4>Returns</h4>
 <p>the <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> cache in which the
-object can be found, or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if the object is no longer
+object can be found, or <a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if the object is no longer
 cached. </p>
 <p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
@@ -215,7 +215,7 @@ cached. </p>
 <p>The NMClient instance as returned by <a class="link" href="NMObject.html#nm-object-get-client" title="nm_object_get_client ()"><code class="function">nm_object_get_client()</code></a>.</p>
 <p>When an NMObject gets removed from the NMClient cache,
 the NMObject:path property stays unchanged, but this client
-instance gets reset to <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. You can use this property to
+instance gets reset to <a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. You can use this property to
 track removal of the object from the cache.</p>
 <p>Owner: NMObject</p>
 <p>Flags: Read</p>

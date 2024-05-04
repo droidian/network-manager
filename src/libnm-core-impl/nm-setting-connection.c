@@ -73,7 +73,8 @@ NM_GOBJECT_PROPERTIES_DEFINE(NMSettingConnection,
                              PROP_AUTH_RETRIES,
                              PROP_WAIT_DEVICE_TIMEOUT,
                              PROP_MUD_URL,
-                             PROP_WAIT_ACTIVATION_DELAY, );
+                             PROP_WAIT_ACTIVATION_DELAY,
+                             PROP_DOWN_ON_POWEROFF, );
 
 typedef struct {
     GArray     *permissions;
@@ -89,6 +90,7 @@ typedef struct {
     char       *mud_url;
     guint64     timestamp;
     int         autoconnect_ports;
+    int         down_on_poweroff;
     int         metered;
     gint32      autoconnect_priority;
     gint32      autoconnect_retries;
@@ -713,7 +715,7 @@ nm_setting_connection_get_zone(NMSettingConnection *setting)
  * Returns: interface name of the master device or UUID of the master
  * connection.
  *
- * Deprecated: 1.46. Use nm_setting_connection_get_controller() instead which
+ * Deprecated: 1.46. Use nm_setting_connection_get_master() instead which
  * is just an alias.
  */
 const char *
@@ -826,6 +828,26 @@ nm_setting_connection_get_wait_activation_delay(NMSettingConnection *setting)
     g_return_val_if_fail(NM_IS_SETTING_CONNECTION(setting), -1);
 
     return NM_SETTING_CONNECTION_GET_PRIVATE(setting)->wait_activation_delay;
+}
+
+/**
+ * nm_setting_connection_get_down_on_poweroff:
+ * @setting: the #NMSettingConnection
+ *
+ * Returns the %NM_SETTING_CONNECTION_DOWN_ON_POWEROFF property.
+ *
+ * Returns: whether the connection will be brought down before the system
+ * is powered off.
+ *
+ * Since: 1.48
+ */
+NMSettingConnectionDownOnPoweroff
+nm_setting_connection_get_down_on_poweroff(NMSettingConnection *setting)
+{
+    g_return_val_if_fail(NM_IS_SETTING_CONNECTION(setting),
+                         NM_SETTING_CONNECTION_DOWN_ON_POWEROFF_DEFAULT);
+
+    return NM_SETTING_CONNECTION_GET_PRIVATE(setting)->down_on_poweroff;
 }
 
 /**
@@ -2643,9 +2665,9 @@ nm_setting_connection_class_init(NMSettingConnectionClass *klass)
      * If -1 (default) is set, global connection.autoconnect-slaves is read to
      * determine the real value. If it is default as well, this fallbacks to 0.
      *
-     * Since: 1.2
-     *
      * Deprecated 1.46. Use #NMSettingConnection:autoconnect-ports instead, this is just an alias.
+     *
+     * Since: 1.2
      **/
     /* ---ifcfg-rh---
      * property: autoconnect-slaves
@@ -2729,6 +2751,7 @@ nm_setting_connection_class_init(NMSettingConnectionClass *klass)
                                             NM_SETTING_CONNECTION_SECONDARIES,
                                             PROP_SECONDARIES,
                                             NM_SETTING_PARAM_FUZZY_IGNORE,
+                                            NULL,
                                             NMSettingConnectionPrivate,
                                             secondaries);
 
@@ -2852,11 +2875,12 @@ nm_setting_connection_class_init(NMSettingConnectionClass *klass)
      * for the connection, "no" (0) disable mDNS for the interface, "resolve"
      * (1) do not register hostname but allow resolving of mDNS host names
      * and "default" (-1) to allow lookup of a global default in NetworkManager.conf.
-     * If unspecified, "default" ultimately depends on the DNS plugin (which
-     * for systemd-resolved currently means "no").
+     * If unspecified, "default" ultimately depends on the DNS plugin.
      *
      * This feature requires a plugin which supports mDNS. Otherwise, the
-     * setting has no effect. One such plugin is dns-systemd-resolved.
+     * setting has no effect. Currently the only supported DNS plugin is
+     * systemd-resolved. For systemd-resolved, the default is configurable via
+     * MulticastDNS= setting in resolved.conf.
      *
      * Since: 1.12
      **/
@@ -3156,6 +3180,29 @@ nm_setting_connection_class_init(NMSettingConnectionClass *klass)
                                              NM_SETTING_PARAM_NONE,
                                              NMSettingConnectionPrivate,
                                              wait_activation_delay);
+
+    /**
+     * NMSettingConnection:down-on-poweroff:
+     *
+     *
+     * Whether the connection will be brought down before the system is powered
+     * off.  The default value is %NM_SETTING_CONNECTION_DOWN_ON_POWEROFF_DEFAULT. When
+     * the default value is specified, then the global value from
+     * NetworkManager configuration is looked up, if not set, it is considered
+     * as %NM_SETTING_CONNECTION_DOWN_ON_POWEROFF_NO.
+     *
+     * Since: 1.48
+     **/
+    _nm_setting_property_define_direct_enum(properties_override,
+                                            obj_properties,
+                                            NM_SETTING_CONNECTION_DOWN_ON_POWEROFF,
+                                            PROP_DOWN_ON_POWEROFF,
+                                            NM_TYPE_SETTING_CONNECTION_DOWN_ON_POWEROFF,
+                                            NM_SETTING_CONNECTION_DOWN_ON_POWEROFF_DEFAULT,
+                                            NM_SETTING_PARAM_NONE,
+                                            NULL,
+                                            NMSettingConnectionPrivate,
+                                            down_on_poweroff);
 
     g_object_class_install_properties(object_class, _PROPERTY_ENUMS_LAST, obj_properties);
 

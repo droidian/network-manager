@@ -770,6 +770,11 @@ domains=ALL
       to use the default from <code class="literal">NetworkManager.conf</code>.
     </p>
 <p>
+      Note that while nmcli supports various aliases and convenience features for configuring
+      properties, the settings in this section do not. For example, enum values usually only
+      can be configured via their numeric magic number.
+    </p>
+<p>
       Example:
 </p>
 <pre class="programlisting">
@@ -779,7 +784,7 @@ ipv6.ip6-privacy=0
 <p>
     </p>
 <div class="refsect2">
-<a name="id-1.2.3.11.5"></a><h3>Supported Properties</h3>
+<a name="id-1.2.3.11.6"></a><h3>Supported Properties</h3>
 <p>
       Not all properties can be overwritten, only the following
       properties are supported to have their default values configured
@@ -813,6 +818,10 @@ ipv6.ip6-privacy=0
 <td></td>
 </tr>
 <tr>
+<td><p><span class="term"><code class="varname">connection.down-on-poweroff</code></span></p></td>
+<td><p>Whether the connection will be brought down before the system is powered off.</p></td>
+</tr>
+<tr>
 <td><p><span class="term"><code class="varname">connection.mud-url</code></span></p></td>
 <td><p>If unspecified, MUD URL defaults to <code class="literal">"none"</code>.</p></td>
 </tr>
@@ -826,7 +835,13 @@ ipv6.ip6-privacy=0
 </tr>
 <tr>
 <td><p><span class="term"><code class="varname">connection.mdns</code></span></p></td>
-<td><p>If unspecified, the ultimate default values depends on the DNS plugin. With systemd-resolved the default currently is "no" (0) and for all other plugins also "no" (0).</p></td>
+<td><p>
+            Currently only the systemd-resolve DNS plugin supports this setting.
+            If the setting is unspecified both in the profile and in the global
+            default here, then the default is determined by systemd-resolved.
+            See <code class="literal">MulticastDNS=</code> in
+            <span class="citerefentry"><span class="refentrytitle">resolved.conf</span>(5)</span>.
+          </p></td>
 </tr>
 <tr>
 <td><p><span class="term"><code class="varname">connection.mptcp-flags</code></span></p></td>
@@ -905,6 +920,10 @@ ipv6.ip6-privacy=0
 <td><p>If left unspecified, the value 3 (fqdn-encoded,fqdn-serv-update) is used.</p></td>
 </tr>
 <tr>
+<td><p><span class="term"><code class="varname">ipv4.dhcp-send-release</code></span></p></td>
+<td><p>Whether the DHCP client will send RELEASE message when bringing the connection down.</p></td>
+</tr>
+<tr>
 <td><p><span class="term"><code class="varname">ipv4.dhcp-timeout</code></span></p></td>
 <td><p>If left unspecified, the default value for
            the interface type is used.</p></td>
@@ -960,6 +979,10 @@ ipv6.ip6-privacy=0
 <td><p>If left unspecified, the value 1 (fqdn-serv-update) is used.</p></td>
 </tr>
 <tr>
+<td><p><span class="term"><code class="varname">ipv6.dhcp-send-release</code></span></p></td>
+<td><p>Whether the DHCP client will send RELEASE message when bringing the connection down.</p></td>
+</tr>
+<tr>
 <td><p><span class="term"><code class="varname">ipv6.dhcp-timeout</code></span></p></td>
 <td><p>If left unspecified, the default value for
            the interface type is used.</p></td>
@@ -971,8 +994,23 @@ ipv6.ip6-privacy=0
 </tr>
 <tr>
 <td><p><span class="term"><code class="varname">ipv6.ip6-privacy</code></span></p></td>
-<td><p>If <code class="literal">ipv6.ip6-privacy</code> is unset, use the content of
-            "/proc/sys/net/ipv6/conf/default/use_tempaddr" as last fallback.
+<td><p>If <code class="literal">ipv6.ip6-privacy</code> is unset, fall back to the original
+            value of "/proc/sys/net/ipv6/conf/&lt;iface&gt;/use_tempaddr" from before NetworkManager
+            started.
+          </p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="varname">ipv6.temp-valid-lifetime</code></span></p></td>
+<td><p>If <code class="literal">ipv6.temp-valid-lifetime</code> is unset, fall back to the
+            original value of "/proc/sys/net/ipv6/conf/&lt;iface&gt;/temp_valid_lft" from before
+            NetworkManager started.
+          </p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="varname">ipv6.temp-preferred-lifetime</code></span></p></td>
+<td><p>If <code class="literal">ipv6.temp-preferred-lifetime</code> is unset, fall back to
+            the original value of "/proc/sys/net/ipv6/conf/&lt;iface&gt;/temp_prefered_lft" from
+            before NetworkManager started.
           </p></td>
 </tr>
 <tr>

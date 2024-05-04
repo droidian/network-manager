@@ -1,4 +1,29 @@
 =============================================
+NetworkManager-1.48
+Overview of changes since NetworkManager-1.46
+=============================================
+
+This is a snapshot of NetworkManager development. The API is
+subject to change and not guaranteed to be compatible with
+the later release.
+USE AT YOUR OWN RISK.  NOT RECOMMENDED FOR PRODUCTION USE!
+
+* Support changing the OpenSSL ciphers for 802.1X authentication via
+  connection property "802-1x.openssl-ciphers".
+* The reason why a device is unmanaged is now properly set in the
+  "StateReason" property of the "Device" D-Bus object. The property is
+  visible in nmcli via "nmcli -f all device show $DEV".
+* Deprecated 802-11-wireless and 802-11-wired property 'mac-address-blacklist'
+  and introduced the 'mac-address-denylist' property.
+* Properly restore in-memory connection profiles during the rollback
+  of a checkpoint.
+* Fix detection of 6 GHz band capability for WiFi devices
+* Allow IPv6 SLAAC and static IPv6 DNS server assignment for modem broadband
+  when IPv6 device address was not explicitly passed on by ModemManager
+* Fix a performance issue that was leading to 100% CPU usage by NetworkManager
+  if external programs were doing a big amount of routes updates.
+
+=============================================
 NetworkManager-1.46
 Overview of changes since NetworkManager-1.44
 =============================================

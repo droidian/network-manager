@@ -11,6 +11,7 @@
 #include <unistd.h>
 
 #include "alloc-util.h"
+#include "btrfs.h"
 #include "dirent-util.h"
 #include "fd-util.h"
 #include "fileio.h"
@@ -119,7 +120,11 @@ int rename_noreplace(int olddirfd, const char *oldpath, int newdirfd, const char
 int readlinkat_malloc(int fd, const char *p, char **ret) {
         size_t l = PATH_MAX;
 
-        assert(p);
+        assert(fd >= 0 || fd == AT_FDCWD);
+
+        if (fd < 0 && isempty(p))
+                return -EISDIR; /* In this case, the fd points to the current working directory, and is
+                                 * definitely not a symlink. Let's return earlier. */
 
         for (;;) {
                 _cleanup_free_ char *c = NULL;
@@ -129,7 +134,7 @@ int readlinkat_malloc(int fd, const char *p, char **ret) {
                 if (!c)
                         return -ENOMEM;
 
-                n = readlinkat(fd, p, c, l);
+                n = readlinkat(fd, strempty(p), c, l);
                 if (n < 0)
                         return -errno;
 
@@ -155,7 +160,6 @@ int readlink_malloc(const char *p, char **ret) {
         return readlinkat_malloc(AT_FDCWD, p, ret);
 }
 
-#if 0 /* NM_IGNORED */
 int readlink_value(const char *p, char **ret) {
         _cleanup_free_ char *link = NULL, *name = NULL;
         int r;
@@ -177,6 +181,7 @@ int readlink_value(const char *p, char **ret) {
         return 0;
 }
 
+#if 0 /* NM_IGNORED */
 int readlink_and_make_absolute(const char *p, char **ret) {
         _cleanup_free_ char *target = NULL;
         int r;
@@ -292,8 +297,22 @@ int fchmod_umask(int fd, mode_t m) {
 
 int fchmod_opath(int fd, mode_t m) {
         /* This function operates also on fd that might have been opened with
-         * O_PATH. Indeed fchmodat() doesn't have the AT_EMPTY_PATH flag like
-         * fchownat() does. */
+         * O_PATH. The tool set we have is non-intuitive:
+         * - fchmod(2) only operates on open files (i. e., fds with an open file description);
+         * - fchmodat(2) does not have a flag arg like fchownat(2) does, so no way to pass AT_EMPTY_PATH;
+         *   + it should not be confused with the libc fchmodat(3) interface, which adds 4th flag argument,
+         *     but does not support AT_EMPTY_PATH (only supports AT_SYMLINK_NOFOLLOW);
+         * - fchmodat2(2) supports all the AT_* flags, but is still very recent.
+         *
+         * We try to use fchmodat2(), and, if it is not supported, resort
+         * to the /proc/self/fd dance. */
+
+        assert(fd >= 0);
+
+        if (fchmodat2(fd, "", m, AT_EMPTY_PATH) >= 0)
+                return 0;
+        if (!IN_SET(errno, ENOSYS, EPERM)) /* Some container managers block unknown syscalls with EPERM */
+                return -errno;
 
         if (chmod(FORMAT_PROC_FD_PATH(fd), m) < 0) {
                 if (errno != ENOENT)
@@ -1045,7 +1064,7 @@ int open_mkdir_at(int dirfd, const char *path, int flags, mode_t mode) {
                 path = fname;
         }
 
-        fd = xopenat(dirfd, path, flags|O_CREAT|O_DIRECTORY|O_NOFOLLOW, /* xopen_flags = */ 0, mode);
+        fd = xopenat_full(dirfd, path, flags|O_CREAT|O_DIRECTORY|O_NOFOLLOW, /* xopen_flags = */ 0, mode);
         if (IN_SET(fd, -ELOOP, -ENOTDIR))
                 return -EEXIST;
         if (fd < 0)
@@ -1101,12 +1120,22 @@ int openat_report_new(int dirfd, const char *pathname, int flags, mode_t mode, b
         }
 }
 
-int xopenat(int dir_fd, const char *path, int open_flags, XOpenFlags xopen_flags, mode_t mode) {
+int xopenat_full(int dir_fd, const char *path, int open_flags, XOpenFlags xopen_flags, mode_t mode) {
         _cleanup_close_ int fd = -EBADF;
         bool made = false;
         int r;
 
         assert(dir_fd >= 0 || dir_fd == AT_FDCWD);
+
+        /* This is like openat(), but has a few tricks up its sleeves, extending behaviour:
+         *
+         *   • O_DIRECTORY|O_CREAT is supported, which causes a directory to be created, and immediately
+         *     opened. When used with the XO_SUBVOLUME flag this will even create a btrfs subvolume.
+         *
+         *   • If O_CREAT is used with XO_LABEL, any created file will be immediately relabelled.
+         *
+         *   • If the path is specified NULL or empty, behaves like fd_reopen().
+         */
 
         if (isempty(path)) {
                 assert(!FLAGS_SET(open_flags, O_CREAT|O_EXCL));
@@ -1120,7 +1149,10 @@ int xopenat(int dir_fd, const char *path, int open_flags, XOpenFlags xopen_flags
         }
 
         if (FLAGS_SET(open_flags, O_DIRECTORY|O_CREAT)) {
-                r = RET_NERRNO(mkdirat(dir_fd, path, mode));
+                if (FLAGS_SET(xopen_flags, XO_SUBVOLUME))
+                        r = btrfs_subvol_make_fallback(dir_fd, path, mode);
+                else
+                        r = RET_NERRNO(mkdirat(dir_fd, path, mode));
                 if (r == -EEXIST) {
                         if (FLAGS_SET(open_flags, O_EXCL))
                                 return -EEXIST;
@@ -1170,7 +1202,7 @@ int xopenat(int dir_fd, const char *path, int open_flags, XOpenFlags xopen_flags
 }
 
 #if 0 /* NM_IGNORED */
-int xopenat_lock(
+int xopenat_lock_full(
                 int dir_fd,
                 const char *path,
                 int open_flags,
@@ -1183,18 +1215,17 @@ int xopenat_lock(
         int r;
 
         assert(dir_fd >= 0 || dir_fd == AT_FDCWD);
-        assert(path);
         assert(IN_SET(operation & ~LOCK_NB, LOCK_EX, LOCK_SH));
 
         /* POSIX/UNPOSIX locks don't work on directories (errno is set to -EBADF so let's return early with
          * the same error here). */
-        if (FLAGS_SET(open_flags, O_DIRECTORY) && locktype != LOCK_BSD)
+        if (FLAGS_SET(open_flags, O_DIRECTORY) && !IN_SET(locktype, LOCK_BSD, LOCK_NONE))
                 return -EBADF;
 
         for (;;) {
                 struct stat st;
 
-                fd = xopenat(dir_fd, path, open_flags, xopen_flags, mode);
+                fd = xopenat_full(dir_fd, path, open_flags, xopen_flags, mode);
                 if (fd < 0)
                         return fd;
 

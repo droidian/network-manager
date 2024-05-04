@@ -37,6 +37,7 @@ NM_GOBJECT_PROPERTIES_DEFINE(NMSettingWireless,
                              PROP_CLONED_MAC_ADDRESS,
                              PROP_GENERATE_MAC_ADDRESS_MASK,
                              PROP_MAC_ADDRESS_BLACKLIST,
+                             PROP_MAC_ADDRESS_DENYLIST,
                              PROP_MTU,
                              PROP_SEEN_BSSIDS,
                              PROP_HIDDEN,
@@ -46,24 +47,24 @@ NM_GOBJECT_PROPERTIES_DEFINE(NMSettingWireless,
                              PROP_AP_ISOLATION, );
 
 typedef struct {
-    GBytes    *ssid;
-    GArray    *mac_address_blacklist;
-    GPtrArray *seen_bssids;
-    char      *mode;
-    char      *band;
-    char      *bssid;
-    char      *device_mac_address;
-    char      *cloned_mac_address;
-    char      *generate_mac_address_mask;
-    int        ap_isolation;
-    guint32    mac_address_randomization;
-    guint32    channel;
-    guint32    rate;
-    guint32    tx_power;
-    guint32    mtu;
-    guint32    powersave;
-    guint32    wake_on_wlan;
-    bool       hidden;
+    GBytes     *ssid;
+    GPtrArray  *seen_bssids;
+    char       *mode;
+    char       *band;
+    char       *bssid;
+    char       *device_mac_address;
+    char       *cloned_mac_address;
+    char       *generate_mac_address_mask;
+    NMValueStrv mac_address_denylist;
+    int         ap_isolation;
+    guint32     mac_address_randomization;
+    guint32     channel;
+    guint32     rate;
+    guint32     tx_power;
+    guint32     mtu;
+    guint32     powersave;
+    guint32     wake_on_wlan;
+    bool        hidden;
 } NMSettingWirelessPrivate;
 
 /**
@@ -462,34 +463,212 @@ nm_setting_wireless_get_generate_mac_address_mask(NMSettingWireless *setting)
 }
 
 /**
+ * nm_setting_wireless_get_mac_address_denylist:
+ * @setting: the #NMSettingWireless
+ *
+ * Returns: the #NMSettingWireless:mac-address-denylist property of the setting
+ *
+ * Since: 1.48
+ **/
+const char *const *
+nm_setting_wireless_get_mac_address_denylist(NMSettingWireless *setting)
+{
+    g_return_val_if_fail(NM_IS_SETTING_WIRELESS(setting), NULL);
+
+    return nm_strvarray_get_strv_notnull(
+        NM_SETTING_WIRELESS_GET_PRIVATE(setting)->mac_address_denylist.arr,
+        NULL);
+}
+
+/**
+ * nm_setting_wireless_get_num_mac_denylist_items:
+ * @setting: the #NMSettingWireless
+ *
+ * Returns: the number of denylisted MAC addresses
+ *
+ * Since: 1.48
+ **/
+guint
+nm_setting_wireless_get_num_mac_denylist_items(NMSettingWireless *setting)
+{
+    g_return_val_if_fail(NM_IS_SETTING_WIRELESS(setting), 0);
+
+    return nm_g_array_len(NM_SETTING_WIRELESS_GET_PRIVATE(setting)->mac_address_denylist.arr);
+}
+
+/**
+ * nm_setting_wireless_get_mac_denylist_item:
+ * @setting: the #NMSettingWireless
+ * @idx: the zero-based index of the MAC address entry
+ *
+ * Returns: the denylisted MAC address string (hex-digits-and-colons notation)
+ * at index @idx
+ *
+ * Since: 1.48
+ **/
+const char *
+nm_setting_wireless_get_mac_denylist_item(NMSettingWireless *setting, guint32 idx)
+{
+    g_return_val_if_fail(NM_IS_SETTING_WIRELESS(setting), NULL);
+
+    return nm_strvarray_get_idxnull_or_greturn(
+        NM_SETTING_WIRELESS_GET_PRIVATE(setting)->mac_address_denylist.arr,
+        idx);
+}
+
+/**
+ * nm_setting_wireless_add_mac_denylist_item:
+ * @setting: the #NMSettingWireless
+ * @mac: the MAC address string (hex-digits-and-colons notation) to denylist
+ *
+ * Adds a new MAC address to the #NMSettingWireless:mac-address-denylist property.
+ *
+ * Returns: %TRUE if the MAC address was added; %FALSE if the MAC address
+ * is invalid or was already present
+ *
+ * Since: 1.48
+ **/
+gboolean
+nm_setting_wireless_add_mac_denylist_item(NMSettingWireless *setting, const char *mac)
+{
+    NMSettingWirelessPrivate *priv;
+    guint8                    mac_bin[ETH_ALEN];
+    const char               *candidate;
+    guint                     i;
+    guint                     len;
+
+    g_return_val_if_fail(NM_IS_SETTING_WIRELESS(setting), FALSE);
+    g_return_val_if_fail(mac != NULL, FALSE);
+
+    if (!_nm_utils_hwaddr_aton_exact(mac, mac_bin, ETH_ALEN))
+        return FALSE;
+
+    priv = NM_SETTING_WIRELESS_GET_PRIVATE(setting);
+    len  = nm_g_array_len(priv->mac_address_denylist.arr);
+    for (i = 0; i < len; i++) {
+        candidate = nm_g_array_index(priv->mac_address_denylist.arr, char *, i);
+        if (nm_utils_hwaddr_matches(mac_bin, ETH_ALEN, candidate, -1))
+            return FALSE;
+    }
+
+    nm_g_array_append_simple(nm_strvarray_ensure(&priv->mac_address_denylist.arr),
+                             nm_utils_hwaddr_ntoa(mac_bin, ETH_ALEN));
+    _notify(setting, PROP_MAC_ADDRESS_DENYLIST);
+    return TRUE;
+}
+
+/**
+ * nm_setting_wireless_remove_mac_denylist_item:
+ * @setting: the #NMSettingWireless
+ * @idx: index number of the MAC address
+ *
+ * Removes the MAC address at index @idx from the denylist.
+ *
+ * Since: 1.48
+ **/
+void
+nm_setting_wireless_remove_mac_denylist_item(NMSettingWireless *setting, guint idx)
+{
+    NMSettingWirelessPrivate *priv;
+
+    g_return_if_fail(NM_IS_SETTING_WIRELESS(setting));
+
+    priv = NM_SETTING_WIRELESS_GET_PRIVATE(setting);
+    if (!priv->mac_address_denylist.arr) {
+        return;
+    }
+
+    g_return_if_fail(idx < priv->mac_address_denylist.arr->len);
+
+    g_array_remove_index(priv->mac_address_denylist.arr, idx);
+    _notify(setting, PROP_MAC_ADDRESS_DENYLIST);
+}
+
+/**
+ * nm_setting_wireless_remove_mac_denylist_item_by_value:
+ * @setting: the #NMSettingWireless
+ * @mac: the MAC address string (hex-digits-and-colons notation) to remove from
+ * the denylist
+ *
+ * Removes the MAC address @mac from the denylist.
+ *
+ * Returns: %TRUE if the MAC address was found and removed; %FALSE if it was not.
+ *
+ * Since: 1.48
+ **/
+gboolean
+nm_setting_wireless_remove_mac_denylist_item_by_value(NMSettingWireless *setting, const char *mac)
+{
+    NMSettingWirelessPrivate *priv;
+    guint8                    mac_bin[ETH_ALEN];
+    const char               *candidate;
+    guint                     i;
+
+    g_return_val_if_fail(NM_IS_SETTING_WIRELESS(setting), FALSE);
+    g_return_val_if_fail(mac != NULL, FALSE);
+
+    if (!_nm_utils_hwaddr_aton_exact(mac, mac_bin, ETH_ALEN))
+        return FALSE;
+
+    priv = NM_SETTING_WIRELESS_GET_PRIVATE(setting);
+
+    if (priv->mac_address_denylist.arr) {
+        for (i = 0; i < priv->mac_address_denylist.arr->len; i++) {
+            candidate = nm_g_array_index(priv->mac_address_denylist.arr, char *, i);
+            if (nm_utils_hwaddr_matches(mac_bin, ETH_ALEN, candidate, -1)) {
+                g_array_remove_index(priv->mac_address_denylist.arr, i);
+                _notify(setting, PROP_MAC_ADDRESS_DENYLIST);
+                return TRUE;
+            }
+        }
+    }
+
+    return FALSE;
+}
+
+/**
+ * nm_setting_wireless_clear_mac_denylist_items:
+ * @setting: the #NMSettingWireless
+ *
+ * Removes all denylisted MAC addresses.
+ *
+ * Since: 1.48
+ **/
+void
+nm_setting_wireless_clear_mac_denylist_items(NMSettingWireless *setting)
+{
+    g_return_if_fail(NM_IS_SETTING_WIRELESS(setting));
+
+    if (nm_strvarray_clear(&NM_SETTING_WIRELESS_GET_PRIVATE(setting)->mac_address_denylist.arr))
+        _notify(setting, PROP_MAC_ADDRESS_DENYLIST);
+}
+
+/**
  * nm_setting_wireless_get_mac_address_blacklist:
  * @setting: the #NMSettingWireless
  *
  * Returns: the #NMSettingWireless:mac-address-blacklist property of the setting
+ *
+ * Deprecated: 1.48. Use nm_setting_wireless_get_mac_address_denylist() instead.
  **/
 const char *const *
 nm_setting_wireless_get_mac_address_blacklist(NMSettingWireless *setting)
 {
-    NMSettingWirelessPrivate *priv;
-
-    g_return_val_if_fail(NM_IS_SETTING_WIRELESS(setting), NULL);
-
-    priv = NM_SETTING_WIRELESS_GET_PRIVATE(setting);
-    return nm_g_array_data(priv->mac_address_blacklist);
+    return nm_setting_wireless_get_mac_address_denylist(setting);
 }
 
 /**
  * nm_setting_wireless_get_num_mac_blacklist_items:
  * @setting: the #NMSettingWireless
  *
- * Returns: the number of blacklisted MAC addresses
+ * Returns: the number of blacklist MAC addresses
+ *
+ * Deprecated: 1.48. Use nm_setting_wireless_get_num_mac_denylist_items() instead.
  **/
 guint32
 nm_setting_wireless_get_num_mac_blacklist_items(NMSettingWireless *setting)
 {
-    g_return_val_if_fail(NM_IS_SETTING_WIRELESS(setting), 0);
-
-    return NM_SETTING_WIRELESS_GET_PRIVATE(setting)->mac_address_blacklist->len;
+    return nm_setting_wireless_get_num_mac_denylist_items(setting);
 }
 
 /**
@@ -499,61 +678,33 @@ nm_setting_wireless_get_num_mac_blacklist_items(NMSettingWireless *setting)
  *
  * Since 1.46, access at index "len" is allowed and returns NULL.
  *
- * Returns: the blacklisted MAC address string (hex-digits-and-colons notation)
+ * Returns: the denylisted MAC address string (hex-digits-and-colons notation)
  * at index @idx
+ *
+ * Deprecated: 1.48. Use nm_setting_wireless_get_mac_denylist_item() instead.
  **/
 const char *
 nm_setting_wireless_get_mac_blacklist_item(NMSettingWireless *setting, guint32 idx)
 {
-    NMSettingWirelessPrivate *priv;
-
-    g_return_val_if_fail(NM_IS_SETTING_WIRELESS(setting), NULL);
-
-    priv = NM_SETTING_WIRELESS_GET_PRIVATE(setting);
-
-    if (idx == priv->mac_address_blacklist->len) {
-        return NULL;
-    }
-
-    g_return_val_if_fail(idx < priv->mac_address_blacklist->len, NULL);
-
-    return nm_g_array_index(priv->mac_address_blacklist, const char *, idx);
+    return nm_setting_wireless_get_mac_denylist_item(setting, idx);
 }
 
 /**
  * nm_setting_wireless_add_mac_blacklist_item:
  * @setting: the #NMSettingWireless
- * @mac: the MAC address string (hex-digits-and-colons notation) to blacklist
+ * @mac: the MAC address string (hex-digits-and-colons notation) to denylist
  *
- * Adds a new MAC address to the #NMSettingWireless:mac-address-blacklist property.
+ * Adds a new MAC address to the #NMSettingWireless:mac-address-denylist property.
  *
  * Returns: %TRUE if the MAC address was added; %FALSE if the MAC address
  * is invalid or was already present
+ *
+ * Deprecated: 1.48. Use nm_setting_wireless_add_mac_denylist_item() instead.
  **/
 gboolean
 nm_setting_wireless_add_mac_blacklist_item(NMSettingWireless *setting, const char *mac)
 {
-    NMSettingWirelessPrivate *priv;
-    const char               *candidate;
-    int                       i;
-
-    g_return_val_if_fail(NM_IS_SETTING_WIRELESS(setting), FALSE);
-    g_return_val_if_fail(mac != NULL, FALSE);
-
-    if (!nm_utils_hwaddr_valid(mac, ETH_ALEN))
-        return FALSE;
-
-    priv = NM_SETTING_WIRELESS_GET_PRIVATE(setting);
-    for (i = 0; i < priv->mac_address_blacklist->len; i++) {
-        candidate = nm_g_array_index(priv->mac_address_blacklist, char *, i);
-        if (nm_utils_hwaddr_matches(mac, -1, candidate, -1))
-            return FALSE;
-    }
-
-    mac = nm_utils_hwaddr_canonical(mac, ETH_ALEN);
-    g_array_append_val(priv->mac_address_blacklist, mac);
-    _notify(setting, PROP_MAC_ADDRESS_BLACKLIST);
-    return TRUE;
+    return nm_setting_wireless_add_mac_denylist_item(setting, mac);
 }
 
 /**
@@ -561,67 +712,46 @@ nm_setting_wireless_add_mac_blacklist_item(NMSettingWireless *setting, const cha
  * @setting: the #NMSettingWireless
  * @idx: index number of the MAC address
  *
- * Removes the MAC address at index @idx from the blacklist.
+ * Removes the MAC address at index @idx from the denylist.
+ *
+ * Deprecated: 1.48. Use nm_setting_wireless_remove_mac_denylist_item() instead.
  **/
 void
 nm_setting_wireless_remove_mac_blacklist_item(NMSettingWireless *setting, guint32 idx)
 {
-    NMSettingWirelessPrivate *priv;
-
-    g_return_if_fail(NM_IS_SETTING_WIRELESS(setting));
-
-    priv = NM_SETTING_WIRELESS_GET_PRIVATE(setting);
-    g_return_if_fail(idx < priv->mac_address_blacklist->len);
-
-    g_array_remove_index(priv->mac_address_blacklist, idx);
-    _notify(setting, PROP_MAC_ADDRESS_BLACKLIST);
+    return nm_setting_wireless_remove_mac_denylist_item(setting, idx);
 }
 
 /**
  * nm_setting_wireless_remove_mac_blacklist_item_by_value:
  * @setting: the #NMSettingWireless
  * @mac: the MAC address string (hex-digits-and-colons notation) to remove from
- * the blacklist
+ * the denylist
  *
- * Removes the MAC address @mac from the blacklist.
+ * Removes the MAC address @mac from the denylist.
  *
  * Returns: %TRUE if the MAC address was found and removed; %FALSE if it was not.
+ *
+ * Deprecated: 1.48. Use nm_setting_wireless_remove_mac_denylist_item_by_value() instead.
  **/
 gboolean
 nm_setting_wireless_remove_mac_blacklist_item_by_value(NMSettingWireless *setting, const char *mac)
 {
-    NMSettingWirelessPrivate *priv;
-    const char               *candidate;
-    int                       i;
-
-    g_return_val_if_fail(NM_IS_SETTING_WIRELESS(setting), FALSE);
-    g_return_val_if_fail(mac != NULL, FALSE);
-
-    priv = NM_SETTING_WIRELESS_GET_PRIVATE(setting);
-    for (i = 0; i < priv->mac_address_blacklist->len; i++) {
-        candidate = nm_g_array_index(priv->mac_address_blacklist, char *, i);
-        if (nm_utils_hwaddr_matches(mac, -1, candidate, -1)) {
-            g_array_remove_index(priv->mac_address_blacklist, i);
-            _notify(setting, PROP_MAC_ADDRESS_BLACKLIST);
-            return TRUE;
-        }
-    }
-    return FALSE;
+    return nm_setting_wireless_remove_mac_denylist_item_by_value(setting, mac);
 }
 
 /**
  * nm_setting_wireless_clear_mac_blacklist_items:
  * @setting: the #NMSettingWireless
  *
- * Removes all blacklisted MAC addresses.
+ * Removes all denylisted MAC addresses.
+ *
+ * Deprecated: 1.48. Use nm_setting_wireless_clear_mac_denylist_items() instead.
  **/
 void
 nm_setting_wireless_clear_mac_blacklist_items(NMSettingWireless *setting)
 {
-    g_return_if_fail(NM_IS_SETTING_WIRELESS(setting));
-
-    g_array_set_size(NM_SETTING_WIRELESS_GET_PRIVATE(setting)->mac_address_blacklist, 0);
-    _notify(setting, PROP_MAC_ADDRESS_BLACKLIST);
+    return nm_setting_wireless_clear_mac_denylist_items(setting);
 }
 
 /**
@@ -781,6 +911,61 @@ _to_dbus_fcn_seen_bssids(_NM_SETT_INFO_PROP_TO_DBUS_FCN_ARGS _nm_nil)
      * transferring via D-Bus, then the option makes only sense when sending it from
      * the daemon to the client, not otherwise. */
     return NULL;
+}
+
+gboolean
+_nm_setting_wireless_mac_blacklist_from_dbus(_NM_SETT_INFO_PROP_FROM_DBUS_FCN_ARGS _nm_nil)
+{
+    const gchar **mac_blacklist;
+
+    if (!_nm_setting_use_legacy_property(setting,
+                                         connection_dict,
+                                         NM_SETTING_WIRELESS_MAC_ADDRESS_BLACKLIST,
+                                         NM_SETTING_WIRELESS_MAC_ADDRESS_DENYLIST)) {
+        *out_is_modified = FALSE;
+        return TRUE;
+    }
+    mac_blacklist = g_variant_get_strv(value, NULL);
+
+    g_object_set(setting, NM_SETTING_WIRELESS_MAC_ADDRESS_BLACKLIST, mac_blacklist, NULL);
+    return TRUE;
+}
+
+gboolean
+_nm_setting_wireless_mac_denylist_from_dbus(_NM_SETT_INFO_PROP_FROM_DBUS_FCN_ARGS _nm_nil)
+{
+    const gchar **mac_blacklist;
+
+    if (!_nm_setting_use_legacy_property(setting,
+                                         connection_dict,
+                                         NM_SETTING_WIRELESS_MAC_ADDRESS_BLACKLIST,
+                                         NM_SETTING_WIRELESS_MAC_ADDRESS_DENYLIST)) {
+        *out_is_modified = FALSE;
+        return TRUE;
+    }
+    mac_blacklist = g_variant_get_strv(value, NULL);
+
+    g_object_set(setting, NM_SETTING_WIRELESS_MAC_ADDRESS_DENYLIST, mac_blacklist, NULL);
+    return TRUE;
+}
+
+GVariant *
+_nm_setting_wireless_mac_denylist_to_dbus(_NM_SETT_INFO_PROP_TO_DBUS_FCN_ARGS _nm_nil)
+{
+    const char *const *mac_denylist;
+    /* FIXME: `mac-address-denylist` is an alias of `mac-address-blacklist` property.
+     * Serializing the property to the clients would break them as they won't
+     * be able to drop it if they are not aware of the existance of
+     * `mac-address-denylist`. In order to give them time to adapt their code,
+     * NetworkManager is not serializing `mac-address-denylist` on DBus.
+     */
+    if (_nm_utils_is_manager_process) {
+        return NULL;
+    }
+
+    mac_denylist = nm_setting_wireless_get_mac_address_denylist(NM_SETTING_WIRELESS(setting));
+
+    return g_variant_new_strv(mac_denylist, -1);
 }
 
 static gboolean
@@ -1041,20 +1226,22 @@ verify(NMSetting *setting, NMConnection *connection, GError **error)
         return FALSE;
     }
 
-    for (i = 0; i < priv->mac_address_blacklist->len; i++) {
-        const char *mac = nm_g_array_index(priv->mac_address_blacklist, const char *, i);
+    if (priv->mac_address_denylist.arr) {
+        for (i = 0; i < priv->mac_address_denylist.arr->len; i++) {
+            const char *mac = nm_g_array_index(priv->mac_address_denylist.arr, const char *, i);
 
-        if (!nm_utils_hwaddr_valid(mac, ETH_ALEN)) {
-            g_set_error(error,
-                        NM_CONNECTION_ERROR,
-                        NM_CONNECTION_ERROR_INVALID_PROPERTY,
-                        _("'%s' is not a valid MAC address"),
-                        mac);
-            g_prefix_error(error,
-                           "%s.%s: ",
-                           NM_SETTING_WIRELESS_SETTING_NAME,
-                           NM_SETTING_WIRELESS_MAC_ADDRESS_BLACKLIST);
-            return FALSE;
+            if (!nm_utils_hwaddr_valid(mac, ETH_ALEN)) {
+                g_set_error(error,
+                            NM_CONNECTION_ERROR,
+                            NM_CONNECTION_ERROR_INVALID_PROPERTY,
+                            _("'%s' is not a valid MAC address"),
+                            mac);
+                g_prefix_error(error,
+                               "%s.%s: ",
+                               NM_SETTING_WIRELESS_SETTING_NAME,
+                               NM_SETTING_WIRELESS_MAC_ADDRESS_DENYLIST);
+                return FALSE;
+            }
         }
     }
 
@@ -1216,12 +1403,6 @@ nm_setting_wireless_get_wake_on_wlan(NMSettingWireless *setting)
     return NM_SETTING_WIRELESS_GET_PRIVATE(setting)->wake_on_wlan;
 }
 
-static void
-clear_blacklist_item(char **item_p)
-{
-    g_free(*item_p);
-}
-
 /*****************************************************************************/
 
 static void
@@ -1233,9 +1414,6 @@ get_property(GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
     switch (prop_id) {
     case PROP_CLONED_MAC_ADDRESS:
         g_value_set_string(value, nm_setting_wireless_get_cloned_mac_address(setting));
-        break;
-    case PROP_MAC_ADDRESS_BLACKLIST:
-        g_value_set_boxed(value, nm_g_array_data(priv->mac_address_blacklist));
         break;
     case PROP_SEEN_BSSIDS:
         g_value_take_boxed(
@@ -1255,8 +1433,6 @@ set_property(GObject *object, guint prop_id, const GValue *value, GParamSpec *ps
 {
     NMSettingWireless        *self = NM_SETTING_WIRELESS(object);
     NMSettingWirelessPrivate *priv = NM_SETTING_WIRELESS_GET_PRIVATE(self);
-    const char *const        *blacklist;
-    const char               *mac;
     gboolean                  bool_val;
     _PropertyEnums            prop1 = PROP_0;
     _PropertyEnums            prop2 = PROP_0;
@@ -1280,18 +1456,6 @@ set_property(GObject *object, guint prop_id, const GValue *value, GParamSpec *ps
         }
 
         nm_gobject_notify_together(self, prop1, prop2);
-        break;
-    case PROP_MAC_ADDRESS_BLACKLIST:
-        blacklist = g_value_get_boxed(value);
-        g_array_set_size(priv->mac_address_blacklist, 0);
-        if (blacklist && blacklist[0]) {
-            gsize i;
-
-            for (i = 0; blacklist[i]; i++) {
-                mac = _nm_utils_hwaddr_canonical_or_invalid(blacklist[i], ETH_ALEN);
-                g_array_append_val(priv->mac_address_blacklist, mac);
-            }
-        }
         break;
     case PROP_SEEN_BSSIDS:
     {
@@ -1321,13 +1485,7 @@ set_property(GObject *object, guint prop_id, const GValue *value, GParamSpec *ps
 
 static void
 nm_setting_wireless_init(NMSettingWireless *setting)
-{
-    NMSettingWirelessPrivate *priv = NM_SETTING_WIRELESS_GET_PRIVATE(setting);
-
-    /* We use GArray rather than GPtrArray so it will automatically be NULL-terminated */
-    priv->mac_address_blacklist = g_array_new(TRUE, FALSE, sizeof(char *));
-    g_array_set_clear_func(priv->mac_address_blacklist, (GDestroyNotify) clear_blacklist_item);
-}
+{}
 
 /**
  * nm_setting_wireless_new:
@@ -1348,7 +1506,6 @@ finalize(GObject *object)
     NMSettingWirelessPrivate *priv = NM_SETTING_WIRELESS_GET_PRIVATE(object);
 
     g_free(priv->cloned_mac_address);
-    g_array_unref(priv->mac_address_blacklist);
     nm_g_ptr_array_unref(priv->seen_bssids);
 
     G_OBJECT_CLASS(nm_setting_wireless_parent_class)->finalize(object);
@@ -1360,6 +1517,7 @@ nm_setting_wireless_class_init(NMSettingWirelessClass *klass)
     GObjectClass   *object_class        = G_OBJECT_CLASS(klass);
     NMSettingClass *setting_class       = NM_SETTING_CLASS(klass);
     GArray         *properties_override = _nm_sett_info_property_override_create_array_sized(25);
+    guint           prop_idx;
 
     object_class->set_property = set_property;
     object_class->get_property = get_property;
@@ -1733,11 +1891,66 @@ nm_setting_wireless_class_init(NMSettingWirelessClass *klass)
      *   is listed.
      * ---end---
      */
-    _nm_setting_property_define_gprop_strv_oldstyle(properties_override,
-                                                    obj_properties,
-                                                    NM_SETTING_WIRELESS_MAC_ADDRESS_BLACKLIST,
-                                                    PROP_MAC_ADDRESS_BLACKLIST,
-                                                    NM_SETTING_PARAM_FUZZY_IGNORE);
+    prop_idx = _nm_setting_property_define_direct_strv(
+        properties_override,
+        obj_properties,
+        NM_SETTING_WIRELESS_MAC_ADDRESS_BLACKLIST,
+        PROP_MAC_ADDRESS_BLACKLIST,
+        NM_SETTING_PARAM_FUZZY_IGNORE,
+        NM_SETT_INFO_PROPERT_TYPE_DBUS(G_VARIANT_TYPE_STRING_ARRAY,
+                                       .direct_type = NM_VALUE_TYPE_STRV,
+                                       .compare_fcn = _nm_setting_property_compare_fcn_direct,
+                                       .to_dbus_fcn = _nm_setting_property_to_dbus_fcn_direct,
+                                       .from_dbus_fcn =
+                                           _nm_setting_wireless_mac_blacklist_from_dbus, ),
+        NMSettingWirelessPrivate,
+        mac_address_denylist,
+        .direct_set_strv_normalize_hwaddr = TRUE,
+        .direct_strv_not_null             = TRUE,
+        .direct_is_aliased_field          = TRUE,
+        .is_deprecated                    = TRUE);
+
+    /**
+     * NMSettingWireless:mac-address-denylist:
+     *
+     * A list of permanent MAC addresses of Wi-Fi devices to which this
+     * connection should never apply.  Each MAC address should be given in the
+     * standard hex-digits-and-colons notation (eg "00:11:22:33:44:55").
+     **/
+    /* ---keyfile---
+     * property: mac-address-denylist
+     * format: list of MACs (separated with semicolons)
+     * description: MAC address denylist.
+     * example: mac-address-denylist= 00:22:68:12:79:A6;00:22:68:12:79:78
+     * ---end---
+     */
+    /* ---ifcfg-rh---
+     * property: mac-address-denylist
+     * variable: HWADDR_BLACKLIST(+)
+     * description: It denies usage of the connection for any device whose address
+     *   is listed.
+     * ---end---
+     */
+    _nm_setting_property_define_direct_strv(
+        properties_override,
+        obj_properties,
+        NM_SETTING_WIRELESS_MAC_ADDRESS_DENYLIST,
+        PROP_MAC_ADDRESS_DENYLIST,
+        NM_SETTING_PARAM_FUZZY_IGNORE,
+        NM_SETT_INFO_PROPERT_TYPE_DBUS(G_VARIANT_TYPE_STRING_ARRAY,
+                                       .direct_type = NM_VALUE_TYPE_STRV,
+                                       .compare_fcn = _nm_setting_property_compare_fcn_direct,
+                                       .to_dbus_fcn = _nm_setting_wireless_mac_denylist_to_dbus,
+                                       .from_dbus_fcn =
+                                           _nm_setting_wireless_mac_denylist_from_dbus, ),
+        NMSettingWirelessPrivate,
+        mac_address_denylist,
+        .direct_set_strv_normalize_hwaddr = TRUE,
+        .direct_strv_not_null             = TRUE,
+        .direct_also_notify               = obj_properties[PROP_MAC_ADDRESS_BLACKLIST], );
+
+    nm_g_array_index(properties_override, NMSettInfoProperty, prop_idx).direct_also_notify =
+        obj_properties[PROP_MAC_ADDRESS_DENYLIST];
 
     /**
      * NMSettingWireless:seen-bssids:

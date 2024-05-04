@@ -1013,8 +1013,8 @@ check_connection_compatible(NMDevice     *device,
             return FALSE;
         }
 
-        /* Check for MAC address blacklist */
-        mac_blacklist = nm_setting_wireless_get_mac_address_blacklist(s_wireless);
+        /* Check for MAC address denylist */
+        mac_blacklist = nm_setting_wireless_get_mac_address_denylist(s_wireless);
         for (i = 0; mac_blacklist[i]; i++) {
             if (!nm_utils_hwaddr_valid(mac_blacklist[i], ETH_ALEN)) {
                 g_warn_if_reached();
@@ -3374,7 +3374,7 @@ act_stage2_config(NMDevice *device, NMDeviceStateReason *out_failure_reason)
 
     /* Tell the supplicant in which bridge the interface is */
     if ((request = nm_device_get_act_request(device))
-        && (master_ac = nm_active_connection_get_master(NM_ACTIVE_CONNECTION(request)))
+        && (master_ac = nm_active_connection_get_controller(NM_ACTIVE_CONNECTION(request)))
         && (master = nm_active_connection_get_device(master_ac))
         && nm_device_get_device_type(master) == NM_DEVICE_TYPE_BRIDGE) {
         nm_supplicant_interface_set_bridge(priv->sup_iface, nm_device_get_iface(master));

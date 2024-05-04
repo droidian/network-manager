@@ -7,8 +7,8 @@ dnl  - add corresponding NM_VERSION_x_y_z macros in
 dnl    "shared/nm-version-macros.h.in"
 dnl  - update number in meson.build
 m4_define([nm_major_version], [1])
-m4_define([nm_minor_version], [46])
-m4_define([nm_micro_version], [0])
+m4_define([nm_minor_version], [47])
+m4_define([nm_micro_version], [90])
 m4_define([nm_version],
           [nm_major_version.nm_minor_version.nm_micro_version])
 
@@ -510,7 +510,7 @@ fi
 session_tracking="$(printf '%s' "${session_tracking}" | sed 's/^, //')"
 
 AC_ARG_WITH(suspend-resume,
-            AS_HELP_STRING([--with-suspend-resume=upower|systemd|elogind|consolekit],
+            AS_HELP_STRING([--with-suspend-resume=systemd|elogind|consolekit],
                            [Build NetworkManager with specific suspend/resume support]))
 if test "z$with_suspend_resume" = "z"; then
 	PKG_CHECK_EXISTS([libsystemd >= 209], [have_systemd_inhibit=yes],
@@ -525,21 +525,13 @@ if test "z$with_suspend_resume" = "z"; then
 			# Use elogind if it's new enough
 			with_suspend_resume="elogind"
 		else
-			if test "$use_consolekit" = "yes"; then
-				# Use consolekit suspend if session tracking is consolekit
-				with_suspend_resume="consolekit"
-			else
-				# Fall back to upower
-				with_suspend_resume="upower"
-			fi
+			# Fallback to consolekit
+			with_suspend_resume="consolekit"
 		fi
 	fi
 fi
 
 case $with_suspend_resume in
-	upower)
-		AC_DEFINE([SUSPEND_RESUME_UPOWER], 1, [Define to 1 to use UPower suspend api])
-		;;
 	systemd)
 		PKG_CHECK_MODULES(SYSTEMD_INHIBIT, [libsystemd >= 209],,
 		                  [PKG_CHECK_MODULES(SYSTEMD_INHIBIT, [libsystemd-login >= 183])])
@@ -554,7 +546,7 @@ case $with_suspend_resume in
 		AC_DEFINE([SUSPEND_RESUME_CONSOLEKIT], 1, [Define to 1 to use ConsoleKit2 suspend api])
 		;;
 	*)
-		AC_MSG_ERROR(--with-suspend-resume must be one of [upower, systemd, elogind, consolekit])
+		AC_MSG_ERROR(--with-suspend-resume must be one of [systemd, elogind, consolekit])
 		;;
 esac
 
@@ -1157,7 +1149,11 @@ fi
 
 NM_COMPILER_WARNINGS(AM_CFLAGS, ${more_warnings_default})
 
-NM_COMPILER_WARNING_FLAG(LIBSYSTEMD_NM_CFLAGS, "-Wno-gnu-variable-sized-type-not-at-end")
+for w in \
+    -Wno-nonnull-compare \
+    ; do
+    NM_COMPILER_WARNING_FLAG(LIBSYSTEMD_NM_CFLAGS, "$w")
+done
 AC_SUBST(LIBSYSTEMD_NM_CFLAGS)
 
 CC_CHECK_FLAGS_APPEND([with_cflags], [CFLAGS], [\

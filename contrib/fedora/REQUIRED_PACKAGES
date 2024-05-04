@@ -1,0 +1,108 @@
+#!/bin/bash
+
+# A list of packages useful/needed to build and develop
+# NetworkManager on Fedora and RHEL.
+#
+# Not all of these packages are available, depending
+# on your distribution/release. But yum will happily
+# skip them.
+#
+# Not all of these packages are strictly speaking necessary.
+# This is a generous list of related packages.
+
+set -xe
+
+DNF="$(command -v dnf &>/dev/null && echo dnf || echo yum)"
+
+SUDO=
+[ "$EUID" -eq 0 ] || SUDO=sudo
+
+install() {
+    if [ "$NM_INSTALL" != "" ]; then
+        $NM_INSTALL "$@"
+    else
+        $SUDO "$DNF" install -y "$@"
+    fi
+}
+
+install_ignore_missing() {
+    for p; do
+        install "$p" || :
+    done
+}
+
+if test "$NM_NO_EXTRA" != 1; then
+    # these packages are convenient for developing, but not necessary
+    # for CI testing.
+    EXTRA_PACKAGES=(
+        bash-completion \
+        cscope \
+    )
+else
+    EXTRA_PACKAGES=()
+fi
+
+install \
+    /usr/bin/clang-format \
+    /usr/bin/xargs \
+    ModemManager-devel \
+    ModemManager-glib-devel \
+    audit-libs-devel \
+    bluez-libs-devel \
+    clang \
+    dbus-devel \
+    dbus-x11 \
+    dhclient \
+    firewalld-filesystem \
+    gcc-c++ \
+    gettext-devel \
+    git \
+    glib2-doc \
+    gnutls-devel \
+    gobject-introspection-devel \
+    gtk-doc \
+    iptables \
+    jansson-devel \
+    jq \
+    libcurl-devel \
+    libndp-devel \
+    libselinux-devel \
+    libtool \
+    libuuid-devel \
+    make \
+    meson \
+    mobile-broadband-provider-info-devel \
+    newt-devel \
+    nss-devel \
+    polkit-devel \
+    ppp \
+    ppp-devel \
+    python3-dbus \
+    python3-gobject \
+    python3-pexpect \
+    readline-devel \
+    rpm-build \
+    systemd-devel \
+    teamd-devel \
+    util-linux \
+    vala \
+    valgrind \
+    which \
+    "${EXTRA_PACKAGES[@]}"
+
+# some packages don't exist in certain distributions. Install them one-by-one, and ignore errors.
+install_ignore_missing \
+    black \
+    dbus-python \
+    iproute-tc \
+    libasan \
+    libpsl-devel \
+    libubsan \
+    libvala-devel \
+    pexpect \
+    pygobject3-base \
+    python-gobject-base \
+    python36-pexpect \
+    qt-devel \
+    vala-devel \
+    #end

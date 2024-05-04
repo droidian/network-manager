@@ -778,6 +778,7 @@
     <keyword type="function" name="nm_setting_connection_get_mptcp_flags ()" link="NMSettingConnection.html#nm-setting-connection-get-mptcp-flags" since="1.42"/>
     <keyword type="function" name="nm_setting_connection_get_wait_device_timeout ()" link="NMSettingConnection.html#nm-setting-connection-get-wait-device-timeout" since="1.20"/>
     <keyword type="function" name="nm_setting_connection_get_wait_activation_delay ()" link="NMSettingConnection.html#nm-setting-connection-get-wait-activation-delay" since="1.40"/>
+    <keyword type="function" name="nm_setting_connection_get_down_on_poweroff ()" link="NMSettingConnection.html#nm-setting-connection-get-down-on-poweroff" since="1.48"/>
     <keyword type="function" name="nm_setting_connection_get_mud_url ()" link="NMSettingConnection.html#nm-setting-connection-get-mud-url" since="1.26"/>
     <keyword type="macro" name="NM_SETTING_CONNECTION_SETTING_NAME" link="NMSettingConnection.html#NM-SETTING-CONNECTION-SETTING-NAME:CAPS"/>
     <keyword type="macro" name="NM_SETTING_CONNECTION_AUTOCONNECT_PRIORITY_MIN" link="NMSettingConnection.html#NM-SETTING-CONNECTION-AUTOCONNECT-PRIORITY-MIN:CAPS"/>
@@ -814,11 +815,13 @@
     <keyword type="macro" name="NM_SETTING_CONNECTION_WAIT_DEVICE_TIMEOUT" link="NMSettingConnection.html#NM-SETTING-CONNECTION-WAIT-DEVICE-TIMEOUT:CAPS"/>
     <keyword type="macro" name="NM_SETTING_CONNECTION_MUD_URL" link="NMSettingConnection.html#NM-SETTING-CONNECTION-MUD-URL:CAPS"/>
     <keyword type="macro" name="NM_SETTING_CONNECTION_WAIT_ACTIVATION_DELAY" link="NMSettingConnection.html#NM-SETTING-CONNECTION-WAIT-ACTIVATION-DELAY:CAPS"/>
+    <keyword type="macro" name="NM_SETTING_CONNECTION_DOWN_ON_POWEROFF" link="NMSettingConnection.html#NM-SETTING-CONNECTION-DOWN-ON-POWEROFF:CAPS"/>
     <keyword type="enum" name="enum NMSettingConnectionAutoconnectSlaves" link="NMSettingConnection.html#NMSettingConnectionAutoconnectSlaves" deprecated="1.46" since="1.2"/>
     <keyword type="enum" name="enum NMSettingConnectionLldp" link="NMSettingConnection.html#NMSettingConnectionLldp" since="1.2"/>
     <keyword type="enum" name="enum NMSettingConnectionMdns" link="NMSettingConnection.html#NMSettingConnectionMdns" since="1.12"/>
     <keyword type="enum" name="enum NMSettingConnectionLlmnr" link="NMSettingConnection.html#NMSettingConnectionLlmnr" since="1.14"/>
     <keyword type="enum" name="enum NMSettingConnectionDnsOverTls" link="NMSettingConnection.html#NMSettingConnectionDnsOverTls" since="1.34"/>
+    <keyword type="enum" name="enum NMSettingConnectionDownOnPoweroff" link="NMSettingConnection.html#NMSettingConnectionDownOnPoweroff" since="1.48"/>
     <keyword type="function" name="nm_setting_6lowpan_new ()" link="NMSetting6Lowpan.html#nm-setting-6lowpan-new" since="1.42"/>
     <keyword type="function" name="nm_setting_6lowpan_get_parent ()" link="NMSetting6Lowpan.html#nm-setting-6lowpan-get-parent" since="1.42"/>
     <keyword type="macro" name="NM_SETTING_6LOWPAN_SETTING_NAME" link="NMSetting6Lowpan.html#NM-SETTING-6LOWPAN-SETTING-NAME:CAPS"/>
@@ -913,6 +916,7 @@
     <keyword type="function" name="nm_setting_802_1x_get_phase1_auth_flags ()" link="NMSetting8021x.html#nm-setting-802-1x-get-phase1-auth-flags" since="1.8"/>
     <keyword type="function" name="nm_setting_802_1x_get_auth_timeout ()" link="NMSetting8021x.html#nm-setting-802-1x-get-auth-timeout" since="1.8"/>
     <keyword type="function" name="nm_setting_802_1x_get_optional ()" link="NMSetting8021x.html#nm-setting-802-1x-get-optional" since="1.22"/>
+    <keyword type="function" name="nm_setting_802_1x_get_openssl_ciphers ()" link="NMSetting8021x.html#nm-setting-802-1x-get-openssl-ciphers" since="1.48"/>
     <keyword type="macro" name="NM_SETTING_802_1X_CERT_SCHEME_PREFIX_PATH" link="NMSetting8021x.html#NM-SETTING-802-1X-CERT-SCHEME-PREFIX-PATH:CAPS"/>
     <keyword type="macro" name="NM_SETTING_802_1X_CERT_SCHEME_PREFIX_PKCS11" link="NMSetting8021x.html#NM-SETTING-802-1X-CERT-SCHEME-PREFIX-PKCS11:CAPS"/>
     <keyword type="enum" name="enum NMSetting8021xCKFormat" link="NMSetting8021x.html#NMSetting8021xCKFormat"/>
@@ -966,6 +970,7 @@
     <keyword type="macro" name="NM_SETTING_802_1X_SYSTEM_CA_CERTS" link="NMSetting8021x.html#NM-SETTING-802-1X-SYSTEM-CA-CERTS:CAPS"/>
     <keyword type="macro" name="NM_SETTING_802_1X_AUTH_TIMEOUT" link="NMSetting8021x.html#NM-SETTING-802-1X-AUTH-TIMEOUT:CAPS"/>
     <keyword type="macro" name="NM_SETTING_802_1X_OPTIONAL" link="NMSetting8021x.html#NM-SETTING-802-1X-OPTIONAL:CAPS"/>
+    <keyword type="macro" name="NM_SETTING_802_1X_OPENSSL_CIPHERS" link="NMSetting8021x.html#NM-SETTING-802-1X-OPENSSL-CIPHERS:CAPS"/>
     <keyword type="function" name="nm_setting_adsl_new ()" link="NMSettingAdsl.html#nm-setting-adsl-new"/>
     <keyword type="function" name="nm_setting_adsl_get_username ()" link="NMSettingAdsl.html#nm-setting-adsl-get-username"/>
     <keyword type="function" name="nm_setting_adsl_get_password ()" link="NMSettingAdsl.html#nm-setting-adsl-get-password"/>
@@ -1423,6 +1428,7 @@
     <keyword type="function" name="nm_setting_ip_config_clear_dhcp_reject_servers ()" link="NMSettingIPConfig.html#nm-setting-ip-config-clear-dhcp-reject-servers" since="1.28"/>
     <keyword type="function" name="nm_setting_ip_config_get_auto_route_ext_gw ()" link="NMSettingIPConfig.html#nm-setting-ip-config-get-auto-route-ext-gw" since="1.42"/>
     <keyword type="function" name="nm_setting_ip_config_get_replace_local_rule ()" link="NMSettingIPConfig.html#nm-setting-ip-config-get-replace-local-rule" since="1.44"/>
+    <keyword type="function" name="nm_setting_ip_config_get_dhcp_send_release ()" link="NMSettingIPConfig.html#nm-setting-ip-config-get-dhcp-send-release" since="1.48"/>
     <keyword type="macro" name="NM_IP_ADDRESS_ATTRIBUTE_LABEL" link="NMSettingIPConfig.html#NM-IP-ADDRESS-ATTRIBUTE-LABEL:CAPS"/>
     <keyword type="enum" name="enum NMIPAddressCmpFlags" link="NMSettingIPConfig.html#NMIPAddressCmpFlags" since="1.22"/>
     <keyword type="macro" name="NM_IP_ROUTE_ATTRIBUTE_ADVMSS" link="NMSettingIPConfig.html#NM-IP-ROUTE-ATTRIBUTE-ADVMSS:CAPS"/>
@@ -1474,6 +1480,7 @@
     <keyword type="macro" name="NM_SETTING_IP_CONFIG_DHCP_REJECT_SERVERS" link="NMSettingIPConfig.html#NM-SETTING-IP-CONFIG-DHCP-REJECT-SERVERS:CAPS"/>
     <keyword type="macro" name="NM_SETTING_IP_CONFIG_AUTO_ROUTE_EXT_GW" link="NMSettingIPConfig.html#NM-SETTING-IP-CONFIG-AUTO-ROUTE-EXT-GW:CAPS"/>
     <keyword type="macro" name="NM_SETTING_IP_CONFIG_REPLACE_LOCAL_RULE" link="NMSettingIPConfig.html#NM-SETTING-IP-CONFIG-REPLACE-LOCAL-RULE:CAPS"/>
+    <keyword type="macro" name="NM_SETTING_IP_CONFIG_DHCP_SEND_RELEASE" link="NMSettingIPConfig.html#NM-SETTING-IP-CONFIG-DHCP-SEND-RELEASE:CAPS"/>
     <keyword type="macro" name="NM_SETTING_IP_CONFIG_ROUTING_RULES" link="NMSettingIPConfig.html#NM-SETTING-IP-CONFIG-ROUTING-RULES:CAPS"/>
     <keyword type="macro" name="NM_SETTING_DNS_OPTION_DEBUG" link="NMSettingIPConfig.html#NM-SETTING-DNS-OPTION-DEBUG:CAPS"/>
     <keyword type="macro" name="NM_SETTING_DNS_OPTION_NDOTS" link="NMSettingIPConfig.html#NM-SETTING-DNS-OPTION-NDOTS:CAPS"/>
@@ -1545,6 +1552,8 @@
     <keyword type="enum" name="enum NMSettingIP4LinkLocal" link="NMSettingIP4Config.html#NMSettingIP4LinkLocal" since="1.40"/>
     <keyword type="function" name="nm_setting_ip6_config_new ()" link="NMSettingIP6Config.html#nm-setting-ip6-config-new"/>
     <keyword type="function" name="nm_setting_ip6_config_get_ip6_privacy ()" link="NMSettingIP6Config.html#nm-setting-ip6-config-get-ip6-privacy"/>
+    <keyword type="function" name="nm_setting_ip6_config_get_temp_valid_lifetime ()" link="NMSettingIP6Config.html#nm-setting-ip6-config-get-temp-valid-lifetime" since="1.48"/>
+    <keyword type="function" name="nm_setting_ip6_config_get_temp_preferred_lifetime ()" link="NMSettingIP6Config.html#nm-setting-ip6-config-get-temp-preferred-lifetime" since="1.48"/>
     <keyword type="function" name="nm_setting_ip6_config_get_addr_gen_mode ()" link="NMSettingIP6Config.html#nm-setting-ip6-config-get-addr-gen-mode" since="1.2"/>
     <keyword type="function" name="nm_setting_ip6_config_get_token ()" link="NMSettingIP6Config.html#nm-setting-ip6-config-get-token" since="1.4"/>
     <keyword type="function" name="nm_setting_ip6_config_get_dhcp_duid ()" link="NMSettingIP6Config.html#nm-setting-ip6-config-get-dhcp-duid" since="1.12"/>
@@ -1553,6 +1562,8 @@
     <keyword type="function" name="nm_setting_ip6_config_get_dhcp_pd_hint ()" link="NMSettingIP6Config.html#nm-setting-ip6-config-get-dhcp-pd-hint" since="1.44"/>
     <keyword type="macro" name="NM_SETTING_IP6_CONFIG_SETTING_NAME" link="NMSettingIP6Config.html#NM-SETTING-IP6-CONFIG-SETTING-NAME:CAPS"/>
     <keyword type="macro" name="NM_SETTING_IP6_CONFIG_IP6_PRIVACY" link="NMSettingIP6Config.html#NM-SETTING-IP6-CONFIG-IP6-PRIVACY:CAPS"/>
+    <keyword type="macro" name="NM_SETTING_IP6_CONFIG_TEMP_VALID_LIFETIME" link="NMSettingIP6Config.html#NM-SETTING-IP6-CONFIG-TEMP-VALID-LIFETIME:CAPS"/>
+    <keyword type="macro" name="NM_SETTING_IP6_CONFIG_TEMP_PREFERRED_LIFETIME" link="NMSettingIP6Config.html#NM-SETTING-IP6-CONFIG-TEMP-PREFERRED-LIFETIME:CAPS"/>
     <keyword type="macro" name="NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE" link="NMSettingIP6Config.html#NM-SETTING-IP6-CONFIG-ADDR-GEN-MODE:CAPS"/>
     <keyword type="macro" name="NM_SETTING_IP6_CONFIG_TOKEN" link="NMSettingIP6Config.html#NM-SETTING-IP6-CONFIG-TOKEN:CAPS"/>
     <keyword type="macro" name="NM_SETTING_IP6_CONFIG_DHCP_DUID" link="NMSettingIP6Config.html#NM-SETTING-IP6-CONFIG-DHCP-DUID:CAPS"/>
@@ -2141,13 +2152,20 @@
     <keyword type="function" name="nm_setting_wired_get_cloned_mac_address ()" link="NMSettingWired.html#nm-setting-wired-get-cloned-mac-address"/>
     <keyword type="function" name="nm_setting_wired_get_accept_all_mac_addresses ()" link="NMSettingWired.html#nm-setting-wired-get-accept-all-mac-addresses" since="1.32"/>
     <keyword type="function" name="nm_setting_wired_get_generate_mac_address_mask ()" link="NMSettingWired.html#nm-setting-wired-get-generate-mac-address-mask" since="1.4"/>
-    <keyword type="function" name="nm_setting_wired_get_mac_address_blacklist ()" link="NMSettingWired.html#nm-setting-wired-get-mac-address-blacklist"/>
-    <keyword type="function" name="nm_setting_wired_get_num_mac_blacklist_items ()" link="NMSettingWired.html#nm-setting-wired-get-num-mac-blacklist-items"/>
-    <keyword type="function" name="nm_setting_wired_get_mac_blacklist_item ()" link="NMSettingWired.html#nm-setting-wired-get-mac-blacklist-item"/>
-    <keyword type="function" name="nm_setting_wired_add_mac_blacklist_item ()" link="NMSettingWired.html#nm-setting-wired-add-mac-blacklist-item"/>
-    <keyword type="function" name="nm_setting_wired_remove_mac_blacklist_item ()" link="NMSettingWired.html#nm-setting-wired-remove-mac-blacklist-item"/>
-    <keyword type="function" name="nm_setting_wired_remove_mac_blacklist_item_by_value ()" link="NMSettingWired.html#nm-setting-wired-remove-mac-blacklist-item-by-value"/>
-    <keyword type="function" name="nm_setting_wired_clear_mac_blacklist_items ()" link="NMSettingWired.html#nm-setting-wired-clear-mac-blacklist-items"/>
+    <keyword type="function" name="nm_setting_wired_get_mac_address_blacklist ()" link="NMSettingWired.html#nm-setting-wired-get-mac-address-blacklist" deprecated="1.48. Use nm_setting_wired_get_mac_address_denylist() instead."/>
+    <keyword type="function" name="nm_setting_wired_get_num_mac_blacklist_items ()" link="NMSettingWired.html#nm-setting-wired-get-num-mac-blacklist-items" deprecated="1.48. Use nm_setting_wired_get_num_mac_denylist_items() instead."/>
+    <keyword type="function" name="nm_setting_wired_get_mac_blacklist_item ()" link="NMSettingWired.html#nm-setting-wired-get-mac-blacklist-item" deprecated="1.48. Use nm_setting_wired_get_mac_denylist_item() instead."/>
+    <keyword type="function" name="nm_setting_wired_add_mac_blacklist_item ()" link="NMSettingWired.html#nm-setting-wired-add-mac-blacklist-item" deprecated="1.48. Use nm_setting_wired_add_mac_denylist_item() instead."/>
+    <keyword type="function" name="nm_setting_wired_remove_mac_blacklist_item ()" link="NMSettingWired.html#nm-setting-wired-remove-mac-blacklist-item" deprecated="1.48. Use nm_setting_wired_remove_mac_denylist_item() instead."/>
+    <keyword type="function" name="nm_setting_wired_remove_mac_blacklist_item_by_value ()" link="NMSettingWired.html#nm-setting-wired-remove-mac-blacklist-item-by-value" deprecated="1.48. Use nm_setting_wired_remove_mac_denylist_item_by_value() instead."/>
+    <keyword type="function" name="nm_setting_wired_clear_mac_blacklist_items ()" link="NMSettingWired.html#nm-setting-wired-clear-mac-blacklist-items" deprecated="1.48. Use nm_setting_wired_clear_mac_denylist_items() instead."/>
+    <keyword type="function" name="nm_setting_wired_get_mac_address_denylist ()" link="NMSettingWired.html#nm-setting-wired-get-mac-address-denylist" since="1.48"/>
+    <keyword type="function" name="nm_setting_wired_get_num_mac_denylist_items ()" link="NMSettingWired.html#nm-setting-wired-get-num-mac-denylist-items" since="1.48"/>
+    <keyword type="function" name="nm_setting_wired_get_mac_denylist_item ()" link="NMSettingWired.html#nm-setting-wired-get-mac-denylist-item" since="1.48"/>
+    <keyword type="function" name="nm_setting_wired_add_mac_denylist_item ()" link="NMSettingWired.html#nm-setting-wired-add-mac-denylist-item" since="1.48"/>
+    <keyword type="function" name="nm_setting_wired_remove_mac_denylist_item ()" link="NMSettingWired.html#nm-setting-wired-remove-mac-denylist-item" since="1.48"/>
+    <keyword type="function" name="nm_setting_wired_remove_mac_denylist_item_by_value ()" link="NMSettingWired.html#nm-setting-wired-remove-mac-denylist-item-by-value" since="1.48"/>
+    <keyword type="function" name="nm_setting_wired_clear_mac_denylist_items ()" link="NMSettingWired.html#nm-setting-wired-clear-mac-denylist-items" since="1.48"/>
     <keyword type="function" name="nm_setting_wired_get_mtu ()" link="NMSettingWired.html#nm-setting-wired-get-mtu"/>
     <keyword type="function" name="nm_setting_wired_get_s390_subchannels ()" link="NMSettingWired.html#nm-setting-wired-get-s390-subchannels"/>
     <keyword type="function" name="nm_setting_wired_get_s390_nettype ()" link="NMSettingWired.html#nm-setting-wired-get-s390-nettype"/>
@@ -2169,6 +2187,7 @@
     <keyword type="macro" name="NM_SETTING_WIRED_CLONED_MAC_ADDRESS" link="NMSettingWired.html#NM-SETTING-WIRED-CLONED-MAC-ADDRESS:CAPS"/>
     <keyword type="macro" name="NM_SETTING_WIRED_GENERATE_MAC_ADDRESS_MASK" link="NMSettingWired.html#NM-SETTING-WIRED-GENERATE-MAC-ADDRESS-MASK:CAPS"/>
     <keyword type="macro" name="NM_SETTING_WIRED_MAC_ADDRESS_BLACKLIST" link="NMSettingWired.html#NM-SETTING-WIRED-MAC-ADDRESS-BLACKLIST:CAPS"/>
+    <keyword type="macro" name="NM_SETTING_WIRED_MAC_ADDRESS_DENYLIST" link="NMSettingWired.html#NM-SETTING-WIRED-MAC-ADDRESS-DENYLIST:CAPS"/>
     <keyword type="macro" name="NM_SETTING_WIRED_MTU" link="NMSettingWired.html#NM-SETTING-WIRED-MTU:CAPS"/>
     <keyword type="macro" name="NM_SETTING_WIRED_S390_SUBCHANNELS" link="NMSettingWired.html#NM-SETTING-WIRED-S390-SUBCHANNELS:CAPS"/>
     <keyword type="macro" name="NM_SETTING_WIRED_S390_NETTYPE" link="NMSettingWired.html#NM-SETTING-WIRED-S390-NETTYPE:CAPS"/>
@@ -2303,13 +2322,20 @@
     <keyword type="function" name="nm_setting_wireless_get_mac_address ()" link="NMSettingWireless.html#nm-setting-wireless-get-mac-address"/>
     <keyword type="function" name="nm_setting_wireless_get_cloned_mac_address ()" link="NMSettingWireless.html#nm-setting-wireless-get-cloned-mac-address"/>
     <keyword type="function" name="nm_setting_wireless_get_generate_mac_address_mask ()" link="NMSettingWireless.html#nm-setting-wireless-get-generate-mac-address-mask" since="1.4"/>
-    <keyword type="function" name="nm_setting_wireless_get_mac_address_blacklist ()" link="NMSettingWireless.html#nm-setting-wireless-get-mac-address-blacklist"/>
-    <keyword type="function" name="nm_setting_wireless_get_num_mac_blacklist_items ()" link="NMSettingWireless.html#nm-setting-wireless-get-num-mac-blacklist-items"/>
-    <keyword type="function" name="nm_setting_wireless_get_mac_blacklist_item ()" link="NMSettingWireless.html#nm-setting-wireless-get-mac-blacklist-item"/>
-    <keyword type="function" name="nm_setting_wireless_add_mac_blacklist_item ()" link="NMSettingWireless.html#nm-setting-wireless-add-mac-blacklist-item"/>
-    <keyword type="function" name="nm_setting_wireless_remove_mac_blacklist_item ()" link="NMSettingWireless.html#nm-setting-wireless-remove-mac-blacklist-item"/>
-    <keyword type="function" name="nm_setting_wireless_remove_mac_blacklist_item_by_value ()" link="NMSettingWireless.html#nm-setting-wireless-remove-mac-blacklist-item-by-value"/>
-    <keyword type="function" name="nm_setting_wireless_clear_mac_blacklist_items ()" link="NMSettingWireless.html#nm-setting-wireless-clear-mac-blacklist-items"/>
+    <keyword type="function" name="nm_setting_wireless_get_mac_address_blacklist ()" link="NMSettingWireless.html#nm-setting-wireless-get-mac-address-blacklist" deprecated="1.48. Use nm_setting_wireless_get_mac_address_denylist() instead."/>
+    <keyword type="function" name="nm_setting_wireless_get_num_mac_blacklist_items ()" link="NMSettingWireless.html#nm-setting-wireless-get-num-mac-blacklist-items" deprecated="1.48. Use nm_setting_wireless_get_num_mac_denylist_items() instead."/>
+    <keyword type="function" name="nm_setting_wireless_get_mac_blacklist_item ()" link="NMSettingWireless.html#nm-setting-wireless-get-mac-blacklist-item" deprecated="1.48. Use nm_setting_wireless_get_mac_denylist_item() instead."/>
+    <keyword type="function" name="nm_setting_wireless_add_mac_blacklist_item ()" link="NMSettingWireless.html#nm-setting-wireless-add-mac-blacklist-item" deprecated="1.48. Use nm_setting_wireless_add_mac_denylist_item() instead."/>
+    <keyword type="function" name="nm_setting_wireless_remove_mac_blacklist_item ()" link="NMSettingWireless.html#nm-setting-wireless-remove-mac-blacklist-item" deprecated="1.48. Use nm_setting_wireless_remove_mac_denylist_item() instead."/>
+    <keyword type="function" name="nm_setting_wireless_remove_mac_blacklist_item_by_value ()" link="NMSettingWireless.html#nm-setting-wireless-remove-mac-blacklist-item-by-value" deprecated="1.48. Use nm_setting_wireless_remove_mac_denylist_item_by_value() instead."/>
+    <keyword type="function" name="nm_setting_wireless_clear_mac_blacklist_items ()" link="NMSettingWireless.html#nm-setting-wireless-clear-mac-blacklist-items" deprecated="1.48. Use nm_setting_wireless_clear_mac_denylist_items() instead."/>
+    <keyword type="function" name="nm_setting_wireless_get_mac_address_denylist ()" link="NMSettingWireless.html#nm-setting-wireless-get-mac-address-denylist" since="1.48"/>
+    <keyword type="function" name="nm_setting_wireless_get_num_mac_denylist_items ()" link="NMSettingWireless.html#nm-setting-wireless-get-num-mac-denylist-items" since="1.48"/>
+    <keyword type="function" name="nm_setting_wireless_get_mac_denylist_item ()" link="NMSettingWireless.html#nm-setting-wireless-get-mac-denylist-item" since="1.48"/>
+    <keyword type="function" name="nm_setting_wireless_add_mac_denylist_item ()" link="NMSettingWireless.html#nm-setting-wireless-add-mac-denylist-item" since="1.48"/>
+    <keyword type="function" name="nm_setting_wireless_remove_mac_denylist_item ()" link="NMSettingWireless.html#nm-setting-wireless-remove-mac-denylist-item" since="1.48"/>
+    <keyword type="function" name="nm_setting_wireless_remove_mac_denylist_item_by_value ()" link="NMSettingWireless.html#nm-setting-wireless-remove-mac-denylist-item-by-value" since="1.48"/>
+    <keyword type="function" name="nm_setting_wireless_clear_mac_denylist_items ()" link="NMSettingWireless.html#nm-setting-wireless-clear-mac-denylist-items" since="1.48"/>
     <keyword type="function" name="nm_setting_wireless_get_mtu ()" link="NMSettingWireless.html#nm-setting-wireless-get-mtu"/>
     <keyword type="function" name="nm_setting_wireless_get_hidden ()" link="NMSettingWireless.html#nm-setting-wireless-get-hidden"/>
     <keyword type="function" name="nm_setting_wireless_get_powersave ()" link="NMSettingWireless.html#nm-setting-wireless-get-powersave" since="1.2"/>
@@ -2333,6 +2359,7 @@
     <keyword type="macro" name="NM_SETTING_WIRELESS_CLONED_MAC_ADDRESS" link="NMSettingWireless.html#NM-SETTING-WIRELESS-CLONED-MAC-ADDRESS:CAPS"/>
     <keyword type="macro" name="NM_SETTING_WIRELESS_GENERATE_MAC_ADDRESS_MASK" link="NMSettingWireless.html#NM-SETTING-WIRELESS-GENERATE-MAC-ADDRESS-MASK:CAPS"/>
     <keyword type="macro" name="NM_SETTING_WIRELESS_MAC_ADDRESS_BLACKLIST" link="NMSettingWireless.html#NM-SETTING-WIRELESS-MAC-ADDRESS-BLACKLIST:CAPS"/>
+    <keyword type="macro" name="NM_SETTING_WIRELESS_MAC_ADDRESS_DENYLIST" link="NMSettingWireless.html#NM-SETTING-WIRELESS-MAC-ADDRESS-DENYLIST:CAPS"/>
     <keyword type="macro" name="NM_SETTING_WIRELESS_MTU" link="NMSettingWireless.html#NM-SETTING-WIRELESS-MTU:CAPS"/>
     <keyword type="macro" name="NM_SETTING_WIRELESS_SEEN_BSSIDS" link="NMSettingWireless.html#NM-SETTING-WIRELESS-SEEN-BSSIDS:CAPS"/>
     <keyword type="macro" name="NM_SETTING_WIRELESS_HIDDEN" link="NMSettingWireless.html#NM-SETTING-WIRELESS-HIDDEN:CAPS"/>
@@ -3294,6 +3321,7 @@
     <keyword type="macro" name="NM_DEPRECATED_IN_1_42_FOR()" link="libnm-nm-version.html#NM-DEPRECATED-IN-1-42-FOR:CAPS"/>
     <keyword type="macro" name="NM_DEPRECATED_IN_1_44_FOR()" link="libnm-nm-version.html#NM-DEPRECATED-IN-1-44-FOR:CAPS"/>
     <keyword type="macro" name="NM_DEPRECATED_IN_1_46_FOR()" link="libnm-nm-version.html#NM-DEPRECATED-IN-1-46-FOR:CAPS"/>
+    <keyword type="macro" name="NM_DEPRECATED_IN_1_48_FOR()" link="libnm-nm-version.html#NM-DEPRECATED-IN-1-48-FOR:CAPS"/>
     <keyword type="macro" name="NM_VERSION_MIN_REQUIRED" link="libnm-nm-version.html#NM-VERSION-MIN-REQUIRED:CAPS"/>
     <keyword type="macro" name="NM_VERSION_MAX_ALLOWED" link="libnm-nm-version.html#NM-VERSION-MAX-ALLOWED:CAPS"/>
     <keyword type="macro" name="NM_DEPRECATED_IN_0_9_10" link="libnm-nm-version.html#NM-DEPRECATED-IN-0-9-10:CAPS"/>
@@ -3346,6 +3374,8 @@
     <keyword type="macro" name="NM_AVAILABLE_IN_1_44" link="libnm-nm-version.html#NM-AVAILABLE-IN-1-44:CAPS"/>
     <keyword type="macro" name="NM_DEPRECATED_IN_1_46" link="libnm-nm-version.html#NM-DEPRECATED-IN-1-46:CAPS"/>
     <keyword type="macro" name="NM_AVAILABLE_IN_1_46" link="libnm-nm-version.html#NM-AVAILABLE-IN-1-46:CAPS"/>
+    <keyword type="macro" name="NM_DEPRECATED_IN_1_48" link="libnm-nm-version.html#NM-DEPRECATED-IN-1-48:CAPS"/>
+    <keyword type="macro" name="NM_AVAILABLE_IN_1_48" link="libnm-nm-version.html#NM-AVAILABLE-IN-1-48:CAPS"/>
     <keyword type="macro" name="NM_CHECK_VERSION()" link="libnm-nm-version-macros.html#NM-CHECK-VERSION:CAPS"/>
     <keyword type="macro" name="NM_ENCODE_VERSION()" link="libnm-nm-version-macros.html#NM-ENCODE-VERSION:CAPS"/>
     <keyword type="macro" name="NM_MAJOR_VERSION" link="libnm-nm-version-macros.html#NM-MAJOR-VERSION:CAPS"/>
@@ -3377,6 +3407,7 @@
     <keyword type="macro" name="NM_VERSION_1_42" link="libnm-nm-version-macros.html#NM-VERSION-1-42:CAPS"/>
     <keyword type="macro" name="NM_VERSION_1_44" link="libnm-nm-version-macros.html#NM-VERSION-1-44:CAPS"/>
     <keyword type="macro" name="NM_VERSION_1_46" link="libnm-nm-version-macros.html#NM-VERSION-1-46:CAPS"/>
+    <keyword type="macro" name="NM_VERSION_1_48" link="libnm-nm-version-macros.html#NM-VERSION-1-48:CAPS"/>
     <keyword type="macro" name="NM_API_VERSION" link="libnm-nm-version-macros.html#NM-API-VERSION:CAPS"/>
     <keyword type="macro" name="NM_VERSION_CUR_STABLE" link="libnm-nm-version-macros.html#NM-VERSION-CUR-STABLE:CAPS"/>
     <keyword type="macro" name="NM_VERSION_NEXT_STABLE" link="libnm-nm-version-macros.html#NM-VERSION-NEXT-STABLE:CAPS"/>
@@ -3759,6 +3790,15 @@
     <keyword type="constant" name="NM_DEVICE_STATE_REASON_SRIOV_CONFIGURATION_FAILED" link="libnm-nm-dbus-interface.html#NM-DEVICE-STATE-REASON-SRIOV-CONFIGURATION-FAILED:CAPS"/>
     <keyword type="constant" name="NM_DEVICE_STATE_REASON_PEER_NOT_FOUND" link="libnm-nm-dbus-interface.html#NM-DEVICE-STATE-REASON-PEER-NOT-FOUND:CAPS"/>
     <keyword type="constant" name="NM_DEVICE_STATE_REASON_DEVICE_HANDLER_FAILED" link="libnm-nm-dbus-interface.html#NM-DEVICE-STATE-REASON-DEVICE-HANDLER-FAILED:CAPS"/>
+    <keyword type="constant" name="NM_DEVICE_STATE_REASON_UNMANAGED_BY_DEFAULT" link="libnm-nm-dbus-interface.html#NM-DEVICE-STATE-REASON-UNMANAGED-BY-DEFAULT:CAPS"/>
+    <keyword type="constant" name="NM_DEVICE_STATE_REASON_UNMANAGED_EXTERNAL_DOWN" link="libnm-nm-dbus-interface.html#NM-DEVICE-STATE-REASON-UNMANAGED-EXTERNAL-DOWN:CAPS"/>
+    <keyword type="constant" name="NM_DEVICE_STATE_REASON_UNMANAGED_LINK_NOT_INIT" link="libnm-nm-dbus-interface.html#NM-DEVICE-STATE-REASON-UNMANAGED-LINK-NOT-INIT:CAPS"/>
+    <keyword type="constant" name="NM_DEVICE_STATE_REASON_UNMANAGED_QUITTING" link="libnm-nm-dbus-interface.html#NM-DEVICE-STATE-REASON-UNMANAGED-QUITTING:CAPS"/>
+    <keyword type="constant" name="NM_DEVICE_STATE_REASON_UNMANAGED_SLEEPING" link="libnm-nm-dbus-interface.html#NM-DEVICE-STATE-REASON-UNMANAGED-SLEEPING:CAPS"/>
+    <keyword type="constant" name="NM_DEVICE_STATE_REASON_UNMANAGED_USER_CONF" link="libnm-nm-dbus-interface.html#NM-DEVICE-STATE-REASON-UNMANAGED-USER-CONF:CAPS"/>
+    <keyword type="constant" name="NM_DEVICE_STATE_REASON_UNMANAGED_USER_EXPLICIT" link="libnm-nm-dbus-interface.html#NM-DEVICE-STATE-REASON-UNMANAGED-USER-EXPLICIT:CAPS"/>
+    <keyword type="constant" name="NM_DEVICE_STATE_REASON_UNMANAGED_USER_SETTINGS" link="libnm-nm-dbus-interface.html#NM-DEVICE-STATE-REASON-UNMANAGED-USER-SETTINGS:CAPS"/>
+    <keyword type="constant" name="NM_DEVICE_STATE_REASON_UNMANAGED_USER_UDEV" link="libnm-nm-dbus-interface.html#NM-DEVICE-STATE-REASON-UNMANAGED-USER-UDEV:CAPS"/>
     <keyword type="constant" name="NM_METERED_UNKNOWN" link="libnm-nm-dbus-interface.html#NM-METERED-UNKNOWN:CAPS"/>
     <keyword type="constant" name="NM_METERED_YES" link="libnm-nm-dbus-interface.html#NM-METERED-YES:CAPS"/>
     <keyword type="constant" name="NM_METERED_NO" link="libnm-nm-dbus-interface.html#NM-METERED-NO:CAPS"/>
@@ -3816,6 +3856,7 @@
     <keyword type="constant" name="NM_CHECKPOINT_CREATE_FLAG_DISCONNECT_NEW_DEVICES" link="libnm-nm-dbus-interface.html#NM-CHECKPOINT-CREATE-FLAG-DISCONNECT-NEW-DEVICES:CAPS"/>
     <keyword type="constant" name="NM_CHECKPOINT_CREATE_FLAG_ALLOW_OVERLAPPING" link="libnm-nm-dbus-interface.html#NM-CHECKPOINT-CREATE-FLAG-ALLOW-OVERLAPPING:CAPS"/>
     <keyword type="constant" name="NM_CHECKPOINT_CREATE_FLAG_NO_PRESERVE_EXTERNAL_PORTS" link="libnm-nm-dbus-interface.html#NM-CHECKPOINT-CREATE-FLAG-NO-PRESERVE-EXTERNAL-PORTS:CAPS"/>
+    <keyword type="constant" name="NM_CHECKPOINT_CREATE_FLAG_TRACK_INTERNAL_GLOBAL_DNS" link="libnm-nm-dbus-interface.html#NM-CHECKPOINT-CREATE-FLAG-TRACK-INTERNAL-GLOBAL-DNS:CAPS"/>
     <keyword type="constant" name="NM_ROLLBACK_RESULT_OK" link="libnm-nm-dbus-interface.html#NM-ROLLBACK-RESULT-OK:CAPS"/>
     <keyword type="constant" name="NM_ROLLBACK_RESULT_ERR_NO_DEVICE" link="libnm-nm-dbus-interface.html#NM-ROLLBACK-RESULT-ERR-NO-DEVICE:CAPS"/>
     <keyword type="constant" name="NM_ROLLBACK_RESULT_ERR_DEVICE_UNMANAGED" link="libnm-nm-dbus-interface.html#NM-ROLLBACK-RESULT-ERR-DEVICE-UNMANAGED:CAPS"/>
@@ -3974,6 +4015,9 @@
     <keyword type="constant" name="NM_SETTING_CONNECTION_DNS_OVER_TLS_NO" link="NMSettingConnection.html#NM-SETTING-CONNECTION-DNS-OVER-TLS-NO:CAPS"/>
     <keyword type="constant" name="NM_SETTING_CONNECTION_DNS_OVER_TLS_OPPORTUNISTIC" link="NMSettingConnection.html#NM-SETTING-CONNECTION-DNS-OVER-TLS-OPPORTUNISTIC:CAPS"/>
     <keyword type="constant" name="NM_SETTING_CONNECTION_DNS_OVER_TLS_YES" link="NMSettingConnection.html#NM-SETTING-CONNECTION-DNS-OVER-TLS-YES:CAPS"/>
+    <keyword type="constant" name="NM_SETTING_CONNECTION_DOWN_ON_POWEROFF_DEFAULT" link="NMSettingConnection.html#NM-SETTING-CONNECTION-DOWN-ON-POWEROFF-DEFAULT:CAPS"/>
+    <keyword type="constant" name="NM_SETTING_CONNECTION_DOWN_ON_POWEROFF_NO" link="NMSettingConnection.html#NM-SETTING-CONNECTION-DOWN-ON-POWEROFF-NO:CAPS"/>
+    <keyword type="constant" name="NM_SETTING_CONNECTION_DOWN_ON_POWEROFF_YES" link="NMSettingConnection.html#NM-SETTING-CONNECTION-DOWN-ON-POWEROFF-YES:CAPS"/>
     <keyword type="constant" name="NM_SETTING_802_1X_CK_FORMAT_UNKNOWN" link="NMSetting8021x.html#NM-SETTING-802-1X-CK-FORMAT-UNKNOWN:CAPS"/>
     <keyword type="constant" name="NM_SETTING_802_1X_CK_FORMAT_X509" link="NMSetting8021x.html#NM-SETTING-802-1X-CK-FORMAT-X509:CAPS"/>
     <keyword type="constant" name="NM_SETTING_802_1X_CK_FORMAT_RAW_KEY" link="NMSetting8021x.html#NM-SETTING-802-1X-CK-FORMAT-RAW-KEY:CAPS"/>

@@ -1169,10 +1169,10 @@ static int source_set_pending(sd_event_source *s, bool b) {
                 assert(s->inotify.inode_data->inotify_data);
 
                 if (b)
-                        s->inotify.inode_data->inotify_data->n_pending ++;
+                        s->inotify.inode_data->inotify_data->n_pending++;
                 else {
                         assert(s->inotify.inode_data->inotify_data->n_pending > 0);
-                        s->inotify.inode_data->inotify_data->n_pending --;
+                        s->inotify.inode_data->inotify_data->n_pending--;
                 }
         }
 
@@ -1579,7 +1579,7 @@ static int child_exit_callback(sd_event_source *s, const siginfo_t *si, void *us
 
 static bool shall_use_pidfd(void) {
         /* Mostly relevant for debugging, i.e. this is used in test-event.c to test the event loop once with and once without pidfd */
-        return getenv_bool_secure("SYSTEMD_PIDFD") != 0;
+        return secure_getenv_bool("SYSTEMD_PIDFD") != 0;
 }
 
 _public_ int sd_event_add_child(
@@ -1983,7 +1983,7 @@ _public_ int sd_event_add_memory_pressure(
 
                 env = secure_getenv("MEMORY_PRESSURE_WRITE");
                 if (env) {
-                        r = unbase64mem(env, SIZE_MAX, &write_buffer, &write_buffer_size);
+                        r = unbase64mem(env, &write_buffer, &write_buffer_size);
                         if (r < 0)
                                 return r;
                 }
@@ -2239,8 +2239,8 @@ static int inode_data_compare(const struct inode_data *x, const struct inode_dat
 static void inode_data_hash_func(const struct inode_data *d, struct siphash *state) {
         assert(d);
 
-        siphash24_compress(&d->dev, sizeof(d->dev), state);
-        siphash24_compress(&d->ino, sizeof(d->ino), state);
+        siphash24_compress_typesafe(d->dev, state);
+        siphash24_compress_typesafe(d->ino, state);
 }
 
 DEFINE_PRIVATE_HASH_OPS(inode_data_hash_ops, struct inode_data, inode_data_hash_func, inode_data_compare);
@@ -4008,7 +4008,7 @@ static int process_inotify(sd_event *e) {
                 if (r < 0)
                         return r;
                 if (r > 0)
-                        done ++;
+                        done++;
         }
 
         return done;
@@ -4620,7 +4620,7 @@ static int process_epoll(sd_event *e, usec_t timeout, int64_t threshold, int64_t
 
         /* Set timestamp only when this is called first time. */
         if (threshold == INT64_MAX)
-                triple_timestamp_get(&e->timestamp);
+                triple_timestamp_now(&e->timestamp);
 
         for (size_t i = 0; i < m; i++) {
 
@@ -4923,13 +4923,13 @@ _public_ int sd_event_get_state(sd_event *e) {
 _public_ int sd_event_get_exit_code(sd_event *e, int *code) {
         assert_return(e, -EINVAL);
         assert_return(e = event_resolve(e), -ENOPKG);
-        assert_return(code, -EINVAL);
         assert_return(!event_origin_changed(e), -ECHILD);
 
         if (!e->exit_requested)
                 return -ENODATA;
 
-        *code = e->exit_code;
+        if (code)
+                *code = e->exit_code;
         return 0;
 }
 
@@ -5047,7 +5047,7 @@ _public_ int sd_event_set_watchdog(sd_event *e, int b) {
                 }
         }
 
-        e->watchdog = !!b;
+        e->watchdog = b;
         return e->watchdog;
 
 fail:

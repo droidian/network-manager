@@ -4922,11 +4922,6 @@ static const NMMetaPropertyInfo *const property_infos_802_1X[] = {
         .property_type =                &_pt_gobject_string,
     ),
     PROPERTY_INFO_WITH_DESC (NM_SETTING_802_1X_CA_CERT,
-        .describe_message =
-            N_("Enter file path to CA certificate (optionally prefixed with file://).\n"
-               "  [file://]<file path>\n"
-               "Note that nmcli does not support specifying certificates as raw blob data.\n"
-               "Example: /home/cimrman/cacert.crt\n"),
         .property_type =                &_pt_cert_8021x,
         .property_typ_data = DEFINE_PROPERTY_TYP_DATA_SUBTYPE (cert_8021x,
             .scheme_type =              NM_SETTING_802_1X_SCHEME_TYPE_CA_CERT,
@@ -4965,11 +4960,6 @@ static const NMMetaPropertyInfo *const property_infos_802_1X[] = {
         .property_type =                &_pt_gobject_string,
     ),
     PROPERTY_INFO_WITH_DESC (NM_SETTING_802_1X_CLIENT_CERT,
-        .describe_message =
-            N_("Enter file path to client certificate (optionally prefixed with file://).\n"
-               "  [file://]<file path>\n"
-               "Note that nmcli does not support specifying certificates as raw blob data.\n"
-               "Example: /home/cimrman/jara.crt\n"),
         .property_type =                &_pt_cert_8021x,
         .property_typ_data = DEFINE_PROPERTY_TYP_DATA_SUBTYPE (cert_8021x,
             .scheme_type =              NM_SETTING_802_1X_SCHEME_TYPE_CLIENT_CERT,
@@ -5022,12 +5012,6 @@ static const NMMetaPropertyInfo *const property_infos_802_1X[] = {
         ),
     ),
     PROPERTY_INFO_WITH_DESC (NM_SETTING_802_1X_PHASE2_CA_CERT,
-        .describe_message =
-            N_("Enter file path to CA certificate for inner authentication (optionally prefixed\n"
-               "with file://).\n"
-               "  [file://]<file path>\n"
-               "Note that nmcli does not support specifying certificates as raw blob data.\n"
-               "Example: /home/cimrman/ca-zweite-phase.crt\n"),
         .property_type =                &_pt_cert_8021x,
         .property_typ_data = DEFINE_PROPERTY_TYP_DATA_SUBTYPE (cert_8021x,
             .scheme_type =              NM_SETTING_802_1X_SCHEME_TYPE_PHASE2_CA_CERT,
@@ -5070,12 +5054,6 @@ static const NMMetaPropertyInfo *const property_infos_802_1X[] = {
         .property_type =                &_pt_gobject_string,
     ),
     PROPERTY_INFO_WITH_DESC (NM_SETTING_802_1X_PHASE2_CLIENT_CERT,
-        .describe_message =
-            N_("Enter file path to client certificate for inner authentication (optionally prefixed\n"
-               "with file://).\n"
-               "  [file://]<file path>\n"
-               "Note that nmcli does not support specifying certificates as raw blob data.\n"
-               "Example: /home/cimrman/jara-zweite-phase.crt\n"),
         .property_type =                &_pt_cert_8021x,
         .property_typ_data = DEFINE_PROPERTY_TYP_DATA_SUBTYPE (cert_8021x,
             .scheme_type =              NM_SETTING_802_1X_SCHEME_TYPE_PHASE2_CLIENT_CERT,
@@ -5114,11 +5092,6 @@ static const NMMetaPropertyInfo *const property_infos_802_1X[] = {
         .property_type =                &_pt_gobject_secret_flags,
     ),
     PROPERTY_INFO_WITH_DESC (NM_SETTING_802_1X_PRIVATE_KEY,
-        .describe_message =
-            N_("Enter path to a private key and the key password (if not set yet):\n"
-               "  [file://]<file path> [<password>]\n"
-               "Note that nmcli does not support specifying private key as raw blob data.\n"
-               "Example: /home/cimrman/jara-priv-key Dardanely\n"),
         .property_type =                &_pt_cert_8021x,
         .property_typ_data = DEFINE_PROPERTY_TYP_DATA_SUBTYPE (cert_8021x,
             .scheme_type =              NM_SETTING_802_1X_SCHEME_TYPE_PRIVATE_KEY,
@@ -5132,11 +5105,6 @@ static const NMMetaPropertyInfo *const property_infos_802_1X[] = {
         .property_type =                &_pt_gobject_secret_flags,
     ),
     PROPERTY_INFO_WITH_DESC (NM_SETTING_802_1X_PHASE2_PRIVATE_KEY,
-        .describe_message =
-            N_("Enter path to a private key and the key password (if not set yet):\n"
-               "  [file://]<file path> [<password>]\n"
-               "Note that nmcli does not support specifying private key as raw blob data.\n"
-               "Example: /home/cimrman/jara-priv-key Dardanely\n"),
         .property_type =                &_pt_cert_8021x,
         .property_typ_data = DEFINE_PROPERTY_TYP_DATA_SUBTYPE (cert_8021x,
             .scheme_type =              NM_SETTING_802_1X_SCHEME_TYPE_PHASE2_PRIVATE_KEY,
@@ -5161,6 +5129,9 @@ static const NMMetaPropertyInfo *const property_infos_802_1X[] = {
     ),
     PROPERTY_INFO_WITH_DESC (NM_SETTING_802_1X_AUTH_TIMEOUT,
         .property_type =                &_pt_gobject_int,
+    ),
+    PROPERTY_INFO_WITH_DESC (NM_SETTING_802_1X_OPENSSL_CIPHERS,
+        .property_type =                &_pt_gobject_string,
     ),
     NULL
 };
@@ -5662,6 +5633,9 @@ static const NMMetaPropertyInfo *const property_infos_CONNECTION[] = {
     ),
     PROPERTY_INFO_WITH_DESC (NM_SETTING_CONNECTION_AUTOCONNECT_PORTS,
         .property_type =                &_pt_gobject_enum,
+    ),
+    PROPERTY_INFO_WITH_DESC (NM_SETTING_CONNECTION_DOWN_ON_POWEROFF,
+        .property_type =                &_pt_gobject_ternary,
     ),
     PROPERTY_INFO_WITH_DESC (NM_SETTING_CONNECTION_SECONDARIES,
         .describe_message =
@@ -6340,6 +6314,9 @@ static const NMMetaPropertyInfo *const property_infos_IP4_CONFIG[] = {
     PROPERTY_INFO (NM_SETTING_IP_CONFIG_REPLACE_LOCAL_RULE, DESCRIBE_DOC_NM_SETTING_IP4_CONFIG_REPLACE_LOCAL_RULE,
         .property_type =                &_pt_gobject_ternary,
     ),
+    PROPERTY_INFO (NM_SETTING_IP_CONFIG_DHCP_SEND_RELEASE, DESCRIBE_DOC_NM_SETTING_IP4_CONFIG_DHCP_SEND_RELEASE,
+        .property_type =                &_pt_gobject_ternary,
+    ),
     PROPERTY_INFO (NM_SETTING_IP_CONFIG_IGNORE_AUTO_ROUTES, DESCRIBE_DOC_NM_SETTING_IP4_CONFIG_IGNORE_AUTO_ROUTES,
         .property_type =                &_pt_gobject_bool,
     ),
@@ -6610,6 +6587,9 @@ static const NMMetaPropertyInfo *const property_infos_IP6_CONFIG[] = {
     PROPERTY_INFO (NM_SETTING_IP_CONFIG_REPLACE_LOCAL_RULE, DESCRIBE_DOC_NM_SETTING_IP6_CONFIG_REPLACE_LOCAL_RULE,
         .property_type =                &_pt_gobject_ternary,
     ),
+    PROPERTY_INFO (NM_SETTING_IP_CONFIG_DHCP_SEND_RELEASE, DESCRIBE_DOC_NM_SETTING_IP6_CONFIG_DHCP_SEND_RELEASE,
+        .property_type =                &_pt_gobject_ternary,
+    ),
     PROPERTY_INFO (NM_SETTING_IP_CONFIG_IGNORE_AUTO_ROUTES, DESCRIBE_DOC_NM_SETTING_IP6_CONFIG_IGNORE_AUTO_ROUTES,
         .property_type =                &_pt_gobject_bool,
     ),
@@ -6651,6 +6631,12 @@ static const NMMetaPropertyInfo *const property_infos_IP6_CONFIG[] = {
                 },
             ),
         ),
+    ),
+    PROPERTY_INFO_WITH_DESC (NM_SETTING_IP6_CONFIG_TEMP_VALID_LIFETIME,
+        .property_type =                &_pt_gobject_int,
+    ),
+    PROPERTY_INFO_WITH_DESC (NM_SETTING_IP6_CONFIG_TEMP_PREFERRED_LIFETIME,
+        .property_type =                &_pt_gobject_int,
     ),
     PROPERTY_INFO_WITH_DESC (NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE,
         .property_type =                &_pt_gobject_enum,
@@ -8047,12 +8033,27 @@ static const NMMetaPropertyInfo *const property_infos_WIRED[] = {
     ),
     PROPERTY_INFO_WITH_DESC (NM_SETTING_WIRED_MAC_ADDRESS_BLACKLIST,
         .property_type =                &_pt_multilist,
+        .hide_if_default =              TRUE,
         .property_typ_data = DEFINE_PROPERTY_TYP_DATA (
             PROPERTY_TYP_DATA_SUBTYPE (multilist,
                 .get_num_fcn_u32 =      MULTILIST_GET_NUM_FCN_U32     (NMSettingWired, nm_setting_wired_get_num_mac_blacklist_items),
                 .add_fcn =              MULTILIST_ADD_FCN             (NMSettingWired, nm_setting_wired_add_mac_blacklist_item),
                 .remove_by_idx_fcn_u32 = MULTILIST_REMOVE_BY_IDX_FCN_U32 (NMSettingWired, nm_setting_wired_remove_mac_blacklist_item),
                 .remove_by_value_fcn =  MULTILIST_REMOVE_BY_VALUE_FCN (NMSettingWired, nm_setting_wired_remove_mac_blacklist_item_by_value),
+                .validate2_fcn =        _multilist_validate2_fcn_mac_addr,
+                .strsplit_plain =       TRUE,
+            ),
+            .list_items_doc_format =    NM_META_PROPERTY_TYPE_FORMAT_MAC,
+        ),
+    ),
+    PROPERTY_INFO_WITH_DESC (NM_SETTING_WIRED_MAC_ADDRESS_DENYLIST,
+        .property_type =                &_pt_multilist,
+        .property_typ_data = DEFINE_PROPERTY_TYP_DATA (
+            PROPERTY_TYP_DATA_SUBTYPE (multilist,
+                .get_num_fcn_u =        MULTILIST_GET_NUM_FCN_U       (NMSettingWired, nm_setting_wired_get_num_mac_denylist_items),
+                .add_fcn =              MULTILIST_ADD_FCN             (NMSettingWired, nm_setting_wired_add_mac_denylist_item),
+                .remove_by_idx_fcn_u =  MULTILIST_REMOVE_BY_IDX_FCN_U (NMSettingWired, nm_setting_wired_remove_mac_denylist_item),
+                .remove_by_value_fcn =  MULTILIST_REMOVE_BY_VALUE_FCN (NMSettingWired, nm_setting_wired_remove_mac_denylist_item_by_value),
                 .validate2_fcn =        _multilist_validate2_fcn_mac_addr,
                 .strsplit_plain =       TRUE,
             ),
@@ -8228,12 +8229,27 @@ static const NMMetaPropertyInfo *const property_infos_WIRELESS[] = {
     ),
     PROPERTY_INFO_WITH_DESC (NM_SETTING_WIRELESS_MAC_ADDRESS_BLACKLIST,
         .property_type =                &_pt_multilist,
+        .hide_if_default =              TRUE,
         .property_typ_data = DEFINE_PROPERTY_TYP_DATA (
             PROPERTY_TYP_DATA_SUBTYPE (multilist,
-                .get_num_fcn_u32 =      MULTILIST_GET_NUM_FCN_U32     (NMSettingWireless, nm_setting_wireless_get_num_mac_blacklist_items),
-                .add_fcn =              MULTILIST_ADD_FCN             (NMSettingWireless, nm_setting_wireless_add_mac_blacklist_item),
-                .remove_by_idx_fcn_u32 = MULTILIST_REMOVE_BY_IDX_FCN_U32 (NMSettingWireless, nm_setting_wireless_remove_mac_blacklist_item),
-                .remove_by_value_fcn =  MULTILIST_REMOVE_BY_VALUE_FCN (NMSettingWireless, nm_setting_wireless_remove_mac_blacklist_item_by_value),
+                .get_num_fcn_u32 =       MULTILIST_GET_NUM_FCN_U32     (NMSettingWireless, nm_setting_wireless_get_num_mac_denylist_items),
+                .add_fcn =               MULTILIST_ADD_FCN             (NMSettingWireless, nm_setting_wireless_add_mac_denylist_item),
+                .remove_by_idx_fcn_u32 = MULTILIST_REMOVE_BY_IDX_FCN_U32 (NMSettingWireless, nm_setting_wireless_remove_mac_denylist_item),
+                .remove_by_value_fcn =   MULTILIST_REMOVE_BY_VALUE_FCN (NMSettingWireless, nm_setting_wireless_remove_mac_denylist_item_by_value),
+                .validate2_fcn =        _multilist_validate2_fcn_mac_addr,
+                .strsplit_plain =       TRUE,
+            ),
+            .list_items_doc_format =    NM_META_PROPERTY_TYPE_FORMAT_MAC,
+        ),
+    ),
+    PROPERTY_INFO_WITH_DESC (NM_SETTING_WIRELESS_MAC_ADDRESS_DENYLIST,
+        .property_type =                &_pt_multilist,
+        .property_typ_data = DEFINE_PROPERTY_TYP_DATA (
+            PROPERTY_TYP_DATA_SUBTYPE (multilist,
+                .get_num_fcn_u =        MULTILIST_GET_NUM_FCN_U       (NMSettingWireless, nm_setting_wireless_get_num_mac_denylist_items),
+                .add_fcn =              MULTILIST_ADD_FCN             (NMSettingWireless, nm_setting_wireless_add_mac_denylist_item),
+                .remove_by_idx_fcn_u =  MULTILIST_REMOVE_BY_IDX_FCN_U (NMSettingWireless, nm_setting_wireless_remove_mac_denylist_item),
+                .remove_by_value_fcn =  MULTILIST_REMOVE_BY_VALUE_FCN (NMSettingWireless, nm_setting_wireless_remove_mac_denylist_item_by_value),
                 .validate2_fcn =        _multilist_validate2_fcn_mac_addr,
                 .strsplit_plain =       TRUE,
             ),

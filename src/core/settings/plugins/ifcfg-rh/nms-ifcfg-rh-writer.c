@@ -579,6 +579,10 @@ write_8021x_setting(NMConnection *connection,
                "IEEE_8021X_PIN_FLAGS",
                nm_setting_802_1x_get_pin_flags(s_8021x));
 
+    svSetValueStr(ifcfg,
+                  "IEEE_8021X_OPENSSL_CIPHERS",
+                  nm_setting_802_1x_get_openssl_ciphers(s_8021x));
+
     if (!write_8021x_certs(s_8021x, secrets, blobs, FALSE, ifcfg, error))
         return FALSE;
 
@@ -1138,7 +1142,7 @@ write_wired_setting_impl(NMSettingWired *s_wired, shvarFile *ifcfg, gboolean is_
                   "GENERATE_MAC_ADDRESS_MASK",
                   nm_setting_wired_get_generate_mac_address_mask(s_wired));
 
-    macaddr_blacklist = nm_setting_wired_get_mac_address_blacklist(s_wired);
+    macaddr_blacklist = nm_setting_wired_get_mac_address_denylist(s_wired);
     if (macaddr_blacklist[0]) {
         gs_free char *blacklist_str = NULL;
 
@@ -2247,7 +2251,7 @@ write_connection_setting(NMSettingConnection *s_con, shvarFile *ifcfg, const cha
     mud_url = nm_setting_connection_get_mud_url(s_con);
     svSetValue(ifcfg, "MUD_URL", mud_url);
 
-    master = nm_setting_connection_get_master(s_con);
+    master = nm_setting_connection_get_controller(s_con);
     if (master) {
         /* The reader prefers the *_UUID variants, however we still try to resolve
          * it into an interface name, so that legacy tooling is not confused. */

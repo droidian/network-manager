@@ -12,15 +12,24 @@
 #include "macro.h"
 #include "missing_stat.h"
 #include "siphash24.h"
+#include "time-util.h"
 
+int stat_verify_regular(const struct stat *st);
+int verify_regular_at(int fd, const char *path, bool follow);
+int fd_verify_regular(int fd);
+
+int stat_verify_directory(const struct stat *st);
+int fd_verify_directory(int fd);
+int is_dir_at(int fd, const char *path, bool follow);
+int is_dir(const char *path, bool follow);
+
+int stat_verify_symlink(const struct stat *st);
 int is_symlink(const char *path);
-int is_dir_full(int atfd, const char *fname, bool follow);
-static inline int is_dir(const char *path, bool follow) {
-        return is_dir_full(AT_FDCWD, path, follow);
-}
-static inline int is_dir_fd(int fd) {
-        return is_dir_full(fd, NULL, false);
-}
+
+int stat_verify_linked(const struct stat *st);
+int fd_verify_linked(int fd);
+
+int stat_verify_device_node(const struct stat *st);
 int is_device_node(const char *path);
 
 int dir_is_empty_at(int dir_fd, const char *path, bool ignore_hidden_or_backup);
@@ -71,13 +80,6 @@ int path_is_network_fs(const char *path);
  */
 #define F_TYPE_EQUAL(a, b) (a == (typeof(a)) b)
 
-int stat_verify_regular(const struct stat *st);
-int fd_verify_regular(int fd);
-int verify_regular_at(int dir_fd, const char *path, bool follow);
-
-int stat_verify_directory(const struct stat *st);
-int fd_verify_directory(int fd);
-
 int proc_mounted(void);
 
 bool stat_inode_same(const struct stat *a, const struct stat *b);
@@ -109,8 +111,18 @@ int xstatfsat(int dir_fd, const char *path, struct statfs *ret);
         } var
 #endif
 
+#if 0 /* NM_IGNORED */
+static inline usec_t statx_timestamp_load(const struct statx_timestamp *ts) {
+        return timespec_load(&(const struct timespec) { .tv_sec = ts->tv_sec, .tv_nsec = ts->tv_nsec });
+}
+static inline nsec_t statx_timestamp_load_nsec(const struct statx_timestamp *ts) {
+        return timespec_load_nsec(&(const struct timespec) { .tv_sec = ts->tv_sec, .tv_nsec = ts->tv_nsec });
+}
+#endif /* NM_IGNORED */
+
 void inode_hash_func(const struct stat *q, struct siphash *state);
 int inode_compare_func(const struct stat *a, const struct stat *b);
 extern const struct hash_ops inode_hash_ops;
 
 const char* inode_type_to_string(mode_t m);
+mode_t inode_type_from_string(const char *s);

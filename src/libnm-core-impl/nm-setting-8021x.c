@@ -131,7 +131,8 @@ NM_GOBJECT_PROPERTIES_DEFINE(NMSetting8021x,
                              PROP_PIN_FLAGS,
                              PROP_SYSTEM_CA_CERTS,
                              PROP_OPTIONAL,
-                             PROP_AUTH_TIMEOUT, );
+                             PROP_AUTH_TIMEOUT,
+                             PROP_OPENSSL_CIPHERS, );
 
 typedef struct {
     GSList *eap; /* GSList of strings */
@@ -168,6 +169,7 @@ typedef struct {
     char   *private_key_password;
     GBytes *phase2_private_key;
     char   *phase2_private_key_password;
+    char   *openssl_ciphers;
     guint   ca_cert_password_flags;
     guint   client_cert_password_flags;
     guint   phase2_ca_cert_password_flags;
@@ -2498,6 +2500,24 @@ nm_setting_802_1x_get_optional(NMSetting8021x *setting)
     return NM_SETTING_802_1X_GET_PRIVATE(setting)->optional;
 }
 
+/**
+ * nm_setting_802_1x_get_openssl_ciphers:
+ * @setting: the #NMSetting8021x
+ *
+ * Returns the openssl_ciphers configuration for wpa_supplicant.
+ *
+ * Returns: cipher string for tls setup in wpa_supplicant.
+ *
+ * Since: 1.48
+ **/
+const char *
+nm_setting_802_1x_get_openssl_ciphers(NMSetting8021x *setting)
+{
+    g_return_val_if_fail(NM_IS_SETTING_802_1X(setting), NULL);
+
+    return NM_SETTING_802_1X_GET_PRIVATE(setting)->openssl_ciphers;
+}
+
 /*****************************************************************************/
 
 static void
@@ -3315,6 +3335,19 @@ nm_setting_802_1x_class_init(NMSetting8021xClass *klass)
      * Setting this property directly is discouraged; use the
      * nm_setting_802_1x_set_ca_cert() function instead.
      **/
+    /* ---nmcli---
+     * property: ca-cert
+     * description:
+     *   Contains the path to the CA certificate if used by the EAP method
+     *   specified in the 802-1x.eap property.
+     *
+     *   This property can be unset even if the EAP method supports CA certificates,
+     *   but this allows man-in-the-middle attacks and is NOT recommended.
+     *
+     *   Note that enabling 802-1x.system-ca-certs will override this
+     *   setting to use the built-in path, if the built-in path is not a directory.
+     * ---end---
+     */
     /* ---ifcfg-rh---
      * property: ca-cert
      * variable: IEEE_8021X_CA_CERT(+)
@@ -3505,6 +3538,13 @@ nm_setting_802_1x_class_init(NMSetting8021xClass *klass)
      * Setting this property directly is discouraged; use the
      * nm_setting_802_1x_set_client_cert() function instead.
      **/
+    /* ---nmcli---
+     * property: client-cert
+     * description:
+     *   Contains the path to the client certificate if used by the EAP method
+     *   specified in the 802-1x.eap property.
+     * ---end---
+     */
     /* ---ifcfg-rh---
      * property: client-cert
      * variable: IEEE_8021X_CLIENT_CERT(+)
@@ -3745,6 +3785,20 @@ nm_setting_802_1x_class_init(NMSetting8021xClass *klass)
      * Setting this property directly is discouraged; use the
      * nm_setting_802_1x_set_phase2_ca_cert() function instead.
      **/
+    /* ---nmcli---
+     * property: phase2-ca-cert
+     * description:
+     *   Contains the path to the "phase 2" CA certificate if used by the EAP
+     *   method specified in the 802-1x.phase2-auth or 802-1x.phase2-autheap
+     *   properties.
+     *
+     *   This property can be unset even if the EAP method supports CA certificates,
+     *   but this allows man-in-the-middle attacks and is NOT recommended.
+     *
+     *   Note that enabling 802-1x.system-ca-certs will override this
+     *   setting to use the built-in path, if the built-in path is not a directory.
+     * ---end---
+     */
     _nm_setting_property_define_direct_bytes(properties_override,
                                              obj_properties,
                                              NM_SETTING_802_1X_PHASE2_CA_CERT,
@@ -3933,6 +3987,14 @@ nm_setting_802_1x_class_init(NMSetting8021xClass *klass)
      * Setting this property directly is discouraged; use the
      * nm_setting_802_1x_set_phase2_client_cert() function instead.
      **/
+    /* ---nmcli---
+     * property: phase2-client-cert
+     * description:
+     *   Contains the path to the "phase 2" client certificate if used by the EAP
+     *   method specified in the 802-1x.phase2-auth or 802-1x.phase2-autheap
+     *   properties.
+     * ---end---
+     */
     /* ---ifcfg-rh---
      * property: phase2-client-cert
      * variable: IEEE_8021X_INNER_CLIENT_CERT(+)
@@ -4096,6 +4158,12 @@ nm_setting_802_1x_class_init(NMSetting8021xClass *klass)
      * private key password to prevent unauthorized access to unencrypted
      * private key data.
      **/
+    /* ---nmcli---
+     * property: private-key
+     * description:
+     *   The path to the private key when the 802-1.eap property is set to "tls".
+     * ---end---
+     */
     /* ---ifcfg-rh---
      * property: private-key
      * variable: IEEE_8021X_PRIVATE_KEY(+)
@@ -4121,6 +4189,14 @@ nm_setting_802_1x_class_init(NMSetting8021xClass *klass)
      * secrets to NetworkManager; it is generally set automatically when setting
      * the private key by the nm_setting_802_1x_set_private_key() function.
      **/
+    /* ---nmcli---
+     * property: private-key-password
+     * description:
+     *   The password used to decrypt the private key specified in the
+     *   802-1x.private-key property. This is normally used by secret agents,
+     *   not directly by users.
+     * ---end---
+     */
     /* ---ifcfg-rh---
      * property: private-key-password
      * variable: IEEE_8021X_PRIVATE_KEY_PASSWORD(+)
@@ -4183,6 +4259,13 @@ nm_setting_802_1x_class_init(NMSetting8021xClass *klass)
      * Setting this property directly is discouraged; use the
      * nm_setting_802_1x_set_phase2_private_key() function instead.
      **/
+    /* ---nmcli---
+     * property: phase2-private-key
+     * description:
+     *   The path to the "phase 2" inner private key when the 802-1x.phase2-auth
+     *   or 802-1x.phase2-autheap property is set to "tls".
+     * ---end---
+     */
     /* ---ifcfg-rh---
      * property: phase2-private-key
      * variable: IEEE_8021X_INNER_PRIVATE_KEY(+)
@@ -4208,6 +4291,14 @@ nm_setting_802_1x_class_init(NMSetting8021xClass *klass)
      * the private key by the nm_setting_802_1x_set_phase2_private_key()
      * function.
      **/
+    /* ---nmcli---
+     * property: phase2-private-key-password
+     * description:
+     *   The password used to decrypt the "phase 2" private key specified in the
+     *   802-1x.phase2-private-key property. This is normally used by secret agents,
+     *   not directly by users.
+     * ---end---
+     */
     /* ---ifcfg-rh---
      * property: phase2-private-key-password
      * variable: IEEE_8021X_INNER_PRIVATE_KEY_PASSWORD(+)
@@ -4363,6 +4454,30 @@ nm_setting_802_1x_class_init(NMSetting8021xClass *klass)
                                                NM_SETTING_PARAM_NONE,
                                                NMSetting8021xPrivate,
                                                optional);
+
+    /**
+     * NMSetting8021x:openssl-ciphers:
+     *
+     * Define openssl_ciphers for wpa_supplicant. Openssl sometimes moves ciphers
+     * among SECLEVELs, thus compiled-in default value in wpa_supplicant
+     * (as modified by some linux distributions) sometimes prevents
+     * to connect to old servers that do not support new protocols.
+     *
+     * Since: 1.48
+     **/
+    /* ---ifcfg-rh---
+     * property: openssl-ciphers
+     * variable: IEEE_8021X_OPENSSL_CIPHERS(+)
+     * description: Cipher string for tls setup of wpa_supplicant.
+     * ---end---
+     */
+    _nm_setting_property_define_direct_string(properties_override,
+                                              obj_properties,
+                                              NM_SETTING_802_1X_OPENSSL_CIPHERS,
+                                              PROP_OPENSSL_CIPHERS,
+                                              NM_SETTING_PARAM_NONE,
+                                              NMSetting8021xPrivate,
+                                              openssl_ciphers);
 
     g_object_class_install_properties(object_class, _PROPERTY_ENUMS_LAST, obj_properties);
 
