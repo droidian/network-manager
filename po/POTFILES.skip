@@ -1,0 +1,20 @@
+contrib/fedora/rpm/
+data/NetworkManager-dispatcher.service.in
+data/NetworkManager-wait-online.service.in
+data/NetworkManager.service.in
+data/nm-priv-helper.service.in
+data/org.freedesktop.NetworkManager.policy.in
+examples/python/NetworkManager.py
+examples/python/systray/eggtrayicon.c
+src/contrib/nm-vpn-editor-plugin-call.h
+src/contrib/nm-vpn-plugin-utils.c
+src/nm-cloud-setup/nm-cloud-setup.service.in
+vpn-daemons/openvpn
+vpn-daemons/pptp
+vpn-daemons/vpnc
+
+# https://bugs.launchpad.net/intltool/+bug/1117944
+sub/data/org.freedesktop.NetworkManager.policy.in
+
+# from meson build directory:
+build/data/org.freedesktop.NetworkManager.policy.in

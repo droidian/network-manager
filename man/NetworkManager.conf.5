@@ -2,12 +2,12 @@
 .\"     Title: NetworkManager.conf
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 02/22/2024
+.\"      Date: 05/03/2024
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.46.0
+.\"    Source: NetworkManager 1.47.90
 .\"  Language: English
 .\"
-.TH "NETWORKMANAGER\&.CONF" "5" "" "NetworkManager 1\&.46\&.0" "Configuration"
+.TH "NETWORKMANAGER\&.CONF" "5" "" "NetworkManager 1\&.47\&.90" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -747,6 +747,8 @@ Such default values are only consulted if the corresponding per\-connection prop
 connection\&.mud\-url)\&. Only if the per\-profile property is set to a special value that indicates to use the default, the default value from NetworkManager\&.conf is consulted\&. It depends on the property, which is the special value that indicates fallback to the default, but it usually is something like empty, unset values or special numeric values like 0 or \-1\&. That means the effectively used value can first always be configured for each profile, and these default values only matter if the per\-profile values explicitly indicates to use the default from
 NetworkManager\&.conf\&.
 .PP
+Note that while nmcli supports various aliases and convenience features for configuring properties, the settings in this section do not\&. For example, enum values usually only can be configured via their numeric magic number\&.
+.PP
 Example:
 .sp
 .if n \{\
@@ -786,6 +788,11 @@ If left unspecified, the default value is 3 tries before failing the connection\
 .RS 4
 .RE
 .PP
+\fIconnection\&.down\-on\-poweroff\fR
+.RS 4
+Whether the connection will be brought down before the system is powered off\&.
+.RE
+.PP
 \fIconnection\&.mud\-url\fR
 .RS 4
 If unspecified, MUD URL defaults to
@@ -803,7 +810,10 @@ If unspecified, the ultimate default values depends on the DNS plugin\&. With sy
 .PP
 \fIconnection\&.mdns\fR
 .RS 4
-If unspecified, the ultimate default values depends on the DNS plugin\&. With systemd\-resolved the default currently is "no" (0) and for all other plugins also "no" (0)\&.
+Currently only the systemd\-resolve DNS plugin supports this setting\&. If the setting is unspecified both in the profile and in the global default here, then the default is determined by systemd\-resolved\&. See
+MulticastDNS=
+in
+\fBresolved.conf\fR(5)\&.
 .RE
 .PP
 \fIconnection\&.mptcp\-flags\fR
@@ -892,6 +902,11 @@ If left unspecified, it defaults to "ifname"\&.
 If left unspecified, the value 3 (fqdn\-encoded,fqdn\-serv\-update) is used\&.
 .RE
 .PP
+\fIipv4\&.dhcp\-send\-release\fR
+.RS 4
+Whether the DHCP client will send RELEASE message when bringing the connection down\&.
+.RE
+.PP
 \fIipv4\&.dhcp\-timeout\fR
 .RS 4
 If left unspecified, the default value for the interface type is used\&.
@@ -950,6 +965,11 @@ If left unspecified, it defaults to "ifname"\&.
 If left unspecified, the value 1 (fqdn\-serv\-update) is used\&.
 .RE
 .PP
+\fIipv6\&.dhcp\-send\-release\fR
+.RS 4
+Whether the DHCP client will send RELEASE message when bringing the connection down\&.
+.RE
+.PP
 \fIipv6\&.dhcp\-timeout\fR
 .RS 4
 If left unspecified, the default value for the interface type is used\&.
@@ -964,7 +984,21 @@ If unspecified or zero, use 50 for VPN profiles and 100 for other profiles\&.
 .RS 4
 If
 ipv6\&.ip6\-privacy
-is unset, use the content of "/proc/sys/net/ipv6/conf/default/use_tempaddr" as last fallback\&.
+is unset, fall back to the original value of "/proc/sys/net/ipv6/conf/<iface>/use_tempaddr" from before NetworkManager started\&.
+.RE
+.PP
+\fIipv6\&.temp\-valid\-lifetime\fR
+.RS 4
+If
+ipv6\&.temp\-valid\-lifetime
+is unset, fall back to the original value of "/proc/sys/net/ipv6/conf/<iface>/temp_valid_lft" from before NetworkManager started\&.
+.RE
+.PP
+\fIipv6\&.temp\-preferred\-lifetime\fR
+.RS 4
+If
+ipv6\&.temp\-preferred\-lifetime
+is unset, fall back to the original value of "/proc/sys/net/ipv6/conf/<iface>/temp_prefered_lft" from before NetworkManager started\&.
 .RE
 .PP
 \fIipv6\&.required\-timeout\fR

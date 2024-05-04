@@ -3144,6 +3144,141 @@
 </td>
 <td class="auto-generated"> </td>
 </tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_DEVICE_STATE_REASON_UNMANAGED_BY_DEFAULT</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">69</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>The device is unmanaged because the device type is unmanaged by default. Since: 1.48</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_DEVICE_STATE_REASON_UNMANAGED_EXTERNAL_DOWN</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">70</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>The device is unmanaged because it is an external device and is unconfigured (down or without addresses). Since: 1.48</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_DEVICE_STATE_REASON_UNMANAGED_LINK_NOT_INIT</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">71</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>The device is unmanaged because the link is not initialized by udev. Since: 1.48</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_DEVICE_STATE_REASON_UNMANAGED_QUITTING</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">72</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>The device is unmanaged because NetworkManager is quitting. Since: 1.48</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_DEVICE_STATE_REASON_UNMANAGED_SLEEPING</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">73</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>The device is unmanaged because networking is disabled or the system is suspended. Since: 1.48</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_DEVICE_STATE_REASON_UNMANAGED_USER_CONF</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">74</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>The device is unmanaged by user decision in NetworkManager.conf ('unmanaged' in a [device*] section). Since: 1.48</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_DEVICE_STATE_REASON_UNMANAGED_USER_EXPLICIT</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">75</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>The device is unmanaged by explicit user decision (e.g. 'nmcli device set $DEV managed no'). Since: 1.48</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_DEVICE_STATE_REASON_UNMANAGED_USER_SETTINGS</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">76</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>The device is unmanaged by user decision via settings plugin ('unmanaged-devices' for keyfile or 'NM_CONTROLLED=no' for ifcfg-rh). Since: 1.48</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_DEVICE_STATE_REASON_UNMANAGED_USER_UDEV</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">77</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>The device is unmanaged via udev rule. Since: 1.48</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
 </tbody>
 </table></div>
 </div>
@@ -3151,7 +3286,7 @@
 <hr>
 <div class="refsect2">
 <a name="NMMetered"></a><h3>enum NMMetered</h3>
-<p>The NMMetered enum has two different purposes: one is to configure "connection.metered" setting of a connection profile in NMSettingConnection, and the other is to express the actual metered state of the NMDevice at a given moment.</p>
+<p>The NMMetered enum has two different purposes: one is to configure "connection.metered" setting of a connection profile in NMSettingConnection, and the other is to express the actual metered state of the <a href="../libnm/NMDevice.html#NMDevice-struct">NMDevice</a> at a given moment.</p>
 <p>For the connection profile only NM_METERED_UNKNOWN, NM_METERED_NO and NM_METERED_YES are allowed.</p>
 <p>The device's metered state at runtime is determined by the profile which is currently active. If the profile explicitly specifies NM_METERED_NO or NM_METERED_YES, then the device's metered state is as such. If the connection profile leaves it undecided at NM_METERED_UNKNOWN (the default), then NetworkManager tries to guess the metered state, for example based on the device type or on DHCP options (like Android devices exposing a "ANDROID_METERED" DHCP vendor option). This then leads to either NM_METERED_GUESS_NO or NM_METERED_GUESS_YES.</p>
 <p>Most applications probably should treat the runtime state NM_METERED_GUESS_YES like NM_METERED_YES, and all other states as not metered.</p>
@@ -4140,6 +4275,21 @@
 </td>
 <td class="enum_member_description">
 <p>during rollback, by default externally added ports attached to bridge devices are preserved. With this flag, the rollback detaches all external ports. This only has an effect for bridge ports. Before 1.38, this was the default behavior. Since: 1.38.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_CHECKPOINT_CREATE_FLAG_TRACK_INTERNAL_GLOBAL_DNS</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">0x20</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>during rollback, by default changes to global DNS via D-BUS interface are preserved. With this flag, the rollback reverts the global DNS changes made via D-Bus interface. Global DNS defined in [global-dns] section of NetworkManager.conf is not impacted by this flag. Since: 1.48.</p>
 <p></p>
 </td>
 <td class="auto-generated"> </td>

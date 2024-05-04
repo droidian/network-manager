@@ -160,7 +160,9 @@ Depending on "connection.multi-connect", a profile can (auto)connect only once a
 <a name="nm-settings-dbus.property.connection.autoconnect-slaves"></a>autoconnect-slaves</td>
 <td align="left">NMSettingConnectionAutoconnectSlaves (int32)</td>
 <td align="left"> </td>
-<td>Whether or not slaves of this connection should be automatically brought up when NetworkManager activates this connection. This only has a real effect for master connections. The properties "autoconnect", "autoconnect-priority" and "autoconnect-retries" are unrelated to this setting. The permitted values are: 0: leave slave connections untouched, 1: activate all the slave connections with this connection, -1: default. If -1 (default) is set, global connection.autoconnect-slaves is read to determine the real value. If it is default as well, this fallbacks to 0.</td>
+<td>Whether or not slaves of this connection should be automatically brought up when NetworkManager activates this connection. This only has a real effect for master connections. The properties "autoconnect", "autoconnect-priority" and "autoconnect-retries" are unrelated to this setting. The permitted values are: 0: leave slave connections untouched, 1: activate all the slave connections with this connection, -1: default. If -1 (default) is set, global connection.autoconnect-slaves is read to determine the real value. If it is default as well, this fallbacks to 0.
+
+Deprecated 1.46. Use "autoconnect-ports" instead, this is just an alias.</td>
 </tr>
 <tr>
 <td align="left">
@@ -179,6 +181,13 @@ Depending on "connection.multi-connect", a profile can (auto)connect only once a
 The permitted values are: "yes" (2) use DNSOverTls and disabled fallback, "opportunistic" (1) use DNSOverTls but allow fallback to unencrypted resolution, "no" (0) don't ever use DNSOverTls. If unspecified "default" depends on the plugin used. Systemd-resolved uses global setting.
 
 This feature requires a plugin which supports DNSOverTls. Otherwise, the setting has no effect. One such plugin is dns-systemd-resolved.</td>
+</tr>
+<tr>
+<td align="left">
+<a name="nm-settings-dbus.property.connection.down-on-poweroff"></a>down-on-poweroff</td>
+<td align="left">int32</td>
+<td align="left">-1</td>
+<td>Whether the connection will be brought down before the system is powered off.  The default value is -1 (default). When the default value is specified, then the global value from NetworkManager configuration is looked up, if not set, it is considered as 0 (no).</td>
 </tr>
 <tr>
 <td align="left">
@@ -239,9 +248,9 @@ Deprecated 1.46. Use "controller" instead, this is just an alias.</td>
 <td align="left">-1</td>
 <td>Whether mDNS is enabled for the connection.
 
-The permitted values are: "yes" (2) register hostname and resolving for the connection, "no" (0) disable mDNS for the interface, "resolve" (1) do not register hostname but allow resolving of mDNS host names and "default" (-1) to allow lookup of a global default in NetworkManager.conf. If unspecified, "default" ultimately depends on the DNS plugin (which for systemd-resolved currently means "no").
+The permitted values are: "yes" (2) register hostname and resolving for the connection, "no" (0) disable mDNS for the interface, "resolve" (1) do not register hostname but allow resolving of mDNS host names and "default" (-1) to allow lookup of a global default in NetworkManager.conf. If unspecified, "default" ultimately depends on the DNS plugin.
 
-This feature requires a plugin which supports mDNS. Otherwise, the setting has no effect. One such plugin is dns-systemd-resolved.</td>
+This feature requires a plugin which supports mDNS. Otherwise, the setting has no effect. Currently the only supported DNS plugin is systemd-resolved. For systemd-resolved, the default is configurable via MulticastDNS= setting in resolved.conf.</td>
 </tr>
 <tr>
 <td align="left">
@@ -553,6 +562,13 @@ Certificate data is specified using a "scheme"; two are currently supported: blo
 <td align="left">string</td>
 <td align="left"> </td>
 <td>Identity string for EAP authentication methods.  Often the user's user or login name.</td>
+</tr>
+<tr>
+<td align="left">
+<a name="nm-settings-dbus.property.802-1x.openssl-ciphers"></a>openssl-ciphers</td>
+<td align="left">string</td>
+<td align="left"> </td>
+<td>Define openssl_ciphers for wpa_supplicant. Openssl sometimes moves ciphers among SECLEVELs, thus compiled-in default value in wpa_supplicant (as modified by some linux distributions) sometimes prevents to connect to old servers that do not support new protocols.</td>
 </tr>
 <tr>
 <td align="left">
@@ -1822,6 +1838,13 @@ This property is currently not implemented for DHCPv6.</td>
 </tr>
 <tr>
 <td align="left">
+<a name="nm-settings-dbus.property.ipv4.dhcp-send-release"></a>dhcp-send-release</td>
+<td align="left">NMTernary (int32)</td>
+<td align="left"> </td>
+<td>Whether the DHCP client will send RELEASE message when bringing the connection down. The default value is -1 (default). When the default value is specified, then the global value from NetworkManager configuration is looked up, if not set, it is considered as FALSE.</td>
+</tr>
+<tr>
+<td align="left">
 <a name="nm-settings-dbus.property.ipv4.dhcp-timeout"></a>dhcp-timeout</td>
 <td align="left">int32</td>
 <td align="left">0</td>
@@ -2179,6 +2202,13 @@ This property is currently not implemented for DHCPv6.</td>
 </tr>
 <tr>
 <td align="left">
+<a name="nm-settings-dbus.property.ipv6.dhcp-send-release"></a>dhcp-send-release</td>
+<td align="left">NMTernary (int32)</td>
+<td align="left"> </td>
+<td>Whether the DHCP client will send RELEASE message when bringing the connection down. The default value is -1 (default). When the default value is specified, then the global value from NetworkManager configuration is looked up, if not set, it is considered as FALSE.</td>
+</tr>
+<tr>
+<td align="left">
 <a name="nm-settings-dbus.property.ipv6.dhcp-timeout"></a>dhcp-timeout</td>
 <td align="left">int32</td>
 <td align="left">0</td>
@@ -2281,9 +2311,7 @@ Note that the gateway usually conflicts with routing that NetworkManager configu
 <td align="left"> </td>
 <td>Configure IPv6 Privacy Extensions for SLAAC, described in RFC4941.  If enabled, it makes the kernel generate a temporary IPv6 address in addition to the public one generated from MAC address via modified EUI-64.  This enhances privacy, but could cause problems in some applications, on the other hand.  The permitted values are: -1: unknown, 0: disabled, 1: enabled (prefer public address), 2: enabled (prefer temporary addresses).
 
-Having a per-connection setting set to "-1" (unknown) means fallback to global configuration "ipv6.ip6-privacy".
-
-If also global configuration is unspecified or set to "-1", fallback to read "/proc/sys/net/ipv6/conf/default/use_tempaddr".
+If set to "-1" (unknown) for a connection, the value is taken from the global "ipv6.ip6-privacy" setting. If the global setting is unspecified or also set to "-1", the value is set from the original value of "/proc/sys/net/ipv6/conf/&lt;iface&gt;/use_tempaddr" from before NetworkManager started.
 
 Note that this setting is distinct from the Stable Privacy addresses that can be enabled with the "addr-gen-mode" property's "stable-privacy" setting as another way of avoiding host tracking with IPv6 addresses.</td>
 </tr>
@@ -2393,6 +2421,24 @@ Array of IPv6 route structures.  Each IPv6 route structure is composed of an IPv
 <td align="left">array of 'a{sv}'</td>
 <td align="left"> </td>
 <td>Array of dictionaries for routing rules. Each routing rule supports the following options: action (y), dport-end (q), dport-start (q), family (i), from (s), from-len (y), fwmark (u), fwmask (u), iifname (s), invert (b), ipproto (s), oifname (s), priority (u), sport-end (q), sport-start (q), supress-prefixlength (i), table (u), to (s), tos (y), to-len (y), range-end (u), range-start (u).</td>
+</tr>
+<tr>
+<td align="left">
+<a name="nm-settings-dbus.property.ipv6.temp-preferred-lifetime"></a>temp-preferred-lifetime</td>
+<td align="left">int32</td>
+<td align="left">0</td>
+<td>The preferred lifetime of autogenerated temporary addresses, in seconds.
+
+If set to "0" (unknown) for a connection, the value is taken from the global "ipv6.temp-preferred-lifetime" setting. If the global setting is unspecified or also set to "0", the value is set from the original value of "/proc/sys/net/ipv6/conf/&lt;iface&gt;/temp_prefered_lft" from before NetworkManager started.</td>
+</tr>
+<tr>
+<td align="left">
+<a name="nm-settings-dbus.property.ipv6.temp-valid-lifetime"></a>temp-valid-lifetime</td>
+<td align="left">int32</td>
+<td align="left">0</td>
+<td>The valid lifetime of autogenerated temporary addresses, in seconds.
+
+If set to "0" (unknown) for a connection, the value is taken from the global "ipv6.temp-valid-lifetime" setting. If the global setting is unspecified or also set to "0", the value is set from the original value of "/proc/sys/net/ipv6/conf/&lt;iface&gt;/temp_valid_lft" from before NetworkManager started.</td>
 </tr>
 <tr>
 <td align="left">
@@ -4230,6 +4276,13 @@ If the value contains more than one additional MAC addresses, one of them is cho
 </tr>
 <tr>
 <td align="left">
+<a name="nm-settings-dbus.property.802-3-ethernet.mac-address-denylist"></a>mac-address-denylist</td>
+<td align="left">array of string</td>
+<td align="left"> </td>
+<td>If specified, this connection will never apply to the Ethernet device whose permanent MAC address matches an address in the list.  Each MAC address is in the standard hex-digits-and-colons notation (00:11:22:33:44:55).</td>
+</tr>
+<tr>
+<td align="left">
 <a name="nm-settings-dbus.property.802-3-ethernet.mtu"></a>mtu</td>
 <td align="left">uint32</td>
 <td align="left">0</td>
@@ -4489,6 +4542,13 @@ Note that marking the network as hidden may be a privacy issue for you (in infra
 <tr>
 <td align="left">
 <a name="nm-settings-dbus.property.802-11-wireless.mac-address-blacklist"></a>mac-address-blacklist</td>
+<td align="left">array of string</td>
+<td align="left"> </td>
+<td>A list of permanent MAC addresses of Wi-Fi devices to which this connection should never apply.  Each MAC address should be given in the standard hex-digits-and-colons notation (eg "00:11:22:33:44:55").</td>
+</tr>
+<tr>
+<td align="left">
+<a name="nm-settings-dbus.property.802-11-wireless.mac-address-denylist"></a>mac-address-denylist</td>
 <td align="left">array of string</td>
 <td align="left"> </td>
 <td>A list of permanent MAC addresses of Wi-Fi devices to which this connection should never apply.  Each MAC address should be given in the standard hex-digits-and-colons notation (eg "00:11:22:33:44:55").</td>

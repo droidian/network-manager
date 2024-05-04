@@ -158,7 +158,6 @@ if enable_introspection
     namespace: 'NM',
     identifier_prefix: nm_id_prefix,
     symbol_prefix: nm_id_prefix.to_lower(),
-    header: 'NetworkManager.h',
     export_packages: libnm_name,
     extra_args: [
       '-DNETWORKMANAGER_COMPILATION',
@@ -166,20 +165,20 @@ if enable_introspection
     install: true,
   )
 
-  gi_typelib_path = run_command('printenv', 'GI_TYPELIB_PATH').stdout()
+  gi_typelib_path = run_command('printenv', 'GI_TYPELIB_PATH', check: false).stdout()
   if gi_typelib_path != ''
     gi_typelib_path = ':' + gi_typelib_path
   endif
   gi_typelib_path = meson.current_build_dir() + gi_typelib_path
 
-  ld_library_path = run_command('printenv', 'LD_LIBRARY_PATH').stdout()
+  ld_library_path = run_command('printenv', 'LD_LIBRARY_PATH', check: false).stdout()
   if ld_library_path != ''
     ld_library_path = ':' + ld_library_path
   endif
   ld_library_path = meson.current_build_dir() + ld_library_path
 
-  gen_infos_cmd = join_paths(meson.source_root(), 'tools', 'generate-docs-nm-property-infos.py')
-  gen_gir_cmd = join_paths(meson.source_root(), 'tools', 'generate-docs-nm-settings-docs-gir.py')
+  gen_infos_cmd = files(source_root / 'tools' / 'generate-docs-nm-property-infos.py')
+  gen_gir_cmd = files(source_root / 'tools' / 'generate-docs-nm-settings-docs-gir.py')
 
   names = [ 'dbus', 'nmcli', 'keyfile' ]
   if enable_ifcfg_rh
@@ -191,7 +190,7 @@ if enable_introspection
       input: [gen_infos_cmd, libnm_gir[0]] + libnm_core_settings_sources,
       output: 'nm-property-infos-' + name + '.xml',
       command: [
-        python.path(),
+        python_path,
         gen_infos_cmd,
         name,
         '@OUTPUT@',
@@ -207,7 +206,7 @@ if enable_introspection
         'env',
         'GI_TYPELIB_PATH=' + gi_typelib_path,
         'LD_LIBRARY_PATH=' + ld_library_path,
-        python.path(),
+        python_path,
         gen_gir_cmd,
         '--lib-path', meson.current_build_dir(),
         '--gir', libnm_gir[0],

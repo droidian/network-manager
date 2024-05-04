@@ -103,6 +103,11 @@
                   gprop-type="gchararray"
                   />
         <property name="mac-address-blacklist"
+                  is-deprecated="1"
+                  dbus-type="as"
+                  gprop-type="GStrv"
+                  />
+        <property name="mac-address-denylist"
                   dbus-type="as"
                   gprop-type="GStrv"
                   />
@@ -306,6 +311,10 @@
                   dbus-type="s"
                   gprop-type="gchararray"
                   />
+        <property name="openssl-ciphers"
+                  dbus-type="s"
+                  gprop-type="gchararray"
+                  />
         <property name="optional"
                   dbus-type="b"
                   gprop-type="gboolean"
@@ -487,6 +496,11 @@
                   gprop-type="gchararray"
                   />
         <property name="mac-address-blacklist"
+                  is-deprecated="1"
+                  dbus-type="as"
+                  gprop-type="GStrv"
+                  />
+        <property name="mac-address-denylist"
                   dbus-type="as"
                   gprop-type="GStrv"
                   />
@@ -789,6 +803,10 @@
                   gprop-type="gchararray"
                   />
         <property name="dns-over-tls"
+                  dbus-type="i"
+                  gprop-type="gint"
+                  />
+        <property name="down-on-poweroff"
                   dbus-type="i"
                   gprop-type="gint"
                   />
@@ -1596,6 +1614,10 @@
                   dbus-type="b"
                   gprop-type="gboolean"
                   />
+        <property name="dhcp-send-release"
+                  dbus-type="i"
+                  gprop-type="NMTernary"
+                  />
         <property name="dhcp-timeout"
                   dbus-type="i"
                   gprop-type="gint"
@@ -1735,6 +1757,10 @@
                   dbus-type="b"
                   gprop-type="gboolean"
                   />
+        <property name="dhcp-send-release"
+                  dbus-type="i"
+                  gprop-type="NMTernary"
+                  />
         <property name="dhcp-timeout"
                   dbus-type="i"
                   gprop-type="gint"
@@ -1821,6 +1847,14 @@
                   />
         <property name="routing-rules"
                   dbus-type="aa{sv}"
+                  />
+        <property name="temp-preferred-lifetime"
+                  dbus-type="i"
+                  gprop-type="gint"
+                  />
+        <property name="temp-valid-lifetime"
+                  dbus-type="i"
+                  gprop-type="gint"
                   />
         <property name="token"
                   dbus-type="s"

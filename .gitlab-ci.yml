@@ -1,0 +1,586 @@
+# vim: set expandtab shiftwidth=2 tabstop=8 textwidth=0 filetype=yaml:
+
+########################################
+#                                      #
+# THIS FILE IS GENERATED, DO NOT EDIT  #
+# Edit .gitlab-ci/ci.template instead  #
+#                                      #
+# Regenerate with:
+#   TEMPLATE_SHA="$(sed -n 's/^.templates_sha: *\&template_sha *\([0-9a-f]\+\)$/\1/p' ./.gitlab-ci/ci.template)"
+#   pip3 install "git+http://gitlab.freedesktop.org/freedesktop/ci-templates@$TEMPLATE_SHA"
+#   ci-fairy generate-template
+#
+########################################
+
+
+# see https://docs.gitlab.com/ee/ci/yaml/#includefile
+.templates_sha: &template_sha 184ca628f89f3193c249b4e34e45afee2773a833
+
+
+
+include:
+  # Alpine container builder template
+  - project: 'freedesktop/ci-templates'
+    ref: *template_sha
+    file: '/templates/alpine.yml'
+  # Centos container builder template
+  - project: 'freedesktop/ci-templates'
+    ref: *template_sha
+    file: '/templates/centos.yml'
+  # Debian container builder template
+  - project: 'freedesktop/ci-templates'
+    ref: *template_sha
+    file: '/templates/debian.yml'
+  # Fedora container builder template
+  - project: 'freedesktop/ci-templates'
+    ref: *template_sha
+    file: '/templates/fedora.yml'
+  # Ubuntu container builder template
+  - project: 'freedesktop/ci-templates'
+    ref: *template_sha
+    file: '/templates/ubuntu.yml'
+
+stages:
+  - prep
+  - tier1
+  - tier2
+  - tier3
+  - deploy
+  - triage
+
+variables:
+  FDO_UPSTREAM_REPO: NetworkManager/NetworkManager
+  GIT_DEPTH: 1
+  # These tags should be updated each time the list of packages is updated
+  # changing these will force rebuilding the associated image
+  # Note: these tags have no meaning and are not tied to a particular NM version
+  #
+  # This is done by running `ci-fairy generate-template` and possibly bumping
+  # ".default_tag".
+  ALPINE_TAG:  'tag-ec0f564800e3'
+  CENTOS_TAG:  'tag-b114f45d4a4e'
+  DEBIAN_TAG:  'tag-318ea804326f'
+  FEDORA_TAG:  'tag-b114f45d4a4e'
+  UBUNTU_TAG:  'tag-318ea804326f'
+
+  ALPINE_EXEC: 'bash .gitlab-ci/alpine-install.sh'
+  CENTOS_EXEC: 'bash .gitlab-ci/fedora-install.sh'
+  DEBIAN_EXEC: 'bash .gitlab-ci/debian-install.sh'
+  FEDORA_EXEC: 'bash .gitlab-ci/fedora-install.sh'
+  UBUNTU_EXEC: 'bash .gitlab-ci/debian-install.sh'
+
+.nm_artifacts:
+  variables:
+    NM_BUILD_TARBALL: 1
+  artifacts:
+    expire_in: 5 days
+    when: always
+    paths:
+      - docs-html
+      - NetworkManager-1*.tar.xz
+      - NetworkManager-1*.src.rpm
+      - nm-test.log
+
+.nm_artifacts_debug:
+  artifacts:
+    expire_in: 5 days
+    when: always
+    paths:
+      - nm-test.log
+
+#################################################################
+#                                                               #
+# prep stage                                                    #
+#                                                               #
+#################################################################
+
+# Build a container for each distribution + version. The ci-templates
+# will re-use the containers if the tag doesn't change.
+
+tier1:fedora:40@prep:
+  extends:
+    - .fdo.container-build@fedora
+  stage: prep
+  variables:
+    GIT_STRATEGY: none
+    FDO_DISTRIBUTION_VERSION: '40'
+    FDO_DISTRIBUTION_TAG: $FEDORA_TAG
+    FDO_DISTRIBUTION_EXEC: $FEDORA_EXEC
+
+tier1:fedora:rawhide@prep:
+  extends:
+    - .fdo.container-build@fedora
+  stage: prep
+  variables:
+    GIT_STRATEGY: none
+    FDO_DISTRIBUTION_VERSION: 'rawhide'
+    FDO_DISTRIBUTION_TAG: $FEDORA_TAG
+    FDO_DISTRIBUTION_EXEC: $FEDORA_EXEC
+
+tier1:centos:stream9@prep:
+  extends:
+    - .fdo.container-build@centos
+  stage: prep
+  variables:
+    GIT_STRATEGY: none
+    FDO_DISTRIBUTION_VERSION: 'stream9'
+    FDO_DISTRIBUTION_TAG: $CENTOS_TAG
+    FDO_DISTRIBUTION_EXEC: $CENTOS_EXEC
+
+tier2:debian:sid@prep:
+  extends:
+    - .fdo.container-build@debian
+  stage: prep
+  variables:
+    GIT_STRATEGY: none
+    FDO_DISTRIBUTION_VERSION: 'sid'
+    FDO_DISTRIBUTION_TAG: $DEBIAN_TAG
+    FDO_DISTRIBUTION_EXEC: $DEBIAN_EXEC
+  when: manual
+
+tier2:debian:testing@prep:
+  extends:
+    - .fdo.container-build@debian
+  stage: prep
+  variables:
+    GIT_STRATEGY: none
+    FDO_DISTRIBUTION_VERSION: 'testing'
+    FDO_DISTRIBUTION_TAG: $DEBIAN_TAG
+    FDO_DISTRIBUTION_EXEC: $DEBIAN_EXEC
+  when: manual
+
+tier2:ubuntu:devel@prep:
+  extends:
+    - .fdo.container-build@ubuntu
+  stage: prep
+  variables:
+    GIT_STRATEGY: none
+    FDO_DISTRIBUTION_VERSION: 'devel'
+    FDO_DISTRIBUTION_TAG: $UBUNTU_TAG
+    FDO_DISTRIBUTION_EXEC: $UBUNTU_EXEC
+  when: manual
+
+tier2:alpine:edge@prep:
+  extends:
+    - .fdo.container-build@alpine
+  stage: prep
+  variables:
+    GIT_STRATEGY: none
+    FDO_DISTRIBUTION_VERSION: 'edge'
+    FDO_DISTRIBUTION_TAG: $ALPINE_TAG
+    FDO_DISTRIBUTION_EXEC: $ALPINE_EXEC
+  when: manual
+
+tier3:fedora:39@prep:
+  extends:
+    - .fdo.container-build@fedora
+  stage: prep
+  variables:
+    GIT_STRATEGY: none
+    FDO_DISTRIBUTION_VERSION: '39'
+    FDO_DISTRIBUTION_TAG: $FEDORA_TAG
+    FDO_DISTRIBUTION_EXEC: $FEDORA_EXEC
+  when: manual
+
+tier3:ubuntu:20.04@prep:
+  extends:
+    - .fdo.container-build@ubuntu
+  stage: prep
+  variables:
+    GIT_STRATEGY: none
+    FDO_DISTRIBUTION_VERSION: '20.04'
+    FDO_DISTRIBUTION_TAG: $UBUNTU_TAG
+    FDO_DISTRIBUTION_EXEC: $UBUNTU_EXEC
+  when: manual
+
+tier3:ubuntu:22.04@prep:
+  extends:
+    - .fdo.container-build@ubuntu
+  stage: prep
+  variables:
+    GIT_STRATEGY: none
+    FDO_DISTRIBUTION_VERSION: '22.04'
+    FDO_DISTRIBUTION_TAG: $UBUNTU_TAG
+    FDO_DISTRIBUTION_EXEC: $UBUNTU_EXEC
+  when: manual
+
+tier3:ubuntu:24.04@prep:
+  extends:
+    - .fdo.container-build@ubuntu
+  stage: prep
+  variables:
+    GIT_STRATEGY: none
+    FDO_DISTRIBUTION_VERSION: '24.04'
+    FDO_DISTRIBUTION_TAG: $UBUNTU_TAG
+    FDO_DISTRIBUTION_EXEC: $UBUNTU_EXEC
+  when: manual
+
+tier3:ubuntu:rolling@prep:
+  extends:
+    - .fdo.container-build@ubuntu
+  stage: prep
+  variables:
+    GIT_STRATEGY: none
+    FDO_DISTRIBUTION_VERSION: 'rolling'
+    FDO_DISTRIBUTION_TAG: $UBUNTU_TAG
+    FDO_DISTRIBUTION_EXEC: $UBUNTU_EXEC
+  when: manual
+
+tier3:debian:stable@prep:
+  extends:
+    - .fdo.container-build@debian
+  stage: prep
+  variables:
+    GIT_STRATEGY: none
+    FDO_DISTRIBUTION_VERSION: 'stable'
+    FDO_DISTRIBUTION_TAG: $DEBIAN_TAG
+    FDO_DISTRIBUTION_EXEC: $DEBIAN_EXEC
+  when: manual
+
+tier3:debian:oldstable@prep:
+  extends:
+    - .fdo.container-build@debian
+  stage: prep
+  variables:
+    GIT_STRATEGY: none
+    FDO_DISTRIBUTION_VERSION: 'oldstable'
+    FDO_DISTRIBUTION_TAG: $DEBIAN_TAG
+    FDO_DISTRIBUTION_EXEC: $DEBIAN_EXEC
+  when: manual
+
+tier3:centos:stream8@prep:
+  extends:
+    - .fdo.container-build@centos
+  stage: prep
+  variables:
+    GIT_STRATEGY: none
+    FDO_DISTRIBUTION_VERSION: 'stream8'
+    FDO_DISTRIBUTION_TAG: $CENTOS_TAG
+    FDO_DISTRIBUTION_EXEC: $CENTOS_EXEC
+  when: manual
+
+tier3:alpine:latest@prep:
+  extends:
+    - .fdo.container-build@alpine
+  stage: prep
+  variables:
+    GIT_STRATEGY: none
+    FDO_DISTRIBUTION_VERSION: 'latest'
+    FDO_DISTRIBUTION_TAG: $ALPINE_TAG
+    FDO_DISTRIBUTION_EXEC: $ALPINE_EXEC
+  when: manual
+
+#################################################################
+#                                                               #
+# tierN stage                                                   #
+#                                                               #
+#################################################################
+
+.build@template:
+  script:
+    - env
+    - r=0
+    - .gitlab-ci/run-test.sh 2>&1 | tee /tmp/nm-test.log || r=$?
+    - mv /tmp/nm-test.log .
+    - exit $r
+  dependencies: []
+
+
+t_fedora:40:
+  extends:
+    - .build@template
+    - .fdo.distribution-image@fedora
+    - .nm_artifacts
+  stage: tier1
+  parallel:
+    matrix:
+      - NM_TEST_SELECT_RUN:
+        - autotools+gcc+docs+valgrind
+        - meson+gcc+docs+valgrind
+        - autotools+clang
+        - meson+clang
+        - rpm+autotools
+        - rpm+meson
+        - tarball+autotools
+        - tarball+meson
+        - tarball
+        - subtree
+  variables:
+    FDO_DISTRIBUTION_VERSION: '40'
+    FDO_DISTRIBUTION_TAG: $FEDORA_TAG
+  needs:
+    - "tier1:fedora:40@prep"
+
+t_fedora:rawhide:
+  extends:
+    - .build@template
+    - .fdo.distribution-image@fedora
+    - .nm_artifacts
+  stage: tier1
+  parallel:
+    matrix:
+      - NM_TEST_SELECT_RUN:
+        - autotools+gcc+docs+valgrind
+        - meson+gcc+docs+valgrind
+        - autotools+clang
+        - meson+clang
+        - rpm+autotools
+        - rpm+meson
+        - tarball+autotools
+        - tarball+meson
+        - tarball
+        - subtree
+  variables:
+    FDO_DISTRIBUTION_VERSION: 'rawhide'
+    FDO_DISTRIBUTION_TAG: $FEDORA_TAG
+  needs:
+    - "tier1:fedora:rawhide@prep"
+
+t_centos:stream9:
+  extends:
+    - .build@template
+    - .fdo.distribution-image@centos
+    - .nm_artifacts_debug
+  stage: tier1
+  parallel:
+    matrix:
+      - NM_TEST_SELECT_RUN:
+        - autotools+gcc+docs+valgrind
+        - meson+gcc+docs+valgrind
+        - autotools+clang
+        - meson+clang
+        - rpm+autotools
+        - rpm+meson
+        - tarball+autotools
+        - tarball+meson
+        - tarball
+        - subtree
+  variables:
+    FDO_DISTRIBUTION_VERSION: 'stream9'
+    FDO_DISTRIBUTION_TAG: $CENTOS_TAG
+  needs:
+    - "tier1:centos:stream9@prep"
+
+t_debian:sid:
+  extends:
+    - .build@template
+    - .fdo.distribution-image@debian
+    - .nm_artifacts_debug
+  stage: tier2
+  variables:
+    FDO_DISTRIBUTION_VERSION: 'sid'
+    FDO_DISTRIBUTION_TAG: $DEBIAN_TAG
+  needs:
+    - "tier2:debian:sid@prep"
+
+t_debian:testing:
+  extends:
+    - .build@template
+    - .fdo.distribution-image@debian
+    - .nm_artifacts_debug
+  stage: tier2
+  variables:
+    FDO_DISTRIBUTION_VERSION: 'testing'
+    FDO_DISTRIBUTION_TAG: $DEBIAN_TAG
+  needs:
+    - "tier2:debian:testing@prep"
+
+t_ubuntu:devel:
+  extends:
+    - .build@template
+    - .fdo.distribution-image@ubuntu
+    - .nm_artifacts_debug
+  stage: tier2
+  variables:
+    FDO_DISTRIBUTION_VERSION: 'devel'
+    FDO_DISTRIBUTION_TAG: $UBUNTU_TAG
+  needs:
+    - "tier2:ubuntu:devel@prep"
+
+t_alpine:edge:
+  extends:
+    - .build@template
+    - .fdo.distribution-image@alpine
+    - .nm_artifacts_debug
+  stage: tier2
+  variables:
+    FDO_DISTRIBUTION_VERSION: 'edge'
+    FDO_DISTRIBUTION_TAG: $ALPINE_TAG
+  needs:
+    - "tier2:alpine:edge@prep"
+
+t_fedora:39:
+  extends:
+    - .build@template
+    - .fdo.distribution-image@fedora
+    - .nm_artifacts_debug
+  stage: tier3
+  variables:
+    FDO_DISTRIBUTION_VERSION: '39'
+    FDO_DISTRIBUTION_TAG: $FEDORA_TAG
+  needs:
+    - "tier3:fedora:39@prep"
+
+t_ubuntu:20.04:
+  extends:
+    - .build@template
+    - .fdo.distribution-image@ubuntu
+    - .nm_artifacts_debug
+  stage: tier3
+  variables:
+    FDO_DISTRIBUTION_VERSION: '20.04'
+    FDO_DISTRIBUTION_TAG: $UBUNTU_TAG
+  needs:
+    - "tier3:ubuntu:20.04@prep"
+
+t_ubuntu:22.04:
+  extends:
+    - .build@template
+    - .fdo.distribution-image@ubuntu
+    - .nm_artifacts_debug
+  stage: tier3
+  variables:
+    FDO_DISTRIBUTION_VERSION: '22.04'
+    FDO_DISTRIBUTION_TAG: $UBUNTU_TAG
+  needs:
+    - "tier3:ubuntu:22.04@prep"
+
+t_ubuntu:24.04:
+  extends:
+    - .build@template
+    - .fdo.distribution-image@ubuntu
+    - .nm_artifacts_debug
+  stage: tier3
+  variables:
+    FDO_DISTRIBUTION_VERSION: '24.04'
+    FDO_DISTRIBUTION_TAG: $UBUNTU_TAG
+  needs:
+    - "tier3:ubuntu:24.04@prep"
+
+t_ubuntu:rolling:
+  extends:
+    - .build@template
+    - .fdo.distribution-image@ubuntu
+    - .nm_artifacts_debug
+  stage: tier3
+  variables:
+    FDO_DISTRIBUTION_VERSION: 'rolling'
+    FDO_DISTRIBUTION_TAG: $UBUNTU_TAG
+  needs:
+    - "tier3:ubuntu:rolling@prep"
+
+t_debian:stable:
+  extends:
+    - .build@template
+    - .fdo.distribution-image@debian
+    - .nm_artifacts_debug
+  stage: tier3
+  variables:
+    FDO_DISTRIBUTION_VERSION: 'stable'
+    FDO_DISTRIBUTION_TAG: $DEBIAN_TAG
+  needs:
+    - "tier3:debian:stable@prep"
+
+t_debian:oldstable:
+  extends:
+    - .build@template
+    - .fdo.distribution-image@debian
+    - .nm_artifacts_debug
+  stage: tier3
+  variables:
+    FDO_DISTRIBUTION_VERSION: 'oldstable'
+    FDO_DISTRIBUTION_TAG: $DEBIAN_TAG
+  needs:
+    - "tier3:debian:oldstable@prep"
+
+t_centos:stream8:
+  extends:
+    - .build@template
+    - .fdo.distribution-image@centos
+    - .nm_artifacts_debug
+  stage: tier3
+  variables:
+    FDO_DISTRIBUTION_VERSION: 'stream8'
+    FDO_DISTRIBUTION_TAG: $CENTOS_TAG
+  needs:
+    - "tier3:centos:stream8@prep"
+
+t_alpine:latest:
+  extends:
+    - .build@template
+    - .fdo.distribution-image@alpine
+    - .nm_artifacts_debug
+  stage: tier3
+  variables:
+    FDO_DISTRIBUTION_VERSION: 'latest'
+    FDO_DISTRIBUTION_TAG: $ALPINE_TAG
+  needs:
+    - "tier3:alpine:latest@prep"
+
+#################################################################
+#                                                               #
+# specific jobs                                                 #
+#                                                               #
+#################################################################
+
+check-patch:
+  extends:
+    - .fdo.distribution-image@fedora
+  variables:
+    FDO_DISTRIBUTION_VERSION: '40'
+    FDO_DISTRIBUTION_TAG: $FEDORA_TAG
+  needs:
+    - "tier1:fedora:40@prep"
+  stage: tier1
+  script:
+    - date '+%Y%m%d-%H%M%S'; NM_CHECKPATCH_FETCH_UPSTREAM=1 contrib/scripts/checkpatch-feature-branch.sh
+  allow_failure: true
+
+check-tree:
+  extends:
+    - .fdo.distribution-image@fedora
+  variables:
+    FDO_DISTRIBUTION_VERSION: '40'
+    FDO_DISTRIBUTION_TAG: $FEDORA_TAG
+  needs:
+    - "tier1:fedora:40@prep"
+  stage: tier1
+  script:
+    - date '+%Y%m%d-%H%M%S'; clang-format --version
+    - date '+%Y%m%d-%H%M%S'; black --version
+    - date '+%Y%m%d-%H%M%S'; contrib/scripts/nm-python-black-format.sh --check
+    - date '+%Y%m%d-%H%M%S'; git ls-files -z -- 'po/*.po' | xargs -0 -n1 msgfmt -vc
+    - date '+%Y%m%d-%H%M%S'; contrib/scripts/nm-code-format.sh -n
+    - date '+%Y%m%d-%H%M%S'; ci-fairy generate-template && git diff --exit-code
+    - date '+%Y%m%d-%H%M%S'; ./autogen.sh && [ "$(LANG=C make -C po update-po 2>&1 1>/dev/null | grep -c 'warning:')" = 0 ]
+
+pages:
+  stage: deploy
+  script:
+    - mv docs-html public
+  artifacts:
+    expire_in: 20 days
+    paths:
+      - public
+  only:
+    - main
+  dependencies:
+    - "t_fedora:40: [autotools+gcc+docs+valgrind]"
+  needs:
+    - "t_fedora:40: [autotools+gcc+docs+valgrind]"
+
+triage:issues:
+  stage: triage
+  image: ruby:2.7
+  script:
+    - gem install gitlab-triage
+    - gitlab-triage -d --token $API_TOKEN --source-id $SOURCE_ID
+  only:
+    - schedules
+
+# Have detached MR pipeline (https://docs.gitlab.com/ee/ci/pipelines/merge_request_pipelines.html)
+# https://gitlab.freedesktop.org/freedesktop/freedesktop/-/issues/540#what-it-means-for-me-a-maintainer-of-a-project-part-of-gitlabfreedesktoporg
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    - if: $CI_PIPELINE_SOURCE == 'push'

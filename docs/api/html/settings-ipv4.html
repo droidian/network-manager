@@ -159,6 +159,12 @@ This property is currently not implemented for DHCPv6.</td>
 <td>If TRUE, a hostname is sent to the DHCP server when acquiring a lease. Some DHCP servers use this hostname to update DNS databases, essentially providing a static hostname for the computer.  If the "dhcp-hostname" property is NULL and this property is TRUE, the current persistent hostname of the computer is sent.</td>
 </tr>
 <tr>
+<td><pre class="screen">dhcp-send-release</pre></td>
+<td><pre class="screen">NMTernary (int32)</pre></td>
+<td><pre class="screen"></pre></td>
+<td>Whether the DHCP client will send RELEASE message when bringing the connection down. The default value is -1 (default). When the default value is specified, then the global value from NetworkManager configuration is looked up, if not set, it is considered as FALSE.</td>
+</tr>
+<tr>
 <td><pre class="screen">dhcp-timeout</pre></td>
 <td><pre class="screen">int32</pre></td>
 <td><pre class="screen">0</pre></td>

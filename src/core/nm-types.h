@@ -33,7 +33,7 @@ typedef struct _NMRfkillManager         NMRfkillManager;
 typedef struct _NMPacrunnerManager      NMPacrunnerManager;
 typedef struct _NMSessionMonitor        NMSessionMonitor;
 typedef struct _NMKeepAlive             NMKeepAlive;
-typedef struct _NMSleepMonitor          NMSleepMonitor;
+typedef struct _NMPowerMonitor          NMPowerMonitor;
 typedef struct _NMLldpListener          NMLldpListener;
 typedef struct _NMConfigDeviceStateData NMConfigDeviceStateData;
 
@@ -96,6 +96,6 @@ typedef struct _NMSecretAgent        NMSecretAgent;
 typedef struct _NMSettings           NMSettings;
 typedef struct _NMSettingsConnection NMSettingsConnection;
 
-#define NM_SETTING_CONNECTION_MDNS_UNKNOWN ((NMSettingConnectionMdns) -42)
+#define NM_SETTING_CONNECTION_MDNS_UNKNOWN ((NMSettingConnectionMdns) - 42)
 
 #endif /* NM_TYPES_H */

@@ -2,12 +2,12 @@
 .\"     Title: nm-settings-dbus
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 02/22/2024
+.\"      Date: 05/03/2024
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.46.0
+.\"    Source: NetworkManager 1.47.90
 .\"  Language: English
 .\"
-.TH "NM\-SETTINGS\-DBUS" "5" "" "NetworkManager 1\&.46\&.0" "Configuration"
+.TH "NM\-SETTINGS\-DBUS" "5" "" "NetworkManager 1\&.47\&.90" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -104,6 +104,7 @@ l l l l
 l l l l
 l l l l
 l l l l
+l l l l
 l l l l.
 T{
 auth\-retries
@@ -168,6 +169,8 @@ T}:T{
 \ \&
 T}:T{
 Whether or not slaves of this connection should be automatically brought up when NetworkManager activates this connection\&. This only has a real effect for master connections\&. The properties "autoconnect", "autoconnect\-priority" and "autoconnect\-retries" are unrelated to this setting\&. The permitted values are: 0: leave slave connections untouched, 1: activate all the slave connections with this connection, \-1: default\&. If \-1 (default) is set, global connection\&.autoconnect\-slaves is read to determine the real value\&. If it is default as well, this fallbacks to 0\&.
+
+Deprecated 1\&.46\&. Use "autoconnect\-ports" instead, this is just an alias\&.
 T}
 T{
 controller
@@ -190,6 +193,15 @@ Whether DNSOverTls (dns\-over\-tls) is enabled for the connection\&. DNSOverTls 
 The permitted values are: "yes" (2) use DNSOverTls and disabled fallback, "opportunistic" (1) use DNSOverTls but allow fallback to unencrypted resolution, "no" (0) don\*(Aqt ever use DNSOverTls\&. If unspecified "default" depends on the plugin used\&. Systemd\-resolved uses global setting\&.
 
 This feature requires a plugin which supports DNSOverTls\&. Otherwise, the setting has no effect\&. One such plugin is dns\-systemd\-resolved\&.
+T}
+T{
+down\-on\-poweroff
+T}:T{
+int32
+T}:T{
+\-1
+T}:T{
+Whether the connection will be brought down before the system is powered off\&.  The default value is \-1 (default)\&. When the default value is specified, then the global value from NetworkManager configuration is looked up, if not set, it is considered as 0 (no)\&.
 T}
 T{
 gateway\-ping\-timeout
@@ -264,9 +276,9 @@ T}:T{
 T}:T{
 Whether mDNS is enabled for the connection\&.
 
-The permitted values are: "yes" (2) register hostname and resolving for the connection, "no" (0) disable mDNS for the interface, "resolve" (1) do not register hostname but allow resolving of mDNS host names and "default" (\-1) to allow lookup of a global default in NetworkManager\&.conf\&. If unspecified, "default" ultimately depends on the DNS plugin (which for systemd\-resolved currently means "no")\&.
+The permitted values are: "yes" (2) register hostname and resolving for the connection, "no" (0) disable mDNS for the interface, "resolve" (1) do not register hostname but allow resolving of mDNS host names and "default" (\-1) to allow lookup of a global default in NetworkManager\&.conf\&. If unspecified, "default" ultimately depends on the DNS plugin\&.
 
-This feature requires a plugin which supports mDNS\&. Otherwise, the setting has no effect\&. One such plugin is dns\-systemd\-resolved\&.
+This feature requires a plugin which supports mDNS\&. Otherwise, the setting has no effect\&. Currently the only supported DNS plugin is systemd\-resolved\&. For systemd\-resolved, the default is configurable via MulticastDNS= setting in resolved\&.conf\&.
 T}
 T{
 metered
@@ -550,6 +562,7 @@ l l l l
 l l l l
 l l l l
 l l l l
+l l l l
 l l l l.
 T{
 altsubject\-matches
@@ -684,6 +697,15 @@ T}:T{
 \ \&
 T}:T{
 Identity string for EAP authentication methods\&.  Often the user\*(Aqs user or login name\&.
+T}
+T{
+openssl\-ciphers
+T}:T{
+string
+T}:T{
+\ \&
+T}:T{
+Define openssl_ciphers for wpa_supplicant\&. Openssl sometimes moves ciphers among SECLEVELs, thus compiled\-in default value in wpa_supplicant (as modified by some linux distributions) sometimes prevents to connect to old servers that do not support new protocols\&.
 T}
 T{
 optional
@@ -2154,6 +2176,7 @@ l l l l
 l l l l
 l l l l
 l l l l
+l l l l
 l l l l.
 T{
 address\-data
@@ -2295,6 +2318,15 @@ T}:T{
 TRUE
 T}:T{
 If TRUE, a hostname is sent to the DHCP server when acquiring a lease\&. Some DHCP servers use this hostname to update DNS databases, essentially providing a static hostname for the computer\&.  If the "dhcp\-hostname" property is NULL and this property is TRUE, the current persistent hostname of the computer is sent\&.
+T}
+T{
+dhcp\-send\-release
+T}:T{
+NMTernary (int32)
+T}:T{
+\ \&
+T}:T{
+Whether the DHCP client will send RELEASE message when bringing the connection down\&. The default value is \-1 (default)\&. When the default value is specified, then the global value from NetworkManager configuration is looked up, if not set, it is considered as FALSE\&.
 T}
 T{
 dhcp\-timeout
@@ -2595,6 +2627,9 @@ l l l l
 l l l l
 l l l l
 l l l l
+l l l l
+l l l l
+l l l l
 l l l l.
 T{
 addr\-gen\-mode
@@ -2755,6 +2790,15 @@ T}:T{
 If TRUE, a hostname is sent to the DHCP server when acquiring a lease\&. Some DHCP servers use this hostname to update DNS databases, essentially providing a static hostname for the computer\&.  If the "dhcp\-hostname" property is NULL and this property is TRUE, the current persistent hostname of the computer is sent\&.
 T}
 T{
+dhcp\-send\-release
+T}:T{
+NMTernary (int32)
+T}:T{
+\ \&
+T}:T{
+Whether the DHCP client will send RELEASE message when bringing the connection down\&. The default value is \-1 (default)\&. When the default value is specified, then the global value from NetworkManager configuration is looked up, if not set, it is considered as FALSE\&.
+T}
+T{
 dhcp\-timeout
 T}:T{
 int32
@@ -2878,9 +2922,7 @@ T}:T{
 T}:T{
 Configure IPv6 Privacy Extensions for SLAAC, described in RFC4941\&.  If enabled, it makes the kernel generate a temporary IPv6 address in addition to the public one generated from MAC address via modified EUI\-64\&.  This enhances privacy, but could cause problems in some applications, on the other hand\&.  The permitted values are: \-1: unknown, 0: disabled, 1: enabled (prefer public address), 2: enabled (prefer temporary addresses)\&.
 
-Having a per\-connection setting set to "\-1" (unknown) means fallback to global configuration "ipv6\&.ip6\-privacy"\&.
-
-If also global configuration is unspecified or set to "\-1", fallback to read "/proc/sys/net/ipv6/conf/default/use_tempaddr"\&.
+If set to "\-1" (unknown) for a connection, the value is taken from the global "ipv6\&.ip6\-privacy" setting\&. If the global setting is unspecified or also set to "\-1", the value is set from the original value of "/proc/sys/net/ipv6/conf/<iface>/use_tempaddr" from before NetworkManager started\&.
 
 Note that this setting is distinct from the Stable Privacy addresses that can be enabled with the "addr\-gen\-mode" property\*(Aqs "stable\-privacy" setting as another way of avoiding host tracking with IPv6 addresses\&.
 T}
@@ -3014,6 +3056,28 @@ T}:T{
 \ \&
 T}:T{
 Array of dictionaries for routing rules\&. Each routing rule supports the following options: action (y), dport\-end (q), dport\-start (q), family (i), from (s), from\-len (y), fwmark (u), fwmask (u), iifname (s), invert (b), ipproto (s), oifname (s), priority (u), sport\-end (q), sport\-start (q), supress\-prefixlength (i), table (u), to (s), tos (y), to\-len (y), range\-end (u), range\-start (u)\&.
+T}
+T{
+temp\-preferred\-lifetime
+T}:T{
+int32
+T}:T{
+0
+T}:T{
+The preferred lifetime of autogenerated temporary addresses, in seconds\&.
+
+If set to "0" (unknown) for a connection, the value is taken from the global "ipv6\&.temp\-preferred\-lifetime" setting\&. If the global setting is unspecified or also set to "0", the value is set from the original value of "/proc/sys/net/ipv6/conf/<iface>/temp_prefered_lft" from before NetworkManager started\&.
+T}
+T{
+temp\-valid\-lifetime
+T}:T{
+int32
+T}:T{
+0
+T}:T{
+The valid lifetime of autogenerated temporary addresses, in seconds\&.
+
+If set to "0" (unknown) for a connection, the value is taken from the global "ipv6\&.temp\-valid\-lifetime" setting\&. If the global setting is unspecified or also set to "0", the value is set from the original value of "/proc/sys/net/ipv6/conf/<iface>/temp_valid_lft" from before NetworkManager started\&.
 T}
 T{
 token
@@ -5207,6 +5271,7 @@ l l l l
 l l l l
 l l l l
 l l l l
+l l l l
 l l l l.
 T{
 accept\-all\-mac\-addresses
@@ -5281,6 +5346,15 @@ If specified, this connection will only apply to the Ethernet device whose perma
 T}
 T{
 mac\-address\-blacklist
+T}:T{
+array of string
+T}:T{
+\ \&
+T}:T{
+If specified, this connection will never apply to the Ethernet device whose permanent MAC address matches an address in the list\&.  Each MAC address is in the standard hex\-digits\-and\-colons notation (00:11:22:33:44:55)\&.
+T}
+T{
+mac\-address\-denylist
 T}:T{
 array of string
 T}:T{
@@ -5517,6 +5591,7 @@ l l l l
 l l l l
 l l l l
 l l l l
+l l l l
 l l l l.
 T{
 ap\-isolation
@@ -5623,6 +5698,15 @@ If specified, this connection will only apply to the Wi\-Fi device whose permane
 T}
 T{
 mac\-address\-blacklist
+T}:T{
+array of string
+T}:T{
+\ \&
+T}:T{
+A list of permanent MAC addresses of Wi\-Fi devices to which this connection should never apply\&.  Each MAC address should be given in the standard hex\-digits\-and\-colons notation (eg "00:11:22:33:44:55")\&.
+T}
+T{
+mac\-address\-denylist
 T}:T{
 array of string
 T}:T{

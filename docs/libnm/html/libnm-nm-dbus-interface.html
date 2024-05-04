@@ -2634,6 +2634,78 @@ error. Since: 1.46</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-DEVICE-STATE-REASON-UNMANAGED-BY-DEFAULT:CAPS"></a>NM_DEVICE_STATE_REASON_UNMANAGED_BY_DEFAULT</p></td>
+<td class="enum_member_description">
+<p>The device is unmanaged because the device type
+is unmanaged by default. Since: 1.48</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-DEVICE-STATE-REASON-UNMANAGED-EXTERNAL-DOWN:CAPS"></a>NM_DEVICE_STATE_REASON_UNMANAGED_EXTERNAL_DOWN</p></td>
+<td class="enum_member_description">
+<p>The device is unmanaged because it is an
+external device and is unconfigured (down or without addresses). Since: 1.48</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-DEVICE-STATE-REASON-UNMANAGED-LINK-NOT-INIT:CAPS"></a>NM_DEVICE_STATE_REASON_UNMANAGED_LINK_NOT_INIT</p></td>
+<td class="enum_member_description">
+<p>The device is unmanaged because the link is
+not initialized by udev. Since: 1.48</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-DEVICE-STATE-REASON-UNMANAGED-QUITTING:CAPS"></a>NM_DEVICE_STATE_REASON_UNMANAGED_QUITTING</p></td>
+<td class="enum_member_description">
+<p>The device is unmanaged because NetworkManager is
+quitting. Since: 1.48</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-DEVICE-STATE-REASON-UNMANAGED-SLEEPING:CAPS"></a>NM_DEVICE_STATE_REASON_UNMANAGED_SLEEPING</p></td>
+<td class="enum_member_description">
+<p>The device is unmanaged because networking is
+disabled or the system is suspended. Since: 1.48</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-DEVICE-STATE-REASON-UNMANAGED-USER-CONF:CAPS"></a>NM_DEVICE_STATE_REASON_UNMANAGED_USER_CONF</p></td>
+<td class="enum_member_description">
+<p>The device is unmanaged by user decision in
+NetworkManager.conf ('unmanaged' in a [device*] section). Since: 1.48</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-DEVICE-STATE-REASON-UNMANAGED-USER-EXPLICIT:CAPS"></a>NM_DEVICE_STATE_REASON_UNMANAGED_USER_EXPLICIT</p></td>
+<td class="enum_member_description">
+<p>The device is unmanaged by explicit user
+decision (e.g. 'nmcli device set $DEV managed no'). Since: 1.48</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-DEVICE-STATE-REASON-UNMANAGED-USER-SETTINGS:CAPS"></a>NM_DEVICE_STATE_REASON_UNMANAGED_USER_SETTINGS</p></td>
+<td class="enum_member_description">
+<p>The device is unmanaged by user decision
+via settings plugin ('unmanaged-devices' for keyfile or 'NM_CONTROLLED=no' for ifcfg-rh).
+Since: 1.48</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-DEVICE-STATE-REASON-UNMANAGED-USER-UDEV:CAPS"></a>NM_DEVICE_STATE_REASON_UNMANAGED_USER_UDEV</p></td>
+<td class="enum_member_description">
+<p>The device is unmanaged via udev rule. Since: 1.48</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
 </tbody>
 </table></div>
 </div>
@@ -3400,6 +3472,17 @@ by default externally added ports attached to bridge devices are preserved.
 With this flag, the rollback detaches all external ports.
 This only has an effect for bridge ports. Before 1.38, this was the default
 behavior. Since: 1.38.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-CHECKPOINT-CREATE-FLAG-TRACK-INTERNAL-GLOBAL-DNS:CAPS"></a>NM_CHECKPOINT_CREATE_FLAG_TRACK_INTERNAL_GLOBAL_DNS</p></td>
+<td class="enum_member_description">
+<p>during rollback,
+by default changes to global DNS via D-BUS interface are preserved.
+With this flag, the rollback reverts the global DNS changes made via D-Bus
+interface. Global DNS defined in [global-dns] section of
+NetworkManager.conf is not impacted by this flag. Since: 1.48.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>

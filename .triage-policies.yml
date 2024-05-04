@@ -1,0 +1,37 @@
+host_url: https://gitlab.freedesktop.org
+
+resource_rules:
+  issues:
+    rules:
+      - name: Mark issue as stale with no activity for 4 months
+        conditions:
+          date:
+            attribute: updated_at
+            condition: older_than
+            interval_type: months
+            interval: 4
+          state: opened
+          forbidden_labels:
+            - stale
+        actions:
+            comment: |
+                This issue has been inactive for 4 months and got stale. Contributions welcome to move it forward.
+            labels:
+                - stale
+  merge_requests:
+    rules:
+      - name: Mark merge-request as stale after no activity for 2 months
+        conditions:
+          date:
+            attribute: updated_at
+            condition: older_than
+            interval_type: months
+            interval: 2
+          state: opened
+          forbidden_labels:
+            - stale
+        actions:
+            comment: |
+                This merge-request has been inactive for 2 months and got stale. Work is necessary to move it forward.
+            labels:
+                - stale

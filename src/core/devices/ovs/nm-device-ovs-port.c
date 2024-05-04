@@ -160,7 +160,7 @@ attach_port(NMDevice                  *device,
         return TRUE;
 
     ac_port   = NM_ACTIVE_CONNECTION(nm_device_get_act_request(device));
-    ac_bridge = nm_active_connection_get_master(ac_port);
+    ac_bridge = nm_active_connection_get_controller(ac_port);
     if (!ac_bridge) {
         _LOGW(LOGD_DEVICE,
               "can't attach %s: bridge active-connection not found",
@@ -285,7 +285,7 @@ nm_device_ovs_port_class_init(NMDeviceOvsPortClass *klass)
     device_class->connection_type_check_compatible = NM_SETTING_OVS_PORT_SETTING_NAME;
     device_class->link_types                       = NM_DEVICE_DEFINE_LINK_TYPES();
 
-    device_class->is_master                           = TRUE;
+    device_class->is_controller                       = TRUE;
     device_class->get_type_description                = get_type_description;
     device_class->create_and_realize                  = create_and_realize;
     device_class->get_generic_capabilities            = get_generic_capabilities;

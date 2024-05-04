@@ -27,46 +27,130 @@
 #include "stat-util.h"
 #include "string-util.h"
 
-#if 0 /* NM_IGNORED */
-int is_symlink(const char *path) {
-        struct stat info;
-
-        assert(path);
-
-        if (lstat(path, &info) < 0)
-                return -errno;
-
-        return !!S_ISLNK(info.st_mode);
-}
-#endif /* NM_IGNORED */
-
-int is_dir_full(int atfd, const char* path, bool follow) {
+static int verify_stat_at(
+                int fd,
+                const char *path,
+                bool follow,
+                int (*verify_func)(const struct stat *st),
+                bool verify) {
         struct stat st;
         int r;
 
-        assert(atfd >= 0 || atfd == AT_FDCWD);
-        assert(atfd >= 0 || path);
+        assert(fd >= 0 || fd == AT_FDCWD);
+        assert(!isempty(path) || !follow);
+        assert(verify_func);
 
-        if (path)
-                r = fstatat(atfd, path, &st, follow ? 0 : AT_SYMLINK_NOFOLLOW);
-        else
-                r = fstat(atfd, &st);
-        if (r < 0)
+        if (fstatat(fd, strempty(path), &st,
+                    (isempty(path) ? AT_EMPTY_PATH : 0) | (follow ? 0 : AT_SYMLINK_NOFOLLOW)) < 0)
                 return -errno;
 
-        return !!S_ISDIR(st.st_mode);
+        r = verify_func(&st);
+        return verify ? r : r >= 0;
+}
+
+int stat_verify_regular(const struct stat *st) {
+        assert(st);
+
+        /* Checks whether the specified stat() structure refers to a regular file. If not returns an
+         * appropriate error code. */
+
+        if (S_ISDIR(st->st_mode))
+                return -EISDIR;
+
+        if (S_ISLNK(st->st_mode))
+                return -ELOOP;
+
+        if (!S_ISREG(st->st_mode))
+                return -EBADFD;
+
+        return 0;
+}
+
+int verify_regular_at(int fd, const char *path, bool follow) {
+        return verify_stat_at(fd, path, follow, stat_verify_regular, true);
+}
+
+int fd_verify_regular(int fd) {
+        assert(fd >= 0);
+        return verify_regular_at(fd, NULL, false);
+}
+
+int stat_verify_directory(const struct stat *st) {
+        assert(st);
+
+        if (S_ISLNK(st->st_mode))
+                return -ELOOP;
+
+        if (!S_ISDIR(st->st_mode))
+                return -ENOTDIR;
+
+        return 0;
+}
+
+int fd_verify_directory(int fd) {
+        assert(fd >= 0);
+        return verify_stat_at(fd, NULL, false, stat_verify_directory, true);
+}
+
+int is_dir_at(int fd, const char *path, bool follow) {
+        return verify_stat_at(fd, path, follow, stat_verify_directory, false);
+}
+
+int is_dir(const char *path, bool follow) {
+        assert(!isempty(path));
+        return is_dir_at(AT_FDCWD, path, follow);
+}
+
+int stat_verify_symlink(const struct stat *st) {
+        assert(st);
+
+        if (S_ISDIR(st->st_mode))
+                return -EISDIR;
+
+        if (!S_ISLNK(st->st_mode))
+                return -ENOLINK;
+
+        return 0;
+}
+
+int is_symlink(const char *path) {
+        assert(!isempty(path));
+        return verify_stat_at(AT_FDCWD, path, false, stat_verify_symlink, false);
+}
+
+int stat_verify_linked(const struct stat *st) {
+        assert(st);
+
+        if (st->st_nlink <= 0)
+                return -EIDRM; /* recognizable error. */
+
+        return 0;
+}
+
+int fd_verify_linked(int fd) {
+        assert(fd >= 0);
+        return verify_stat_at(fd, NULL, false, stat_verify_linked, true);
+}
+
+int stat_verify_device_node(const struct stat *st) {
+        assert(st);
+
+        if (S_ISLNK(st->st_mode))
+                return -ELOOP;
+
+        if (S_ISDIR(st->st_mode))
+                return -EISDIR;
+
+        if (!S_ISBLK(st->st_mode) && !S_ISCHR(st->st_mode))
+                return -ENOTTY;
+
+        return 0;
 }
 
 #if 0 /* NM_IGNORED */
 int is_device_node(const char *path) {
-        struct stat info;
-
-        assert(path);
-
-        if (lstat(path, &info) < 0)
-                return -errno;
-
-        return !!(S_ISBLK(info.st_mode) || S_ISCHR(info.st_mode));
+        assert(!isempty(path));
+        return verify_stat_at(AT_FDCWD, path, false, stat_verify_device_node, false);
 }
 
 int dir_is_empty_at(int dir_fd, const char *path, bool ignore_hidden_or_backup) {
@@ -193,14 +277,12 @@ int inode_same_at(int fda, const char *filea, int fdb, const char *fileb, int fl
         struct stat a, b;
 
         assert(fda >= 0 || fda == AT_FDCWD);
-        assert(filea);
         assert(fdb >= 0 || fdb == AT_FDCWD);
-        assert(fileb);
 
-        if (fstatat(fda, filea, &a, flags) < 0)
+        if (fstatat(fda, strempty(filea), &a, flags) < 0)
                 return log_debug_errno(errno, "Cannot stat %s: %m", filea);
 
-        if (fstatat(fdb, fileb, &b, flags) < 0)
+        if (fstatat(fdb, strempty(fileb), &b, flags) < 0)
                 return log_debug_errno(errno, "Cannot stat %s: %m", fileb);
 
         return stat_inode_same(&a, &b);
@@ -267,72 +349,6 @@ int path_is_network_fs(const char *path) {
                 return -errno;
 
         return is_network_fs(&s);
-}
-#endif /* NM_IGNORED */
-
-int stat_verify_regular(const struct stat *st) {
-        assert(st);
-
-        /* Checks whether the specified stat() structure refers to a regular file. If not returns an appropriate error
-         * code. */
-
-        if (S_ISDIR(st->st_mode))
-                return -EISDIR;
-
-        if (S_ISLNK(st->st_mode))
-                return -ELOOP;
-
-        if (!S_ISREG(st->st_mode))
-                return -EBADFD;
-
-        return 0;
-}
-
-int fd_verify_regular(int fd) {
-        struct stat st;
-
-        assert(fd >= 0);
-
-        if (fstat(fd, &st) < 0)
-                return -errno;
-
-        return stat_verify_regular(&st);
-}
-
-#if 0 /* NM_IGNORED */
-int verify_regular_at(int dir_fd, const char *path, bool follow) {
-        struct stat st;
-
-        assert(dir_fd >= 0 || dir_fd == AT_FDCWD);
-        assert(path);
-
-        if (fstatat(dir_fd, path, &st, (isempty(path) ? AT_EMPTY_PATH : 0) | (follow ? 0 : AT_SYMLINK_NOFOLLOW)) < 0)
-                return -errno;
-
-        return stat_verify_regular(&st);
-}
-
-int stat_verify_directory(const struct stat *st) {
-        assert(st);
-
-        if (S_ISLNK(st->st_mode))
-                return -ELOOP;
-
-        if (!S_ISDIR(st->st_mode))
-                return -ENOTDIR;
-
-        return 0;
-}
-
-int fd_verify_directory(int fd) {
-        struct stat st;
-
-        assert(fd >= 0);
-
-        if (fstat(fd, &st) < 0)
-                return -errno;
-
-        return stat_verify_directory(&st);
 }
 #endif /* NM_IGNORED */
 
@@ -405,21 +421,35 @@ bool statx_mount_same(const struct new_statx *a, const struct new_statx *b) {
                 a->stx_dev_minor == b->stx_dev_minor;
 }
 
+static bool is_statx_fatal_error(int err, int flags) {
+        assert(err < 0);
+
+        /* If statx() is not supported or if we see EPERM (which might indicate seccomp filtering or so),
+         * let's do a fallback. Note that on EACCES we'll not fall back, since that is likely an indication of
+         * fs access issues, which we should propagate. */
+        if (ERRNO_IS_NOT_SUPPORTED(err) || err == -EPERM)
+                return false;
+
+        /* When unsupported flags are specified, glibc's fallback function returns -EINVAL.
+         * See statx_generic() in glibc. */
+        if (err != -EINVAL)
+                return true;
+
+        if ((flags & ~(AT_EMPTY_PATH | AT_NO_AUTOMOUNT | AT_SYMLINK_NOFOLLOW | AT_STATX_SYNC_AS_STAT)) != 0)
+                return false; /* Unsupported flags are specified. Let's try to use our implementation. */
+
+        return true;
+}
+
 int statx_fallback(int dfd, const char *path, int flags, unsigned mask, struct statx *sx) {
         static bool avoid_statx = false;
         struct stat st;
+        int r;
 
         if (!avoid_statx) {
-                if (statx(dfd, path, flags, mask, sx) < 0) {
-                        if (!ERRNO_IS_NOT_SUPPORTED(errno) && errno != EPERM)
-                                return -errno;
-
-                        /* If statx() is not supported or if we see EPERM (which might indicate seccomp
-                         * filtering or so), let's do a fallback. Not that on EACCES we'll not fall back,
-                         * since that is likely an indication of fs access issues, which we should
-                         * propagate */
-                } else
-                        return 0;
+                r = RET_NERRNO(statx(dfd, path, flags, mask, sx));
+                if (r >= 0 || is_statx_fatal_error(r, flags))
+                        return r;
 
                 avoid_statx = true;
         }
@@ -468,7 +498,7 @@ int xstatfsat(int dir_fd, const char *path, struct statfs *ret) {
         assert(dir_fd >= 0 || dir_fd == AT_FDCWD);
         assert(ret);
 
-        fd = xopenat(dir_fd, path, O_PATH|O_CLOEXEC|O_NOCTTY, /* xopen_flags = */ 0, /* mode = */ 0);
+        fd = xopenat(dir_fd, path, O_PATH|O_CLOEXEC|O_NOCTTY);
         if (fd < 0)
                 return fd;
 
@@ -477,8 +507,8 @@ int xstatfsat(int dir_fd, const char *path, struct statfs *ret) {
 
 #if 0 /* NM_IGNORED */
 void inode_hash_func(const struct stat *q, struct siphash *state) {
-        siphash24_compress(&q->st_dev, sizeof(q->st_dev), state);
-        siphash24_compress(&q->st_ino, sizeof(q->st_ino), state);
+        siphash24_compress_typesafe(q->st_dev, state);
+        siphash24_compress_typesafe(q->st_ino, state);
 }
 
 int inode_compare_func(const struct stat *a, const struct stat *b) {
@@ -503,6 +533,8 @@ const char* inode_type_to_string(mode_t m) {
                 return "reg";
         case S_IFDIR:
                 return "dir";
+        case S_IFLNK:
+                return "lnk";
         case S_IFCHR:
                 return "chr";
         case S_IFBLK:
@@ -514,5 +546,27 @@ const char* inode_type_to_string(mode_t m) {
         }
 
         return NULL;
+}
+
+mode_t inode_type_from_string(const char *s) {
+        if (!s)
+                return MODE_INVALID;
+
+        if (streq(s, "reg"))
+                return S_IFREG;
+        if (streq(s, "dir"))
+                return S_IFDIR;
+        if (streq(s, "lnk"))
+                return S_IFLNK;
+        if (streq(s, "chr"))
+                return S_IFCHR;
+        if (streq(s, "blk"))
+                return S_IFBLK;
+        if (streq(s, "fifo"))
+                return S_IFIFO;
+        if (streq(s, "sock"))
+                return S_IFSOCK;
+
+        return MODE_INVALID;
 }
 #endif /* NM_IGNORED */

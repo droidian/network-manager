@@ -13,6 +13,8 @@ typedef enum SpecialGlyph {
         SPECIAL_GLYPH_TREE_SPACE,
         SPECIAL_GLYPH_TREE_TOP,
         SPECIAL_GLYPH_VERTICAL_DOTTED,
+        SPECIAL_GLYPH_HORIZONTAL_DOTTED,
+        SPECIAL_GLYPH_HORIZONTAL_FAT,
         SPECIAL_GLYPH_TRIANGULAR_BULLET,
         SPECIAL_GLYPH_BLACK_CIRCLE,
         SPECIAL_GLYPH_WHITE_CIRCLE,
@@ -22,14 +24,15 @@ typedef enum SpecialGlyph {
         SPECIAL_GLYPH_MU,
         SPECIAL_GLYPH_CHECK_MARK,
         SPECIAL_GLYPH_CROSS_MARK,
-        SPECIAL_GLYPH_ARROW_LEFT,
-        SPECIAL_GLYPH_ARROW_RIGHT,
-        SPECIAL_GLYPH_ARROW_UP,
-        SPECIAL_GLYPH_ARROW_DOWN,
-        SPECIAL_GLYPH_ELLIPSIS,
         SPECIAL_GLYPH_LIGHT_SHADE,
         SPECIAL_GLYPH_DARK_SHADE,
+        SPECIAL_GLYPH_FULL_BLOCK,
         SPECIAL_GLYPH_SIGMA,
+        SPECIAL_GLYPH_ARROW_UP,
+        SPECIAL_GLYPH_ARROW_DOWN,
+        SPECIAL_GLYPH_ARROW_LEFT,
+        SPECIAL_GLYPH_ARROW_RIGHT,
+        SPECIAL_GLYPH_ELLIPSIS,
         SPECIAL_GLYPH_EXTERNAL_LINK,
         _SPECIAL_GLYPH_FIRST_EMOJI,
         SPECIAL_GLYPH_ECSTATIC_SMILEY = _SPECIAL_GLYPH_FIRST_EMOJI,
@@ -44,14 +47,25 @@ typedef enum SpecialGlyph {
         SPECIAL_GLYPH_RECYCLING,
         SPECIAL_GLYPH_DOWNLOAD,
         SPECIAL_GLYPH_SPARKLES,
+        SPECIAL_GLYPH_LOW_BATTERY,
         SPECIAL_GLYPH_WARNING_SIGN,
+        SPECIAL_GLYPH_COMPUTER_DISK,
+        SPECIAL_GLYPH_WORLD,
+        SPECIAL_GLYPH_RED_CIRCLE,
+        SPECIAL_GLYPH_YELLOW_CIRCLE,
+        SPECIAL_GLYPH_BLUE_CIRCLE,
+        SPECIAL_GLYPH_GREEN_CIRCLE,
         _SPECIAL_GLYPH_MAX,
         _SPECIAL_GLYPH_INVALID = -EINVAL,
 } SpecialGlyph;
 
-const char *special_glyph(SpecialGlyph code) _const_;
-
 bool emoji_enabled(void);
+
+const char *special_glyph_full(SpecialGlyph code, bool force_utf) _const_;
+
+static inline const char *special_glyph(SpecialGlyph code) {
+        return special_glyph_full(code, false);
+}
 
 static inline const char *special_glyph_check_mark(bool b) {
         return b ? special_glyph(SPECIAL_GLYPH_CHECK_MARK) : special_glyph(SPECIAL_GLYPH_CROSS_MARK);

@@ -1,0 +1,16 @@
+LIBCSIPHASH_1 {
+global:
+        c_siphash_init;
+        c_siphash_append;
+        c_siphash_finalize;
+        c_siphash_hash;
+local:
+       *;
+};
+
+LIBCSIPHASH_2 {
+global:
+        c_siphash_append_13;
+        c_siphash_finalize_13;
+        c_siphash_hash_13;
+} LIBCSIPHASH_1;

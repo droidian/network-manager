@@ -19,6 +19,7 @@
 #include "fileio.h"
 #include "hashmap.h"
 #include "locale-util.h"
+#include "missing_syscall.h"
 #include "path-util.h"
 #include "set.h"
 #include "string-table.h"
@@ -223,7 +224,7 @@ int get_locales(char ***ret) {
         locales = set_free(locales);
 
         r = getenv_bool("SYSTEMD_LIST_NON_UTF8_LOCALES");
-        if (r == -ENXIO || r == 0) {
+        if (IN_SET(r, -ENXIO, 0)) {
                 char **a, **b;
 
                 /* Filter out non-UTF-8 locales, because it's 2019, by default */
@@ -262,7 +263,10 @@ bool locale_is_valid(const char *name) {
         if (!filename_is_valid(name))
                 return false;
 
-        if (!string_is_safe(name))
+        /* Locales look like: ll_CC.ENC@variant, where ll and CC are alphabetic, ENC is alphanumeric with
+         * dashes, and variant seems to be alphabetic.
+         * See: https://www.gnu.org/software/gettext/manual/html_node/Locale-Names.html */
+        if (!in_charset(name, ALPHANUMERICAL "_.-@"))
                 return false;
 
         return true;
@@ -282,11 +286,6 @@ int locale_is_installed(const char *name) {
 
         return true;
 }
-
-void init_gettext(void) {
-        setlocale(LC_ALL, "");
-        textdomain(GETTEXT_PACKAGE);
-}
 #endif /* NM_IGNORED */
 
 bool is_locale_utf8(void) {
@@ -300,12 +299,18 @@ bool is_locale_utf8(void) {
         if (cached_answer >= 0)
                 goto out;
 
-        r = getenv_bool_secure("SYSTEMD_UTF8");
+        r = secure_getenv_bool("SYSTEMD_UTF8");
         if (r >= 0) {
                 cached_answer = r;
                 goto out;
         } else if (r != -ENXIO)
                 log_debug_errno(r, "Failed to parse $SYSTEMD_UTF8, ignoring: %m");
+
+        /* This function may be called from libsystemd, and setlocale() is not thread safe. Assuming yes. */
+        if (gettid() != raw_getpid()) {
+                cached_answer = true;
+                goto out;
+        }
 
         if (!setlocale(LC_ALL, "")) {
                 cached_answer = true;
@@ -345,11 +350,7 @@ out:
 
 #if 0 /* NM_IGNORED */
 void locale_variables_free(char *l[_VARIABLE_LC_MAX]) {
-        if (!l)
-                return;
-
-        for (LocaleVariable i = 0; i < _VARIABLE_LC_MAX; i++)
-                l[i] = mfree(l[i]);
+        free_many_charp(l, _VARIABLE_LC_MAX);
 }
 
 void locale_variables_simplify(char *l[_VARIABLE_LC_MAX]) {

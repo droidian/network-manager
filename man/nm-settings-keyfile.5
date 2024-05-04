@@ -2,12 +2,12 @@
 .\"     Title: nm-settings-keyfile
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 02/22/2024
+.\"      Date: 05/03/2024
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.46.0
+.\"    Source: NetworkManager 1.47.90
 .\"  Language: English
 .\"
-.TH "NM\-SETTINGS\-KEYFILE" "5" "" "NetworkManager 1\&.46\&.0" "Configuration"
+.TH "NM\-SETTINGS\-KEYFILE" "5" "" "NetworkManager 1\&.47\&.90" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -252,6 +252,7 @@ T}
 l l l l
 l l l l
 l l l l
+l l l l
 l l l l.
 T{
 ssid
@@ -293,6 +294,17 @@ MAC address blacklist\&.\fB
 
 Example: \fRmac\-address\-blacklist= 00:22:68:12:79:A6;00:22:68:12:79:78
 T}
+T{
+mac\-address\-denylist
+T}:T{
+\ \&
+T}:T{
+list of MACs (separated with semicolons)
+T}:T{
+MAC address denylist\&.\fB
+
+Example: \fRmac\-address\-denylist= 00:22:68:12:79:A6;00:22:68:12:79:78
+T}
 .TE
 .sp 1
 .sp
@@ -314,6 +326,7 @@ T}:T{
 Description
 T}
 .T&
+l l l l
 l l l l
 l l l l
 l l l l.
@@ -345,6 +358,17 @@ T}:T{
 MAC address blacklist\&.\fB
 
 Example: \fRmac\-address\-blacklist= 00:22:68:12:79:A6;00:22:68:12:79:78
+T}
+T{
+mac\-address\-denylist
+T}:T{
+\ \&
+T}:T{
+list of MACs (separated with semicolons)
+T}:T{
+MAC address denylist\&.\fB
+
+Example: \fRmac\-address\-denylist= 00:22:68:12:79:A6;00:22:68:12:79:78
 T}
 .TE
 .sp 1

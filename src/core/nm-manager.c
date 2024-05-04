@@ -46,7 +46,7 @@
 #include "nm-priv-helper-call.h"
 #include "nm-rfkill-manager.h"
 #include "nm-session-monitor.h"
-#include "nm-sleep-monitor.h"
+#include "nm-power-monitor.h"
 #include "settings/nm-settings-connection.h"
 #include "settings/nm-settings.h"
 #include "vpn/nm-vpn-manager.h"
@@ -214,7 +214,7 @@ typedef struct {
 
     NMVpnManager *vpn_manager;
 
-    NMSleepMonitor *sleep_monitor;
+    NMPowerMonitor *power_monitor;
 
     NMAuthManager *auth_mgr;
 
@@ -1914,7 +1914,8 @@ find_device_by_ip_iface(NMManager *self, const char *iface)
  * is given, this function will only return master devices and will ensure
  * @slave, when activated, can be a slave of the returned master device.  If
  * @connection is given, this function will only consider devices that are
- * compatible with @connection.
+ * compatible with @connection. If @child is given, this function will only
+ * return parent device.
  *
  * Returns: the matching #NMDevice
  */
@@ -1922,7 +1923,8 @@ static NMDevice *
 find_device_by_iface(NMManager    *self,
                      const char   *iface,
                      NMConnection *connection,
-                     NMConnection *slave)
+                     NMConnection *slave,
+                     NMConnection *child)
 {
     NMManagerPrivate *priv     = NM_MANAGER_GET_PRIVATE(self);
     NMDevice         *fallback = NULL;
@@ -1936,11 +1938,13 @@ find_device_by_iface(NMManager    *self,
         if (connection && !nm_device_check_connection_compatible(candidate, connection, TRUE, NULL))
             continue;
         if (slave) {
-            if (!nm_device_is_master(candidate))
+            if (!nm_device_is_controller(candidate))
                 continue;
             if (!nm_device_check_slave_connection_compatible(candidate, slave))
                 continue;
         }
+        if (child && !nm_device_can_be_parent(candidate))
+            continue;
 
         if (nm_device_is_real(candidate))
             return candidate;
@@ -2405,7 +2409,7 @@ find_parent_device_for_connection(NMManager       *self,
     NM_SET_OUT(out_parent_spec, parent_name);
 
     /* Try as an interface name of a parent device */
-    parent = find_device_by_iface(self, parent_name, NULL, NULL);
+    parent = find_device_by_iface(self, parent_name, NULL, NULL, connection);
     if (parent)
         return parent;
 
@@ -3777,7 +3781,7 @@ recheck_assume_connection(NMManager *self, NMDevice *device)
                         &master_ac,
                         NULL)
             && master_ac)
-            nm_active_connection_set_master(active, master_ac);
+            nm_active_connection_set_controller(active, master_ac);
 
         active_connection_add(self, active);
         nm_device_queue_activation(device, NM_ACT_REQUEST(active));
@@ -4434,9 +4438,24 @@ platform_query_devices(NMManager *self)
     links        = nm_platform_link_get_all(priv->platform);
     if (!links)
         return;
+
     for (i = 0; i < links->len; i++) {
-        const NMPlatformLink          *link = NMP_OBJECT_CAST_LINK(links->pdata[i]);
+        const NMPlatformLink          *elem = NMP_OBJECT_CAST_LINK(links->pdata[i]);
+        const NMPlatformLink          *link;
         const NMConfigDeviceStateData *dev_state;
+
+        /*
+         * @links is an immutable snapshot of the platform links captured before
+         * the loop was started. It's possible that in the meantime, while
+         * processing netlink events in platform_link_added(), a link was
+         * renamed.  If that happens, we have 2 different views of the same
+         * ifindex: the one from @links and the one from platform. This can
+         * cause race conditions; make sure to use the latest known version of
+         * the link.
+         */
+        link = nm_platform_link_get(priv->platform, elem->ifindex);
+        if (!link)
+            continue;
 
         dev_state = nm_config_device_state_get(priv->config, link->ifindex);
         platform_link_added(self,
@@ -4921,7 +4940,7 @@ find_master(NMManager             *self,
     nm_assert(!out_master_ac || !*out_master_ac);
 
     s_con  = nm_connection_get_setting_connection(connection);
-    master = nm_setting_connection_get_master(s_con);
+    master = nm_setting_connection_get_controller(s_con);
 
     if (master == NULL)
         return TRUE; /* success, but no master */
@@ -5003,7 +5022,7 @@ find_master(NMManager             *self,
     }
 
     if (!master_connection) {
-        master_device = find_device_by_iface(self, master, NULL, connection);
+        master_device = find_device_by_iface(self, master, NULL, connection, NULL);
         if (!master_device) {
             g_set_error(error,
                         NM_MANAGER_ERROR,
@@ -5924,7 +5943,7 @@ _internal_activate_device(NMManager *self, NMActiveConnection *active, GError **
                                              NM_DEVICE_STATE_REASON_USER_REQUESTED);
         }
 
-        nm_active_connection_set_master(active, master_ac);
+        nm_active_connection_set_controller(active, master_ac);
         _LOGD(LOGD_CORE,
               "Activation of '%s' depends on active connection %p %s",
               nm_settings_connection_get_id(sett_conn),
@@ -6445,7 +6464,7 @@ validate_activation_request(NMManager             *self,
             if (!iface)
                 return NULL;
 
-            device = find_device_by_iface(self, iface, connection, NULL);
+            device = find_device_by_iface(self, iface, connection, NULL, NULL);
             if (!device) {
                 g_set_error_literal(error,
                                     NM_MANAGER_ERROR,
@@ -7128,7 +7147,7 @@ static gboolean
 sleep_devices_add(NMManager *self, NMDevice *device, gboolean suspending)
 {
     NMManagerPrivate              *priv   = NM_MANAGER_GET_PRIVATE(self);
-    NMSleepMonitorInhibitorHandle *handle = NULL;
+    NMPowerMonitorInhibitorHandle *handle = NULL;
 
     if (g_hash_table_lookup_extended(priv->sleep_devices, device, NULL, (gpointer *) &handle)) {
         if (suspending) {
@@ -7136,16 +7155,16 @@ sleep_devices_add(NMManager *self, NMDevice *device, gboolean suspending)
              * Even if we had an old handle, it might be stale by now. */
             g_hash_table_insert(priv->sleep_devices,
                                 device,
-                                nm_sleep_monitor_inhibit_take(priv->sleep_monitor));
+                                nm_power_monitor_inhibit_take(priv->power_monitor));
             if (handle)
-                nm_sleep_monitor_inhibit_release(priv->sleep_monitor, handle);
+                nm_power_monitor_inhibit_release(priv->power_monitor, handle);
         }
         return FALSE;
     }
 
     g_hash_table_insert(priv->sleep_devices,
                         g_object_ref(device),
-                        suspending ? nm_sleep_monitor_inhibit_take(priv->sleep_monitor) : NULL);
+                        suspending ? nm_power_monitor_inhibit_take(priv->power_monitor) : NULL);
     g_signal_connect(device, "notify::" NM_DEVICE_STATE, G_CALLBACK(device_sleep_cb), self);
     return TRUE;
 }
@@ -7154,13 +7173,13 @@ static gboolean
 sleep_devices_remove(NMManager *self, NMDevice *device)
 {
     NMManagerPrivate              *priv = NM_MANAGER_GET_PRIVATE(self);
-    NMSleepMonitorInhibitorHandle *handle;
+    NMPowerMonitorInhibitorHandle *handle;
 
     if (!g_hash_table_lookup_extended(priv->sleep_devices, device, NULL, (gpointer *) &handle))
         return FALSE;
 
     if (handle)
-        nm_sleep_monitor_inhibit_release(priv->sleep_monitor, handle);
+        nm_power_monitor_inhibit_release(priv->power_monitor, handle);
 
     /* Remove device from hash */
     g_signal_handlers_disconnect_by_func(device, device_sleep_cb, self);
@@ -7177,14 +7196,14 @@ sleep_devices_clear(NMManager *self)
 {
     NMManagerPrivate              *priv = NM_MANAGER_GET_PRIVATE(self);
     NMDevice                      *device;
-    NMSleepMonitorInhibitorHandle *handle;
+    NMPowerMonitorInhibitorHandle *handle;
     GHashTableIter                 iter;
 
     g_hash_table_iter_init(&iter, priv->sleep_devices);
     while (g_hash_table_iter_next(&iter, (gpointer *) &device, (gpointer *) &handle)) {
         g_signal_handlers_disconnect_by_func(device, device_sleep_cb, self);
         if (handle)
-            nm_sleep_monitor_inhibit_release(priv->sleep_monitor, handle);
+            nm_power_monitor_inhibit_release(priv->power_monitor, handle);
         g_object_unref(device);
         g_hash_table_iter_remove(&iter);
     }
@@ -7212,6 +7231,33 @@ device_sleep_cb(NMDevice *device, GParamSpec *pspec, NMManager *self)
         break;
     default:
         return;
+    }
+}
+
+static void
+_handle_device_takedown(NMManager *self,
+                        NMDevice  *device,
+                        gboolean   suspending,
+                        gboolean   is_shutdown)
+{
+    nm_device_notify_sleeping(device);
+
+    if (nm_device_is_activating(device)
+        || nm_device_get_state(device) == NM_DEVICE_STATE_ACTIVATED) {
+        _LOGD(LOGD_SUSPEND,
+              "%s: wait disconnection of device %s",
+              is_shutdown ? "shutdown" : "sleep",
+              nm_device_get_ip_iface(device));
+
+        if (sleep_devices_add(self, device, suspending))
+            nm_device_queue_state(device,
+                                  NM_DEVICE_STATE_DEACTIVATING,
+                                  NM_DEVICE_STATE_REASON_SLEEPING);
+    } else {
+        nm_device_set_unmanaged_by_flags(device,
+                                         NM_UNMANAGED_SLEEPING,
+                                         NM_UNMAN_FLAG_OP_SET_UNMANAGED,
+                                         NM_DEVICE_STATE_REASON_SLEEPING);
     }
 }
 
@@ -7249,24 +7295,7 @@ do_sleep_wake(NMManager *self, gboolean sleeping_changed)
                 continue;
             }
 
-            nm_device_notify_sleeping(device);
-
-            if (nm_device_is_activating(device)
-                || nm_device_get_state(device) == NM_DEVICE_STATE_ACTIVATED) {
-                _LOGD(LOGD_SUSPEND,
-                      "sleep: wait disconnection of device %s",
-                      nm_device_get_ip_iface(device));
-
-                if (sleep_devices_add(self, device, suspending))
-                    nm_device_queue_state(device,
-                                          NM_DEVICE_STATE_DEACTIVATING,
-                                          NM_DEVICE_STATE_REASON_SLEEPING);
-            } else {
-                nm_device_set_unmanaged_by_flags(device,
-                                                 NM_UNMANAGED_SLEEPING,
-                                                 NM_UNMAN_FLAG_OP_SET_UNMANAGED,
-                                                 NM_DEVICE_STATE_REASON_SLEEPING);
-            }
+            _handle_device_takedown(self, device, suspending, FALSE);
         }
     } else {
         _LOGD(LOGD_SUSPEND, "sleep: %s...", waking_from_suspend ? "waking up" : "re-enabling");
@@ -7438,12 +7467,47 @@ impl_manager_sleep(NMDBusObject                      *obj,
 }
 
 static void
-sleeping_cb(NMSleepMonitor *monitor, gboolean is_about_to_suspend, gpointer user_data)
+sleeping_cb(NMPowerMonitor *monitor, gboolean is_about_to_suspend, gpointer user_data)
 {
     NMManager *self = user_data;
 
     _LOGT(LOGD_SUSPEND, "sleep: received %s signal", is_about_to_suspend ? "sleeping" : "resuming");
     _internal_sleep(self, is_about_to_suspend);
+}
+
+static void
+shutdown_cb(NMPowerMonitor *monitor, gpointer user_data)
+{
+    NMManager        *self = user_data;
+    NMManagerPrivate *priv = NM_MANAGER_GET_PRIVATE(self);
+    NMDevice         *device;
+
+    _LOGT(LOGD_SUSPEND, "shutdown: received shutdown signal");
+
+    c_list_for_each_entry (device, &priv->devices_lst_head, devices_lst) {
+        NMSettingConnection *s_con;
+        gboolean             take_down = FALSE;
+
+        s_con = nm_device_get_applied_setting(device, NM_TYPE_SETTING_CONNECTION);
+        if (!s_con)
+            continue;
+
+        if (nm_setting_connection_get_down_on_poweroff(s_con)
+            == NM_SETTING_CONNECTION_DOWN_ON_POWEROFF_YES)
+            take_down = TRUE;
+        else if (nm_setting_connection_get_down_on_poweroff(s_con)
+                 == NM_SETTING_CONNECTION_DOWN_ON_POWEROFF_DEFAULT)
+            take_down = nm_config_data_get_connection_default_int64(
+                NM_CONFIG_GET_DATA,
+                NM_CON_DEFAULT("connection.down-on-poweroff"),
+                device,
+                NM_SETTING_CONNECTION_DOWN_ON_POWEROFF_NO,
+                NM_SETTING_CONNECTION_DOWN_ON_POWEROFF_YES,
+                NM_SETTING_CONNECTION_DOWN_ON_POWEROFF_NO);
+
+        if (take_down)
+            _handle_device_takedown(self, device, FALSE, TRUE);
+    }
 }
 
 static void
@@ -8458,7 +8522,8 @@ impl_manager_checkpoint_create(NMDBusObject                      *obj,
                                      | NM_CHECKPOINT_CREATE_FLAG_DELETE_NEW_CONNECTIONS
                                      | NM_CHECKPOINT_CREATE_FLAG_DISCONNECT_NEW_DEVICES
                                      | NM_CHECKPOINT_CREATE_FLAG_ALLOW_OVERLAPPING
-                                     | NM_CHECKPOINT_CREATE_FLAG_NO_PRESERVE_EXTERNAL_PORTS)))) {
+                                     | NM_CHECKPOINT_CREATE_FLAG_NO_PRESERVE_EXTERNAL_PORTS
+                                     | NM_CHECKPOINT_CREATE_FLAG_TRACK_INTERNAL_GLOBAL_DNS)))) {
         g_dbus_method_invocation_return_error_literal(invocation,
                                                       NM_MANAGER_ERROR,
                                                       NM_MANAGER_ERROR_INVALID_ARGUMENTS,
@@ -8834,8 +8899,9 @@ nm_manager_init(NMManager *self)
     priv->devcon_data_dict = g_hash_table_new(_devcon_data_hash, _devcon_data_equal);
 
     /* sleep/wake handling */
-    priv->sleep_monitor = nm_sleep_monitor_new();
-    g_signal_connect(priv->sleep_monitor, NM_SLEEP_MONITOR_SLEEPING, G_CALLBACK(sleeping_cb), self);
+    priv->power_monitor = nm_power_monitor_new();
+    g_signal_connect(priv->power_monitor, NM_POWER_MONITOR_SLEEPING, G_CALLBACK(sleeping_cb), self);
+    g_signal_connect(priv->power_monitor, NM_POWER_MONITOR_SHUTDOWN, G_CALLBACK(shutdown_cb), self);
 
     /* Listen for authorization changes */
     priv->auth_mgr = g_object_ref(nm_auth_manager_get());
@@ -8979,9 +9045,10 @@ get_property(GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
     case PROP_CHECKPOINTS:
         g_value_take_boxed(
             value,
-            priv->checkpoint_mgr ? nm_strv_make_deep_copied(
-                nm_checkpoint_manager_get_checkpoint_paths(priv->checkpoint_mgr, NULL))
-                                 : NULL);
+            priv->checkpoint_mgr
+                ? nm_strv_make_deep_copied(
+                      nm_checkpoint_manager_get_checkpoint_paths(priv->checkpoint_mgr, NULL))
+                : NULL);
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
@@ -9134,9 +9201,9 @@ dispose(GObject *object)
         nm_clear_pointer(&priv->sleep_devices, g_hash_table_unref);
     }
 
-    if (priv->sleep_monitor) {
-        g_signal_handlers_disconnect_by_func(priv->sleep_monitor, sleeping_cb, self);
-        g_clear_object(&priv->sleep_monitor);
+    if (priv->power_monitor) {
+        g_signal_handlers_disconnect_by_func(priv->power_monitor, sleeping_cb, self);
+        g_clear_object(&priv->power_monitor);
     }
 
     if (priv->fw_monitor) {
@@ -9764,4 +9831,12 @@ nm_manager_class_init(NMManagerClass *manager_class)
                                                    G_TYPE_NONE,
                                                    1,
                                                    NM_TYPE_DEVICE);
+}
+
+NMConfig *
+nm_manager_get_config(NMManager *self)
+{
+    NMManagerPrivate *priv = NM_MANAGER_GET_PRIVATE(self);
+
+    return priv->config;
 }

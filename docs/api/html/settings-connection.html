@@ -97,7 +97,9 @@ Depending on "connection.multi-connect", a profile can (auto)connect only once a
 <td><pre class="screen">autoconnect-slaves</pre></td>
 <td><pre class="screen">NMSettingConnectionAutoconnectSlaves (int32)</pre></td>
 <td><pre class="screen"></pre></td>
-<td>Whether or not slaves of this connection should be automatically brought up when NetworkManager activates this connection. This only has a real effect for master connections. The properties "autoconnect", "autoconnect-priority" and "autoconnect-retries" are unrelated to this setting. The permitted values are: 0: leave slave connections untouched, 1: activate all the slave connections with this connection, -1: default. If -1 (default) is set, global connection.autoconnect-slaves is read to determine the real value. If it is default as well, this fallbacks to 0.</td>
+<td>Whether or not slaves of this connection should be automatically brought up when NetworkManager activates this connection. This only has a real effect for master connections. The properties "autoconnect", "autoconnect-priority" and "autoconnect-retries" are unrelated to this setting. The permitted values are: 0: leave slave connections untouched, 1: activate all the slave connections with this connection, -1: default. If -1 (default) is set, global connection.autoconnect-slaves is read to determine the real value. If it is default as well, this fallbacks to 0.
+
+Deprecated 1.46. Use "autoconnect-ports" instead, this is just an alias.</td>
 </tr>
 <tr>
 <td><pre class="screen">controller</pre></td>
@@ -114,6 +116,12 @@ Depending on "connection.multi-connect", a profile can (auto)connect only once a
 The permitted values are: "yes" (2) use DNSOverTls and disabled fallback, "opportunistic" (1) use DNSOverTls but allow fallback to unencrypted resolution, "no" (0) don't ever use DNSOverTls. If unspecified "default" depends on the plugin used. Systemd-resolved uses global setting.
 
 This feature requires a plugin which supports DNSOverTls. Otherwise, the setting has no effect. One such plugin is dns-systemd-resolved.</td>
+</tr>
+<tr>
+<td><pre class="screen">down-on-poweroff</pre></td>
+<td><pre class="screen">int32</pre></td>
+<td><pre class="screen">-1</pre></td>
+<td>Whether the connection will be brought down before the system is powered off.  The default value is -1 (default). When the default value is specified, then the global value from NetworkManager configuration is looked up, if not set, it is considered as 0 (no).</td>
 </tr>
 <tr>
 <td><pre class="screen">gateway-ping-timeout</pre></td>
@@ -167,9 +175,9 @@ Deprecated 1.46. Use "controller" instead, this is just an alias.</td>
 <td><pre class="screen">-1</pre></td>
 <td>Whether mDNS is enabled for the connection.
 
-The permitted values are: "yes" (2) register hostname and resolving for the connection, "no" (0) disable mDNS for the interface, "resolve" (1) do not register hostname but allow resolving of mDNS host names and "default" (-1) to allow lookup of a global default in NetworkManager.conf. If unspecified, "default" ultimately depends on the DNS plugin (which for systemd-resolved currently means "no").
+The permitted values are: "yes" (2) register hostname and resolving for the connection, "no" (0) disable mDNS for the interface, "resolve" (1) do not register hostname but allow resolving of mDNS host names and "default" (-1) to allow lookup of a global default in NetworkManager.conf. If unspecified, "default" ultimately depends on the DNS plugin.
 
-This feature requires a plugin which supports mDNS. Otherwise, the setting has no effect. One such plugin is dns-systemd-resolved.</td>
+This feature requires a plugin which supports mDNS. Otherwise, the setting has no effect. Currently the only supported DNS plugin is systemd-resolved. For systemd-resolved, the default is configurable via MulticastDNS= setting in resolved.conf.</td>
 </tr>
 <tr>
 <td><pre class="screen">metered</pre></td>
