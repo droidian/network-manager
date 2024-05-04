@@ -1,8 +1,10 @@
-network-manager (1.47.90-1) UNRELEASED; urgency=medium
+network-manager (1.47.90-1) experimental; urgency=medium
 
   * New upstream version 1.47.90 (1.48 rc1)
+  * Rebase patches
+  * Update symbols file for libnm0
 
- -- Michael Biebl <biebl@debian.org>  Sun, 05 May 2024 00:07:49 +0200
+ -- Michael Biebl <biebl@debian.org>  Sun, 05 May 2024 00:18:50 +0200
 
 network-manager (1.46.0-2) unstable; urgency=medium
 
