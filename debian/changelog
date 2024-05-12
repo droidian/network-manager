@@ -1,3 +1,16 @@
+network-manager (1.47.90-2) experimental; urgency=medium
+
+  * Switch to Meson as build system
+  * Add libdbus-1-dev to Build-Depends.
+    Required for getting datadir, interfaces_dir and
+    system_bus_services_dir.
+  * Add libpolkit-gobject-1-dev to Build-Depends.
+    Required for getting policydir.
+  * Add mobile-broadband-provider-info to Build-Depends.
+    Required for getting database path.
+
+ -- Michael Biebl <biebl@debian.org>  Sun, 12 May 2024 22:22:41 +0200
+
 network-manager (1.47.90-1) experimental; urgency=medium
 
   * New upstream version 1.47.90 (1.48 rc1)
