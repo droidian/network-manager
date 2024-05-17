@@ -8,7 +8,7 @@
 <link rel="up" href="ch05.html" title="Utility API Reference">
 <link rel="prev" href="ch05.html" title="Utility API Reference">
 <link rel="next" href="libnm-nm-utils.html" title="nm-utils">
-<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.34.0 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -42,7 +42,7 @@
 <tbody>
 <tr>
 <td class="function_type">
-<a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
+<span class="returnvalue">gboolean</span>
 </td>
 <td class="function_name">
 <span class="c_punctuation">(</span><a class="link" href="libnm-nm-keyfile.html#NMKeyfileReadHandler" title="NMKeyfileReadHandler ()">*NMKeyfileReadHandler</a><span class="c_punctuation">)</span> <span class="c_punctuation">()</span>
@@ -58,7 +58,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
+<span class="returnvalue">gboolean</span>
 </td>
 <td class="function_name">
 <span class="c_punctuation">(</span><a class="link" href="libnm-nm-keyfile.html#NMKeyfileWriteHandler" title="NMKeyfileWriteHandler ()">*NMKeyfileWriteHandler</a><span class="c_punctuation">)</span> <span class="c_punctuation">()</span>
@@ -66,7 +66,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<a href="../glib/glib-Key-value-file-parser.html#GKeyFile"><span class="returnvalue">GKeyFile</span></a> *
+<span class="returnvalue">GKeyFile</span> *
 </td>
 <td class="function_name">
 <a class="link" href="libnm-nm-keyfile.html#nm-keyfile-write" title="nm_keyfile_write ()">nm_keyfile_write</a> <span class="c_punctuation">()</span>
@@ -142,8 +142,8 @@
 <a name="libnm-nm-keyfile.functions_details"></a><h2>Functions</h2>
 <div class="refsect2">
 <a name="NMKeyfileReadHandler"></a><h3>NMKeyfileReadHandler ()</h3>
-<pre class="programlisting"><a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
-<span class="c_punctuation">(</span>*NMKeyfileReadHandler<span class="c_punctuation">)</span> (<em class="parameter"><code><a href="../glib/glib-Key-value-file-parser.html#GKeyFile"><span class="type">GKeyFile</span></a> *keyfile</code></em>,
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+<span class="c_punctuation">(</span>*NMKeyfileReadHandler<span class="c_punctuation">)</span> (<em class="parameter"><code><span class="type">GKeyFile</span> *keyfile</code></em>,
                          <em class="parameter"><code><a class="link" href="NMConnection.html" title="NMConnection"><span class="type">NMConnection</span></a> *connection</code></em>,
                          <em class="parameter"><code><a class="link" href="libnm-nm-keyfile.html#NMKeyfileHandlerType" title="enum NMKeyfileHandlerType"><span class="type">NMKeyfileHandlerType</span></a> handler_type</code></em>,
                          <em class="parameter"><code><a class="link" href="libnm-nm-keyfile.html#NMKeyfileHandlerData" title="NMKeyfileHandlerData"><span class="type">NMKeyfileHandlerData</span></a> *handler_data</code></em>,
@@ -161,7 +161,7 @@
 <tbody>
 <tr>
 <td class="parameter_name"><p>keyfile</p></td>
-<td class="parameter_description"><p>the <a href="../glib/glib-Key-value-file-parser.html#GKeyFile"><span class="type">GKeyFile</span></a> that is currently read</p></td>
+<td class="parameter_description"><p>the <span class="type">GKeyFile</span> that is currently read</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 <tr>
@@ -203,12 +203,12 @@ For <a class="link" href="libnm-nm-keyfile.html#NM-KEYFILE-HANDLER-TYPE-WARN:CAP
 <div class="refsect2">
 <a name="nm-keyfile-read"></a><h3>nm_keyfile_read ()</h3>
 <pre class="programlisting"><a class="link" href="NMConnection.html" title="NMConnection"><span class="returnvalue">NMConnection</span></a> *
-nm_keyfile_read (<em class="parameter"><code><a href="../glib/glib-Key-value-file-parser.html#GKeyFile"><span class="type">GKeyFile</span></a> *keyfile</code></em>,
+nm_keyfile_read (<em class="parameter"><code><span class="type">GKeyFile</span> *keyfile</code></em>,
                  <em class="parameter"><code>const <span class="type">char</span> *base_dir</code></em>,
                  <em class="parameter"><code><a class="link" href="libnm-nm-keyfile.html#NMKeyfileHandlerFlags" title="enum NMKeyfileHandlerFlags"><span class="type">NMKeyfileHandlerFlags</span></a> handler_flags</code></em>,
                  <em class="parameter"><code><a class="link" href="libnm-nm-keyfile.html#NMKeyfileReadHandler" title="NMKeyfileReadHandler ()"><span class="type">NMKeyfileReadHandler</span></a> handler</code></em>,
                  <em class="parameter"><code><span class="type">void</span> *user_data</code></em>,
-                 <em class="parameter"><code><a href="../glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
+                 <em class="parameter"><code><span class="type">GError</span> **error</code></em>);</pre>
 <p>Tries to create a NMConnection from a keyfile. The resulting keyfile is
 not normalized and might not even verify.</p>
 <div class="refsect3">
@@ -266,9 +266,9 @@ be an absolute path.</p></td>
 <hr>
 <div class="refsect2">
 <a name="NMKeyfileWriteHandler"></a><h3>NMKeyfileWriteHandler ()</h3>
-<pre class="programlisting"><a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
 <span class="c_punctuation">(</span>*NMKeyfileWriteHandler<span class="c_punctuation">)</span> (<em class="parameter"><code><a class="link" href="NMConnection.html" title="NMConnection"><span class="type">NMConnection</span></a> *connection</code></em>,
-                          <em class="parameter"><code><a href="../glib/glib-Key-value-file-parser.html#GKeyFile"><span class="type">GKeyFile</span></a> *keyfile</code></em>,
+                          <em class="parameter"><code><span class="type">GKeyFile</span> *keyfile</code></em>,
                           <em class="parameter"><code><a class="link" href="libnm-nm-keyfile.html#NMKeyfileHandlerType" title="enum NMKeyfileHandlerType"><span class="type">NMKeyfileHandlerType</span></a> handler_type</code></em>,
                           <em class="parameter"><code><a class="link" href="libnm-nm-keyfile.html#NMKeyfileHandlerData" title="NMKeyfileHandlerData"><span class="type">NMKeyfileHandlerData</span></a> *handler_data</code></em>,
                           <em class="parameter"><code><span class="type">void</span> *user_data</code></em>);</pre>
@@ -297,7 +297,7 @@ the writing with error.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>keyfile</p></td>
-<td class="parameter_description"><p>the <a href="../glib/glib-Key-value-file-parser.html#GKeyFile"><span class="type">GKeyFile</span></a> that is currently constructed.</p></td>
+<td class="parameter_description"><p>the <span class="type">GKeyFile</span> that is currently constructed.</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 <tr>
@@ -323,7 +323,7 @@ depends on the <em class="parameter"><code>handler_type</code></em>
 </div>
 <div class="refsect3">
 <a name="NMKeyfileWriteHandler.returns"></a><h4>Returns</h4>
-<p> the callee should return <a href="../glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the event was handled. If the
+<p> the callee should return <code class="literal">TRUE</code> if the event was handled. If the
 event was unhandled, a default action will be performed that depends on
 the <em class="parameter"><code>handler_type</code></em>
 .</p>
@@ -333,12 +333,12 @@ the <em class="parameter"><code>handler_type</code></em>
 <hr>
 <div class="refsect2">
 <a name="nm-keyfile-write"></a><h3>nm_keyfile_write ()</h3>
-<pre class="programlisting"><a href="../glib/glib-Key-value-file-parser.html#GKeyFile"><span class="returnvalue">GKeyFile</span></a> *
+<pre class="programlisting"><span class="returnvalue">GKeyFile</span> *
 nm_keyfile_write (<em class="parameter"><code><a class="link" href="NMConnection.html" title="NMConnection"><span class="type">NMConnection</span></a> *connection</code></em>,
                   <em class="parameter"><code><a class="link" href="libnm-nm-keyfile.html#NMKeyfileHandlerFlags" title="enum NMKeyfileHandlerFlags"><span class="type">NMKeyfileHandlerFlags</span></a> handler_flags</code></em>,
                   <em class="parameter"><code><a class="link" href="libnm-nm-keyfile.html#NMKeyfileWriteHandler" title="NMKeyfileWriteHandler ()"><span class="type">NMKeyfileWriteHandler</span></a> handler</code></em>,
                   <em class="parameter"><code><span class="type">void</span> *user_data</code></em>,
-                  <em class="parameter"><code><a href="../glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
+                  <em class="parameter"><code><span class="type">GError</span> **error</code></em>);</pre>
 <p><em class="parameter"><code>connection</code></em>
  should verify as a valid profile according to
 <a class="link" href="NMConnection.html#nm-connection-verify" title="nm_connection_verify ()"><code class="function">nm_connection_verify()</code></a>. If it does not verify, the keyfile may
@@ -377,7 +377,7 @@ to override the default behavior. </p></td>
 </tr>
 <tr>
 <td class="parameter_name"><p>error</p></td>
-<td class="parameter_description"><p>the <a href="../glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> in case writing fails.</p></td>
+<td class="parameter_description"><p>the <span class="type">GError</span> in case writing fails.</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -385,7 +385,7 @@ to override the default behavior. </p></td>
 </div>
 <div class="refsect3">
 <a name="nm-keyfile-write.returns"></a><h4>Returns</h4>
-<p>a new <a href="../glib/glib-Key-value-file-parser.html#GKeyFile"><span class="type">GKeyFile</span></a> or <a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> on error. </p>
+<p>a new <span class="type">GKeyFile</span> or <code class="literal">NULL</code> on error. </p>
 <p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.30</p>
@@ -396,14 +396,14 @@ to override the default behavior. </p></td>
 <pre class="programlisting"><span class="returnvalue">void</span>
 nm_keyfile_handler_data_fail_with_error
                                (<em class="parameter"><code><a class="link" href="libnm-nm-keyfile.html#NMKeyfileHandlerData" title="NMKeyfileHandlerData"><span class="type">NMKeyfileHandlerData</span></a> *handler_data</code></em>,
-                                <em class="parameter"><code><a href="../glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> *src</code></em>);</pre>
+                                <em class="parameter"><code><span class="type">GError</span> *src</code></em>);</pre>
 <p>Set the error for the handler. This lets the operation fail
 with the provided error. You may only set the error once.</p>
 <p><em class="parameter"><code>src</code></em>
- must be non-<a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>.</p>
+ must be non-<code class="literal">NULL</code>.</p>
 <p>Note that <em class="parameter"><code>src</code></em>
  is no longer valid after this call. If you want
-to keep using the same GError*, you need to set it to <a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>
+to keep using the same GError*, you need to set it to <code class="literal">NULL</code>
 after calling this function on it.</p>
 <div class="refsect3">
 <a name="nm-keyfile-handler-data-fail-with-error.parameters"></a><h4>Parameters</h4>
@@ -637,6 +637,6 @@ depends on the <a class="link" href="libnm-nm-keyfile.html#NMKeyfileHandlerType"
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.33.1</div>
+<hr>Generated by GTK-Doc V1.34.0</div>
 </body>
 </html>

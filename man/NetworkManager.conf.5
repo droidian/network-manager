@@ -2,12 +2,12 @@
 .\"     Title: NetworkManager.conf
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 05/03/2024
+.\"      Date: 05/16/2024
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.47.90
+.\"    Source: NetworkManager 1.47.91
 .\"  Language: English
 .\"
-.TH "NETWORKMANAGER\&.CONF" "5" "" "NetworkManager 1\&.47\&.90" "Configuration"
+.TH "NETWORKMANAGER\&.CONF" "5" "" "NetworkManager 1\&.47\&.91" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -984,21 +984,21 @@ If unspecified or zero, use 50 for VPN profiles and 100 for other profiles\&.
 .RS 4
 If
 ipv6\&.ip6\-privacy
-is unset, fall back to the original value of "/proc/sys/net/ipv6/conf/<iface>/use_tempaddr" from before NetworkManager started\&.
+is unset, use the content of "/proc/sys/net/ipv6/conf/default/use_tempaddr" as last fallback\&.
 .RE
 .PP
 \fIipv6\&.temp\-valid\-lifetime\fR
 .RS 4
 If
 ipv6\&.temp\-valid\-lifetime
-is unset, fall back to the original value of "/proc/sys/net/ipv6/conf/<iface>/temp_valid_lft" from before NetworkManager started\&.
+is unset, use the content of "/proc/sys/net/ipv6/conf/default/temp_valid_lft" as last fallback\&.
 .RE
 .PP
 \fIipv6\&.temp\-preferred\-lifetime\fR
 .RS 4
 If
 ipv6\&.temp\-preferred\-lifetime
-is unset, fall back to the original value of "/proc/sys/net/ipv6/conf/<iface>/temp_prefered_lft" from before NetworkManager started\&.
+is unset, use the content of "/proc/sys/net/ipv6/conf/default/temp_prefered_lft" as last fallback\&.
 .RE
 .PP
 \fIipv6\&.required\-timeout\fR
