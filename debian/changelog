@@ -1,3 +1,9 @@
+network-manager (1.47.91-1) UNRELEASED; urgency=medium
+
+  * New upstream version 1.47.91 (1.48 rc2)
+
+ -- Michael Biebl <biebl@debian.org>  Fri, 17 May 2024 11:39:13 +0200
+
 network-manager (1.47.90-2) experimental; urgency=medium
 
   * Switch to Meson as build system
