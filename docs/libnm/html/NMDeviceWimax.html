@@ -8,7 +8,7 @@
 <link rel="up" href="ch04.html" title="Device and Runtime Configuration API Reference">
 <link rel="prev" href="NMDeviceWifi.html" title="NMDeviceWifi">
 <link rel="next" href="NMDeviceWireGuard.html" title="NMDeviceWireGuard">
-<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.34.0 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -66,7 +66,7 @@
 </td>
 </tr>
 <tr>
-<td class="function_type">const <a href="../glib/glib-Pointer-Arrays.html#GPtrArray"><span class="returnvalue">GPtrArray</span></a> *
+<td class="function_type">const <span class="returnvalue">GPtrArray</span> *
 </td>
 <td class="function_name">
 <a class="link" href="NMDeviceWimax.html#nm-device-wimax-get-nsps" title="nm_device_wimax_get_nsps ()">nm_device_wimax_get_nsps</a> <span class="c_punctuation">()</span>
@@ -74,7 +74,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<a href="../glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>
+<span class="returnvalue">guint</span>
 </td>
 <td class="function_name">
 <a class="link" href="NMDeviceWimax.html#nm-device-wimax-get-center-frequency" title="nm_device_wimax_get_center_frequency ()">nm_device_wimax_get_center_frequency</a> <span class="c_punctuation">()</span>
@@ -136,7 +136,7 @@
 <td class="property_flags">Read</td>
 </tr>
 <tr>
-<td class="property_type"><a href="../glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a></td>
+<td class="property_type"><span class="type">guint</span></td>
 <td class="property_name"><a class="link" href="NMDeviceWimax.html#NMDeviceWimax--center-frequency" title="The “center-frequency” property">center-frequency</a></td>
 <td class="property_flags">Read</td>
 </tr>
@@ -153,7 +153,7 @@
 </tr>
 <tr>
 <td class="property_type">
-<a href="../glib/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> *</td>
+<span class="type">GPtrArray</span> *</td>
 <td class="property_name"><a class="link" href="NMDeviceWimax.html#NMDeviceWimax--nsps" title="The “nsps” property">nsps</a></td>
 <td class="property_flags">Read</td>
 </tr>
@@ -182,12 +182,12 @@
 <tr>
 <td class="signal_type"><span class="returnvalue">void</span></td>
 <td class="signal_name"><a class="link" href="NMDeviceWimax.html#NMDeviceWimax-nsp-added" title="The “nsp-added” signal">nsp-added</a></td>
-<td class="signal_flags"><a href="../gobject/gobject-Signals.html#G-SIGNAL-RUN-FIRST:CAPS">Run First</a></td>
+<td class="signal_flags">Run First</td>
 </tr>
 <tr>
 <td class="signal_type"><span class="returnvalue">void</span></td>
 <td class="signal_name"><a class="link" href="NMDeviceWimax.html#NMDeviceWimax-nsp-removed" title="The “nsp-removed” signal">nsp-removed</a></td>
-<td class="signal_flags"><a href="../gobject/gobject-Signals.html#G-SIGNAL-RUN-FIRST:CAPS">Run First</a></td>
+<td class="signal_flags">Run First</td>
 </tr>
 </tbody>
 </table></div>
@@ -241,7 +241,7 @@
 </div>
 <div class="refsect1">
 <a name="NMDeviceWimax.object-hierarchy"></a><h2>Object Hierarchy</h2>
-<pre class="screen">    <a href="../gobject/gobject-The-Base-Object-Type.html#GObject-struct">GObject</a>
+<pre class="screen">    GObject
     <span class="lineart">╰──</span> <a class="link" href="NMObject.html" title="NMObject">NMObject</a>
         <span class="lineart">╰──</span> <a class="link" href="NMDevice.html" title="NMDevice">NMDevice</a>
             <span class="lineart">╰──</span> NMDeviceWimax
@@ -309,7 +309,7 @@ nm_device_wimax_get_active_nsp (<em class="parameter"><code><a class="link" href
 </div>
 <div class="refsect3">
 <a name="nm-device-wimax-get-active-nsp.returns"></a><h4>Returns</h4>
-<p>the access point or <a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if none is active. </p>
+<p>the access point or <code class="literal">NULL</code> if none is active. </p>
 <p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 </div>
@@ -348,14 +348,14 @@ nm_device_wimax_get_nsp_by_path (<em class="parameter"><code><a class="link" hre
 </div>
 <div class="refsect3">
 <a name="nm-device-wimax-get-nsp-by-path.returns"></a><h4>Returns</h4>
-<p>the access point or <a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if none is found. </p>
+<p>the access point or <code class="literal">NULL</code> if none is found. </p>
 <p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
 <div class="refsect2">
 <a name="nm-device-wimax-get-nsps"></a><h3>nm_device_wimax_get_nsps ()</h3>
-<pre class="programlisting">const <a href="../glib/glib-Pointer-Arrays.html#GPtrArray"><span class="returnvalue">GPtrArray</span></a> *
+<pre class="programlisting">const <span class="returnvalue">GPtrArray</span> *
 nm_device_wimax_get_nsps (<em class="parameter"><code><a class="link" href="NMDeviceWimax.html" title="NMDeviceWimax"><span class="type">NMDeviceWimax</span></a> *wimax</code></em>);</pre>
 <div class="warning">
 <p><code class="literal">nm_device_wimax_get_nsps</code> has been deprecated since version 1.2 and should not be used in newly-written code.</p>
@@ -379,7 +379,7 @@ nm_device_wimax_get_nsps (<em class="parameter"><code><a class="link" href="NMDe
 </div>
 <div class="refsect3">
 <a name="nm-device-wimax-get-nsps.returns"></a><h4>Returns</h4>
-<p>a <a href="../glib/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> containing
+<p>a <span class="type">GPtrArray</span> containing
 all the scanned <a href="NMWimaxNsp.html#NMWimaxNsp-struct"><span class="type">NMWimaxNsps</span></a>.
 The returned array is owned by the client and should not be modified. </p>
 <p><span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMWimaxNsp]</span></p>
@@ -388,7 +388,7 @@ The returned array is owned by the client and should not be modified. </p>
 <hr>
 <div class="refsect2">
 <a name="nm-device-wimax-get-center-frequency"></a><h3>nm_device_wimax_get_center_frequency ()</h3>
-<pre class="programlisting"><a href="../glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>
+<pre class="programlisting"><span class="returnvalue">guint</span>
 nm_device_wimax_get_center_frequency (<em class="parameter"><code><a class="link" href="NMDeviceWimax.html" title="NMDeviceWimax"><span class="type">NMDeviceWimax</span></a> *self</code></em>);</pre>
 <div class="warning">
 <p><code class="literal">nm_device_wimax_get_center_frequency</code> has been deprecated since version 1.2 and should not be used in newly-written code.</p>
@@ -541,7 +541,7 @@ nm_device_wimax_get_bsid (<em class="parameter"><code><a class="link" href="NMDe
 </div>
 <div class="refsect3">
 <a name="nm-device-wimax-get-bsid.returns"></a><h4>Returns</h4>
-<p> the ID of the serving Base Station, or <a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a></p>
+<p> the ID of the serving Base Station, or <code class="literal">NULL</code></p>
 </div>
 </div>
 </div>
@@ -634,7 +634,7 @@ no meaning when the device is not connected.</p>
 <hr>
 <div class="refsect2">
 <a name="NMDeviceWimax--center-frequency"></a><h3>The <code class="literal">“center-frequency”</code> property</h3>
-<pre class="programlisting">  “center-frequency”         <a href="../glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a></pre>
+<pre class="programlisting">  “center-frequency”         <span class="type">guint</span></pre>
 <p>The center frequency (in KHz) of the radio channel the device is using to
 communicate with the network when connected.  Has no meaning when the
 device is not connected.</p>
@@ -677,7 +677,7 @@ meaning when the device is not connected.</p>
 <hr>
 <div class="refsect2">
 <a name="NMDeviceWimax--nsps"></a><h3>The <code class="literal">“nsps”</code> property</h3>
-<pre class="programlisting">  “nsps”                     <a href="../glib/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> *</pre>
+<pre class="programlisting">  “nsps”                     <span class="type">GPtrArray</span> *</pre>
 <p>List of all WiMAX Network Service Providers the device can see.</p>
 <p><span class="annotation">[<acronym title="Override the parsed C type with given type."><span class="acronym">type</span></acronym> GPtrArray(NMWimaxNsp)]</span></p>
 <p>Owner: NMDeviceWimax</p>
@@ -721,8 +721,8 @@ device is not connected.</p>
 <a name="NMDeviceWimax-nsp-added"></a><h3>The <code class="literal">“nsp-added”</code> signal</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>
 user_function (<a class="link" href="NMDeviceWimax.html" title="NMDeviceWimax"><span class="type">NMDeviceWimax</span></a> *self,
-               <a href="../gobject/gobject-The-Base-Object-Type.html#GObject-struct"><span class="type">GObject</span></a>       *nsp,
-               <a href="../glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>       user_data)</pre>
+               <span class="type">GObject</span>       *nsp,
+               <span class="type">gpointer</span>       user_data)</pre>
 <p>Notifies that a <a class="link" href="NMWimaxNsp.html" title="NMWimaxNsp"><span class="type">NMWimaxNsp</span></a> is added to the wimax device.</p>
 <div class="warning">
 <p><code class="literal">NMDeviceWimax::nsp-added</code> has been deprecated since version 1.2 and should not be used in newly-written code.</p>
@@ -755,15 +755,15 @@ user_function (<a class="link" href="NMDeviceWimax.html" title="NMDeviceWimax"><
 </tbody>
 </table></div>
 </div>
-<p>Flags: <a href="../gobject/gobject-Signals.html#G-SIGNAL-RUN-FIRST:CAPS">Run First</a></p>
+<p>Flags: Run First</p>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NMDeviceWimax-nsp-removed"></a><h3>The <code class="literal">“nsp-removed”</code> signal</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>
 user_function (<a class="link" href="NMDeviceWimax.html" title="NMDeviceWimax"><span class="type">NMDeviceWimax</span></a> *self,
-               <a href="../gobject/gobject-The-Base-Object-Type.html#GObject-struct"><span class="type">GObject</span></a>       *nsp,
-               <a href="../glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>       user_data)</pre>
+               <span class="type">GObject</span>       *nsp,
+               <span class="type">gpointer</span>       user_data)</pre>
 <p>Notifies that a <a class="link" href="NMWimaxNsp.html" title="NMWimaxNsp"><span class="type">NMWimaxNsp</span></a> is removed from the wimax device.</p>
 <div class="warning">
 <p><code class="literal">NMDeviceWimax::nsp-removed</code> has been deprecated since version 1.2 and should not be used in newly-written code.</p>
@@ -796,11 +796,11 @@ user_function (<a class="link" href="NMDeviceWimax.html" title="NMDeviceWimax"><
 </tbody>
 </table></div>
 </div>
-<p>Flags: <a href="../gobject/gobject-Signals.html#G-SIGNAL-RUN-FIRST:CAPS">Run First</a></p>
+<p>Flags: Run First</p>
 </div>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.33.1</div>
+<hr>Generated by GTK-Doc V1.34.0</div>
 </body>
 </html>
