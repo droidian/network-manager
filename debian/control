@@ -6,7 +6,6 @@ Uploaders: Michael Biebl <biebl@debian.org>
 Build-Depends: debhelper-compat (= 13),
                debhelper (>= 13.11.6),
                dh-sequence-gir,
-               automake (>= 1.12),
                meson (>= 0.51.0),
                pkgconf,
                gettext (>= 0.19.8),
