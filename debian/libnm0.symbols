@@ -37,7 +37,7 @@ libnm.so.0 libnm0 #MINVER#
  libnm_1_42_2@libnm_1_42_2 1.42.2
  libnm_1_44_0@libnm_1_44_0 1.44.0
  libnm_1_46_0@libnm_1_46_0 1.46.0
- libnm_1_48_0@libnm_1_48_0 1.47.90
+ libnm_1_48_0@libnm_1_48_0 1.48.0
  libnm_1_4_0@libnm_1_4_0 1.4.0
  libnm_1_6_0@libnm_1_6_0 1.6.0
  libnm_1_8_0@libnm_1_8_0 1.8.0
@@ -750,7 +750,7 @@ libnm.so.0 libnm0 #MINVER#
  nm_setting_802_1x_get_num_altsubject_matches@libnm_1_0_0 1.0.0
  nm_setting_802_1x_get_num_eap_methods@libnm_1_0_0 1.0.0
  nm_setting_802_1x_get_num_phase2_altsubject_matches@libnm_1_0_0 1.0.0
- nm_setting_802_1x_get_openssl_ciphers@libnm_1_48_0 1.47.90
+ nm_setting_802_1x_get_openssl_ciphers@libnm_1_48_0 1.48.0
  nm_setting_802_1x_get_optional@libnm_1_20_6 1.20.6
  nm_setting_802_1x_get_pac_file@libnm_1_0_0 1.0.0
  nm_setting_802_1x_get_password@libnm_1_0_0 1.0.0
@@ -899,7 +899,7 @@ libnm.so.0 libnm0 #MINVER#
  nm_setting_connection_autoconnect_slaves_get_type@libnm_1_0_4 1.0.4
  nm_setting_connection_autoconnect_slaves_get_type@libnm_1_2_0 1.2.0
  nm_setting_connection_dns_over_tls_get_type@libnm_1_34_0 1.34.0
- nm_setting_connection_down_on_poweroff_get_type@libnm_1_48_0 1.47.90
+ nm_setting_connection_down_on_poweroff_get_type@libnm_1_48_0 1.48.0
  nm_setting_connection_get_auth_retries@libnm_1_10_0 1.10.0
  nm_setting_connection_get_autoconnect@libnm_1_0_0 1.0.0
  nm_setting_connection_get_autoconnect_ports@libnm_1_46_0 1.46.0
@@ -910,7 +910,7 @@ libnm.so.0 libnm0 #MINVER#
  nm_setting_connection_get_connection_type@libnm_1_0_0 1.0.0
  nm_setting_connection_get_controller@libnm_1_46_0 1.46.0
  nm_setting_connection_get_dns_over_tls@libnm_1_34_0 1.34.0
- nm_setting_connection_get_down_on_poweroff@libnm_1_46_0 1.47.90
+ nm_setting_connection_get_down_on_poweroff@libnm_1_46_0 1.48.0
  nm_setting_connection_get_gateway_ping_timeout@libnm_1_0_0 1.0.0
  nm_setting_connection_get_id@libnm_1_0_0 1.0.0
  nm_setting_connection_get_interface_name@libnm_1_0_0 1.0.0
@@ -1045,8 +1045,8 @@ libnm.so.0 libnm0 #MINVER#
  nm_setting_ip6_config_get_ip6_privacy@libnm_1_0_0 1.0.0
  nm_setting_ip6_config_get_mtu@libnm_1_40_0 1.40.0
  nm_setting_ip6_config_get_ra_timeout@libnm_1_22_8 1.22.8
- nm_setting_ip6_config_get_temp_preferred_lifetime@libnm_1_48_0 1.47.90
- nm_setting_ip6_config_get_temp_valid_lifetime@libnm_1_48_0 1.47.90
+ nm_setting_ip6_config_get_temp_preferred_lifetime@libnm_1_48_0 1.48.0
+ nm_setting_ip6_config_get_temp_valid_lifetime@libnm_1_48_0 1.48.0
  nm_setting_ip6_config_get_token@libnm_1_4_0 1.4.0
  nm_setting_ip6_config_get_type@libnm_1_0_0 1.0.0
  nm_setting_ip6_config_new@libnm_1_0_0 1.0.0
@@ -1074,7 +1074,7 @@ libnm.so.0 libnm0 #MINVER#
  nm_setting_ip_config_get_dhcp_iaid@libnm_1_40_4 1.40.4
  nm_setting_ip_config_get_dhcp_reject_servers@libnm_1_28_0 1.28.0
  nm_setting_ip_config_get_dhcp_send_hostname@libnm_1_0_0 1.0.0
- nm_setting_ip_config_get_dhcp_send_release@libnm_1_48_0 1.47.90
+ nm_setting_ip_config_get_dhcp_send_release@libnm_1_48_0 1.48.0
  nm_setting_ip_config_get_dhcp_timeout@libnm_1_2_0 1.1.91
  nm_setting_ip_config_get_dns@libnm_1_0_0 1.0.0
  nm_setting_ip_config_get_dns_option@libnm_1_2_0 1.2.0
@@ -1449,10 +1449,10 @@ libnm.so.0 libnm0 #MINVER#
  nm_setting_wimax_get_type@libnm_1_0_0 1.0.0
  nm_setting_wimax_new@libnm_1_0_0 1.0.0
  nm_setting_wired_add_mac_blacklist_item@libnm_1_0_0 1.0.0
- nm_setting_wired_add_mac_denylist_item@libnm_1_48_0 1.47.90
+ nm_setting_wired_add_mac_denylist_item@libnm_1_48_0 1.48.0
  nm_setting_wired_add_s390_option@libnm_1_0_0 1.0.0
  nm_setting_wired_clear_mac_blacklist_items@libnm_1_0_0 1.0.0
- nm_setting_wired_clear_mac_denylist_items@libnm_1_48_0 1.47.90
+ nm_setting_wired_clear_mac_denylist_items@libnm_1_48_0 1.48.0
  nm_setting_wired_get_accept_all_mac_addresses@libnm_1_32_0 1.32.12
  nm_setting_wired_get_auto_negotiate@libnm_1_0_0 1.0.0
  nm_setting_wired_get_cloned_mac_address@libnm_1_0_0 1.0.0
@@ -1460,12 +1460,12 @@ libnm.so.0 libnm0 #MINVER#
  nm_setting_wired_get_generate_mac_address_mask@libnm_1_4_0 1.4.0
  nm_setting_wired_get_mac_address@libnm_1_0_0 1.0.0
  nm_setting_wired_get_mac_address_blacklist@libnm_1_0_0 1.0.0
- nm_setting_wired_get_mac_address_denylist@libnm_1_48_0 1.47.90
+ nm_setting_wired_get_mac_address_denylist@libnm_1_48_0 1.48.0
  nm_setting_wired_get_mac_blacklist_item@libnm_1_0_0 1.0.0
- nm_setting_wired_get_mac_denylist_item@libnm_1_48_0 1.47.90
+ nm_setting_wired_get_mac_denylist_item@libnm_1_48_0 1.48.0
  nm_setting_wired_get_mtu@libnm_1_0_0 1.0.0
  nm_setting_wired_get_num_mac_blacklist_items@libnm_1_0_0 1.0.0
- nm_setting_wired_get_num_mac_denylist_items@libnm_1_48_0 1.47.90
+ nm_setting_wired_get_num_mac_denylist_items@libnm_1_48_0 1.48.0
  nm_setting_wired_get_num_s390_options@libnm_1_0_0 1.0.0
  nm_setting_wired_get_port@libnm_1_0_0 1.0.0
  nm_setting_wired_get_s390_nettype@libnm_1_0_0 1.0.0
@@ -1482,8 +1482,8 @@ libnm.so.0 libnm0 #MINVER#
  nm_setting_wired_new@libnm_1_0_0 1.0.0
  nm_setting_wired_remove_mac_blacklist_item@libnm_1_0_0 1.0.0
  nm_setting_wired_remove_mac_blacklist_item_by_value@libnm_1_0_0 1.0.0
- nm_setting_wired_remove_mac_denylist_item@libnm_1_48_0 1.47.90
- nm_setting_wired_remove_mac_denylist_item_by_value@libnm_1_48_0 1.47.90
+ nm_setting_wired_remove_mac_denylist_item@libnm_1_48_0 1.48.0
+ nm_setting_wired_remove_mac_denylist_item_by_value@libnm_1_48_0 1.48.0
  nm_setting_wired_remove_s390_option@libnm_1_0_0 1.0.0
  nm_setting_wired_wake_on_lan_get_type@libnm_1_0_6 1.0.6
  nm_setting_wired_wake_on_lan_get_type@libnm_1_2_0 1.2.0
@@ -1505,11 +1505,11 @@ libnm.so.0 libnm0 #MINVER#
  nm_setting_wireguard_remove_peer@libnm_1_16_0 1.16.0
  nm_setting_wireguard_set_peer@libnm_1_16_0 1.16.0
  nm_setting_wireless_add_mac_blacklist_item@libnm_1_0_0 1.0.0
- nm_setting_wireless_add_mac_denylist_item@libnm_1_48_0 1.47.90
+ nm_setting_wireless_add_mac_denylist_item@libnm_1_48_0 1.48.0
  nm_setting_wireless_add_seen_bssid@libnm_1_0_0 1.0.0
  nm_setting_wireless_ap_security_compatible@libnm_1_0_0 1.0.0
  nm_setting_wireless_clear_mac_blacklist_items@libnm_1_0_0 1.0.0
- nm_setting_wireless_clear_mac_denylist_items@libnm_1_48_0 1.47.90
+ nm_setting_wireless_clear_mac_denylist_items@libnm_1_48_0 1.48.0
  nm_setting_wireless_get_ap_isolation@libnm_1_28_0 1.28.0
  nm_setting_wireless_get_band@libnm_1_0_0 1.0.0
  nm_setting_wireless_get_bssid@libnm_1_0_0 1.0.0
@@ -1519,14 +1519,14 @@ libnm.so.0 libnm0 #MINVER#
  nm_setting_wireless_get_hidden@libnm_1_0_0 1.0.0
  nm_setting_wireless_get_mac_address@libnm_1_0_0 1.0.0
  nm_setting_wireless_get_mac_address_blacklist@libnm_1_0_0 1.0.0
- nm_setting_wireless_get_mac_address_denylist@libnm_1_48_0 1.47.90
+ nm_setting_wireless_get_mac_address_denylist@libnm_1_48_0 1.48.0
  nm_setting_wireless_get_mac_address_randomization@libnm_1_2_0 1.2.0
  nm_setting_wireless_get_mac_blacklist_item@libnm_1_0_0 1.0.0
- nm_setting_wireless_get_mac_denylist_item@libnm_1_48_0 1.47.90
+ nm_setting_wireless_get_mac_denylist_item@libnm_1_48_0 1.48.0
  nm_setting_wireless_get_mode@libnm_1_0_0 1.0.0
  nm_setting_wireless_get_mtu@libnm_1_0_0 1.0.0
  nm_setting_wireless_get_num_mac_blacklist_items@libnm_1_0_0 1.0.0
- nm_setting_wireless_get_num_mac_denylist_items@libnm_1_48_0 1.47.90
+ nm_setting_wireless_get_num_mac_denylist_items@libnm_1_48_0 1.48.0
  nm_setting_wireless_get_num_seen_bssids@libnm_1_0_0 1.0.0
  nm_setting_wireless_get_powersave@libnm_1_2_0 1.2.0
  nm_setting_wireless_get_rate@libnm_1_0_0 1.0.0
@@ -1539,8 +1539,8 @@ libnm.so.0 libnm0 #MINVER#
  nm_setting_wireless_powersave_get_type@libnm_1_2_0 1.1.91
  nm_setting_wireless_remove_mac_blacklist_item@libnm_1_0_0 1.0.0
  nm_setting_wireless_remove_mac_blacklist_item_by_value@libnm_1_0_0 1.0.0
- nm_setting_wireless_remove_mac_denylist_item@libnm_1_48_0 1.47.90
- nm_setting_wireless_remove_mac_denylist_item_by_value@libnm_1_48_0 1.47.90
+ nm_setting_wireless_remove_mac_denylist_item@libnm_1_48_0 1.48.0
+ nm_setting_wireless_remove_mac_denylist_item_by_value@libnm_1_48_0 1.48.0
  nm_setting_wireless_security_add_group@libnm_1_0_0 1.0.0
  nm_setting_wireless_security_add_pairwise@libnm_1_0_0 1.0.0
  nm_setting_wireless_security_add_proto@libnm_1_0_0 1.0.0
