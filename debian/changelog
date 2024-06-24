@@ -1,8 +1,9 @@
-network-manager (1.48.2-1) UNRELEASED; urgency=medium
+network-manager (1.48.2-1) unstable; urgency=medium
 
   * New upstream version 1.48.2
+  * Rebase patches
 
- -- Michael Biebl <biebl@debian.org>  Mon, 24 Jun 2024 12:29:45 +0200
+ -- Michael Biebl <biebl@debian.org>  Mon, 24 Jun 2024 15:02:02 +0200
 
 network-manager (1.48.0-1) unstable; urgency=medium
 
