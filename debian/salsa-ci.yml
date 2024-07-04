@@ -1,0 +1,7 @@
+include:
+  - https://salsa.debian.org/salsa-ci-team/pipeline/raw/master/salsa-ci.yml
+  - https://salsa.debian.org/salsa-ci-team/pipeline/raw/master/pipeline-jobs.yml
+
+variables:
+  # Blocked by https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=1030223
+  SALSA_CI_DISABLE_CROSSBUILD_ARM64: 'true'
