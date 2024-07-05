@@ -8,7 +8,7 @@
 <link rel="up" href="ch06.html" title="VPN Plugin API Reference">
 <link rel="prev" href="NMVpnServicePlugin.html" title="NMVpnServicePlugin">
 <link rel="next" href="NMVpnEditor.html" title="NMVpnEditor">
-<meta name="generator" content="GTK-Doc V1.34.0 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -107,7 +107,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<span class="returnvalue">gboolean</span>
+<a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 </td>
 <td class="function_name">
 <a class="link" href="NMVpnPluginInfo.html#nm-vpn-plugin-info-supports-hints" title="nm_vpn_plugin_info_supports_hints ()">nm_vpn_plugin_info_supports_hints</a> <span class="c_punctuation">()</span>
@@ -115,7 +115,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<span class="returnvalue">gboolean</span>
+<a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 </td>
 <td class="function_name">
 <a class="link" href="NMVpnPluginInfo.html#nm-vpn-plugin-info-supports-multiple" title="nm_vpn_plugin_info_supports_multiple ()">nm_vpn_plugin_info_supports_multiple</a> <span class="c_punctuation">()</span>
@@ -137,7 +137,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<span class="returnvalue">gboolean</span>
+<a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 </td>
 <td class="function_name">
 <a class="link" href="NMVpnPluginInfo.html#nm-vpn-plugin-info-validate-filename" title="nm_vpn_plugin_info_validate_filename ()">nm_vpn_plugin_info_validate_filename</a> <span class="c_punctuation">()</span>
@@ -145,7 +145,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<span class="returnvalue">GSList</span> *
+<a href="../glib/glib-Singly-Linked-Lists.html#GSList"><span class="returnvalue">GSList</span></a> *
 </td>
 <td class="function_name">
 <a class="link" href="NMVpnPluginInfo.html#nm-vpn-plugin-info-list-load" title="nm_vpn_plugin_info_list_load ()">nm_vpn_plugin_info_list_load</a> <span class="c_punctuation">()</span>
@@ -153,7 +153,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<span class="returnvalue">gboolean</span>
+<a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 </td>
 <td class="function_name">
 <a class="link" href="NMVpnPluginInfo.html#nm-vpn-plugin-info-list-add" title="nm_vpn_plugin_info_list_add ()">nm_vpn_plugin_info_list_add</a> <span class="c_punctuation">()</span>
@@ -161,7 +161,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<span class="returnvalue">gboolean</span>
+<a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 </td>
 <td class="function_name">
 <a class="link" href="NMVpnPluginInfo.html#nm-vpn-plugin-info-list-remove" title="nm_vpn_plugin_info_list_remove ()">nm_vpn_plugin_info_list_remove</a> <span class="c_punctuation">()</span>
@@ -278,7 +278,7 @@
 <a name="nm-vpn-plugin-info-new-from-file"></a><h3>nm_vpn_plugin_info_new_from_file ()</h3>
 <pre class="programlisting"><a class="link" href="NMVpnPluginInfo.html" title="NMVpnPluginInfo"><span class="returnvalue">NMVpnPluginInfo</span></a> *
 nm_vpn_plugin_info_new_from_file (<em class="parameter"><code>const <span class="type">char</span> *filename</code></em>,
-                                  <em class="parameter"><code><span class="type">GError</span> **error</code></em>);</pre>
+                                  <em class="parameter"><code><a href="../glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
 <p>Read the plugin info from file <em class="parameter"><code>filename</code></em>
 . Does not do
 any further verification on the file. You might want to check
@@ -307,7 +307,7 @@ file permissions and ownership of the file.</p>
 </div>
 <div class="refsect3">
 <a name="nm-vpn-plugin-info-new-from-file.returns"></a><h4>Returns</h4>
-<p> <code class="literal">NULL</code> if there is any error or a newly created
+<p> <a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if there is any error or a newly created
 <a class="link" href="NMVpnPluginInfo.html" title="NMVpnPluginInfo"><span class="type">NMVpnPluginInfo</span></a> instance.</p>
 </div>
 <p class="since">Since: 1.2</p>
@@ -317,8 +317,8 @@ file permissions and ownership of the file.</p>
 <a name="nm-vpn-plugin-info-new-with-data"></a><h3>nm_vpn_plugin_info_new_with_data ()</h3>
 <pre class="programlisting"><a class="link" href="NMVpnPluginInfo.html" title="NMVpnPluginInfo"><span class="returnvalue">NMVpnPluginInfo</span></a> *
 nm_vpn_plugin_info_new_with_data (<em class="parameter"><code>const <span class="type">char</span> *filename</code></em>,
-                                  <em class="parameter"><code><span class="type">GKeyFile</span> *keyfile</code></em>,
-                                  <em class="parameter"><code><span class="type">GError</span> **error</code></em>);</pre>
+                                  <em class="parameter"><code><a href="../glib/glib-Key-value-file-parser.html#GKeyFile"><span class="type">GKeyFile</span></a> *keyfile</code></em>,
+                                  <em class="parameter"><code><a href="../glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
 <p>This constructor does not read any data from file but
 takes instead a <em class="parameter"><code>keyfile</code></em>
  argument.</p>
@@ -397,7 +397,7 @@ must be present. </p></td>
 <div class="refsect3">
 <a name="nm-vpn-plugin-info-new-search-file.returns"></a><h4>Returns</h4>
 <p>a newly created instance of plugin info
-or <code class="literal">NULL</code> if no matching value was found. </p>
+or <a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if no matching value was found. </p>
 <p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>][<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.4</p>
@@ -424,7 +424,7 @@ nm_vpn_plugin_info_get_name (<em class="parameter"><code><a class="link" href="N
 </div>
 <div class="refsect3">
 <a name="nm-vpn-plugin-info-get-name.returns"></a><h4>Returns</h4>
-<p>the name. Cannot be <code class="literal">NULL</code>. </p>
+<p>the name. Cannot be <a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. </p>
 <p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.2</p>
@@ -451,7 +451,7 @@ nm_vpn_plugin_info_get_filename (<em class="parameter"><code><a class="link" hre
 </div>
 <div class="refsect3">
 <a name="nm-vpn-plugin-info-get-filename.returns"></a><h4>Returns</h4>
-<p>the filename. Can be <code class="literal">NULL</code>. </p>
+<p>the filename. Can be <a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. </p>
 <p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.2</p>
@@ -478,7 +478,7 @@ nm_vpn_plugin_info_get_service (<em class="parameter"><code><a class="link" href
 </div>
 <div class="refsect3">
 <a name="nm-vpn-plugin-info-get-service.returns"></a><h4>Returns</h4>
-<p>the service. Cannot be <code class="literal">NULL</code>. </p>
+<p>the service. Cannot be <a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. </p>
 <p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.4</p>
@@ -505,7 +505,7 @@ nm_vpn_plugin_info_get_plugin (<em class="parameter"><code><a class="link" href=
 </div>
 <div class="refsect3">
 <a name="nm-vpn-plugin-info-get-plugin.returns"></a><h4>Returns</h4>
-<p>the plugin. Can be <code class="literal">NULL</code>. </p>
+<p>the plugin. Can be <a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. </p>
 <p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.2</p>
@@ -532,7 +532,7 @@ nm_vpn_plugin_info_get_program (<em class="parameter"><code><a class="link" href
 </div>
 <div class="refsect3">
 <a name="nm-vpn-plugin-info-get-program.returns"></a><h4>Returns</h4>
-<p>the program. Can be <code class="literal">NULL</code>. </p>
+<p>the program. Can be <a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. </p>
 <p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.2</p>
@@ -559,14 +559,14 @@ nm_vpn_plugin_info_get_auth_dialog (<em class="parameter"><code><a class="link" 
 </div>
 <div class="refsect3">
 <a name="nm-vpn-plugin-info-get-auth-dialog.returns"></a><h4>Returns</h4>
-<p> the absolute path to the auth-dialog helper or <code class="literal">NULL</code>.</p>
+<p> the absolute path to the auth-dialog helper or <a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>.</p>
 </div>
 <p class="since">Since: 1.4</p>
 </div>
 <hr>
 <div class="refsect2">
 <a name="nm-vpn-plugin-info-supports-hints"></a><h3>nm_vpn_plugin_info_supports_hints ()</h3>
-<pre class="programlisting"><span class="returnvalue">gboolean</span>
+<pre class="programlisting"><a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 nm_vpn_plugin_info_supports_hints (<em class="parameter"><code><a class="link" href="NMVpnPluginInfo.html" title="NMVpnPluginInfo"><span class="type">NMVpnPluginInfo</span></a> *self</code></em>);</pre>
 <div class="refsect3">
 <a name="nm-vpn-plugin-info-supports-hints.parameters"></a><h4>Parameters</h4>
@@ -585,14 +585,14 @@ nm_vpn_plugin_info_supports_hints (<em class="parameter"><code><a class="link" h
 </div>
 <div class="refsect3">
 <a name="nm-vpn-plugin-info-supports-hints.returns"></a><h4>Returns</h4>
-<p> <code class="literal">TRUE</code> if the supports hints for secret requests, otherwise <code class="literal">FALSE</code></p>
+<p> <a href="../glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the supports hints for secret requests, otherwise <a href="../glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a></p>
 </div>
 <p class="since">Since: 1.4</p>
 </div>
 <hr>
 <div class="refsect2">
 <a name="nm-vpn-plugin-info-supports-multiple"></a><h3>nm_vpn_plugin_info_supports_multiple ()</h3>
-<pre class="programlisting"><span class="returnvalue">gboolean</span>
+<pre class="programlisting"><a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 nm_vpn_plugin_info_supports_multiple (<em class="parameter"><code><a class="link" href="NMVpnPluginInfo.html" title="NMVpnPluginInfo"><span class="type">NMVpnPluginInfo</span></a> *self</code></em>);</pre>
 <div class="refsect3">
 <a name="nm-vpn-plugin-info-supports-multiple.parameters"></a><h4>Parameters</h4>
@@ -611,7 +611,7 @@ nm_vpn_plugin_info_supports_multiple (<em class="parameter"><code><a class="link
 </div>
 <div class="refsect3">
 <a name="nm-vpn-plugin-info-supports-multiple.returns"></a><h4>Returns</h4>
-<p> <code class="literal">TRUE</code> if the service supports multiple instances with different bus names, otherwise <code class="literal">FALSE</code></p>
+<p> <a href="../glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the service supports multiple instances with different bus names, otherwise <a href="../glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a></p>
 </div>
 <p class="since">Since: 1.42</p>
 </div>
@@ -678,7 +678,7 @@ nm_vpn_plugin_info_lookup_property (<em class="parameter"><code><a class="link" 
 </div>
 <div class="refsect3">
 <a name="nm-vpn-plugin-info-lookup-property.returns"></a><h4>Returns</h4>
-<p><a class="link" href="NMVpnPluginInfo.html" title="NMVpnPluginInfo"><span class="type">NMVpnPluginInfo</span></a> is internally a <span class="type">GKeyFile</span>. Returns the matching
+<p><a class="link" href="NMVpnPluginInfo.html" title="NMVpnPluginInfo"><span class="type">NMVpnPluginInfo</span></a> is internally a <a href="../glib/glib-Key-value-file-parser.html#GKeyFile"><span class="type">GKeyFile</span></a>. Returns the matching
 property. </p>
 <p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
@@ -687,7 +687,7 @@ property. </p>
 <hr>
 <div class="refsect2">
 <a name="nm-vpn-plugin-info-validate-filename"></a><h3>nm_vpn_plugin_info_validate_filename ()</h3>
-<pre class="programlisting"><span class="returnvalue">gboolean</span>
+<pre class="programlisting"><a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 nm_vpn_plugin_info_validate_filename (<em class="parameter"><code>const <span class="type">char</span> *filename</code></em>);</pre>
 <p>Regular name files have a certain pattern. That basically means
 they have the file extension "name". Check if <em class="parameter"><code>filename</code></em>
@@ -713,7 +713,7 @@ is valid according to that pattern.</p>
 <hr>
 <div class="refsect2">
 <a name="nm-vpn-plugin-info-list-load"></a><h3>nm_vpn_plugin_info_list_load ()</h3>
-<pre class="programlisting"><span class="returnvalue">GSList</span> *
+<pre class="programlisting"><a href="../glib/glib-Singly-Linked-Lists.html#GSList"><span class="returnvalue">GSList</span></a> *
 nm_vpn_plugin_info_list_load (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
 <div class="refsect3">
 <a name="nm-vpn-plugin-info-list-load.returns"></a><h4>Returns</h4>
@@ -726,10 +726,10 @@ loaded from the default directories rejecting duplicates. </p>
 <hr>
 <div class="refsect2">
 <a name="nm-vpn-plugin-info-list-add"></a><h3>nm_vpn_plugin_info_list_add ()</h3>
-<pre class="programlisting"><span class="returnvalue">gboolean</span>
-nm_vpn_plugin_info_list_add (<em class="parameter"><code><span class="type">GSList</span> **list</code></em>,
+<pre class="programlisting"><a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
+nm_vpn_plugin_info_list_add (<em class="parameter"><code><a href="../glib/glib-Singly-Linked-Lists.html#GSList"><span class="type">GSList</span></a> **list</code></em>,
                              <em class="parameter"><code><a class="link" href="NMVpnPluginInfo.html" title="NMVpnPluginInfo"><span class="type">NMVpnPluginInfo</span></a> *plugin_info</code></em>,
-                             <em class="parameter"><code><span class="type">GError</span> **error</code></em>);</pre>
+                             <em class="parameter"><code><a href="../glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
 <div class="refsect3">
 <a name="nm-vpn-plugin-info-list-add.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
@@ -759,7 +759,7 @@ nm_vpn_plugin_info_list_add (<em class="parameter"><code><span class="type">GSLi
 </div>
 <div class="refsect3">
 <a name="nm-vpn-plugin-info-list-add.returns"></a><h4>Returns</h4>
-<p> <code class="literal">TRUE</code> if the plugin was added to <em class="parameter"><code>list</code></em>
+<p> <a href="../glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the plugin was added to <em class="parameter"><code>list</code></em>
 . This will fail
 to add duplicate plugins.</p>
 </div>
@@ -768,8 +768,8 @@ to add duplicate plugins.</p>
 <hr>
 <div class="refsect2">
 <a name="nm-vpn-plugin-info-list-remove"></a><h3>nm_vpn_plugin_info_list_remove ()</h3>
-<pre class="programlisting"><span class="returnvalue">gboolean</span>
-nm_vpn_plugin_info_list_remove (<em class="parameter"><code><span class="type">GSList</span> **list</code></em>,
+<pre class="programlisting"><a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
+nm_vpn_plugin_info_list_remove (<em class="parameter"><code><a href="../glib/glib-Singly-Linked-Lists.html#GSList"><span class="type">GSList</span></a> **list</code></em>,
                                 <em class="parameter"><code><a class="link" href="NMVpnPluginInfo.html" title="NMVpnPluginInfo"><span class="type">NMVpnPluginInfo</span></a> *plugin_info</code></em>);</pre>
 <p>Remove <em class="parameter"><code>plugin_info</code></em>
  from <em class="parameter"><code>list</code></em>
@@ -798,7 +798,7 @@ nm_vpn_plugin_info_list_remove (<em class="parameter"><code><span class="type">G
 </div>
 <div class="refsect3">
 <a name="nm-vpn-plugin-info-list-remove.returns"></a><h4>Returns</h4>
-<p> <code class="literal">TRUE</code> if <em class="parameter"><code>plugin_info</code></em>
+<p> <a href="../glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if <em class="parameter"><code>plugin_info</code></em>
 was in <em class="parameter"><code>list</code></em>
 and successfully removed.</p>
 </div>
@@ -808,7 +808,7 @@ and successfully removed.</p>
 <div class="refsect2">
 <a name="nm-vpn-plugin-info-list-find-by-name"></a><h3>nm_vpn_plugin_info_list_find_by_name ()</h3>
 <pre class="programlisting"><a class="link" href="NMVpnPluginInfo.html" title="NMVpnPluginInfo"><span class="returnvalue">NMVpnPluginInfo</span></a> *
-nm_vpn_plugin_info_list_find_by_name (<em class="parameter"><code><span class="type">GSList</span> *list</code></em>,
+nm_vpn_plugin_info_list_find_by_name (<em class="parameter"><code><a href="../glib/glib-Singly-Linked-Lists.html#GSList"><span class="type">GSList</span></a> *list</code></em>,
                                       <em class="parameter"><code>const <span class="type">char</span> *name</code></em>);</pre>
 <div class="refsect3">
 <a name="nm-vpn-plugin-info-list-find-by-name.parameters"></a><h4>Parameters</h4>
@@ -835,7 +835,7 @@ nm_vpn_plugin_info_list_find_by_name (<em class="parameter"><code><span class="t
 <div class="refsect3">
 <a name="nm-vpn-plugin-info-list-find-by-name.returns"></a><h4>Returns</h4>
 <p>the first plugin with a matching <em class="parameter"><code>name</code></em>
-(or <code class="literal">NULL</code>). </p>
+(or <a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>). </p>
 <p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.2</p>
@@ -845,7 +845,7 @@ nm_vpn_plugin_info_list_find_by_name (<em class="parameter"><code><span class="t
 <a name="nm-vpn-plugin-info-list-find-by-filename"></a><h3>nm_vpn_plugin_info_list_find_by_filename ()</h3>
 <pre class="programlisting"><a class="link" href="NMVpnPluginInfo.html" title="NMVpnPluginInfo"><span class="returnvalue">NMVpnPluginInfo</span></a> *
 nm_vpn_plugin_info_list_find_by_filename
-                               (<em class="parameter"><code><span class="type">GSList</span> *list</code></em>,
+                               (<em class="parameter"><code><a href="../glib/glib-Singly-Linked-Lists.html#GSList"><span class="type">GSList</span></a> *list</code></em>,
                                 <em class="parameter"><code>const <span class="type">char</span> *filename</code></em>);</pre>
 <div class="refsect3">
 <a name="nm-vpn-plugin-info-list-find-by-filename.parameters"></a><h4>Parameters</h4>
@@ -872,7 +872,7 @@ nm_vpn_plugin_info_list_find_by_filename
 <div class="refsect3">
 <a name="nm-vpn-plugin-info-list-find-by-filename.returns"></a><h4>Returns</h4>
 <p>the first plugin with a matching <em class="parameter"><code>filename</code></em>
-(or <code class="literal">NULL</code>). </p>
+(or <a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>). </p>
 <p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.2</p>
@@ -882,7 +882,7 @@ nm_vpn_plugin_info_list_find_by_filename
 <a name="nm-vpn-plugin-info-list-find-by-service"></a><h3>nm_vpn_plugin_info_list_find_by_service ()</h3>
 <pre class="programlisting"><a class="link" href="NMVpnPluginInfo.html" title="NMVpnPluginInfo"><span class="returnvalue">NMVpnPluginInfo</span></a> *
 nm_vpn_plugin_info_list_find_by_service
-                               (<em class="parameter"><code><span class="type">GSList</span> *list</code></em>,
+                               (<em class="parameter"><code><a href="../glib/glib-Singly-Linked-Lists.html#GSList"><span class="type">GSList</span></a> *list</code></em>,
                                 <em class="parameter"><code>const <span class="type">char</span> *service</code></em>);</pre>
 <div class="refsect3">
 <a name="nm-vpn-plugin-info-list-find-by-service.parameters"></a><h4>Parameters</h4>
@@ -910,7 +910,7 @@ or one of the provided aliases.</p></td>
 <div class="refsect3">
 <a name="nm-vpn-plugin-info-list-find-by-service.returns"></a><h4>Returns</h4>
 <p>the first plugin with a matching <em class="parameter"><code>service</code></em>
-(or <code class="literal">NULL</code>). </p>
+(or <a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>). </p>
 <p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.2</p>
@@ -920,7 +920,7 @@ or one of the provided aliases.</p></td>
 <a name="nm-vpn-plugin-info-list-find-service-type"></a><h3>nm_vpn_plugin_info_list_find_service_type ()</h3>
 <pre class="programlisting"><span class="returnvalue">char</span> *
 nm_vpn_plugin_info_list_find_service_type
-                               (<em class="parameter"><code><span class="type">GSList</span> *list</code></em>,
+                               (<em class="parameter"><code><a href="../glib/glib-Singly-Linked-Lists.html#GSList"><span class="type">GSList</span></a> *list</code></em>,
                                 <em class="parameter"><code>const <span class="type">char</span> *name</code></em>);</pre>
 <p>A VPN plugin provides one or several service-types, like org.freedesktop.NetworkManager.libreswan
 Certain plugins provide more then one service type, via aliases (org.freedesktop.NetworkManager.openswan).
@@ -943,7 +943,7 @@ but it could be retrieved via <a class="link" href="NMVpnPluginInfo.html#nm-vpn-
 <tbody>
 <tr>
 <td class="parameter_name"><p>list</p></td>
-<td class="parameter_description"><p>a possibly empty <span class="type">GSList</span> of <a class="link" href="NMVpnPluginInfo.html" title="NMVpnPluginInfo"><span class="type">NMVpnPluginInfo</span></a> instances. </p></td>
+<td class="parameter_description"><p>a possibly empty <a href="../glib/glib-Singly-Linked-Lists.html#GSList"><span class="type">GSList</span></a> of <a class="link" href="NMVpnPluginInfo.html" title="NMVpnPluginInfo"><span class="type">NMVpnPluginInfo</span></a> instances. </p></td>
 <td class="parameter_annotations"><span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMVpnPluginInfo]</span></td>
 </tr>
 <tr>
@@ -956,7 +956,7 @@ but it could be retrieved via <a class="link" href="NMVpnPluginInfo.html#nm-vpn-
 </div>
 <div class="refsect3">
 <a name="nm-vpn-plugin-info-list-find-service-type.returns"></a><h4>Returns</h4>
-<p>the resolved service-type or <code class="literal">NULL</code> on failure. </p>
+<p>the resolved service-type or <a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> on failure. </p>
 <p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.4</p>
@@ -966,9 +966,9 @@ but it could be retrieved via <a class="link" href="NMVpnPluginInfo.html#nm-vpn-
 <a name="nm-vpn-plugin-info-list-get-service-types"></a><h3>nm_vpn_plugin_info_list_get_service_types ()</h3>
 <pre class="programlisting"><span class="returnvalue">char</span> **
 nm_vpn_plugin_info_list_get_service_types
-                               (<em class="parameter"><code><span class="type">GSList</span> *list</code></em>,
-                                <em class="parameter"><code><span class="type">gboolean</span> only_existing</code></em>,
-                                <em class="parameter"><code><span class="type">gboolean</span> with_abbreviations</code></em>);</pre>
+                               (<em class="parameter"><code><a href="../glib/glib-Singly-Linked-Lists.html#GSList"><span class="type">GSList</span></a> *list</code></em>,
+                                <em class="parameter"><code><a href="../glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> only_existing</code></em>,
+                                <em class="parameter"><code><a href="../glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> with_abbreviations</code></em>);</pre>
 <div class="refsect3">
 <a name="nm-vpn-plugin-info-list-get-service-types.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
@@ -980,7 +980,7 @@ nm_vpn_plugin_info_list_get_service_types
 <tbody>
 <tr>
 <td class="parameter_name"><p>list</p></td>
-<td class="parameter_description"><p>a possibly empty <span class="type">GSList</span> of <a class="link" href="NMVpnPluginInfo.html" title="NMVpnPluginInfo"><span class="type">NMVpnPluginInfo</span></a>. </p></td>
+<td class="parameter_description"><p>a possibly empty <a href="../glib/glib-Singly-Linked-Lists.html#GSList"><span class="type">GSList</span></a> of <a class="link" href="NMVpnPluginInfo.html" title="NMVpnPluginInfo"><span class="type">NMVpnPluginInfo</span></a>. </p></td>
 <td class="parameter_annotations"><span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMVpnPluginInfo]</span></td>
 </tr>
 <tr>
@@ -993,7 +993,7 @@ well-known plugins</p></td>
 </tr>
 <tr>
 <td class="parameter_name"><p>with_abbreviations</p></td>
-<td class="parameter_description"><p>if <code class="literal">FALSE</code>, only full service types are returned.
+<td class="parameter_description"><p>if <a href="../glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a>, only full service types are returned.
 Otherwise, this also includes abbreviated names that can be used
 with <a class="link" href="NMVpnPluginInfo.html#nm-vpn-plugin-info-list-find-service-type" title="nm_vpn_plugin_info_list_find_service_type ()"><code class="function">nm_vpn_plugin_info_list_find_service_type()</code></a>.</p></td>
 <td class="parameter_annotations"> </td>
@@ -1003,8 +1003,8 @@ with <a class="link" href="NMVpnPluginInfo.html#nm-vpn-plugin-info-list-find-ser
 </div>
 <div class="refsect3">
 <a name="nm-vpn-plugin-info-list-get-service-types.returns"></a><h4>Returns</h4>
-<p>a <code class="literal">NULL</code> terminated strv list of strings.
-The list itself and the values must be freed with <code class="function">g_strfreev()</code>. </p>
+<p>a <a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> terminated strv list of strings.
+The list itself and the values must be freed with <a href="../glib/glib-String-Utility-Functions.html#g-strfreev"><code class="function">g_strfreev()</code></a>. </p>
 <p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.4</p>
@@ -1042,7 +1042,7 @@ nm_vpn_plugin_info_get_editor_plugin (<em class="parameter"><code><a class="link
 <pre class="programlisting"><span class="returnvalue">void</span>
 nm_vpn_plugin_info_set_editor_plugin (<em class="parameter"><code><a class="link" href="NMVpnPluginInfo.html" title="NMVpnPluginInfo"><span class="type">NMVpnPluginInfo</span></a> *self</code></em>,
                                       <em class="parameter"><code><a class="link" href="NMVpnEditorPlugin.html" title="NMVpnEditorPlugin"><span class="type">NMVpnEditorPlugin</span></a> *plugin</code></em>);</pre>
-<p>Set the internal plugin instance. If <code class="literal">NULL</code>, only clear the previous instance.</p>
+<p>Set the internal plugin instance. If <a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>, only clear the previous instance.</p>
 <div class="refsect3">
 <a name="nm-vpn-plugin-info-set-editor-plugin.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
@@ -1072,7 +1072,7 @@ nm_vpn_plugin_info_set_editor_plugin (<em class="parameter"><code><a class="link
 <a name="nm-vpn-plugin-info-load-editor-plugin"></a><h3>nm_vpn_plugin_info_load_editor_plugin ()</h3>
 <pre class="programlisting"><a class="link" href="NMVpnEditorPlugin.html" title="NMVpnEditorPlugin"><span class="returnvalue">NMVpnEditorPlugin</span></a> *
 nm_vpn_plugin_info_load_editor_plugin (<em class="parameter"><code><a class="link" href="NMVpnPluginInfo.html" title="NMVpnPluginInfo"><span class="type">NMVpnPluginInfo</span></a> *self</code></em>,
-                                       <em class="parameter"><code><span class="type">GError</span> **error</code></em>);</pre>
+                                       <em class="parameter"><code><a href="../glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
 <div class="refsect3">
 <a name="nm-vpn-plugin-info-load-editor-plugin.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
@@ -1148,6 +1148,6 @@ plugin only once, unless you reset the state via
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.34.0</div>
+<hr>Generated by GTK-Doc V1.33.1</div>
 </body>
 </html>

@@ -1,4 +1,14 @@
 ===============================================
+NetworkManager-1.48.4
+Overview of changes since NetworkManager-1.48.2
+===============================================
+
+* Support matching a OVS system interface by MAC address.
+* When looking up the system hostname from the reverse DNS lookup of
+  addresses configured on interfaces, NetworkManager now takes into
+  account the content of /etc/hosts.
+
+===============================================
 NetworkManager-1.48.2
 Overview of changes since NetworkManager-1.48.0
 ===============================================
