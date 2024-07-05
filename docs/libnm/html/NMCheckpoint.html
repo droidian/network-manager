@@ -8,7 +8,7 @@
 <link rel="up" href="ch04.html" title="Device and Runtime Configuration API Reference">
 <link rel="prev" href="NMDhcpConfig.html" title="NMDhcpConfig">
 <link rel="next" href="ch05.html" title="Utility API Reference">
-<meta name="generator" content="GTK-Doc V1.34.0 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -42,7 +42,7 @@
 </colgroup>
 <tbody>
 <tr>
-<td class="function_type">const <span class="returnvalue">GPtrArray</span> *
+<td class="function_type">const <a href="../glib/glib-Pointer-Arrays.html#GPtrArray"><span class="returnvalue">GPtrArray</span></a> *
 </td>
 <td class="function_name">
 <a class="link" href="NMCheckpoint.html#nm-checkpoint-get-devices" title="nm_checkpoint_get_devices ()">nm_checkpoint_get_devices</a> <span class="c_punctuation">()</span>
@@ -50,7 +50,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<span class="returnvalue">gint64</span>
+<a href="../glib/glib-Basic-Types.html#gint64"><span class="returnvalue">gint64</span></a>
 </td>
 <td class="function_name">
 <a class="link" href="NMCheckpoint.html#nm-checkpoint-get-created" title="nm_checkpoint_get_created ()">nm_checkpoint_get_created</a> <span class="c_punctuation">()</span>
@@ -58,7 +58,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<span class="returnvalue">guint32</span>
+<a href="../glib/glib-Basic-Types.html#guint32"><span class="returnvalue">guint32</span></a>
 </td>
 <td class="function_name">
 <a class="link" href="NMCheckpoint.html#nm-checkpoint-get-rollback-timeout" title="nm_checkpoint_get_rollback_timeout ()">nm_checkpoint_get_rollback_timeout</a> <span class="c_punctuation">()</span>
@@ -77,18 +77,18 @@
 </colgroup>
 <tbody>
 <tr>
-<td class="property_type"><span class="type">gint64</span></td>
+<td class="property_type"><a href="../glib/glib-Basic-Types.html#gint64"><span class="type">gint64</span></a></td>
 <td class="property_name"><a class="link" href="NMCheckpoint.html#NMCheckpoint--created" title="The “created” property">created</a></td>
 <td class="property_flags">Read</td>
 </tr>
 <tr>
 <td class="property_type">
-<span class="type">GPtrArray</span> *</td>
+<a href="../glib/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> *</td>
 <td class="property_name"><a class="link" href="NMCheckpoint.html#NMCheckpoint--devices" title="The “devices” property">devices</a></td>
 <td class="property_flags">Read</td>
 </tr>
 <tr>
-<td class="property_type"><span class="type">guint</span></td>
+<td class="property_type"><a href="../glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a></td>
 <td class="property_name"><a class="link" href="NMCheckpoint.html#NMCheckpoint--rollback-timeout" title="The “rollback-timeout” property">rollback-timeout</a></td>
 <td class="property_flags">Read</td>
 </tr>
@@ -124,7 +124,7 @@
 </div>
 <div class="refsect1">
 <a name="NMCheckpoint.object-hierarchy"></a><h2>Object Hierarchy</h2>
-<pre class="screen">    GObject
+<pre class="screen">    <a href="../gobject/gobject-The-Base-Object-Type.html#GObject-struct">GObject</a>
     <span class="lineart">╰──</span> <a class="link" href="NMObject.html" title="NMObject">NMObject</a>
         <span class="lineart">╰──</span> NMCheckpoint
 </pre>
@@ -136,7 +136,7 @@
 <a name="NMCheckpoint.functions_details"></a><h2>Functions</h2>
 <div class="refsect2">
 <a name="nm-checkpoint-get-devices"></a><h3>nm_checkpoint_get_devices ()</h3>
-<pre class="programlisting">const <span class="returnvalue">GPtrArray</span> *
+<pre class="programlisting">const <a href="../glib/glib-Pointer-Arrays.html#GPtrArray"><span class="returnvalue">GPtrArray</span></a> *
 nm_checkpoint_get_devices (<em class="parameter"><code><a class="link" href="NMCheckpoint.html" title="NMCheckpoint"><span class="type">NMCheckpoint</span></a> *checkpoint</code></em>);</pre>
 <p>The devices that are part of this checkpoint.</p>
 <div class="refsect3">
@@ -164,7 +164,7 @@ nm_checkpoint_get_devices (<em class="parameter"><code><a class="link" href="NMC
 <hr>
 <div class="refsect2">
 <a name="nm-checkpoint-get-created"></a><h3>nm_checkpoint_get_created ()</h3>
-<pre class="programlisting"><span class="returnvalue">gint64</span>
+<pre class="programlisting"><a href="../glib/glib-Basic-Types.html#gint64"><span class="returnvalue">gint64</span></a>
 nm_checkpoint_get_created (<em class="parameter"><code><a class="link" href="NMCheckpoint.html" title="NMCheckpoint"><span class="type">NMCheckpoint</span></a> *checkpoint</code></em>);</pre>
 <p>Gets the timestamp (in CLOCK_BOOTTIME milliseconds) of checkpoint creation.</p>
 <p>Use <a class="link" href="libnm-nm-utils.html#nm-utils-get-timestamp-msec" title="nm_utils_get_timestamp_msec ()"><code class="function">nm_utils_get_timestamp_msec()</code></a> to obtain current time value suitable for
@@ -193,7 +193,7 @@ comparing to this value.</p>
 <hr>
 <div class="refsect2">
 <a name="nm-checkpoint-get-rollback-timeout"></a><h3>nm_checkpoint_get_rollback_timeout ()</h3>
-<pre class="programlisting"><span class="returnvalue">guint32</span>
+<pre class="programlisting"><a href="../glib/glib-Basic-Types.html#guint32"><span class="returnvalue">guint32</span></a>
 nm_checkpoint_get_rollback_timeout (<em class="parameter"><code><a class="link" href="NMCheckpoint.html" title="NMCheckpoint"><span class="type">NMCheckpoint</span></a> *checkpoint</code></em>);</pre>
 <p>Gets the timeout in seconds for automatic rollback.</p>
 <div class="refsect3">
@@ -248,7 +248,7 @@ nm_checkpoint_get_rollback_timeout (<em class="parameter"><code><a class="link" 
 <a name="NMCheckpoint.property-details"></a><h2>Property Details</h2>
 <div class="refsect2">
 <a name="NMCheckpoint--created"></a><h3>The <code class="literal">“created”</code> property</h3>
-<pre class="programlisting">  “created”                  <span class="type">gint64</span></pre>
+<pre class="programlisting">  “created”                  <a href="../glib/glib-Basic-Types.html#gint64"><span class="type">gint64</span></a></pre>
 <p>The timestamp (in CLOCK_BOOTTIME milliseconds) of checkpoint creation.</p>
 <p>Owner: NMCheckpoint</p>
 <p>Flags: Read</p>
@@ -258,7 +258,7 @@ nm_checkpoint_get_rollback_timeout (<em class="parameter"><code><a class="link" 
 <hr>
 <div class="refsect2">
 <a name="NMCheckpoint--devices"></a><h3>The <code class="literal">“devices”</code> property</h3>
-<pre class="programlisting">  “devices”                  <span class="type">GPtrArray</span> *</pre>
+<pre class="programlisting">  “devices”                  <a href="../glib/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> *</pre>
 <p>The devices that are part of this checkpoint.</p>
 <p><span class="annotation">[<acronym title="Override the parsed C type with given type."><span class="acronym">type</span></acronym> GPtrArray(NMDevice)]</span></p>
 <p>Owner: NMCheckpoint</p>
@@ -268,7 +268,7 @@ nm_checkpoint_get_rollback_timeout (<em class="parameter"><code><a class="link" 
 <hr>
 <div class="refsect2">
 <a name="NMCheckpoint--rollback-timeout"></a><h3>The <code class="literal">“rollback-timeout”</code> property</h3>
-<pre class="programlisting">  “rollback-timeout”         <span class="type">guint</span></pre>
+<pre class="programlisting">  “rollback-timeout”         <a href="../glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a></pre>
 <p>Timeout in seconds for automatic rollback, or zero.</p>
 <p>Owner: NMCheckpoint</p>
 <p>Flags: Read</p>
@@ -278,6 +278,6 @@ nm_checkpoint_get_rollback_timeout (<em class="parameter"><code><a class="link" 
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.34.0</div>
+<hr>Generated by GTK-Doc V1.33.1</div>
 </body>
 </html>
