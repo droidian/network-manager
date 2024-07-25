@@ -8,7 +8,7 @@
 <link rel="up" href="ch04.html" title="Device and Runtime Configuration API Reference">
 <link rel="prev" href="NMWifiP2PPeer.html" title="NMWifiP2PPeer">
 <link rel="next" href="NMIPConfig.html" title="NMIPConfig">
-<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.34.0 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -50,7 +50,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<a href="../glib/glib-Basic-Types.html#guint32"><span class="returnvalue">guint32</span></a>
+<span class="returnvalue">guint32</span>
 </td>
 <td class="function_name">
 <a class="link" href="NMWimaxNsp.html#nm-wimax-nsp-get-signal-quality" title="nm_wimax_nsp_get_signal_quality ()">nm_wimax_nsp_get_signal_quality</a> <span class="c_punctuation">()</span>
@@ -66,7 +66,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<a href="../glib/glib-Pointer-Arrays.html#GPtrArray"><span class="returnvalue">GPtrArray</span></a> *
+<span class="returnvalue">GPtrArray</span> *
 </td>
 <td class="function_name">
 <a class="link" href="NMWimaxNsp.html#nm-wimax-nsp-filter-connections" title="nm_wimax_nsp_filter_connections ()">nm_wimax_nsp_filter_connections</a> <span class="c_punctuation">()</span>
@@ -74,7 +74,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
+<span class="returnvalue">gboolean</span>
 </td>
 <td class="function_name">
 <a class="link" href="NMWimaxNsp.html#nm-wimax-nsp-connection-valid" title="nm_wimax_nsp_connection_valid ()">nm_wimax_nsp_connection_valid</a> <span class="c_punctuation">()</span>
@@ -104,7 +104,7 @@
 <td class="property_flags">Read</td>
 </tr>
 <tr>
-<td class="property_type"><a href="../glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a></td>
+<td class="property_type"><span class="type">guint</span></td>
 <td class="property_name"><a class="link" href="NMWimaxNsp.html#NMWimaxNsp--signal-quality" title="The “signal-quality” property">signal-quality</a></td>
 <td class="property_flags">Read</td>
 </tr>
@@ -140,7 +140,7 @@
 </div>
 <div class="refsect1">
 <a name="NMWimaxNsp.object-hierarchy"></a><h2>Object Hierarchy</h2>
-<pre class="screen">    <a href="../gobject/gobject-The-Base-Object-Type.html#GObject-struct">GObject</a>
+<pre class="screen">    GObject
     <span class="lineart">╰──</span> <a class="link" href="NMObject.html" title="NMObject">NMObject</a>
         <span class="lineart">╰──</span> NMWimaxNsp
 </pre>
@@ -182,7 +182,7 @@ nm_wimax_nsp_get_name (<em class="parameter"><code><a class="link" href="NMWimax
 <hr>
 <div class="refsect2">
 <a name="nm-wimax-nsp-get-signal-quality"></a><h3>nm_wimax_nsp_get_signal_quality ()</h3>
-<pre class="programlisting"><a href="../glib/glib-Basic-Types.html#guint32"><span class="returnvalue">guint32</span></a>
+<pre class="programlisting"><span class="returnvalue">guint32</span>
 nm_wimax_nsp_get_signal_quality (<em class="parameter"><code><a class="link" href="NMWimaxNsp.html" title="NMWimaxNsp"><span class="type">NMWimaxNsp</span></a> *nsp</code></em>);</pre>
 <div class="warning">
 <p><code class="literal">nm_wimax_nsp_get_signal_quality</code> has been deprecated since version 1.22 and should not be used in newly-written code.</p>
@@ -242,9 +242,9 @@ nm_wimax_nsp_get_network_type (<em class="parameter"><code><a class="link" href=
 <hr>
 <div class="refsect2">
 <a name="nm-wimax-nsp-filter-connections"></a><h3>nm_wimax_nsp_filter_connections ()</h3>
-<pre class="programlisting"><a href="../glib/glib-Pointer-Arrays.html#GPtrArray"><span class="returnvalue">GPtrArray</span></a> *
+<pre class="programlisting"><span class="returnvalue">GPtrArray</span> *
 nm_wimax_nsp_filter_connections (<em class="parameter"><code><a class="link" href="NMWimaxNsp.html" title="NMWimaxNsp"><span class="type">NMWimaxNsp</span></a> *nsp</code></em>,
-                                 <em class="parameter"><code>const <a href="../glib/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> *connections</code></em>);</pre>
+                                 <em class="parameter"><code>const <span class="type">GPtrArray</span> *connections</code></em>);</pre>
 <div class="warning">
 <p><code class="literal">nm_wimax_nsp_filter_connections</code> has been deprecated since version 1.22 and should not be used in newly-written code.</p>
 <p>WiMAX is no longer supported by NetworkManager since 1.2.0.</p>
@@ -281,14 +281,14 @@ filter. </p></td>
 <p>an array of
 <span class="type">NMConnections</span> that could be activated with the given <em class="parameter"><code>nsp</code></em>
 .  The array should
-be freed with <a href="../glib/glib-Pointer-Arrays.html#g-ptr-array-unref"><code class="function">g_ptr_array_unref()</code></a> when it is no longer required. </p>
+be freed with <code class="function">g_ptr_array_unref()</code> when it is no longer required. </p>
 <p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMConnection]</span></p>
 </div>
 </div>
 <hr>
 <div class="refsect2">
 <a name="nm-wimax-nsp-connection-valid"></a><h3>nm_wimax_nsp_connection_valid ()</h3>
-<pre class="programlisting"><a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
 nm_wimax_nsp_connection_valid (<em class="parameter"><code><a class="link" href="NMWimaxNsp.html" title="NMWimaxNsp"><span class="type">NMWimaxNsp</span></a> *nsp</code></em>,
                                <em class="parameter"><code><a class="link" href="NMConnection.html" title="NMConnection"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
 <div class="warning">
@@ -325,8 +325,8 @@ against</p></td>
 </div>
 <div class="refsect3">
 <a name="nm-wimax-nsp-connection-valid.returns"></a><h4>Returns</h4>
-<p> <a href="../glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the connection may be activated with this WiMAX NSP,
-<a href="../glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> if it cannot be.</p>
+<p> <code class="literal">TRUE</code> if the connection may be activated with this WiMAX NSP,
+<code class="literal">FALSE</code> if it cannot be.</p>
 </div>
 </div>
 </div>
@@ -389,7 +389,7 @@ against</p></td>
 <hr>
 <div class="refsect2">
 <a name="NMWimaxNsp--signal-quality"></a><h3>The <code class="literal">“signal-quality”</code> property</h3>
-<pre class="programlisting">  “signal-quality”           <a href="../glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a></pre>
+<pre class="programlisting">  “signal-quality”           <span class="type">guint</span></pre>
 <p>The signal quality of the WiMAX NSP.</p>
 <div class="warning">
 <p><code class="literal">NMWimaxNsp:signal-quality</code> has been deprecated since version 1.22 and should not be used in newly-written code.</p>
@@ -403,6 +403,6 @@ against</p></td>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.33.1</div>
+<hr>Generated by GTK-Doc V1.34.0</div>
 </body>
 </html>
