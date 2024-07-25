@@ -8,7 +8,7 @@
 <link rel="up" href="ch04.html" title="Device and Runtime Configuration API Reference">
 <link rel="prev" href="NMDeviceDummy.html" title="NMDeviceDummy">
 <link rel="next" href="NMDeviceGeneric.html" title="NMDeviceGeneric">
-<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.34.0 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -57,7 +57,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<a href="../glib/glib-Basic-Types.html#guint32"><span class="returnvalue">guint32</span></a>
+<span class="returnvalue">guint32</span>
 </td>
 <td class="function_name">
 <a class="link" href="NMDeviceEthernet.html#nm-device-ethernet-get-speed" title="nm_device_ethernet_get_speed ()">nm_device_ethernet_get_speed</a> <span class="c_punctuation">()</span>
@@ -65,7 +65,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
+<span class="returnvalue">gboolean</span>
 </td>
 <td class="function_name">
 <a class="link" href="NMDeviceEthernet.html#nm-device-ethernet-get-carrier" title="nm_device_ethernet_get_carrier ()">nm_device_ethernet_get_carrier</a> <span class="c_punctuation">()</span>
@@ -91,7 +91,7 @@
 </colgroup>
 <tbody>
 <tr>
-<td class="property_type"><a href="../glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></td>
+<td class="property_type"><span class="type">gboolean</span></td>
 <td class="property_name"><a class="link" href="NMDeviceEthernet.html#NMDeviceEthernet--carrier" title="The “carrier” property">carrier</a></td>
 <td class="property_flags">Read</td>
 </tr>
@@ -102,12 +102,12 @@
 <td class="property_flags">Read</td>
 </tr>
 <tr>
-<td class="property_type"><a href="../glib/glib-String-Utility-Functions.html#GStrv"><span class="type">GStrv</span></a></td>
+<td class="property_type"><span class="type">GStrv</span></td>
 <td class="property_name"><a class="link" href="NMDeviceEthernet.html#NMDeviceEthernet--s390-subchannels" title="The “s390-subchannels” property">s390-subchannels</a></td>
 <td class="property_flags">Read</td>
 </tr>
 <tr>
-<td class="property_type"><a href="../glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a></td>
+<td class="property_type"><span class="type">guint</span></td>
 <td class="property_name"><a class="link" href="NMDeviceEthernet.html#NMDeviceEthernet--speed" title="The “speed” property">speed</a></td>
 <td class="property_flags">Read</td>
 </tr>
@@ -151,7 +151,7 @@
 </div>
 <div class="refsect1">
 <a name="NMDeviceEthernet.object-hierarchy"></a><h2>Object Hierarchy</h2>
-<pre class="screen">    <a href="../gobject/gobject-The-Base-Object-Type.html#GObject-struct">GObject</a>
+<pre class="screen">    GObject
     <span class="lineart">╰──</span> <a class="link" href="NMObject.html" title="NMObject">NMObject</a>
         <span class="lineart">╰──</span> <a class="link" href="NMDevice.html" title="NMDevice">NMDevice</a>
             <span class="lineart">╰──</span> NMDeviceEthernet
@@ -225,7 +225,7 @@ device, and must not be modified.</p>
 <hr>
 <div class="refsect2">
 <a name="nm-device-ethernet-get-speed"></a><h3>nm_device_ethernet_get_speed ()</h3>
-<pre class="programlisting"><a href="../glib/glib-Basic-Types.html#guint32"><span class="returnvalue">guint32</span></a>
+<pre class="programlisting"><span class="returnvalue">guint32</span>
 nm_device_ethernet_get_speed (<em class="parameter"><code><a class="link" href="NMDeviceEthernet.html" title="NMDeviceEthernet"><span class="type">NMDeviceEthernet</span></a> *device</code></em>);</pre>
 <p>Gets the speed of the <a class="link" href="NMDeviceEthernet.html" title="NMDeviceEthernet"><span class="type">NMDeviceEthernet</span></a> in Mbit/s.</p>
 <div class="refsect3">
@@ -251,7 +251,7 @@ nm_device_ethernet_get_speed (<em class="parameter"><code><a class="link" href="
 <hr>
 <div class="refsect2">
 <a name="nm-device-ethernet-get-carrier"></a><h3>nm_device_ethernet_get_carrier ()</h3>
-<pre class="programlisting"><a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
 nm_device_ethernet_get_carrier (<em class="parameter"><code><a class="link" href="NMDeviceEthernet.html" title="NMDeviceEthernet"><span class="type">NMDeviceEthernet</span></a> *device</code></em>);</pre>
 <p>Whether the device has carrier.</p>
 <div class="refsect3">
@@ -271,7 +271,7 @@ nm_device_ethernet_get_carrier (<em class="parameter"><code><a class="link" href
 </div>
 <div class="refsect3">
 <a name="nm-device-ethernet-get-carrier.returns"></a><h4>Returns</h4>
-<p> <a href="../glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the device has carrier</p>
+<p> <code class="literal">TRUE</code> if the device has carrier</p>
 </div>
 </div>
 <hr>
@@ -346,7 +346,7 @@ one subchannel the s390 device uses to communicate to the host. </p>
 <a name="NMDeviceEthernet.property-details"></a><h2>Property Details</h2>
 <div class="refsect2">
 <a name="NMDeviceEthernet--carrier"></a><h3>The <code class="literal">“carrier”</code> property</h3>
-<pre class="programlisting">  “carrier”                  <a href="../glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></pre>
+<pre class="programlisting">  “carrier”                  <span class="type">gboolean</span></pre>
 <p>Whether the device has carrier.</p>
 <p>Owner: NMDeviceEthernet</p>
 <p>Flags: Read</p>
@@ -364,7 +364,7 @@ one subchannel the s390 device uses to communicate to the host. </p>
 <hr>
 <div class="refsect2">
 <a name="NMDeviceEthernet--s390-subchannels"></a><h3>The <code class="literal">“s390-subchannels”</code> property</h3>
-<pre class="programlisting">  “s390-subchannels”         <a href="../glib/glib-String-Utility-Functions.html#GStrv"><span class="type">GStrv</span></a></pre>
+<pre class="programlisting">  “s390-subchannels”         <span class="type">GStrv</span></pre>
 <p>Identifies subchannels of this network device used for
 communication with z/VM or s390 host.</p>
 <p>Owner: NMDeviceEthernet</p>
@@ -374,7 +374,7 @@ communication with z/VM or s390 host.</p>
 <hr>
 <div class="refsect2">
 <a name="NMDeviceEthernet--speed"></a><h3>The <code class="literal">“speed”</code> property</h3>
-<pre class="programlisting">  “speed”                    <a href="../glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a></pre>
+<pre class="programlisting">  “speed”                    <span class="type">guint</span></pre>
 <p>The speed of the device.</p>
 <p>Owner: NMDeviceEthernet</p>
 <p>Flags: Read</p>
@@ -383,6 +383,6 @@ communication with z/VM or s390 host.</p>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.33.1</div>
+<hr>Generated by GTK-Doc V1.34.0</div>
 </body>
 </html>
