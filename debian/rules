@@ -42,6 +42,7 @@ override_dh_auto_configure:
 		-Diwd=true \
 		-Dppp=true \
 		-Dpolkit=true \
+		-Dtests=no \
 		-Dintrospection=true \
 		-Ddocs=true \
 		-Dconcheck=true \
