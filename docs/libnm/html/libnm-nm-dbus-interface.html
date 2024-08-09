@@ -493,6 +493,10 @@
 <td class="function_name"><a class="link" href="libnm-nm-dbus-interface.html#NMActivationStateFlags" title="enum NMActivationStateFlags">NMActivationStateFlags</a></td>
 </tr>
 <tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libnm-nm-dbus-interface.html#NM-ACTIVATION-STATE-FLAG-MASTER-HAS-SLAVES:CAPS" title="NM_ACTIVATION_STATE_FLAG_MASTER_HAS_SLAVES">NM_ACTIVATION_STATE_FLAG_MASTER_HAS_SLAVES</a></td>
+</tr>
+<tr>
 <td class="datatype_keyword">enum</td>
 <td class="function_name"><a class="link" href="libnm-nm-dbus-interface.html#NMSettingsAddConnection2Flags" title="enum NMSettingsAddConnection2Flags">NMSettingsAddConnection2Flags</a></td>
 </tr>
@@ -1270,7 +1274,7 @@ GSM/UMTS, or LTE network access protocols</p>
 <tr>
 <td class="enum_member_name"><p><a name="NM-DEVICE-TYPE-BOND:CAPS"></a>NM_DEVICE_TYPE_BOND</p></td>
 <td class="enum_member_description">
-<p>a bond master interface</p>
+<p>a bond controller interface</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -1291,7 +1295,7 @@ GSM/UMTS, or LTE network access protocols</p>
 <tr>
 <td class="enum_member_name"><p><a name="NM-DEVICE-TYPE-BRIDGE:CAPS"></a>NM_DEVICE_TYPE_BRIDGE</p></td>
 <td class="enum_member_description">
-<p>a bridge master interface</p>
+<p>a bridge controller interface</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -1305,7 +1309,7 @@ GSM/UMTS, or LTE network access protocols</p>
 <tr>
 <td class="enum_member_name"><p><a name="NM-DEVICE-TYPE-TEAM:CAPS"></a>NM_DEVICE_TYPE_TEAM</p></td>
 <td class="enum_member_description">
-<p>a team master interface</p>
+<p>a team controller interface</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -3622,16 +3626,16 @@ an external configuration of a networking device. Since: 1.26.</p>
 <td class="enum_member_annotations"> </td>
 </tr>
 <tr>
-<td class="enum_member_name"><p><a name="NM-ACTIVATION-STATE-FLAG-IS-MASTER:CAPS"></a>NM_ACTIVATION_STATE_FLAG_IS_MASTER</p></td>
+<td class="enum_member_name"><p><a name="NM-ACTIVATION-STATE-FLAG-IS-CONTROLLER:CAPS"></a>NM_ACTIVATION_STATE_FLAG_IS_CONTROLLER</p></td>
 <td class="enum_member_description">
-<p>the device is a master.</p>
+<p>the device is a controller.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
 <tr>
-<td class="enum_member_name"><p><a name="NM-ACTIVATION-STATE-FLAG-IS-SLAVE:CAPS"></a>NM_ACTIVATION_STATE_FLAG_IS_SLAVE</p></td>
+<td class="enum_member_name"><p><a name="NM-ACTIVATION-STATE-FLAG-IS-PORT:CAPS"></a>NM_ACTIVATION_STATE_FLAG_IS_PORT</p></td>
 <td class="enum_member_description">
-<p>the device is a slave.</p>
+<p>the device is a port.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -3657,10 +3661,10 @@ an external configuration of a networking device. Since: 1.26.</p>
 <td class="enum_member_annotations"> </td>
 </tr>
 <tr>
-<td class="enum_member_name"><p><a name="NM-ACTIVATION-STATE-FLAG-MASTER-HAS-SLAVES:CAPS"></a>NM_ACTIVATION_STATE_FLAG_MASTER_HAS_SLAVES</p></td>
+<td class="enum_member_name"><p><a name="NM-ACTIVATION-STATE-FLAG-CONTROLLER-HAS-PORTS:CAPS"></a>NM_ACTIVATION_STATE_FLAG_CONTROLLER_HAS_PORTS</p></td>
 <td class="enum_member_description">
-<p>The master has any slave devices attached.
-This only makes sense if the device is a master.</p>
+<p>The controller has any port devices attached.
+This only makes sense if the device is a controller.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -3686,6 +3690,12 @@ represent an external configuration of a networking device. Since: 1.26.</p>
 </table></div>
 </div>
 <p class="since">Since: 1.10</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-ACTIVATION-STATE-FLAG-MASTER-HAS-SLAVES:CAPS"></a><h3>NM_ACTIVATION_STATE_FLAG_MASTER_HAS_SLAVES</h3>
+<pre class="programlisting">#define NM_ACTIVATION_STATE_FLAG_MASTER_HAS_SLAVES NM_ACTIVATION_FLAG_CONTROLLER_HAS_PORTS
+</pre>
 </div>
 <hr>
 <div class="refsect2">

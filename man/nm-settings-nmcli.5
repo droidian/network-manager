@@ -2,12 +2,12 @@
 .\"     Title: nm-settings-nmcli
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 07/25/2024
+.\"      Date: 08/09/2024
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.48.6
+.\"    Source: NetworkManager 1.48.8
 .\"  Language: English
 .\"
-.TH "NM\-SETTINGS\-NMCLI" "5" "" "NetworkManager 1\&.48\&.6" "Configuration"
+.TH "NM\-SETTINGS\-NMCLI" "5" "" "NetworkManager 1\&.48\&.8" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -129,7 +129,7 @@ Special values: default (\-1), forever (0)
 .PP
 \fBconnection\&.autoconnect\-slaves\fR
 .RS 4
-Whether or not slaves of this connection should be automatically brought up when NetworkManager activates this connection\&. This only has a real effect for master connections\&. The properties "autoconnect", "autoconnect\-priority" and "autoconnect\-retries" are unrelated to this setting\&. The permitted values are: 0: leave slave connections untouched, 1: activate all the slave connections with this connection, \-1: default\&. If \-1 (default) is set, global connection\&.autoconnect\-slaves is read to determine the real value\&. If it is default as well, this fallbacks to 0\&.
+Whether or not ports of this connection should be automatically brought up when NetworkManager activates this connection\&. This only has a real effect for controller connections\&. The properties "autoconnect", "autoconnect\-priority" and "autoconnect\-retries" are unrelated to this setting\&. The permitted values are: 0: leave port connections untouched, 1: activate all the port connections with this connection, \-1: default\&. If \-1 (default) is set, global connection\&.autoconnect\-slaves is read to determine the real value\&. If it is default as well, this fallbacks to 0\&.
 .sp
 Deprecated 1\&.46\&. Use "autoconnect\-ports" instead, this is just an alias\&.
 .sp
@@ -226,7 +226,7 @@ Valid values: default (\-1), no (0), resolve (1), yes (2)
 .RS 4
 Alias: master
 .sp
-Interface name of the master device or UUID of the master connection\&.
+Interface name of the controller device or UUID of the controller connection\&.
 .sp
 Deprecated 1\&.46\&. Use "controller" instead, this is just an alias\&.
 .sp
@@ -333,7 +333,7 @@ Format: list of strings
 .RS 4
 Alias: slave\-type
 .sp
-Setting name of the device type of this slave\*(Aqs master connection (eg, "bond"), or NULL if this connection is not a slave\&.
+Setting name of the device type of this port\*(Aqs controller connection (eg, "bond"), or NULL if this connection is not a port\&.
 .sp
 Deprecated 1\&.46\&. Use "port\-type" instead, this is just an alias\&.
 .sp
@@ -5200,7 +5200,7 @@ Format: list of vlan\&.egress\-priority\-map objects
 .RS 4
 Alias: flags
 .sp
-One or more flags which control the behavior and features of the VLAN interface\&. Flags include "reorder\-headers" (0x1) (reordering of output packet headers), "gvrp" (0x2) (use of the GVRP protocol), and "loose\-binding" (0x4) (loose binding of the interface to its master device\*(Aqs operating state)\&. "mvrp" (0x8) (use of the MVRP protocol)\&.
+One or more flags which control the behavior and features of the VLAN interface\&. Flags include "reorder\-headers" (0x1) (reordering of output packet headers), "gvrp" (0x2) (use of the GVRP protocol), and "loose\-binding" (0x4) (loose binding of the interface to its controller device\*(Aqs operating state)\&. "mvrp" (0x8) (use of the MVRP protocol)\&.
 .sp
 The default value of this property is NM_VLAN_FLAG_REORDER_HEADERS, but it used to be 0\&. To preserve backward compatibility, the default\-value in the D\-Bus API continues to be 0 and a missing property on D\-Bus is still considered as 0\&.
 .sp

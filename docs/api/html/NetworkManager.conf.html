@@ -224,7 +224,7 @@ no-auto-default=*
             if specified (See <a class="xref" href="NetworkManager.conf.html#ignore-carrier"><code class="varname">ignore-carrier</code></a>).
             Otherwise, it is a list of matches to specify for which device
             carrier should be ignored. See <a class="xref" href="NetworkManager.conf.html#device-spec" title="Device List Format">the section called “Device List Format”</a> for the
-            syntax how to specify a device. Note that master types like
+            syntax how to specify a device. Note that controller types like
             bond, bridge, and team ignore carrier by default. You can however
             revert that default using the "except:" specifier (or better,
             use the per-device setting instead of the deprecated setting).
@@ -814,8 +814,13 @@ ipv6.ip6-privacy=0
           </p></td>
 </tr>
 <tr>
-<td><p><span class="term"><code class="varname">connection.autoconnect-slaves</code></span></p></td>
+<td><p><span class="term"><code class="varname">connection.autoconnect-ports</code></span></p></td>
 <td></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="varname">connection.autoconnect-slaves</code></span></p></td>
+<td><p>This is deprecated, please use "connection.autoconnect-ports" instead.
+          </p></td>
 </tr>
 <tr>
 <td><p><span class="term"><code class="varname">connection.down-on-poweroff</code></span></p></td>
@@ -1105,7 +1110,7 @@ ipv6.ip6-privacy=0
 <pre class="programlisting">
 [connection]
 ipv6.ip6-privacy=0
-connection.autoconnect-slaves=1
+connection.autoconnect-ports=1
 vpn.timeout=120
 
 [connection-wifi-wlan0]

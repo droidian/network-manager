@@ -1197,7 +1197,7 @@ is just an alias.</p>
 </div>
 <div class="refsect3">
 <a name="nm-setting-connection-get-master.returns"></a><h4>Returns</h4>
-<p> interface name of the master device or UUID of the master
+<p> interface name of the controller device or UUID of the controller
 connection.</p>
 </div>
 </div>
@@ -1254,7 +1254,7 @@ nm_setting_connection_is_slave_type (<em class="parameter"><code><a class="link"
 <td class="parameter_name"><p>type</p></td>
 <td class="parameter_description"><p>the setting name (ie <a class="link" href="NMSettingBond.html#NM-SETTING-BOND-SETTING-NAME:CAPS" title="NM_SETTING_BOND_SETTING_NAME"><span class="type">NM_SETTING_BOND_SETTING_NAME</span></a>) to be matched
 against <em class="parameter"><code>setting</code></em>
-'s slave type</p></td>
+'s port type</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -1262,7 +1262,7 @@ against <em class="parameter"><code>setting</code></em>
 </div>
 <div class="refsect3">
 <a name="nm-setting-connection-is-slave-type.returns"></a><h4>Returns</h4>
-<p> <code class="literal">TRUE</code> if connection is of the given slave <em class="parameter"><code>type</code></em>
+<p> <code class="literal">TRUE</code> if connection is of the given port <em class="parameter"><code>type</code></em>
 </p>
 </div>
 </div>
@@ -1294,7 +1294,7 @@ is just an alias.</p>
 </div>
 <div class="refsect3">
 <a name="nm-setting-connection-get-slave-type.returns"></a><h4>Returns</h4>
-<p> the type of slave this connection is, if any</p>
+<p> the type of port this connection is, if any</p>
 </div>
 </div>
 <hr>
@@ -1353,7 +1353,7 @@ is just an alias.</p>
 </div>
 <div class="refsect3">
 <a name="nm-setting-connection-get-autoconnect-slaves.returns"></a><h4>Returns</h4>
-<p> whether slaves of the connection should be activated together
+<p> whether ports of the connection should be activated together
 with the connection.</p>
 </div>
 <p class="since">Since: 1.2</p>
@@ -2101,7 +2101,7 @@ property.</p>
 <a name="NMSettingConnectionAutoconnectSlaves"></a><h3>enum NMSettingConnectionAutoconnectSlaves</h3>
 <div class="warning"><p><code class="literal">NMSettingConnectionAutoconnectSlaves</code> has been deprecated since version 1.46 and should not be used in newly-written code.</p></div>
 <p><a class="link" href="NMSettingConnection.html#NMSettingConnectionAutoconnectSlaves" title="enum NMSettingConnectionAutoconnectSlaves"><span class="type">NMSettingConnectionAutoconnectSlaves</span></a> values indicate whether slave connections
-should be activated when master is activated.</p>
+should be activated when controller is activated.</p>
 <div class="refsect3">
 <a name="NMSettingConnectionAutoconnectSlaves.members"></a><h4>Members</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
@@ -2122,7 +2122,7 @@ should be activated when master is activated.</p>
 <td class="enum_member_name"><p><a name="NM-SETTING-CONNECTION-AUTOCONNECT-SLAVES-NO:CAPS"></a>NM_SETTING_CONNECTION_AUTOCONNECT_SLAVES_NO</p></td>
 <td class="enum_member_description">
 <p>slaves are not brought up when
-master is activated</p>
+controller is activated</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -2130,7 +2130,7 @@ master is activated</p>
 <td class="enum_member_name"><p><a name="NM-SETTING-CONNECTION-AUTOCONNECT-SLAVES-YES:CAPS"></a>NM_SETTING_CONNECTION_AUTOCONNECT_SLAVES_YES</p></td>
 <td class="enum_member_description">
 <p>slaves are brought up when
-master is activated</p>
+controller is activated</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>

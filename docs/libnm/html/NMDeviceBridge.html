@@ -195,7 +195,7 @@ nm_device_bridge_get_slaves (<em class="parameter"><code><a class="link" href="N
 <p><code class="literal">nm_device_bridge_get_slaves</code> has been deprecated since version 1.34 and should not be used in newly-written code.</p>
 <p>Use <a class="link" href="NMDevice.html#nm-device-get-ports" title="nm_device_get_ports ()"><code class="function">nm_device_get_ports()</code></a> instead.</p>
 </div>
-<p>Gets the devices currently enslaved to <em class="parameter"><code>device</code></em>
+<p>Gets the devices currently attached as port to <em class="parameter"><code>device</code></em>
 .</p>
 <div class="refsect3">
 <a name="nm-device-bridge-get-slaves.parameters"></a><h4>Parameters</h4>
@@ -215,7 +215,7 @@ nm_device_bridge_get_slaves (<em class="parameter"><code><a class="link" href="N
 <div class="refsect3">
 <a name="nm-device-bridge-get-slaves.returns"></a><h4>Returns</h4>
 <p>the <span class="type">GPtrArray</span> containing
-<span class="type">NMDevices</span> that are slaves of <em class="parameter"><code>device</code></em>
+<span class="type">NMDevices</span> that are ports of <em class="parameter"><code>device</code></em>
 . This is the internal
 copy used by the device, and must not be modified. </p>
 <p><span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMDevice]</span></p>
@@ -261,7 +261,7 @@ copy used by the device, and must not be modified. </p>
 <div class="refsect2">
 <a name="NMDeviceBridge--slaves"></a><h3>The <code class="literal">“slaves”</code> property</h3>
 <pre class="programlisting">  “slaves”                   <span class="type">GPtrArray</span> *</pre>
-<p>The devices enslaved to the bridge device.</p>
+<p>The devices attached as port to the bridge device.</p>
 <p><span class="annotation">[<acronym title="Override the parsed C type with given type."><span class="acronym">type</span></acronym> GPtrArray(NMDevice)]</span></p>
 <p>Owner: NMDeviceBridge</p>
 <p>Flags: Read</p>
