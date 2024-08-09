@@ -2706,10 +2706,10 @@ general case) work with connections of type <em class="parameter"><code>other_ty
 <em class="parameter"><code>other_type</code></em>
  is a valid type for the parent of a VLAN.</p>
 <p>If <em class="parameter"><code>virtual_type</code></em>
- is a "master" type (eg, <code class="literal">NM_TYPE_SETTING_BRIDGE</code>),
+ is a "controller" type (eg, <code class="literal">NM_TYPE_SETTING_BRIDGE</code>),
 then this checks if <em class="parameter"><code>other_type</code></em>
- is a valid type for a slave of that
-master.</p>
+ is a valid type for a port of that
+controller.</p>
 <p>Note that even if this returns <code class="literal">TRUE</code> it is not guaranteed that
 <span class="emphasis"><em>every</em></span> connection of type <em class="parameter"><code>other_type</code></em>
  is

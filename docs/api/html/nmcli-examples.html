@@ -195,42 +195,42 @@ B,DISPATCH</pre>
 </div>
 </div>
 <br class="example-break"><div class="example">
-<a name="id-1.2.7.6.9"></a><p class="title"><b>Example 8. Adding a bonding master and two slave connection profiles</b></p>
+<a name="id-1.2.7.6.9"></a><p class="title"><b>Example 8. Adding a bonding controller and two port connection profiles</b></p>
 <div class="example-contents">
 <pre class="screen"><code class="prompt">$ </code><strong class="userinput"><code>nmcli con add type bond ifname mybond0 mode active-backup</code></strong>
-<code class="prompt">$ </code><strong class="userinput"><code>nmcli con add type ethernet ifname eth1 master mybond0</code></strong>
-<code class="prompt">$ </code><strong class="userinput"><code>nmcli con add type ethernet ifname eth2 master mybond0</code></strong></pre>
+<code class="prompt">$ </code><strong class="userinput"><code>nmcli con add type ethernet ifname eth1 controller mybond0</code></strong>
+<code class="prompt">$ </code><strong class="userinput"><code>nmcli con add type ethernet ifname eth2 controller mybond0</code></strong></pre>
 <p>
-        This example demonstrates adding a bond master connection and two slaves. The
-        first command adds a master bond connection, naming the bonding interface
+        This example demonstrates adding a bond controller connection and two ports. The
+        first command adds a controller bond connection, naming the bonding interface
         <span class="emphasis"><em>mybond0</em></span> and using <span class="emphasis"><em>active-backup</em></span> mode.
-        The next two commands add slaves connections, both enslaved to <span class="emphasis"><em>mybond0</em></span>.
-        The first slave will be bound to <span class="emphasis"><em>eth1</em></span> interface, the second to
+        The next two commands add port connections, both attached as port to <span class="emphasis"><em>mybond0</em></span>.
+        The first port will be bound to <span class="emphasis"><em>eth1</em></span> interface, the second to
         <span class="emphasis"><em>eth2</em></span>.
       </p>
 </div>
 </div>
 <br class="example-break"><div class="example">
-<a name="id-1.2.7.6.10"></a><p class="title"><b>Example 9. Adding a team master and two slave connection profiles</b></p>
+<a name="id-1.2.7.6.10"></a><p class="title"><b>Example 9. Adding a team controller and two port connection profiles</b></p>
 <div class="example-contents">
-<pre class="screen"><code class="prompt">$ </code><strong class="userinput"><code>nmcli con add type team con-name Team1 ifname Team1 config team1-master-json.conf</code></strong>
-<code class="prompt">$ </code><strong class="userinput"><code>nmcli con add type ethernet con-name Team1-slave1 ifname em1 master Team1</code></strong>
-<code class="prompt">$ </code><strong class="userinput"><code>nmcli con add type ethernet con-name Team1-slave2 ifname em2 master Team1</code></strong></pre>
+<pre class="screen"><code class="prompt">$ </code><strong class="userinput"><code>nmcli con add type team con-name Team1 ifname Team1 config team1-controller-json.conf</code></strong>
+<code class="prompt">$ </code><strong class="userinput"><code>nmcli con add type ethernet con-name Team1-port1 ifname em1 controller Team1</code></strong>
+<code class="prompt">$ </code><strong class="userinput"><code>nmcli con add type ethernet con-name Team1-port2 ifname em2 controller Team1</code></strong></pre>
 <p>
-        This example demonstrates adding a team master connection profile and two slaves. It is
-        very similar to the bonding example. The first command adds a master team profile, naming
+        This example demonstrates adding a team controller connection profile and two ports. It is
+        very similar to the bonding example. The first command adds a controller team profile, naming
         the team interface and the profile <span class="emphasis"><em>Team1</em></span>. The team configuration
-        for the master is read from <span class="emphasis"><em>team1-master-json.conf</em></span> file. Later, you can
+        for the controller is read from <span class="emphasis"><em>team1-controller-json.conf</em></span> file. Later, you can
         change the configuration with <span class="emphasis"><em>modify</em></span> command
-        (<span class="bold"><strong>nmcli con modify Team1 team.config team1-master-another-json.conf</strong></span>).
-        The last two commands add slaves profiles, both enslaved to <span class="emphasis"><em>Team1</em></span>.
-        The first slave will be bound to the <span class="emphasis"><em>em1</em></span> interface, the second to
-        <span class="emphasis"><em>em2</em></span>. The slaves don't specify <span class="emphasis"><em>config</em></span> and thus
+        (<span class="bold"><strong>nmcli con modify Team1 team.config team1-controller-another-json.conf</strong></span>).
+        The last two commands add port profiles, both attached as port to <span class="emphasis"><em>Team1</em></span>.
+        The first port will be bound to the <span class="emphasis"><em>em1</em></span> interface, the second to
+        <span class="emphasis"><em>em2</em></span>. The ports don't specify <span class="emphasis"><em>config</em></span> and thus
         <span class="emphasis"><em>teamd</em></span> will use its default configuration. You will activate the whole setup
-        by activating both slaves:
+        by activating both ports:
 </p>
-<pre class="screen">  <code class="prompt">$ </code><strong class="userinput"><code>nmcli con up Team1-slave1</code></strong>
-  <code class="prompt">$ </code><strong class="userinput"><code>nmcli con up Team1-slave2</code></strong></pre>
+<pre class="screen">  <code class="prompt">$ </code><strong class="userinput"><code>nmcli con up Team1-port1</code></strong>
+  <code class="prompt">$ </code><strong class="userinput"><code>nmcli con up Team1-port2</code></strong></pre>
 <p>
         By default, the created profiles are marked for auto-activation. But if another
         connection has been activated on the device, the new profile won't activate
@@ -239,19 +239,19 @@ B,DISPATCH</pre>
 </div>
 </div>
 <br class="example-break"><div class="example">
-<a name="id-1.2.7.6.11"></a><p class="title"><b>Example 10. Adding a bridge and two slave profiles</b></p>
+<a name="id-1.2.7.6.11"></a><p class="title"><b>Example 10. Adding a bridge and two port profiles</b></p>
 <div class="example-contents">
 <pre class="screen"><code class="prompt">$ </code><strong class="userinput"><code>nmcli con add type bridge con-name TowerBridge ifname TowerBridge</code></strong>
-<code class="prompt">$ </code><strong class="userinput"><code>nmcli con add type ethernet con-name br-slave-1 ifname ens3 master TowerBridge</code></strong>
-<code class="prompt">$ </code><strong class="userinput"><code>nmcli con add type ethernet con-name br-slave-2 ifname ens4 master TowerBridge</code></strong>
+<code class="prompt">$ </code><strong class="userinput"><code>nmcli con add type ethernet con-name br-port-1 ifname ens3 controller TowerBridge</code></strong>
+<code class="prompt">$ </code><strong class="userinput"><code>nmcli con add type ethernet con-name br-port-2 ifname ens4 controller TowerBridge</code></strong>
 <code class="prompt">$ </code><strong class="userinput"><code>nmcli con modify TowerBridge bridge.stp no</code></strong></pre>
 <p>
-        This example demonstrates adding a bridge master connection and two slaves. The
-        first command adds a master bridge connection, naming the bridge interface and
+        This example demonstrates adding a bridge controller connection and two ports. The
+        first command adds a controller bridge connection, naming the bridge interface and
         the profile as <span class="emphasis"><em>TowerBridge</em></span>.
-        The next two commands add slaves profiles, both will be enslaved to
+        The next two commands add ports profiles, both will be attached as port to
         <span class="emphasis"><em>TowerBridge</em></span>.
-        The first slave will be tied to <span class="emphasis"><em>ens3</em></span> interface, the second to
+        The first port will be tied to <span class="emphasis"><em>ens3</em></span> interface, the second to
         <span class="emphasis"><em>ens4</em></span>.
         The last command will disable 802.1D STP for the TowerBridge profile.
       </p>
@@ -401,8 +401,8 @@ connection.timestamp:               0
 connection.read-only:               no
 connection.permissions:
 connection.zone:                    --
-connection.master:                  --
-connection.slave-type:              --
+connection.controller:              --
+connection.port-type:               --
 connection.secondaries:
 connection.gateway-ping-timeout:    0
 ---------------------------------------------------------------------------
@@ -491,8 +491,8 @@ connection.timestamp:               0
 connection.read-only:               no
 connection.permissions:
 connection.zone:                    --
-connection.master:                  --
-connection.slave-type:              --
+connection.controller:              --
+connection.port-type:               --
 connection.secondaries:
 connection.gateway-ping-timeout:    0
 ---------------------------------------------------------------------------
@@ -551,8 +551,8 @@ connection.timestamp:               0
 connection.read-only:               no
 connection.permissions:
 connection.zone:                    --
-connection.master:                  --
-connection.slave-type:              --
+connection.controller:              --
+connection.port-type:               --
 connection.secondaries:
 connection.gateway-ping-timeout:    0
 ---------------------------------------------------------------------------

@@ -510,6 +510,7 @@
     <keyword type="enum" name="enum NMRollbackResult" link="libnm-nm-dbus-interface.html#NMRollbackResult" since="1.4"/>
     <keyword type="enum" name="enum NMSettingsConnectionFlags" link="libnm-nm-dbus-interface.html#NMSettingsConnectionFlags" since="1.12"/>
     <keyword type="enum" name="enum NMActivationStateFlags" link="libnm-nm-dbus-interface.html#NMActivationStateFlags" since="1.10"/>
+    <keyword type="macro" name="NM_ACTIVATION_STATE_FLAG_MASTER_HAS_SLAVES" link="libnm-nm-dbus-interface.html#NM-ACTIVATION-STATE-FLAG-MASTER-HAS-SLAVES:CAPS"/>
     <keyword type="enum" name="enum NMSettingsAddConnection2Flags" link="libnm-nm-dbus-interface.html#NMSettingsAddConnection2Flags" since="1.20"/>
     <keyword type="enum" name="enum NMSettingsUpdate2Flags" link="libnm-nm-dbus-interface.html#NMSettingsUpdate2Flags" since="1.12"/>
     <keyword type="enum" name="enum NMDeviceReapplyFlags" link="libnm-nm-dbus-interface.html#NMDeviceReapplyFlags" since="1.42"/>
@@ -3867,12 +3868,12 @@
     <keyword type="constant" name="NM_SETTINGS_CONNECTION_FLAG_VOLATILE" link="libnm-nm-dbus-interface.html#NM-SETTINGS-CONNECTION-FLAG-VOLATILE:CAPS"/>
     <keyword type="constant" name="NM_SETTINGS_CONNECTION_FLAG_EXTERNAL" link="libnm-nm-dbus-interface.html#NM-SETTINGS-CONNECTION-FLAG-EXTERNAL:CAPS"/>
     <keyword type="constant" name="NM_ACTIVATION_STATE_FLAG_NONE" link="libnm-nm-dbus-interface.html#NM-ACTIVATION-STATE-FLAG-NONE:CAPS"/>
-    <keyword type="constant" name="NM_ACTIVATION_STATE_FLAG_IS_MASTER" link="libnm-nm-dbus-interface.html#NM-ACTIVATION-STATE-FLAG-IS-MASTER:CAPS"/>
-    <keyword type="constant" name="NM_ACTIVATION_STATE_FLAG_IS_SLAVE" link="libnm-nm-dbus-interface.html#NM-ACTIVATION-STATE-FLAG-IS-SLAVE:CAPS"/>
+    <keyword type="constant" name="NM_ACTIVATION_STATE_FLAG_IS_CONTROLLER" link="libnm-nm-dbus-interface.html#NM-ACTIVATION-STATE-FLAG-IS-CONTROLLER:CAPS"/>
+    <keyword type="constant" name="NM_ACTIVATION_STATE_FLAG_IS_PORT" link="libnm-nm-dbus-interface.html#NM-ACTIVATION-STATE-FLAG-IS-PORT:CAPS"/>
     <keyword type="constant" name="NM_ACTIVATION_STATE_FLAG_LAYER2_READY" link="libnm-nm-dbus-interface.html#NM-ACTIVATION-STATE-FLAG-LAYER2-READY:CAPS"/>
     <keyword type="constant" name="NM_ACTIVATION_STATE_FLAG_IP4_READY" link="libnm-nm-dbus-interface.html#NM-ACTIVATION-STATE-FLAG-IP4-READY:CAPS"/>
     <keyword type="constant" name="NM_ACTIVATION_STATE_FLAG_IP6_READY" link="libnm-nm-dbus-interface.html#NM-ACTIVATION-STATE-FLAG-IP6-READY:CAPS"/>
-    <keyword type="constant" name="NM_ACTIVATION_STATE_FLAG_MASTER_HAS_SLAVES" link="libnm-nm-dbus-interface.html#NM-ACTIVATION-STATE-FLAG-MASTER-HAS-SLAVES:CAPS"/>
+    <keyword type="constant" name="NM_ACTIVATION_STATE_FLAG_CONTROLLER_HAS_PORTS" link="libnm-nm-dbus-interface.html#NM-ACTIVATION-STATE-FLAG-CONTROLLER-HAS-PORTS:CAPS"/>
     <keyword type="constant" name="NM_ACTIVATION_STATE_FLAG_LIFETIME_BOUND_TO_PROFILE_VISIBILITY" link="libnm-nm-dbus-interface.html#NM-ACTIVATION-STATE-FLAG-LIFETIME-BOUND-TO-PROFILE-VISIBILITY:CAPS"/>
     <keyword type="constant" name="NM_ACTIVATION_STATE_FLAG_EXTERNAL" link="libnm-nm-dbus-interface.html#NM-ACTIVATION-STATE-FLAG-EXTERNAL:CAPS"/>
     <keyword type="constant" name="NM_SETTINGS_ADD_CONNECTION2_FLAG_NONE" link="libnm-nm-dbus-interface.html#NM-SETTINGS-ADD-CONNECTION2-FLAG-NONE:CAPS"/>

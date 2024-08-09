@@ -823,12 +823,12 @@
     <keyword type="constant" name="NM_SETTINGS_CONNECTION_FLAG_VOLATILE" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.27.4.2.1.4.4.1.1id-1.4.17.2.27.4.2.1.4.4.1.2"/>
     <keyword type="constant" name="NM_SETTINGS_CONNECTION_FLAG_EXTERNAL" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.27.4.2.1.4.5.1.1id-1.4.17.2.27.4.2.1.4.5.1.2"/>
     <keyword type="constant" name="NM_ACTIVATION_STATE_FLAG_NONE" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.28.4.2.1.4.1.1.1id-1.4.17.2.28.4.2.1.4.1.1.2"/>
-    <keyword type="constant" name="NM_ACTIVATION_STATE_FLAG_IS_MASTER" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.28.4.2.1.4.2.1.1id-1.4.17.2.28.4.2.1.4.2.1.2"/>
-    <keyword type="constant" name="NM_ACTIVATION_STATE_FLAG_IS_SLAVE" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.28.4.2.1.4.3.1.1id-1.4.17.2.28.4.2.1.4.3.1.2"/>
+    <keyword type="constant" name="NM_ACTIVATION_STATE_FLAG_IS_CONTROLLER" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.28.4.2.1.4.2.1.1id-1.4.17.2.28.4.2.1.4.2.1.2"/>
+    <keyword type="constant" name="NM_ACTIVATION_STATE_FLAG_IS_PORT" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.28.4.2.1.4.3.1.1id-1.4.17.2.28.4.2.1.4.3.1.2"/>
     <keyword type="constant" name="NM_ACTIVATION_STATE_FLAG_LAYER2_READY" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.28.4.2.1.4.4.1.1id-1.4.17.2.28.4.2.1.4.4.1.2"/>
     <keyword type="constant" name="NM_ACTIVATION_STATE_FLAG_IP4_READY" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.28.4.2.1.4.5.1.1id-1.4.17.2.28.4.2.1.4.5.1.2"/>
     <keyword type="constant" name="NM_ACTIVATION_STATE_FLAG_IP6_READY" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.28.4.2.1.4.6.1.1id-1.4.17.2.28.4.2.1.4.6.1.2"/>
-    <keyword type="constant" name="NM_ACTIVATION_STATE_FLAG_MASTER_HAS_SLAVES" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.28.4.2.1.4.7.1.1id-1.4.17.2.28.4.2.1.4.7.1.2"/>
+    <keyword type="constant" name="NM_ACTIVATION_STATE_FLAG_CONTROLLER_HAS_PORTS" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.28.4.2.1.4.7.1.1id-1.4.17.2.28.4.2.1.4.7.1.2"/>
     <keyword type="constant" name="NM_ACTIVATION_STATE_FLAG_LIFETIME_BOUND_TO_PROFILE_VISIBILITY" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.28.4.2.1.4.8.1.1id-1.4.17.2.28.4.2.1.4.8.1.2"/>
     <keyword type="constant" name="NM_ACTIVATION_STATE_FLAG_EXTERNAL" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.28.4.2.1.4.9.1.1id-1.4.17.2.28.4.2.1.4.9.1.2"/>
     <keyword type="constant" name="NM_SETTINGS_ADD_CONNECTION2_FLAG_NONE" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.29.4.2.1.4.1.1.1id-1.4.17.2.29.4.2.1.4.1.1.2"/>

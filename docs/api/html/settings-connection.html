@@ -97,7 +97,7 @@ Depending on "connection.multi-connect", a profile can (auto)connect only once a
 <td><pre class="screen">autoconnect-slaves</pre></td>
 <td><pre class="screen">NMSettingConnectionAutoconnectSlaves (int32)</pre></td>
 <td><pre class="screen"></pre></td>
-<td>Whether or not slaves of this connection should be automatically brought up when NetworkManager activates this connection. This only has a real effect for master connections. The properties "autoconnect", "autoconnect-priority" and "autoconnect-retries" are unrelated to this setting. The permitted values are: 0: leave slave connections untouched, 1: activate all the slave connections with this connection, -1: default. If -1 (default) is set, global connection.autoconnect-slaves is read to determine the real value. If it is default as well, this fallbacks to 0.
+<td>Whether or not ports of this connection should be automatically brought up when NetworkManager activates this connection. This only has a real effect for controller connections. The properties "autoconnect", "autoconnect-priority" and "autoconnect-retries" are unrelated to this setting. The permitted values are: 0: leave port connections untouched, 1: activate all the port connections with this connection, -1: default. If -1 (default) is set, global connection.autoconnect-slaves is read to determine the real value. If it is default as well, this fallbacks to 0.
 
 Deprecated 1.46. Use "autoconnect-ports" instead, this is just an alias.</td>
 </tr>
@@ -165,7 +165,7 @@ This feature requires a plugin which supports LLMNR. Otherwise, the setting has 
 <td><pre class="screen">master</pre></td>
 <td><pre class="screen">string</pre></td>
 <td><pre class="screen"></pre></td>
-<td>Interface name of the master device or UUID of the master connection.
+<td>Interface name of the controller device or UUID of the controller connection.
 
 Deprecated 1.46. Use "controller" instead, this is just an alias.</td>
 </tr>
@@ -255,7 +255,7 @@ At this time only the "user" [type] is allowed.  Any other values are ignored an
 <td><pre class="screen">slave-type</pre></td>
 <td><pre class="screen">string</pre></td>
 <td><pre class="screen"></pre></td>
-<td>Setting name of the device type of this slave's master connection (eg, "bond"), or NULL if this connection is not a slave.
+<td>Setting name of the device type of this port's controller connection (eg, "bond"), or NULL if this connection is not a port.
 
 Deprecated 1.46. Use "port-type" instead, this is just an alias.</td>
 </tr>

@@ -2,12 +2,12 @@
 .\"     Title: nm-openvswitch
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 07/25/2024
+.\"      Date: 08/09/2024
 .\"    Manual: Open vSwitch support overview
-.\"    Source: NetworkManager 1.48.6
+.\"    Source: NetworkManager 1.48.8
 .\"  Language: English
 .\"
-.TH "NM\-OPENVSWITCH" "7" "" "NetworkManager 1\&.48\&.6" "Open vSwitch support overview"
+.TH "NM\-OPENVSWITCH" "7" "" "NetworkManager 1\&.48\&.8" "Open vSwitch support overview"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -58,7 +58,7 @@ NetworkManager only ever talks to a single OVSDB instance via an UNIX domain soc
 .sp -1
 .IP \(bu 2.3
 .\}
-The configuration is made up of Bridges, Ports and Interfaces\&. Interfaces are always enslaved to Ports, and Ports are always enslaved to Bridges\&.
+The configuration is made up of Bridges, Ports and Interfaces\&. Interfaces are always attached to Ports, and Ports are always attached to Bridges\&.
 .RE
 .sp
 .RS 4
@@ -81,7 +81,7 @@ NetworkManager only creates Bridges, Ports and Interfaces you ask it to\&. Unlik
 .sp -1
 .IP \(bu 2.3
 .\}
-You can\*(Aqt enslave Interface directly to a Bridge\&. You always need a Port, even if it has just one interface\&.
+You can\*(Aqt attach Interface directly to a Bridge\&. You always need a Port, even if it has just one interface\&.
 .RE
 .sp
 .RS 4
@@ -111,16 +111,16 @@ There are no bonds either\&. The bonding is enabled by enslaving multiple Interf
 .SS "Bridges"
 .PP
 Bridges are represented by connections of ovs\-bridge
-type\&. Due to the limitations of OVSDB, "empty" Bridges (with no Ports) can\*(Aqt exist\&. NetworkManager inserts the records for Bridges into OVSDB when a Port is enslaved\&.
+type\&. Due to the limitations of OVSDB, "empty" Bridges (with no Ports) can\*(Aqt exist\&. NetworkManager inserts the records for Bridges into OVSDB when a Port is attached\&.
 .SS "Ports"
 .PP
 Ports are represented by connections of ovs\-port
-type\&. Due to the limitations of OVSDB, "empty" Ports (with no Interfaces) can\*(Aqt exist\&. Ports can also be configured to do VLAN tagging or Bonding\&. NetworkManager inserts the records for Ports into OVSDB when an Interface is enslaved\&. Ports must be enslaved to a Bridge\&.
+type\&. Due to the limitations of OVSDB, "empty" Ports (with no Interfaces) can\*(Aqt exist\&. Ports can also be configured to do VLAN tagging or Bonding\&. NetworkManager inserts the records for Ports into OVSDB when an Interface is attached\&. Ports must be attached to a Bridge\&.
 .SS "Interfaces"
 .PP
-Interfaces are represented by a connections enslaved to a Port\&. The system interfaces (that have a corresponding Linux link) have a respective
+Interfaces are represented by a connections attached to a Port\&. The system interfaces (that have a corresponding Linux link) have a respective
 connection\&.type
-of the link (e\&.g\&. "wired", "bond", "dummy", etc\&.)\&. Other interfaces ("internal" or "patch" interfaces) are of ovs\-interface type\&. The OVSDB entries are inserted upon enslavement to a Port\&.
+of the link (e\&.g\&. "wired", "bond", "dummy", etc\&.)\&. Other interfaces ("internal" or "patch" interfaces) are of ovs\-interface type\&. The OVSDB entries are inserted upon attachment to a Port\&.
 .SH "EXAMPLES"
 .PP
 \fBExample\ \&1.\ \&Creating a Bridge with a single internal Interface\fR
@@ -131,10 +131,10 @@ of the link (e\&.g\&. "wired", "bond", "dummy", etc\&.)\&. Other interfaces ("in
 .nf
 $ \fBnmcli conn add type ovs\-bridge conn\&.interface bridge0\fR
 Connection \*(Aqovs\-bridge\-bridge0\*(Aq (d10fc64d\-1d48\-4394\-a1b8\-e1aea72f27d5) successfully added\&.
-$ \fBnmcli conn add type ovs\-port conn\&.interface port0 master bridge0\fR
+$ \fBnmcli conn add type ovs\-port conn\&.interface port0 controller bridge0\fR
 Connection \*(Aqovs\-port\-port0\*(Aq (5ae22bae\-bba4\-4815\-9ade\-7e635633e1f0) successfully added\&.
-$ \fBnmcli conn add type ovs\-interface slave\-type ovs\-port conn\&.interface iface0 \e
-  master port0 ipv4\&.method manual ipv4\&.address 192\&.0\&.2\&.1/24\fR
+$ \fBnmcli conn add type ovs\-interface port\-type ovs\-port conn\&.interface iface0 \e
+  controller port0 ipv4\&.method manual ipv4\&.address 192\&.0\&.2\&.1/24\fR
 Connection \*(Aqovs\-interface\-iface0\*(Aq (3640d2a1\-a2fd\-4718\-92f1\-cffadb5b6cdc) successfully added\&.
 .fi
 .if n \{\
@@ -150,9 +150,9 @@ As said above, you need to create a Port even for a single interface\&. Also, be
 .RS 4
 .\}
 .nf
-$ \fBnmcli conn add type ovs\-port conn\&.interface port1 master bridge0\fR
+$ \fBnmcli conn add type ovs\-port conn\&.interface port1 controller bridge0\fR
 Connection \*(Aqovs\-port\-port1\*(Aq (67d041eb\-8e7b\-4458\-afee\-a1d07c9c4552) successfully added\&.
-$ \fBnmcli conn add type ethernet conn\&.interface eth0 master port1\fR
+$ \fBnmcli conn add type ethernet conn\&.interface eth0 controller port1\fR
 Connection \*(Aqovs\-slave\-eth0\*(Aq (d459c45c\-cf78\-4c1c\-b4b7\-505e71379624) successfully added\&.
 .fi
 .if n \{\
@@ -167,9 +167,9 @@ Again, you need a port\&.
 .RS 4
 .\}
 .nf
-$ \fBnmcli conn add type ovs\-port conn\&.interface port2 master bridge0 ovs\-port\&.tag 120\fR
+$ \fBnmcli conn add type ovs\-port conn\&.interface port2 controller bridge0 ovs\-port\&.tag 120\fR
 Connection \*(Aqovs\-port\-port2\*(Aq (3994c093\-4ef7\-4549\-a4fd\-627b831c3cb8) successfully added\&.
-$ \fBnmcli conn add type ethernet conn\&.interface eth1 master port2\fR
+$ \fBnmcli conn add type ethernet conn\&.interface eth1 controller port2\fR
 Connection \*(Aqovs\-slave\-eth1\*(Aq (099be06e\-71ad\-484d\-8d5a\-fcadc5f207f5) successfully added\&.
 .fi
 .if n \{\
@@ -184,11 +184,11 @@ It\*(Aqs just a port with a tag\&.
 .RS 4
 .\}
 .nf
-$ \fBnmcli conn add type ovs\-port conn\&.interface bond0 master bridge0\fR
+$ \fBnmcli conn add type ovs\-port conn\&.interface bond0 controller bridge0\fR
 Connection \*(Aqovs\-port\-bond0\*(Aq (d154ebf9\-e999\-4e1b\-a084\-a3de53d25d8a) successfully added\&.
-$ \fBnmcli conn add type ethernet conn\&.interface eth2 master bond0\fR
+$ \fBnmcli conn add type ethernet conn\&.interface eth2 controller bond0\fR
 Connection \*(Aqovs\-slave\-eth2\*(Aq (475ac1bf\-30b2\-4534\-a877\-27f33f58b082) successfully added\&.
-$ \fBnmcli conn add type ethernet conn\&.interface eth3 master bond0\fR
+$ \fBnmcli conn add type ethernet conn\&.interface eth3 controller bond0\fR
 Connection \*(Aqovs\-slave\-eth3\*(Aq (8dedeecb\-ed12\-482b\-b77a\-24a4fb835136) successfully added\&.
 .fi
 .if n \{\

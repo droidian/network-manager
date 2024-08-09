@@ -2,12 +2,12 @@
 .\"     Title: NetworkManager.conf
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 07/25/2024
+.\"      Date: 08/09/2024
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.48.6
+.\"    Source: NetworkManager 1.48.8
 .\"  Language: English
 .\"
-.TH "NETWORKMANAGER\&.CONF" "5" "" "NetworkManager 1\&.48\&.6" "Configuration"
+.TH "NETWORKMANAGER\&.CONF" "5" "" "NetworkManager 1\&.48\&.8" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -195,7 +195,7 @@ ignore\-carrier
 which overwrites this setting if specified (See
 \fIignore\-carrier\fR)\&. Otherwise, it is a list of matches to specify for which device carrier should be ignored\&. See
 the section called \(lqDevice List Format\(rq
-for the syntax how to specify a device\&. Note that master types like bond, bridge, and team ignore carrier by default\&. You can however revert that default using the "except:" specifier (or better, use the per\-device setting instead of the deprecated setting)\&.
+for the syntax how to specify a device\&. Note that controller types like bond, bridge, and team ignore carrier by default\&. You can however revert that default using the "except:" specifier (or better, use the per\-device setting instead of the deprecated setting)\&.
 .RE
 .PP
 \fIassume\-ipv6ll\-only\fR
@@ -784,8 +784,13 @@ for details)\&.
 If left unspecified, the default value is 3 tries before failing the connection\&.
 .RE
 .PP
+\fIconnection\&.autoconnect\-ports\fR
+.RS 4
+.RE
+.PP
 \fIconnection\&.autoconnect\-slaves\fR
 .RS 4
+This is deprecated, please use "connection\&.autoconnect\-ports" instead\&.
 .RE
 .PP
 \fIconnection\&.down\-on\-poweroff\fR
@@ -1093,7 +1098,7 @@ sections, by having different sections with a name that all start with "connecti
 .nf
 [connection]
 ipv6\&.ip6\-privacy=0
-connection\&.autoconnect\-slaves=1
+connection\&.autoconnect\-ports=1
 vpn\&.timeout=120
 
 [connection\-wifi\-wlan0]
