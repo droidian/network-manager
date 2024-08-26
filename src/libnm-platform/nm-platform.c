@@ -2070,10 +2070,11 @@ nm_platform_link_set_sriov_vfs(NMPlatform *self, int ifindex, const NMPlatformVF
 }
 
 gboolean
-nm_platform_link_set_bridge_vlans(NMPlatform                        *self,
-                                  int                                ifindex,
-                                  gboolean                           on_controller,
-                                  const NMPlatformBridgeVlan *const *vlans)
+nm_platform_link_set_bridge_vlans(NMPlatform                 *self,
+                                  int                         ifindex,
+                                  gboolean                    on_controller,
+                                  const NMPlatformBridgeVlan *vlans,
+                                  guint                       num_vlans)
 {
     guint i;
     _CHECK_SELF(self, klass, FALSE);
@@ -2085,9 +2086,9 @@ nm_platform_link_set_bridge_vlans(NMPlatform                        *self,
                vlans ? "setting" : "clearing",
                on_controller ? "controller" : "self");
         if (vlans) {
-            for (i = 0; vlans[i]; i++) {
+            for (i = 0; i < num_vlans; i++) {
                 char                        sbuf[NM_UTILS_TO_STRING_BUFFER_SIZE];
-                const NMPlatformBridgeVlan *vlan = vlans[i];
+                const NMPlatformBridgeVlan *vlan = &vlans[i];
 
                 _LOG3D("link:   bridge VLAN %s",
                        nm_platform_bridge_vlan_to_string(vlan, sbuf, sizeof(sbuf)));
@@ -2095,7 +2096,41 @@ nm_platform_link_set_bridge_vlans(NMPlatform                        *self,
         }
     }
 
-    return klass->link_set_bridge_vlans(self, ifindex, on_controller, vlans);
+    return klass->link_set_bridge_vlans(self, ifindex, on_controller, vlans, num_vlans);
+}
+
+gboolean
+nm_platform_link_get_bridge_vlans(NMPlatform            *self,
+                                  int                    ifindex,
+                                  NMPlatformBridgeVlan **out_vlans,
+                                  guint                 *out_num_vlans)
+{
+    char     sbuf[NM_UTILS_TO_STRING_BUFFER_SIZE];
+    gboolean ret;
+    guint    i;
+
+    _CHECK_SELF(self, klass, FALSE);
+
+    g_return_val_if_fail(ifindex > 0, FALSE);
+    g_return_val_if_fail(out_vlans, FALSE);
+    g_return_val_if_fail(out_num_vlans, FALSE);
+
+    _LOG3D("link: getting bridge VLANs");
+
+    ret = klass->link_get_bridge_vlans(self, ifindex, out_vlans, out_num_vlans);
+
+    if (_LOGD_ENABLED()) {
+        if (!ret) {
+            _LOG3D("link: failure while getting bridge vlans");
+        } else {
+            for (i = 0; i < *out_num_vlans; i++) {
+                _LOG3D("link:   bridge VLAN %s",
+                       nm_platform_bridge_vlan_to_string(&(*out_vlans)[i], sbuf, sizeof(sbuf)));
+            }
+        }
+    }
+
+    return ret;
 }
 
 gboolean
