@@ -14,7 +14,7 @@
 
 
 # see https://docs.gitlab.com/ee/ci/yaml/#includefile
-.templates_sha: &template_sha 184ca628f89f3193c249b4e34e45afee2773a833
+.templates_sha: &template_sha 98b1218f146a1ec96d65e3ce0041f9a6ec5cb5e6
 
 
 
@@ -57,11 +57,11 @@ variables:
   #
   # This is done by running `ci-fairy generate-template` and possibly bumping
   # ".default_tag".
-  ALPINE_TAG:  'tag-4e88b0485a0b'
-  CENTOS_TAG:  'tag-49333ce03178'
-  DEBIAN_TAG:  'tag-40fb807bf9e5'
-  FEDORA_TAG:  'tag-49333ce03178'
-  UBUNTU_TAG:  'tag-40fb807bf9e5'
+  ALPINE_TAG:  'tag-d8c61f882b9d'
+  CENTOS_TAG:  'tag-8044890d9044'
+  DEBIAN_TAG:  'tag-538b968b666b'
+  FEDORA_TAG:  'tag-8044890d9044'
+  UBUNTU_TAG:  'tag-538b968b666b'
 
   ALPINE_EXEC: 'bash .gitlab-ci/alpine-install.sh'
   CENTOS_EXEC: 'bash .gitlab-ci/fedora-install.sh'
@@ -246,17 +246,6 @@ tier3:debian:oldstable@prep:
     FDO_DISTRIBUTION_VERSION: 'oldstable'
     FDO_DISTRIBUTION_TAG: $DEBIAN_TAG
     FDO_DISTRIBUTION_EXEC: $DEBIAN_EXEC
-  when: manual
-
-tier3:centos:stream8@prep:
-  extends:
-    - .fdo.container-build@centos
-  stage: prep
-  variables:
-    GIT_STRATEGY: none
-    FDO_DISTRIBUTION_VERSION: 'stream8'
-    FDO_DISTRIBUTION_TAG: $CENTOS_TAG
-    FDO_DISTRIBUTION_EXEC: $CENTOS_EXEC
   when: manual
 
 tier3:alpine:latest@prep:
@@ -492,18 +481,6 @@ t_debian:oldstable:
     FDO_DISTRIBUTION_TAG: $DEBIAN_TAG
   needs:
     - "tier3:debian:oldstable@prep"
-
-t_centos:stream8:
-  extends:
-    - .build@template
-    - .fdo.distribution-image@centos
-    - .nm_artifacts_debug
-  stage: tier3
-  variables:
-    FDO_DISTRIBUTION_VERSION: 'stream8'
-    FDO_DISTRIBUTION_TAG: $CENTOS_TAG
-  needs:
-    - "tier3:centos:stream8@prep"
 
 t_alpine:latest:
   extends:

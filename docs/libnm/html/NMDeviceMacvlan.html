@@ -8,7 +8,7 @@
 <link rel="up" href="ch04.html" title="Device and Runtime Configuration API Reference">
 <link rel="prev" href="NMDeviceMacsec.html" title="NMDeviceMacsec">
 <link rel="next" href="NMDeviceModem.html" title="NMDeviceModem">
-<meta name="generator" content="GTK-Doc V1.34.0 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -58,7 +58,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<span class="returnvalue">gboolean</span>
+<a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 </td>
 <td class="function_name">
 <a class="link" href="NMDeviceMacvlan.html#nm-device-macvlan-get-no-promisc" title="nm_device_macvlan_get_no_promisc ()">nm_device_macvlan_get_no_promisc</a> <span class="c_punctuation">()</span>
@@ -66,7 +66,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<span class="returnvalue">gboolean</span>
+<a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 </td>
 <td class="function_name">
 <a class="link" href="NMDeviceMacvlan.html#nm-device-macvlan-get-tap" title="nm_device_macvlan_get_tap ()">nm_device_macvlan_get_tap</a> <span class="c_punctuation">()</span>
@@ -98,7 +98,7 @@
 <td class="property_flags">Read</td>
 </tr>
 <tr>
-<td class="property_type"><span class="type">gboolean</span></td>
+<td class="property_type"><a href="../glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></td>
 <td class="property_name"><a class="link" href="NMDeviceMacvlan.html#NMDeviceMacvlan--no-promisc" title="The “no-promisc” property">no-promisc</a></td>
 <td class="property_flags">Read</td>
 </tr>
@@ -109,7 +109,7 @@
 <td class="property_flags">Read</td>
 </tr>
 <tr>
-<td class="property_type"><span class="type">gboolean</span></td>
+<td class="property_type"><a href="../glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></td>
 <td class="property_name"><a class="link" href="NMDeviceMacvlan.html#NMDeviceMacvlan--tap" title="The “tap” property">tap</a></td>
 <td class="property_flags">Read</td>
 </tr>
@@ -153,7 +153,7 @@
 </div>
 <div class="refsect1">
 <a name="NMDeviceMacvlan.object-hierarchy"></a><h2>Object Hierarchy</h2>
-<pre class="screen">    GObject
+<pre class="screen">    <a href="../gobject/gobject-The-Base-Object-Type.html#GObject-struct">GObject</a>
     <span class="lineart">╰──</span> <a class="link" href="NMObject.html" title="NMObject">NMObject</a>
         <span class="lineart">╰──</span> <a class="link" href="NMDevice.html" title="NMDevice">NMDevice</a>
             <span class="lineart">╰──</span> NMDeviceMacvlan
@@ -221,7 +221,7 @@ device, and must not be modified.</p>
 <hr>
 <div class="refsect2">
 <a name="nm-device-macvlan-get-no-promisc"></a><h3>nm_device_macvlan_get_no_promisc ()</h3>
-<pre class="programlisting"><span class="returnvalue">gboolean</span>
+<pre class="programlisting"><a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 nm_device_macvlan_get_no_promisc (<em class="parameter"><code><a class="link" href="NMDeviceMacvlan.html" title="NMDeviceMacvlan"><span class="type">NMDeviceMacvlan</span></a> *device</code></em>);</pre>
 <p>Gets the no-promiscuous flag of the device.</p>
 <div class="refsect3">
@@ -248,7 +248,7 @@ nm_device_macvlan_get_no_promisc (<em class="parameter"><code><a class="link" hr
 <hr>
 <div class="refsect2">
 <a name="nm-device-macvlan-get-tap"></a><h3>nm_device_macvlan_get_tap ()</h3>
-<pre class="programlisting"><span class="returnvalue">gboolean</span>
+<pre class="programlisting"><a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 nm_device_macvlan_get_tap (<em class="parameter"><code><a class="link" href="NMDeviceMacvlan.html" title="NMDeviceMacvlan"><span class="type">NMDeviceMacvlan</span></a> *device</code></em>);</pre>
 <p>Gets the device type (MACVLAN or MACVTAP).</p>
 <div class="refsect3">
@@ -268,7 +268,7 @@ nm_device_macvlan_get_tap (<em class="parameter"><code><a class="link" href="NMD
 </div>
 <div class="refsect3">
 <a name="nm-device-macvlan-get-tap.returns"></a><h4>Returns</h4>
-<p> <code class="literal">TRUE</code> if the device is a MACVTAP, <code class="literal">FALSE</code> if it is a MACVLAN.</p>
+<p> <a href="../glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the device is a MACVTAP, <a href="../glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> if it is a MACVLAN.</p>
 </div>
 <p class="since">Since: 1.2</p>
 </div>
@@ -359,7 +359,7 @@ device, and must not be modified.</p>
 <hr>
 <div class="refsect2">
 <a name="NMDeviceMacvlan--no-promisc"></a><h3>The <code class="literal">“no-promisc”</code> property</h3>
-<pre class="programlisting">  “no-promisc”               <span class="type">gboolean</span></pre>
+<pre class="programlisting">  “no-promisc”               <a href="../glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></pre>
 <p>Whether the device has the no-promiscuos flag.</p>
 <p>Owner: NMDeviceMacvlan</p>
 <p>Flags: Read</p>
@@ -378,7 +378,7 @@ device, and must not be modified.</p>
 <hr>
 <div class="refsect2">
 <a name="NMDeviceMacvlan--tap"></a><h3>The <code class="literal">“tap”</code> property</h3>
-<pre class="programlisting">  “tap”                      <span class="type">gboolean</span></pre>
+<pre class="programlisting">  “tap”                      <a href="../glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></pre>
 <p>Whether the device is a MACVTAP.</p>
 <p>Owner: NMDeviceMacvlan</p>
 <p>Flags: Read</p>
@@ -388,6 +388,6 @@ device, and must not be modified.</p>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.34.0</div>
+<hr>Generated by GTK-Doc V1.33.1</div>
 </body>
 </html>
