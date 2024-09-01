@@ -2347,6 +2347,7 @@
     <keyword type="function" name="nm_setting_wireless_ap_security_compatible ()" link="NMSettingWireless.html#nm-setting-wireless-ap-security-compatible"/>
     <keyword type="function" name="nm_setting_wireless_get_wake_on_wlan ()" link="NMSettingWireless.html#nm-setting-wireless-get-wake-on-wlan" since="1.12"/>
     <keyword type="function" name="nm_setting_wireless_get_ap_isolation ()" link="NMSettingWireless.html#nm-setting-wireless-get-ap-isolation" since="1.28"/>
+    <keyword type="function" name="nm_setting_wireless_get_channel_width ()" link="NMSettingWireless.html#nm-setting-wireless-get-channel-width" since="1.50"/>
     <keyword type="macro" name="NM_SETTING_WIRELESS_SETTING_NAME" link="NMSettingWireless.html#NM-SETTING-WIRELESS-SETTING-NAME:CAPS"/>
     <keyword type="enum" name="enum NMSettingWirelessWakeOnWLan" link="NMSettingWireless.html#NMSettingWirelessWakeOnWLan" since="1.12"/>
     <keyword type="macro" name="NM_SETTING_WIRELESS_SSID" link="NMSettingWireless.html#NM-SETTING-WIRELESS-SSID:CAPS"/>
@@ -2368,11 +2369,13 @@
     <keyword type="macro" name="NM_SETTING_WIRELESS_MAC_ADDRESS_RANDOMIZATION" link="NMSettingWireless.html#NM-SETTING-WIRELESS-MAC-ADDRESS-RANDOMIZATION:CAPS"/>
     <keyword type="macro" name="NM_SETTING_WIRELESS_WAKE_ON_WLAN" link="NMSettingWireless.html#NM-SETTING-WIRELESS-WAKE-ON-WLAN:CAPS"/>
     <keyword type="macro" name="NM_SETTING_WIRELESS_AP_ISOLATION" link="NMSettingWireless.html#NM-SETTING-WIRELESS-AP-ISOLATION:CAPS"/>
+    <keyword type="macro" name="NM_SETTING_WIRELESS_CHANNEL_WIDTH" link="NMSettingWireless.html#NM-SETTING-WIRELESS-CHANNEL-WIDTH:CAPS"/>
     <keyword type="macro" name="NM_SETTING_WIRELESS_MODE_ADHOC" link="NMSettingWireless.html#NM-SETTING-WIRELESS-MODE-ADHOC:CAPS"/>
     <keyword type="macro" name="NM_SETTING_WIRELESS_MODE_AP" link="NMSettingWireless.html#NM-SETTING-WIRELESS-MODE-AP:CAPS"/>
     <keyword type="macro" name="NM_SETTING_WIRELESS_MODE_INFRA" link="NMSettingWireless.html#NM-SETTING-WIRELESS-MODE-INFRA:CAPS"/>
     <keyword type="macro" name="NM_SETTING_WIRELESS_MODE_MESH" link="NMSettingWireless.html#NM-SETTING-WIRELESS-MODE-MESH:CAPS" since="1.20"/>
     <keyword type="enum" name="enum NMSettingWirelessPowersave" link="NMSettingWireless.html#NMSettingWirelessPowersave" since="1.2"/>
+    <keyword type="enum" name="enum NMSettingWirelessChannelWidth" link="NMSettingWireless.html#NMSettingWirelessChannelWidth" since="1.50"/>
     <keyword type="function" name="nm_setting_wpan_new ()" link="NMSettingWpan.html#nm-setting-wpan-new" since="1.42"/>
     <keyword type="function" name="nm_setting_wpan_get_mac_address ()" link="NMSettingWpan.html#nm-setting-wpan-get-mac-address" since="1.42"/>
     <keyword type="function" name="nm_setting_wpan_get_pan_id ()" link="NMSettingWpan.html#nm-setting-wpan-get-pan-id" since="1.42"/>
@@ -3323,6 +3326,7 @@
     <keyword type="macro" name="NM_DEPRECATED_IN_1_44_FOR()" link="libnm-nm-version.html#NM-DEPRECATED-IN-1-44-FOR:CAPS"/>
     <keyword type="macro" name="NM_DEPRECATED_IN_1_46_FOR()" link="libnm-nm-version.html#NM-DEPRECATED-IN-1-46-FOR:CAPS"/>
     <keyword type="macro" name="NM_DEPRECATED_IN_1_48_FOR()" link="libnm-nm-version.html#NM-DEPRECATED-IN-1-48-FOR:CAPS"/>
+    <keyword type="macro" name="NM_DEPRECATED_IN_1_50_FOR()" link="libnm-nm-version.html#NM-DEPRECATED-IN-1-50-FOR:CAPS"/>
     <keyword type="macro" name="NM_VERSION_MIN_REQUIRED" link="libnm-nm-version.html#NM-VERSION-MIN-REQUIRED:CAPS"/>
     <keyword type="macro" name="NM_VERSION_MAX_ALLOWED" link="libnm-nm-version.html#NM-VERSION-MAX-ALLOWED:CAPS"/>
     <keyword type="macro" name="NM_DEPRECATED_IN_0_9_10" link="libnm-nm-version.html#NM-DEPRECATED-IN-0-9-10:CAPS"/>
@@ -3377,6 +3381,8 @@
     <keyword type="macro" name="NM_AVAILABLE_IN_1_46" link="libnm-nm-version.html#NM-AVAILABLE-IN-1-46:CAPS"/>
     <keyword type="macro" name="NM_DEPRECATED_IN_1_48" link="libnm-nm-version.html#NM-DEPRECATED-IN-1-48:CAPS"/>
     <keyword type="macro" name="NM_AVAILABLE_IN_1_48" link="libnm-nm-version.html#NM-AVAILABLE-IN-1-48:CAPS"/>
+    <keyword type="macro" name="NM_DEPRECATED_IN_1_50" link="libnm-nm-version.html#NM-DEPRECATED-IN-1-50:CAPS"/>
+    <keyword type="macro" name="NM_AVAILABLE_IN_1_50" link="libnm-nm-version.html#NM-AVAILABLE-IN-1-50:CAPS"/>
     <keyword type="macro" name="NM_CHECK_VERSION()" link="libnm-nm-version-macros.html#NM-CHECK-VERSION:CAPS"/>
     <keyword type="macro" name="NM_ENCODE_VERSION()" link="libnm-nm-version-macros.html#NM-ENCODE-VERSION:CAPS"/>
     <keyword type="macro" name="NM_MAJOR_VERSION" link="libnm-nm-version-macros.html#NM-MAJOR-VERSION:CAPS"/>
@@ -3409,6 +3415,7 @@
     <keyword type="macro" name="NM_VERSION_1_44" link="libnm-nm-version-macros.html#NM-VERSION-1-44:CAPS"/>
     <keyword type="macro" name="NM_VERSION_1_46" link="libnm-nm-version-macros.html#NM-VERSION-1-46:CAPS"/>
     <keyword type="macro" name="NM_VERSION_1_48" link="libnm-nm-version-macros.html#NM-VERSION-1-48:CAPS"/>
+    <keyword type="macro" name="NM_VERSION_1_50" link="libnm-nm-version-macros.html#NM-VERSION-1-50:CAPS"/>
     <keyword type="macro" name="NM_API_VERSION" link="libnm-nm-version-macros.html#NM-API-VERSION:CAPS"/>
     <keyword type="macro" name="NM_VERSION_CUR_STABLE" link="libnm-nm-version-macros.html#NM-VERSION-CUR-STABLE:CAPS"/>
     <keyword type="macro" name="NM_VERSION_NEXT_STABLE" link="libnm-nm-version-macros.html#NM-VERSION-NEXT-STABLE:CAPS"/>
@@ -4174,6 +4181,10 @@
     <keyword type="constant" name="NM_SETTING_WIRELESS_POWERSAVE_ENABLE" link="NMSettingWireless.html#NM-SETTING-WIRELESS-POWERSAVE-ENABLE:CAPS"/>
     <keyword type="constant" name="_NM_SETTING_WIRELESS_POWERSAVE_NUM" link="NMSettingWireless.html#NM-SETTING-WIRELESS-POWERSAVE-NUM:CAPS"/>
     <keyword type="constant" name="NM_SETTING_WIRELESS_POWERSAVE_LAST" link="NMSettingWireless.html#NM-SETTING-WIRELESS-POWERSAVE-LAST:CAPS"/>
+    <keyword type="constant" name="NM_SETTING_WIRELESS_CHANNEL_WIDTH_AUTO" link="NMSettingWireless.html#NM-SETTING-WIRELESS-CHANNEL-WIDTH-AUTO:CAPS"/>
+    <keyword type="constant" name="NM_SETTING_WIRELESS_CHANNEL_WIDTH_20MHZ" link="NMSettingWireless.html#NM-SETTING-WIRELESS-CHANNEL-WIDTH-20MHZ:CAPS"/>
+    <keyword type="constant" name="NM_SETTING_WIRELESS_CHANNEL_WIDTH_40MHZ" link="NMSettingWireless.html#NM-SETTING-WIRELESS-CHANNEL-WIDTH-40MHZ:CAPS"/>
+    <keyword type="constant" name="NM_SETTING_WIRELESS_CHANNEL_WIDTH_80MHZ" link="NMSettingWireless.html#NM-SETTING-WIRELESS-CHANNEL-WIDTH-80MHZ:CAPS"/>
     <keyword type="constant" name="NM_KEYFILE_HANDLER_FLAGS_NONE" link="libnm-nm-keyfile.html#NM-KEYFILE-HANDLER-FLAGS-NONE:CAPS"/>
     <keyword type="constant" name="NM_KEYFILE_HANDLER_TYPE_WARN" link="libnm-nm-keyfile.html#NM-KEYFILE-HANDLER-TYPE-WARN:CAPS"/>
     <keyword type="constant" name="NM_KEYFILE_HANDLER_TYPE_WRITE_CERT" link="libnm-nm-keyfile.html#NM-KEYFILE-HANDLER-TYPE-WRITE-CERT:CAPS"/>

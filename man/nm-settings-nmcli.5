@@ -2,12 +2,12 @@
 .\"     Title: nm-settings-nmcli
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 08/26/2024
+.\"      Date: 08/30/2024
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.48.10
+.\"    Source: NetworkManager 1.49.90
 .\"  Language: English
 .\"
-.TH "NM\-SETTINGS\-NMCLI" "5" "" "NetworkManager 1\&.48\&.10" "Configuration"
+.TH "NM\-SETTINGS\-NMCLI" "5" "" "NetworkManager 1\&.49\&.90" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -3015,7 +3015,7 @@ Properties:
 .PP
 \fBipv6\&.addr\-gen\-mode\fR
 .RS 4
-Configure method for creating the IPv6 interface identifer of addresses with RFC4862 IPv6 Stateless Address Autoconfiguration and Link Local addresses\&.
+Configure method for creating the IPv6 interface identifier of addresses with RFC4862 IPv6 Stateless Address Autoconfiguration and Link Local addresses\&.
 .sp
 The permitted values are: "eui64" (0), "stable\-privacy" (1), "default" (3) or "default\-or\-eui64" (2)\&.
 .sp
@@ -5827,6 +5827,21 @@ Wireless channel to use for the Wi\-Fi connection\&. The device will only join (
 Format: integer
 .sp
 Valid values: 0 \- 4294967295
+.RE
+.PP
+\fB802\-11\-wireless\&.channel\-width\fR
+.RS 4
+Specifies width of the wireless channel in Access Point (AP) mode\&.
+.sp
+When set to "auto" (0) (the default), the channel width is automatically determined\&. At the moment, this means that the safest (smallest) width is chosen\&.
+.sp
+If the value is not "auto" (0), then the \*(Aqchannel\*(Aq property must also be set\&. When using the 2\&.4GHz band, the width can be at most 40MHz\&.
+.sp
+This property can be set to a value different from "auto" (0) only when the interface is configured in AP mode\&.
+.sp
+Format: choice (NMSettingWirelessChannelWidth)
+.sp
+Valid values: auto (0), 20mhz (20), 40mhz (40), 80mhz (80)
 .RE
 .PP
 \fB802\-11\-wireless\&.cloned\-mac\-address\fR

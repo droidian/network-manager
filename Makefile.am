@@ -157,6 +157,7 @@ DISTCHECK_CONFIGURE_FLAGS = \
 	--with-udev-dir=$$dc_install_base/lib/udev \
 	--with-wext=no \
 	--enable-ifcfg-rh \
+	--with-dhclient=yes \
 	--enable-ifupdown \
 	--disable-dependency-tracking \
 	--disable-autotools-deprecation \
@@ -5304,6 +5305,8 @@ src_nmtui_nmtui_SOURCES = \
 	src/nmtui/nmt-page-team-port.h \
 	src/nmtui/nmt-page-team.c \
 	src/nmtui/nmt-page-team.h \
+	src/nmtui/nmt-page-veth.c \
+	src/nmtui/nmt-page-veth.h \
 	src/nmtui/nmt-page-vlan.c \
 	src/nmtui/nmt-page-vlan.h \
 	src/nmtui/nmt-page-wifi.c \

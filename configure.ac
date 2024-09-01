@@ -7,8 +7,8 @@ dnl  - add corresponding NM_VERSION_x_y_z macros in
 dnl    "shared/nm-version-macros.h.in"
 dnl  - update number in meson.build
 m4_define([nm_major_version], [1])
-m4_define([nm_minor_version], [48])
-m4_define([nm_micro_version], [10])
+m4_define([nm_minor_version], [49])
+m4_define([nm_micro_version], [90])
 m4_define([nm_version],
           [nm_major_version.nm_minor_version.nm_micro_version])
 
@@ -915,18 +915,18 @@ fi
 
 # DHCP client support
 AC_ARG_WITH([dhclient],
-            AS_HELP_STRING([--with-dhclient=yes|no|path], [Enable dhclient support]))
-if test "$with_dhclient" != "no"; then
-	with_dhclient_="$with_dhclient"
+            AS_HELP_STRING([--with-dhclient=yes|no|path], [Enable dhclient support (deprecated)]),
+            with_dhclient="$withval",
+            with_dhclient="no")
+if test "$with_dhclient" = yes; then
 	AC_PATH_PROGS(with_dhclient, dhclient, no, /sbin:/usr/sbin:/usr/local/sbin)
 	if test "$with_dhclient" = "no"; then
-		if test "$with_dhclient_" = yes; then
-			AC_MSG_WARN([dhclient not found, assume path /usr/sbin/dhclient])
-			with_dhclient=/usr/sbin/dhclient
-		fi
+		AC_MSG_WARN([dhclient not found, assume path /usr/sbin/dhclient])
+		with_dhclient=/usr/sbin/dhclient
 	fi
 fi
 if test "$with_dhclient" != "no"; then
+	AC_MSG_WARN([dhclient is unmaintained and support for it is deprecated])
 	AC_DEFINE(WITH_DHCLIENT, 1, [Define if you have dhclient])
 	AC_DEFINE_UNQUOTED(DHCLIENT_PATH, "$with_dhclient", [Define path to dhclient])
 else
@@ -1477,7 +1477,7 @@ echo
 
 echo "DHCP clients (default $config_dhcp_default):"
 echo "  dhcpcanon: $with_dhcpcanon"
-echo "  dhclient: $with_dhclient"
+echo "  dhclient: $with_dhclient (deprecated)"
 echo "  dhcpcd: $with_dhcpcd"
 echo
 

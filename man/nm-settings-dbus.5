@@ -2,12 +2,12 @@
 .\"     Title: nm-settings-dbus
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 08/26/2024
+.\"      Date: 08/30/2024
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.48.10
+.\"    Source: NetworkManager 1.49.90
 .\"  Language: English
 .\"
-.TH "NM\-SETTINGS\-DBUS" "5" "" "NetworkManager 1\&.48\&.10" "Configuration"
+.TH "NM\-SETTINGS\-DBUS" "5" "" "NetworkManager 1\&.49\&.90" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -5592,6 +5592,7 @@ l l l l
 l l l l
 l l l l
 l l l l
+l l l l
 l l l l.
 T{
 ap\-isolation
@@ -5645,6 +5646,21 @@ T}:T{
 0
 T}:T{
 Wireless channel to use for the Wi\-Fi connection\&.  The device will only join (or create for Ad\-Hoc networks) a Wi\-Fi network on the specified channel\&.  Because channel numbers overlap between bands, this property also requires the "band" property to be set\&.
+T}
+T{
+channel\-width
+T}:T{
+int32
+T}:T{
+0
+T}:T{
+Specifies width of the wireless channel in Access Point (AP) mode\&.
+
+When set to 0 (auto) (the default), the channel width is automatically determined\&. At the moment, this means that the safest (smallest) width is chosen\&.
+
+If the value is not 0 (auto), then the \*(Aqchannel\*(Aq property must also be set\&. When using the 2\&.4GHz band, the width can be at most 40MHz\&.
+
+This property can be set to a value different from 0 (auto) only when the interface is configured in AP mode\&.
 T}
 T{
 cloned\-mac\-address

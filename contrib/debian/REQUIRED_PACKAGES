@@ -86,8 +86,8 @@ install \
 
 install_ignore_missing \
     python-setuptools \
-    polkitd \
     policykit-1 \
+    polkitd \
     \
     #end
 
