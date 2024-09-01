@@ -12,7 +12,7 @@ Bug-Debian: http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=512286
  1 file changed, 115 insertions(+)
 
 diff --git a/src/core/nm-manager.c b/src/core/nm-manager.c
-index 0a7e7b2..6e21aae 100644
+index 0d6c1e2..6d00eac 100644
 --- a/src/core/nm-manager.c
 +++ b/src/core/nm-manager.c
 @@ -53,6 +53,8 @@
