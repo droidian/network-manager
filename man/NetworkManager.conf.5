@@ -2,12 +2,12 @@
 .\"     Title: NetworkManager.conf
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 08/26/2024
+.\"      Date: 08/30/2024
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.48.10
+.\"    Source: NetworkManager 1.49.90
 .\"  Language: English
 .\"
-.TH "NETWORKMANAGER\&.CONF" "5" "" "NetworkManager 1\&.48\&.10" "Configuration"
+.TH "NETWORKMANAGER\&.CONF" "5" "" "NetworkManager 1\&.49\&.90" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -140,22 +140,23 @@ true\&.
 .PP
 \fIdhcp\fR
 .RS 4
-This key sets up what DHCP client NetworkManager will use\&. Allowed values are
-dhclient,
-dhcpcd, and
-internal\&. The
-dhclient
-and
-dhcpcd
-options require the indicated clients to be installed\&. The
+This key sets up what DHCP client NetworkManager will use\&. Allowed values depend on build configuration and typically include
 internal
-option uses a built\-in DHCP client which is not currently as featureful as the external clients\&.
+and
+dhcpcd\&. Support for unmaintained
+dhclient
+client has been deprecated and disabled by default\&.
 .sp
-If this key is missing, it defaults to
-internal\&. If the chosen plugin is not available, clients are looked for in this order:
-dhclient,
+The
+internal
+client is built\-in, while other options may require an external DHCP client to be installed\&.
+.sp
+If this key is missing,
+internal
+is used with a fallback to other suppored clients in this order:
+internal,
 dhcpcd,
-internal\&.
+dhclient\&.
 .RE
 .PP
 \fIno\-auto\-default\fR
@@ -393,7 +394,7 @@ means to skip firewall configuration if the users wish to manage firewall themse
 .RS 4
 If the value is "auto" (the default), IWD is queried for its current state directory when it appears on D\-Bus \-\- the directory where IWD keeps its network configuration files \-\- usually /var/lib/iwd\&. NetworkManager will then attempt to write copies of new or modified Wi\-Fi connection profiles, converted into the IWD format, into this directory thus making IWD connection properties editable\&. NM will overwrite existing files without preserving their contents\&.
 .sp
-The path can also be overriden by pointing to a specific existing and writable directory\&. On the other hand setting this to an empty string or any other value disables the profile conversion mechanism\&.
+The path can also be overridden by pointing to a specific existing and writable directory\&. On the other hand setting this to an empty string or any other value disables the profile conversion mechanism\&.
 .sp
 This mechanism allows editing connection profile settings such as the 802\&.1x configuration using NetworkManager clients\&. Without it such changes have no effect in IWD\&.
 .RE
@@ -1319,6 +1320,11 @@ option\&. If this option is blank or missing, connectivity checking is disabled\
 \fIinterval\fR
 .RS 4
 Specified in seconds; controls how often connectivity is checked when a network connection exists\&. If set to 0 connectivity checking is disabled\&. If missing, the default is 300 seconds\&.
+.RE
+.PP
+\fItimeout\fR
+.RS 4
+Specified in seconds; controls how long to wait for a response before connectivity is marked as limited\&. If missing, the default is 20 seconds\&.
 .RE
 .PP
 \fIresponse\fR

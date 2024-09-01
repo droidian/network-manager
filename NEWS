@@ -1,25 +1,31 @@
-===============================================
-NetworkManager-1.48.4
-Overview of changes since NetworkManager-1.48.2
-===============================================
+=============================================
+NetworkManager-1.50
+Overview of changes since NetworkManager-1.48
+=============================================
 
+This is a snapshot of NetworkManager development. The API is
+subject to change and not guaranteed to be compatible with
+the later release.
+USE AT YOUR OWN RISK.  NOT RECOMMENDED FOR PRODUCTION USE!
+
+* The support for "dhclient" has been deprecated, not built unless
+  explicitely enabled, and will be removed in a future release.
+  The internal DHCP client should be used instead and has been
+  the default since version 1.20 (1.12 when built with meson).
 * Support matching a OVS system interface by MAC address.
+* Add a timeout option to connectivity checking.
+* Support configuring veth interfaces in nmtui.
 * When looking up the system hostname from the reverse DNS lookup of
   addresses configured on interfaces, NetworkManager now takes into
   account the content of /etc/hosts.
+* Revert to using sysctl ipv6.conf.default for ip6-privacy
+* Allow specifying a system OVS interface by MAC address
+* ndisc: Support multiple gateways for a single network
+* wifi: Support configuring channel-width in AP mode
 * keyfile: Stop writing offensive terms into keyfiles
 * Support reapplying the VLANs on bridge ports.
-
-===============================================
-NetworkManager-1.48.2
-Overview of changes since NetworkManager-1.48.0
-===============================================
-
-* Support matching a OVS system interface by MAC address.
-* Fix port reactivation when the controller is reactivating.
-* Save connection timestamps when shutting down, so that the right
-  connection autoactivates after restart.
-* Fix handling of VPN secrets for 2-factor authentication.
+* Fix crash caused by malformed LLDP package if debug log is enabled
+* Retry hostname resolution when it fails
 
 =============================================
 NetworkManager-1.48
@@ -45,6 +51,11 @@ Overview of changes since NetworkManager-1.46
   when IPv6 device address was not explicitly passed on by ModemManager
 * Fix a performance issue that was leading to 100% CPU usage by NetworkManager
   if external programs were doing a big amount of routes updates.
+* Patch-level development releases (i.e. 1.48.1-dev) won't be used anymore.
+  From now on, all the patch releases whithin a stable branch will be normal
+  releases, like 1.48.0, 1.48.1, 1.48.2, 1.48.3 and so on.
+  Odd numbers in the minor version number still indicates if it's a development
+  branch like 1.49 or a stable one like 1.48.
 
 =============================================
 NetworkManager-1.46
@@ -809,7 +820,7 @@ This is a new stable release of NetworkManager.  Notable changes include:
 
 * The libnm-glib library, deprecated in favor of libnm since NetworkManager 1.0,
   and disabled by default since NetworkManager 1.12, has now been removed.
-* The DHCP client now defaults to "internal". The default can be overriden
+* The DHCP client now defaults to "internal". The default can be overridden
   at build time by using the --with-config-dhcp-default option of the
   configure script or at run time by setting the main.dhcp option in the
   configuration file.

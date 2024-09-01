@@ -168,17 +168,16 @@ plugins-=remove-me
       <varlistentry>
         <term><varname>dhcp</varname></term>
         <listitem><para>This key sets up what DHCP client
-        NetworkManager will use. Allowed values are
-        <literal>dhclient</literal>, <literal>dhcpcd</literal>, and
-        <literal>internal</literal>. The <literal>dhclient</literal>
-        and <literal>dhcpcd</literal> options require the indicated
-        clients to be installed. The <literal>internal</literal>
-        option uses a built-in DHCP client which is not currently as
-        featureful as the external clients.</para>
-        <para>If this key is missing, it defaults to <literal>&NM_CONFIG_DEFAULT_MAIN_DHCP;</literal>.
-        If the chosen plugin is not available, clients are looked for
-        in this order: <literal>dhclient</literal>, <literal>dhcpcd</literal>,
-        <literal>internal</literal>.</para></listitem>
+        NetworkManager will use. Allowed values depend on build configuration and
+        typically include <literal>internal</literal> and <literal>dhcpcd</literal>.
+        Support for unmaintained <literal>dhclient</literal> client has been deprecated
+        and disabled by default.</para>
+        <para>The <literal>internal</literal> client is built-in, while other options
+        may require an external DHCP client to be installed.</para>
+        <para>If this key is missing, <literal>&NM_CONFIG_DEFAULT_MAIN_DHCP;</literal>
+        is used with a fallback to other suppored clients in this order:
+        <literal>internal</literal>, <literal>dhcpcd</literal>,
+        <literal>dhclient</literal>.</para></listitem>
       </varlistentry>
       <varlistentry>
         <term><varname>no-auto-default</varname></term>
@@ -492,7 +491,7 @@ no-auto-default=*
             files without preserving their contents.
           </para>
           <para>
-            The path can also be overriden by pointing to a specific
+            The path can also be overridden by pointing to a specific
             existing and writable directory.  On the other hand setting
             this to an empty string or any other value disables the
             profile conversion mechanism.
@@ -1484,6 +1483,12 @@ managed=1
           connectivity is checked when a network connection exists. If
           set to 0 connectivity checking is disabled.  If missing, the
           default is 300 seconds.</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term><varname>timeout</varname></term>
+          <listitem><para>Specified in seconds; controls how long
+          to wait for a response before connectivity is marked as
+          limited.  If missing, the default is 20 seconds.</para></listitem>
         </varlistentry>
         <varlistentry>
           <term><varname>response</varname></term>
