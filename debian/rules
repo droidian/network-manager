@@ -19,7 +19,6 @@ override_dh_auto_configure:
 		-Dpppd_plugin_dir=$(PPPD_PLUGIN_DIR) \
 		-Dpppd=/usr/sbin/pppd \
 		-Dresolvconf=/usr/sbin/resolvconf \
-		-Ddhclient=/usr/sbin/dhclient \
 		-Dmodprobe=/usr/sbin/modprobe \
 		-Ddhcpcanon=false \
 		-Ddhcpcd=false \
