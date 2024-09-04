@@ -1,8 +1,15 @@
-network-manager (1.49.90-1) UNRELEASED; urgency=medium
+network-manager (1.49.90-1) experimental; urgency=medium
 
   * New upstream version 1.49.90 (1.50 rc1)
+  * Rebase patches
+  * Update symbols file for libnm0
+  * Stop enabling support for dhclient.
+    This feature has been marked deprecated and is scheduled to be removed
+    in a future release.
+  * Update Homepage URL (Closes: #1080304)
+  * Update README.Debian (Closes: #864339)
 
- -- Michael Biebl <biebl@debian.org>  Sun, 01 Sep 2024 22:38:48 +0200
+ -- Michael Biebl <biebl@debian.org>  Wed, 04 Sep 2024 19:56:26 +0200
 
 network-manager (1.48.10-1) unstable; urgency=medium
 
