@@ -1,3 +1,9 @@
+network-manager (1.49.90-2) unstable; urgency=medium
+
+  * Upload to unstable
+
+ -- Michael Biebl <biebl@debian.org>  Tue, 17 Sep 2024 18:03:55 +0200
+
 network-manager (1.49.90-1) experimental; urgency=medium
 
   * New upstream version 1.49.90 (1.50 rc1)
