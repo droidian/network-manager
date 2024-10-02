@@ -2,12 +2,12 @@
 .\"     Title: nm-settings-nmcli
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 09/16/2024
+.\"      Date: 10/02/2024
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.49.91
+.\"    Source: NetworkManager 1.50.0
 .\"  Language: English
 .\"
-.TH "NM\-SETTINGS\-NMCLI" "5" "" "NetworkManager 1\&.49\&.91" "Configuration"
+.TH "NM\-SETTINGS\-NMCLI" "5" "" "NetworkManager 1\&.50\&.0" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -2260,6 +2260,49 @@ Alias: user
 The username used to authenticate with the network, if required\&. Many providers do not require a username, or accept any username\&. But if a username is required, it is specified here\&.
 .sp
 Format: string
+.RE
+.SS "hsr setting"
+.PP
+HSR/PRP Settings\&.
+.PP
+Properties:
+.PP
+\fBhsr\&.multicast\-spec\fR
+.RS 4
+Alias: multicast\-spec
+.sp
+The last byte of supervision address\&.
+.sp
+Format: integer
+.sp
+Valid values: 0 \- 255
+.RE
+.PP
+\fBhsr\&.port1\fR
+.RS 4
+Alias: port1
+.sp
+The port1 interface name of the HSR\&. This property is mandatory\&.
+.sp
+Format: string
+.RE
+.PP
+\fBhsr\&.port2\fR
+.RS 4
+Alias: port2
+.sp
+The port2 interface name of the HSR\&. This property is mandatory\&.
+.sp
+Format: string
+.RE
+.PP
+\fBhsr\&.prp\fR
+.RS 4
+The protocol used by the interface, whether it is PRP or HSR\&.
+.sp
+Format: boolean
+.sp
+Valid values: true/yes/on, false/no/off
 .RE
 .SS "infiniband setting"
 .PP
@@ -6306,49 +6349,6 @@ Negative values have the special effect of excluding other connections with a gr
 Format: integer
 .sp
 Valid values: \-2147483648 \- 2147483647
-.RE
-.SS "hsr setting"
-.PP
-HSR/PRP Settings\&.
-.PP
-Properties:
-.PP
-\fBhsr\&.multicast\-spec\fR
-.RS 4
-Alias: multicast\-spec
-.sp
-The last byte of supervision address\&.
-.sp
-Format: integer
-.sp
-Valid values: 0 \- 255
-.RE
-.PP
-\fBhsr\&.port1\fR
-.RS 4
-Alias: port1
-.sp
-The port1 interface name of the HSR\&. This property is mandatory\&.
-.sp
-Format: string
-.RE
-.PP
-\fBhsr\&.port2\fR
-.RS 4
-Alias: port2
-.sp
-The port2 interface name of the HSR\&. This property is mandatory\&.
-.sp
-Format: string
-.RE
-.PP
-\fBhsr\&.prp\fR
-.RS 4
-The protocol used by the interface, whether it is PRP or HSR\&.
-.sp
-Format: boolean
-.sp
-Valid values: true/yes/on, false/no/off
 .RE
 .SS "link setting"
 .PP

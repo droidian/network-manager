@@ -34,6 +34,7 @@
         <sub name="" link="settings-ethtool.html"/>
         <sub name="" link="settings-generic.html"/>
         <sub name="" link="settings-gsm.html"/>
+        <sub name="" link="settings-hsr.html"/>
         <sub name="" link="settings-infiniband.html"/>
         <sub name="" link="settings-ipv4.html"/>
         <sub name="" link="settings-ipv6.html"/>
@@ -70,7 +71,6 @@
         <sub name="" link="settings-wpan.html"/>
         <sub name="" link="settings-bond-port.html"/>
         <sub name="" link="settings-hostname.html"/>
-        <sub name="" link="settings-hsr.html"/>
         <sub name="" link="settings-link.html"/>
         <sub name="" link="settings-loopback.html"/>
         <sub name="" link="settings-ovs-external-ids.html"/>
