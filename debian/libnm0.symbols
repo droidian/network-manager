@@ -39,7 +39,7 @@ libnm.so.0 libnm0 #MINVER#
  libnm_1_46_0@libnm_1_46_0 1.46.0
  libnm_1_48_0@libnm_1_48_0 1.48.0
  libnm_1_4_0@libnm_1_4_0 1.4.0
- libnm_1_50_0@libnm_1_50_0 1.49.90
+ libnm_1_50_0@libnm_1_50_0 1.50.0
  libnm_1_6_0@libnm_1_6_0 1.6.0
  libnm_1_8_0@libnm_1_8_0 1.8.0
  nm_802_11_ap_flags_get_type@libnm_1_0_0 1.0.0
@@ -1509,14 +1509,14 @@ libnm.so.0 libnm0 #MINVER#
  nm_setting_wireless_add_mac_denylist_item@libnm_1_48_0 1.48.0
  nm_setting_wireless_add_seen_bssid@libnm_1_0_0 1.0.0
  nm_setting_wireless_ap_security_compatible@libnm_1_0_0 1.0.0
- nm_setting_wireless_channel_width_get_type@libnm_1_50_0 1.49.90
+ nm_setting_wireless_channel_width_get_type@libnm_1_50_0 1.50.0
  nm_setting_wireless_clear_mac_blacklist_items@libnm_1_0_0 1.0.0
  nm_setting_wireless_clear_mac_denylist_items@libnm_1_48_0 1.48.0
  nm_setting_wireless_get_ap_isolation@libnm_1_28_0 1.28.0
  nm_setting_wireless_get_band@libnm_1_0_0 1.0.0
  nm_setting_wireless_get_bssid@libnm_1_0_0 1.0.0
  nm_setting_wireless_get_channel@libnm_1_0_0 1.0.0
- nm_setting_wireless_get_channel_width@libnm_1_50_0 1.49.90
+ nm_setting_wireless_get_channel_width@libnm_1_50_0 1.50.0
  nm_setting_wireless_get_cloned_mac_address@libnm_1_0_0 1.0.0
  nm_setting_wireless_get_generate_mac_address_mask@libnm_1_4_0 1.4.0
  nm_setting_wireless_get_hidden@libnm_1_0_0 1.0.0
