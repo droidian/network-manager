@@ -1643,7 +1643,56 @@ This property is deprecated since version 1.16.User-provided values for this set
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.17"></a><h3>infiniband setting</h3>
+<a name="id-1.2.9.4.17"></a><h3>hsr setting</h3>
+<p>HSR/PRP Settings.</p>
+<div class="informaltable"><table class="informaltable" border="1">
+<colgroup>
+<col>
+<col>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>Key Name</th>
+<th>Value Type</th>
+<th>Default Value</th>
+<th>Value Description</th>
+</tr></thead>
+<tbody>
+<tr>
+<td align="left">
+<a name="nm-settings-dbus.property.hsr.multicast-spec"></a>multicast-spec</td>
+<td align="left">uint32</td>
+<td align="left">0</td>
+<td>The last byte of supervision address.</td>
+</tr>
+<tr>
+<td align="left">
+<a name="nm-settings-dbus.property.hsr.port1"></a>port1</td>
+<td align="left">string</td>
+<td align="left"> </td>
+<td>The port1 interface name of the HSR. This property is mandatory.</td>
+</tr>
+<tr>
+<td align="left">
+<a name="nm-settings-dbus.property.hsr.port2"></a>port2</td>
+<td align="left">string</td>
+<td align="left"> </td>
+<td>The port2 interface name of the HSR. This property is mandatory.</td>
+</tr>
+<tr>
+<td align="left">
+<a name="nm-settings-dbus.property.hsr.prp"></a>prp</td>
+<td align="left">boolean</td>
+<td align="left">FALSE</td>
+<td>The protocol used by the interface, whether it is PRP or HSR.</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="id-1.2.9.4.18"></a><h3>infiniband setting</h3>
 <p>Infiniband Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -1703,7 +1752,7 @@ Note that kernel will internally always set the full membership bit, although th
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.18"></a><h3>ipv4 setting</h3>
+<a name="id-1.2.9.4.19"></a><h3>ipv4 setting</h3>
 <p>IPv4 Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -2052,7 +2101,7 @@ Array of IPv4 route structures.  Each IPv4 route structure is composed of 4 32-b
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.19"></a><h3>ipv6 setting</h3>
+<a name="id-1.2.9.4.20"></a><h3>ipv6 setting</h3>
 <p>IPv6 Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -2454,7 +2503,7 @@ When set, the token is used as IPv6 interface identifier instead of the hardware
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.20"></a><h3>ip-tunnel setting</h3>
+<a name="id-1.2.9.4.21"></a><h3>ip-tunnel setting</h3>
 <p>IP Tunneling Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -2573,7 +2622,7 @@ When set, the token is used as IPv6 interface identifier instead of the hardware
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.21"></a><h3>macsec setting</h3>
+<a name="id-1.2.9.4.22"></a><h3>macsec setting</h3>
 <p>MACSec Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -2670,7 +2719,7 @@ When set, the token is used as IPv6 interface identifier instead of the hardware
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.22"></a><h3>macvlan setting</h3>
+<a name="id-1.2.9.4.23"></a><h3>macvlan setting</h3>
 <p>MAC VLAN Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -2719,7 +2768,7 @@ When set, the token is used as IPv6 interface identifier instead of the hardware
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.23"></a><h3>match setting</h3>
+<a name="id-1.2.9.4.24"></a><h3>match setting</h3>
 <p>Match settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -2782,7 +2831,7 @@ See NMSettingMatch:interface-name for how special characters '|', '&amp;', '!' a
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.24"></a><h3>802-11-olpc-mesh setting</h3>
+<a name="id-1.2.9.4.25"></a><h3>802-11-olpc-mesh setting</h3>
 <p>OLPC Wireless Mesh Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -2826,7 +2875,7 @@ This is currently only implemented by dhclient DHCP plugin.</td>
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.25"></a><h3>ovs-bridge setting</h3>
+<a name="id-1.2.9.4.26"></a><h3>ovs-bridge setting</h3>
 <p>OvsBridge Link Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -2882,7 +2931,7 @@ This is currently only implemented by dhclient DHCP plugin.</td>
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.26"></a><h3>ovs-dpdk setting</h3>
+<a name="id-1.2.9.4.27"></a><h3>ovs-dpdk setting</h3>
 <p>OvsDpdk Link Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -2931,7 +2980,7 @@ This is currently only implemented by dhclient DHCP plugin.</td>
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.27"></a><h3>ovs-interface setting</h3>
+<a name="id-1.2.9.4.28"></a><h3>ovs-interface setting</h3>
 <p>Open vSwitch Interface Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -2966,7 +3015,7 @@ This is currently only implemented by dhclient DHCP plugin.</td>
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.28"></a><h3>ovs-patch setting</h3>
+<a name="id-1.2.9.4.29"></a><h3>ovs-patch setting</h3>
 <p>OvsPatch Link Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -2992,7 +3041,7 @@ This is currently only implemented by dhclient DHCP plugin.</td>
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.29"></a><h3>ovs-port setting</h3>
+<a name="id-1.2.9.4.30"></a><h3>ovs-port setting</h3>
 <p>OvsPort Link Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -3064,7 +3113,7 @@ The property is valid only for ports with mode "trunk", "native-tagged", or "nat
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.30"></a><h3>ppp setting</h3>
+<a name="id-1.2.9.4.31"></a><h3>ppp setting</h3>
 <p>Point-to-Point Protocol Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -3211,7 +3260,7 @@ The property is valid only for ports with mode "trunk", "native-tagged", or "nat
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.31"></a><h3>pppoe setting</h3>
+<a name="id-1.2.9.4.32"></a><h3>pppoe setting</h3>
 <p>PPP-over-Ethernet Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -3267,7 +3316,7 @@ The property is valid only for ports with mode "trunk", "native-tagged", or "nat
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.32"></a><h3>proxy setting</h3>
+<a name="id-1.2.9.4.33"></a><h3>proxy setting</h3>
 <p>WWW Proxy Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -3316,7 +3365,7 @@ The property is valid only for ports with mode "trunk", "native-tagged", or "nat
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.33"></a><h3>serial setting</h3>
+<a name="id-1.2.9.4.34"></a><h3>serial setting</h3>
 <p>Serial Link Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -3372,7 +3421,7 @@ The property is valid only for ports with mode "trunk", "native-tagged", or "nat
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.34"></a><h3>sriov setting</h3>
+<a name="id-1.2.9.4.35"></a><h3>sriov setting</h3>
 <p>SR-IOV settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -3471,7 +3520,7 @@ PROTO can be either 'q' for 802.1Q (the default) or 'ad' for 802.1ad.</td>
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.35"></a><h3>tc setting</h3>
+<a name="id-1.2.9.4.36"></a><h3>tc setting</h3>
 <p>Linux Traffic Control Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -3514,7 +3563,7 @@ If the "tc" setting is not present, NetworkManager doesn't touch the filters pre
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.36"></a><h3>team setting</h3>
+<a name="id-1.2.9.4.37"></a><h3>team setting</h3>
 <p>Teaming Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -3654,7 +3703,7 @@ If the "tc" setting is not present, NetworkManager doesn't touch the filters pre
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.37"></a><h3>team-port setting</h3>
+<a name="id-1.2.9.4.38"></a><h3>team-port setting</h3>
 <p>Team Port Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -3724,7 +3773,7 @@ If the "tc" setting is not present, NetworkManager doesn't touch the filters pre
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.38"></a><h3>tun setting</h3>
+<a name="id-1.2.9.4.39"></a><h3>tun setting</h3>
 <p>Tunnel Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -3787,7 +3836,7 @@ If the "tc" setting is not present, NetworkManager doesn't touch the filters pre
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.39"></a><h3>user setting</h3>
+<a name="id-1.2.9.4.40"></a><h3>user setting</h3>
 <p>General User Profile Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -3813,7 +3862,7 @@ If the "tc" setting is not present, NetworkManager doesn't touch the filters pre
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.40"></a><h3>vlan setting</h3>
+<a name="id-1.2.9.4.41"></a><h3>vlan setting</h3>
 <p>VLAN Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -3887,7 +3936,7 @@ Supported values are: '802.1Q', '802.1ad'. If not specified the default value is
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.41"></a><h3>vpn setting</h3>
+<a name="id-1.2.9.4.42"></a><h3>vpn setting</h3>
 <p>VPN Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -3950,7 +3999,7 @@ Supported values are: '802.1Q', '802.1ad'. If not specified the default value is
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.42"></a><h3>vrf setting</h3>
+<a name="id-1.2.9.4.43"></a><h3>vrf setting</h3>
 <p>VRF settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -3976,7 +4025,7 @@ Supported values are: '802.1Q', '802.1ad'. If not specified the default value is
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.43"></a><h3>vxlan setting</h3>
+<a name="id-1.2.9.4.44"></a><h3>vxlan setting</h3>
 <p>VXLAN Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -4109,7 +4158,7 @@ Supported values are: '802.1Q', '802.1ad'. If not specified the default value is
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.44"></a><h3>wifi-p2p setting</h3>
+<a name="id-1.2.9.4.45"></a><h3>wifi-p2p setting</h3>
 <p>Wi-Fi P2P Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -4155,7 +4204,7 @@ There's little point in changing the default setting as NetworkManager will auto
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.45"></a><h3>wimax setting</h3>
+<a name="id-1.2.9.4.46"></a><h3>wimax setting</h3>
 <p>WiMax Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -4194,7 +4243,7 @@ This property is deprecated since version 1.2.WiMAX is no longer supported.</td>
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.46"></a><h3>802-3-ethernet setting</h3>
+<a name="id-1.2.9.4.47"></a><h3>802-3-ethernet setting</h3>
 <p>Wired Ethernet Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -4344,7 +4393,7 @@ Currently, NetworkManager itself does nothing with this information. However, s3
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.47"></a><h3>wireguard setting</h3>
+<a name="id-1.2.9.4.48"></a><h3>wireguard setting</h3>
 <p>WireGuard Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -4438,7 +4487,7 @@ Note that if the peer's AllowedIPs is "0.0.0.0/0" or "::/0" and the profile's ip
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.48"></a><h3>802-11-wireless setting</h3>
+<a name="id-1.2.9.4.49"></a><h3>802-11-wireless setting</h3>
 <p>Wi-Fi Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -4649,7 +4698,7 @@ This property is deprecated since version 1.44.This property is not implemented 
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.49"></a><h3>802-11-wireless-security setting</h3>
+<a name="id-1.2.9.4.50"></a><h3>802-11-wireless-security setting</h3>
 <p>Wi-Fi Security Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -4816,7 +4865,7 @@ WPS can be disabled by setting this property to a value of 1.</td>
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.50"></a><h3>wpan setting</h3>
+<a name="id-1.2.9.4.51"></a><h3>wpan setting</h3>
 <p>IEEE 802.15.4 (WPAN) MAC Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -4872,7 +4921,7 @@ WPS can be disabled by setting this property to a value of 1.</td>
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.51"></a><h3>bond-port setting</h3>
+<a name="id-1.2.9.4.52"></a><h3>bond-port setting</h3>
 <p>Bond Port Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -4907,7 +4956,7 @@ WPS can be disabled by setting this property to a value of 1.</td>
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.52"></a><h3>hostname setting</h3>
+<a name="id-1.2.9.4.53"></a><h3>hostname setting</h3>
 <p>Hostname settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -4962,55 +5011,6 @@ When set to -1 (default), the value from global configuration is used. If the pr
 If the value is zero, it can be overridden by a global value from NetworkManager configuration. If the property doesn't have a value in the global configuration, the value is assumed to be 100.
 
 Negative values have the special effect of excluding other connections with a greater numerical priority value; so in presence of at least one negative priority, only connections with the lowest priority value will be used to determine the hostname.</td>
-</tr>
-</tbody>
-</table></div>
-</div>
-<hr>
-<div class="refsect2">
-<a name="id-1.2.9.4.53"></a><h3>hsr setting</h3>
-<p>HSR/PRP Settings.</p>
-<div class="informaltable"><table class="informaltable" border="1">
-<colgroup>
-<col>
-<col>
-<col>
-<col>
-</colgroup>
-<thead><tr>
-<th>Key Name</th>
-<th>Value Type</th>
-<th>Default Value</th>
-<th>Value Description</th>
-</tr></thead>
-<tbody>
-<tr>
-<td align="left">
-<a name="nm-settings-dbus.property.hsr.multicast-spec"></a>multicast-spec</td>
-<td align="left">uint32</td>
-<td align="left">0</td>
-<td>The last byte of supervision address.</td>
-</tr>
-<tr>
-<td align="left">
-<a name="nm-settings-dbus.property.hsr.port1"></a>port1</td>
-<td align="left">string</td>
-<td align="left"> </td>
-<td>The port1 interface name of the HSR. This property is mandatory.</td>
-</tr>
-<tr>
-<td align="left">
-<a name="nm-settings-dbus.property.hsr.port2"></a>port2</td>
-<td align="left">string</td>
-<td align="left"> </td>
-<td>The port2 interface name of the HSR. This property is mandatory.</td>
-</tr>
-<tr>
-<td align="left">
-<a name="nm-settings-dbus.property.hsr.prp"></a>prp</td>
-<td align="left">boolean</td>
-<td align="left">FALSE</td>
-<td>The protocol used by the interface, whether it is PRP or HSR.</td>
 </tr>
 </tbody>
 </table></div>

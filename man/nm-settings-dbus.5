@@ -2,12 +2,12 @@
 .\"     Title: nm-settings-dbus
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 09/16/2024
+.\"      Date: 10/02/2024
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.49.91
+.\"    Source: NetworkManager 1.50.0
 .\"  Language: English
 .\"
-.TH "NM\-SETTINGS\-DBUS" "5" "" "NetworkManager 1\&.49\&.91" "Configuration"
+.TH "NM\-SETTINGS\-DBUS" "5" "" "NetworkManager 1\&.50\&.0" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -2053,6 +2053,64 @@ T}:T{
 \ \&
 T}:T{
 The username used to authenticate with the network, if required\&.  Many providers do not require a username, or accept any username\&.  But if a username is required, it is specified here\&.
+T}
+.TE
+.sp 1
+.SS "hsr setting"
+.PP
+HSR/PRP Settings\&.
+.TS
+allbox tab(:);
+lB lB lB lB.
+T{
+Key Name
+T}:T{
+Value Type
+T}:T{
+Default Value
+T}:T{
+Value Description
+T}
+.T&
+l l l l
+l l l l
+l l l l
+l l l l.
+T{
+multicast\-spec
+T}:T{
+uint32
+T}:T{
+0
+T}:T{
+The last byte of supervision address\&.
+T}
+T{
+port1
+T}:T{
+string
+T}:T{
+\ \&
+T}:T{
+The port1 interface name of the HSR\&. This property is mandatory\&.
+T}
+T{
+port2
+T}:T{
+string
+T}:T{
+\ \&
+T}:T{
+The port2 interface name of the HSR\&. This property is mandatory\&.
+T}
+T{
+prp
+T}:T{
+boolean
+T}:T{
+FALSE
+T}:T{
+The protocol used by the interface, whether it is PRP or HSR\&.
 T}
 .TE
 .sp 1
@@ -6227,64 +6285,6 @@ The relative priority of this connection to determine the system hostname\&. A l
 If the value is zero, it can be overridden by a global value from NetworkManager configuration\&. If the property doesn\*(Aqt have a value in the global configuration, the value is assumed to be 100\&.
 
 Negative values have the special effect of excluding other connections with a greater numerical priority value; so in presence of at least one negative priority, only connections with the lowest priority value will be used to determine the hostname\&.
-T}
-.TE
-.sp 1
-.SS "hsr setting"
-.PP
-HSR/PRP Settings\&.
-.TS
-allbox tab(:);
-lB lB lB lB.
-T{
-Key Name
-T}:T{
-Value Type
-T}:T{
-Default Value
-T}:T{
-Value Description
-T}
-.T&
-l l l l
-l l l l
-l l l l
-l l l l.
-T{
-multicast\-spec
-T}:T{
-uint32
-T}:T{
-0
-T}:T{
-The last byte of supervision address\&.
-T}
-T{
-port1
-T}:T{
-string
-T}:T{
-\ \&
-T}:T{
-The port1 interface name of the HSR\&. This property is mandatory\&.
-T}
-T{
-port2
-T}:T{
-string
-T}:T{
-\ \&
-T}:T{
-The port2 interface name of the HSR\&. This property is mandatory\&.
-T}
-T{
-prp
-T}:T{
-boolean
-T}:T{
-FALSE
-T}:T{
-The protocol used by the interface, whether it is PRP or HSR\&.
 T}
 .TE
 .sp 1
