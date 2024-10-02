@@ -1,3 +1,9 @@
+network-manager (1.50.0-1) UNRELEASED; urgency=medium
+
+  * New upstream version 1.50.0
+
+ -- Michael Biebl <biebl@debian.org>  Wed, 02 Oct 2024 22:18:22 +0200
+
 network-manager (1.49.91-1) unstable; urgency=medium
 
   * New upstream version 1.49.91 (1.50 rc2)
