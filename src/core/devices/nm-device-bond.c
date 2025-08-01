@@ -137,13 +137,13 @@ _set_bond_attr(NMDevice *device, const char *attr, const char *value)
     return ret;
 }
 
-#define _set_bond_attr_take(device, attr, value)                            \
-    G_STMT_START                                                            \
-    {                                                                       \
-        gs_free char *_tmp = (value);                                       \
-                                                                            \
-        _set_bond_attr(device, NM_SETTING_BOND_OPTION_ARP_IP_TARGET, _tmp); \
-    }                                                                       \
+#define _set_bond_attr_take(device, attr, value) \
+    G_STMT_START                                 \
+    {                                            \
+        gs_free char *_tmp = (value);            \
+                                                 \
+        _set_bond_attr(device, attr, _tmp);      \
+    }                                            \
     G_STMT_END
 
 #define _set_bond_attr_printf(device, attr, fmt, ...) \
@@ -902,7 +902,7 @@ reapply_connection(NMDevice *device, NMConnection *con_old, NMConnection *con_ne
     mode  = _nm_setting_bond_mode_from_string(value);
     g_return_if_fail(mode != NM_BOND_MODE_UNKNOWN);
 
-    /* Below we set only the bond options that kernel allows to modify
+    /* Below we set only the bond options that the kernel allows modifying
      * while keeping the bond interface up */
 
     set_bond_arp_ip_targets(device, s_bond);

@@ -900,15 +900,17 @@ _insert_interface(json_t       *params,
         s_ovs_patch = nm_connection_get_setting_ovs_patch(interface);
 
     if (s_ovs_dpdk) {
-        const char *devargs;
-        guint32     n_rxq;
-        guint32     n_rxq_desc;
-        guint32     n_txq_desc;
+        const char                  *devargs;
+        guint32                      n_rxq;
+        guint32                      n_rxq_desc;
+        guint32                      n_txq_desc;
+        NMSettingOvsDpdkLscInterrupt lsc_int;
 
         devargs    = nm_setting_ovs_dpdk_get_devargs(s_ovs_dpdk);
         n_rxq      = nm_setting_ovs_dpdk_get_n_rxq(s_ovs_dpdk);
         n_rxq_desc = nm_setting_ovs_dpdk_get_n_rxq_desc(s_ovs_dpdk);
         n_txq_desc = nm_setting_ovs_dpdk_get_n_txq_desc(s_ovs_dpdk);
+        lsc_int    = nm_setting_ovs_dpdk_get_lsc_interrupt(s_ovs_dpdk);
 
         dpdk_array = json_array();
 
@@ -928,6 +930,17 @@ _insert_interface(json_t       *params,
             json_array_append_new(
                 dpdk_array,
                 json_pack("[s,s]", "n_txq_desc", nm_sprintf_buf(sbuf, "%u", n_txq_desc)));
+        }
+
+        switch (lsc_int) {
+        case NM_SETTING_OVS_DPDK_LSC_INTERRUPT_IGNORE:
+            break;
+        case NM_SETTING_OVS_DPDK_LSC_INTERRUPT_ENABLED:
+            json_array_append_new(dpdk_array, json_pack("[s,s]", "dpdk-lsc-interrupt", "true"));
+            break;
+        case NM_SETTING_OVS_DPDK_LSC_INTERRUPT_DISABLED:
+            json_array_append_new(dpdk_array, json_pack("[s,s]", "dpdk-lsc-interrupt", "false"));
+            break;
         }
 
         json_array_append_new(options, dpdk_array);
@@ -1374,38 +1387,47 @@ _delete_interface(NMOvsdb *self, json_t *params, const char *ifname)
     nm_auto_decref_json json_t *bridges     = NULL;
     nm_auto_decref_json json_t *new_bridges = NULL;
     gboolean                    bridges_changed;
-    gboolean                    ports_changed;
-    gboolean                    interfaces_changed;
-    int                         pi;
-    int                         ii;
 
     bridges         = json_array();
     new_bridges     = json_array();
     bridges_changed = FALSE;
 
+    /* Loop over all bridges */
     g_hash_table_iter_init(&iter, priv->bridges);
     while (g_hash_table_iter_next(&iter, (gpointer) &ovs_bridge, NULL)) {
-        nm_auto_decref_json json_t *ports     = NULL;
-        nm_auto_decref_json json_t *new_ports = NULL;
+        nm_auto_decref_json json_t *ports         = NULL;
+        nm_auto_decref_json json_t *new_ports     = NULL;
+        guint                       num_nm_ports  = 0;
+        gboolean                    ports_changed = FALSE;
+        int                         pi;
 
-        ports         = json_array();
-        new_ports     = json_array();
-        ports_changed = FALSE;
+        ports     = json_array();
+        new_ports = json_array();
 
+        /* Add the bridge UUID to the list of known bridges for the "expect" condition */
         json_array_append_new(bridges, json_pack("[s,s]", "uuid", ovs_bridge->bridge_uuid));
 
+        if (!ovs_bridge->connection_uuid) {
+            /* Externally created, don't touch it */
+            json_array_append_new(new_bridges, json_pack("[s,s]", "uuid", ovs_bridge->bridge_uuid));
+            continue;
+        }
+
+        /* Loop over all bridge's ports */
         for (pi = 0; pi < ovs_bridge->ports->len; pi++) {
-            nm_auto_decref_json json_t *interfaces     = NULL;
-            nm_auto_decref_json json_t *new_interfaces = NULL;
+            nm_auto_decref_json json_t *interfaces         = NULL;
+            nm_auto_decref_json json_t *new_interfaces     = NULL;
+            guint                       num_nm_interfaces  = 0;
+            gboolean                    interfaces_changed = FALSE;
+            int                         ii;
 
             interfaces     = json_array();
             new_interfaces = json_array();
             port_uuid      = g_ptr_array_index(ovs_bridge->ports, pi);
             ovs_port       = g_hash_table_lookup(priv->ports, &port_uuid);
 
+            /* Add the port UUID to the list of known bridge port for the "expect" condition */
             json_array_append_new(ports, json_pack("[s,s]", "uuid", port_uuid));
-
-            interfaces_changed = FALSE;
 
             if (!ovs_port) {
                 /* This would be a violation of ovsdb's reference integrity (a bug). */
@@ -1413,49 +1435,65 @@ _delete_interface(NMOvsdb *self, json_t *params, const char *ifname)
                 continue;
             }
 
+            /* Loop over all port's interfaces */
             for (ii = 0; ii < ovs_port->interfaces->len; ii++) {
                 interface_uuid = g_ptr_array_index(ovs_port->interfaces, ii);
                 ovs_interface  = g_hash_table_lookup(priv->interfaces, &interface_uuid);
 
+                /* Add the interface UUID to the list of known port interfaces for the "expect" condition */
                 json_array_append_new(interfaces, json_pack("[s,s]", "uuid", interface_uuid));
 
                 if (ovs_interface) {
                     if (nm_streq(ovs_interface->name, ifname)) {
-                        /* skip the interface */
+                        /* We are deleting this interface, don't count it */
                         interfaces_changed = TRUE;
                         continue;
                     }
+                    if (ovs_interface->connection_uuid)
+                        num_nm_interfaces++;
                 } else {
                     /* This would be a violation of ovsdb's reference integrity (a bug). */
                     _LOGW("Unknown interface '%s' in port '%s'", interface_uuid, port_uuid);
                 }
 
+                /* Add the interface to the list of new interfaces to set on the port */
                 json_array_append_new(new_interfaces, json_pack("[s,s]", "uuid", interface_uuid));
             }
 
-            if (json_array_size(new_interfaces) == 0) {
+            if (num_nm_interfaces == 0) {
+                /* The port no longer has any NM interface. Don't add it to "new_ports" and set
+                 * ports_changed=TRUE, so that it will be deleted. */
                 ports_changed = TRUE;
             } else {
                 if (interfaces_changed) {
+                    /* An interface needs to be deleted from this port */
                     _expect_port_interfaces(params, ovs_port->name, interfaces);
                     _set_port_interfaces(params, ovs_port->name, new_interfaces);
                 }
+                /* The port is still alive */
                 json_array_append_new(new_ports, json_pack("[s,s]", "uuid", port_uuid));
+                if (ovs_port->connection_uuid)
+                    num_nm_ports++;
             }
         }
 
-        if (json_array_size(new_ports) == 0) {
+        if (num_nm_ports == 0) {
+            /* The bridge no longer has any NM port. Don't add it to "new_bridges" and set
+             * bridges_changed=TRUE, so that it will be deleted. */
             bridges_changed = TRUE;
         } else {
             if (ports_changed) {
+                /* A port needs to be deleted from this bridge */
                 _expect_bridge_ports(params, ovs_bridge->name, ports);
                 _set_bridge_ports(params, ovs_bridge->name, new_ports);
             }
+            /* The bridge is still alive */
             json_array_append_new(new_bridges, json_pack("[s,s]", "uuid", ovs_bridge->bridge_uuid));
         }
     }
 
     if (bridges_changed) {
+        /* A port needs to be deleted from this bridge */
         _expect_ovs_bridges(params, priv->db_uuid, bridges);
         _set_ovs_bridges(params, priv->db_uuid, new_bridges);
     }
@@ -2211,7 +2249,7 @@ ovsdb_got_update(NMOvsdb *self, json_t *msg)
                                            ovs_bridge->connection_uuid,
                                            ""),
                       (strtmp1 = _strdict_to_string(ovs_bridge->external_ids)),
-                      (strtmp2 = _strdict_to_string(ovs_bridge->external_ids)));
+                      (strtmp2 = _strdict_to_string(ovs_bridge->other_config)));
             }
         } else {
             gs_free char *strtmp1 = NULL;

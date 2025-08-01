@@ -1712,6 +1712,10 @@
                   dbus-type="as"
                   gprop-type="GStrv"
                   />
+        <property name="forwarding"
+                  dbus-type="i"
+                  gprop-type="gint"
+                  />
         <property name="gateway"
                   dbus-type="s"
                   gprop-type="gchararray"
@@ -1866,6 +1870,10 @@
         <property name="dns-search"
                   dbus-type="as"
                   gprop-type="GStrv"
+                  />
+        <property name="forwarding"
+                  dbus-type="i"
+                  gprop-type="gint"
                   />
         <property name="gateway"
                   dbus-type="s"
@@ -2120,6 +2128,10 @@
                   dbus-type="s"
                   gprop-type="gchararray"
                   />
+        <property name="lsc-interrupt"
+                  dbus-type="i"
+                  gprop-type="gint"
+                  />
         <property name="n-rxq"
                   dbus-type="u"
                   gprop-type="guint"
@@ -2303,6 +2315,14 @@
                   gprop-type="gchararray"
                   />
     </setting>
+    <setting name="prefix-delegation"
+             gtype="NMSettingPrefixDelegation"
+             >
+        <property name="subnet-id"
+                  dbus-type="x"
+                  gprop-type="gint64"
+                  />
+    </setting>
     <setting name="proxy"
              gtype="NMSettingProxy"
              >
@@ -2363,6 +2383,10 @@
                   gprop-type="gint"
                   />
         <property name="eswitch-mode"
+                  dbus-type="i"
+                  gprop-type="gint"
+                  />
+        <property name="preserve-on-down"
                   dbus-type="i"
                   gprop-type="gint"
                   />

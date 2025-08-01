@@ -59,6 +59,7 @@
 #include "nm-object-private.h"
 #include "nm-remote-connection.h"
 #include "nm-utils.h"
+#include "nm-setting-ethtool.h"
 #include "nm-vpn-connection.h"
 
 /*****************************************************************************/
@@ -7684,7 +7685,7 @@ set_property(GObject *object, guint prop_id, const GValue *value, GParamSpec *ps
         } else {
             NMClientInstanceFlags flags = v_uint;
 
-            /* After object construction, we only allow to toggle certain flags and
+            /* After object construction, we only allow one to toggle certain flags and
              * ignore all other flags. */
 
             if ((priv->instance_flags ^ flags)
@@ -8204,7 +8205,7 @@ const NMLDBusMetaIface _nml_dbus_meta_iface_nm_settings = NML_DBUS_META_IFACE_IN
             _priv.settings.connections,
             nm_remote_connection_get_type,
             .notify_changed_ao       = _property_ao_notify_changed_connections_cb,
-            .check_nmobj_visible_fcn = (gboolean(*)(GObject *)) nm_remote_connection_get_visible),
+            .check_nmobj_visible_fcn = (gboolean (*)(GObject *)) nm_remote_connection_get_visible),
         NML_DBUS_META_PROPERTY_INIT_S("Hostname",
                                       PROP_HOSTNAME,
                                       NMClient,
@@ -9314,3 +9315,27 @@ NM_BACKPORT_SYMBOL(libnm_1_30_8,
                    (address));
 
 NM_BACKPORT_SYMBOL(libnm_1_30_8, NMIPRoute *, nm_ip_route_dup, (NMIPRoute * route), (route));
+
+NM_BACKPORT_SYMBOL(libnm_1_46_8,
+                   gboolean,
+                   nm_ethtool_optname_is_fec,
+                   (const char *optname),
+                   (optname));
+
+NM_BACKPORT_SYMBOL(libnm_1_46_8, GType, nm_setting_ethtool_fec_mode_get_type, (void), ());
+
+NM_BACKPORT_SYMBOL(libnm_1_48_18,
+                   gboolean,
+                   nm_ethtool_optname_is_fec,
+                   (const char *optname),
+                   (optname));
+
+NM_BACKPORT_SYMBOL(libnm_1_48_18, GType, nm_setting_ethtool_fec_mode_get_type, (void), ());
+
+NM_BACKPORT_SYMBOL(libnm_1_50_4,
+                   gboolean,
+                   nm_ethtool_optname_is_fec,
+                   (const char *optname),
+                   (optname));
+
+NM_BACKPORT_SYMBOL(libnm_1_50_4, GType, nm_setting_ethtool_fec_mode_get_type, (void), ());

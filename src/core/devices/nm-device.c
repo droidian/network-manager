@@ -779,6 +779,7 @@ typedef struct _NMDevicePrivate {
     char     *prop_ip_iface; /* IP interface D-Bus property */
     GList    *ping_operations;
     GSource  *ping_timeout;
+    bool      refresh_forwarding_done : 1;
 } NMDevicePrivate;
 
 G_DEFINE_ABSTRACT_TYPE(NMDevice, nm_device, NM_TYPE_DBUS_OBJECT)
@@ -880,6 +881,7 @@ static void device_ifindex_changed_cb(NMManager *manager, NMDevice *device_chang
 static gboolean device_link_changed(gpointer user_data);
 static gboolean _get_maybe_ipv6_disabled(NMDevice *self);
 static void     deactivate_ready(NMDevice *self, NMDeviceStateReason reason);
+static void     carrier_disconnected_action_cancel(NMDevice *self);
 
 /*****************************************************************************/
 
@@ -1412,6 +1414,26 @@ _prop_get_connection_mdns(NMDevice *self)
                                                        NM_SETTING_CONNECTION_MDNS_NO,
                                                        NM_SETTING_CONNECTION_MDNS_YES,
                                                        NM_SETTING_CONNECTION_MDNS_DEFAULT);
+}
+
+static gboolean
+_prop_get_sriov_preserve_on_down(NMDevice *self, NMSettingSriov *s_sriov)
+{
+    NMSriovPreserveOnDown preserve;
+
+    g_return_val_if_fail(NM_IS_DEVICE(self), FALSE);
+    g_return_val_if_fail(NM_IS_SETTING_SRIOV(s_sriov), FALSE);
+
+    preserve = nm_setting_sriov_get_preserve_on_down(s_sriov);
+    if (NM_IN_SET(preserve, NM_SRIOV_PRESERVE_ON_DOWN_NO, NM_SRIOV_PRESERVE_ON_DOWN_YES))
+        return preserve;
+
+    return nm_config_data_get_connection_default_int64(NM_CONFIG_GET_DATA,
+                                                       NM_CON_DEFAULT("sriov.preserve-on-down"),
+                                                       self,
+                                                       NM_SRIOV_PRESERVE_ON_DOWN_NO,
+                                                       NM_SRIOV_PRESERVE_ON_DOWN_YES,
+                                                       NM_SRIOV_PRESERVE_ON_DOWN_NO);
 }
 
 static NMSettingConnectionLlmnr
@@ -2109,6 +2131,33 @@ _prop_get_ipvx_dhcp_send_hostname(NMDevice *self, int addr_family)
     return send_hostname_v2;
 }
 
+NMSettingIPConfigForwarding
+nm_device_get_ipv4_forwarding(NMDevice *self)
+{
+    NMSettingIPConfig          *s_ip;
+    NMSettingIPConfigForwarding forwarding;
+
+    g_return_val_if_fail(NM_IS_DEVICE(self), NM_SETTING_IP_CONFIG_FORWARDING_AUTO);
+
+    s_ip = nm_device_get_applied_setting(self, NM_TYPE_SETTING_IP4_CONFIG);
+    if (s_ip)
+        forwarding = nm_setting_ip_config_get_forwarding(s_ip);
+    else
+        forwarding = NM_SETTING_IP_CONFIG_FORWARDING_DEFAULT;
+
+    if (forwarding == NM_SETTING_IP_CONFIG_FORWARDING_DEFAULT) {
+        forwarding =
+            nm_config_data_get_connection_default_int64(NM_CONFIG_GET_DATA,
+                                                        NM_CON_DEFAULT("ipv4.forwarding"),
+                                                        self,
+                                                        NM_SETTING_IP_CONFIG_FORWARDING_NO,
+                                                        NM_SETTING_IP_CONFIG_FORWARDING_AUTO,
+                                                        NM_SETTING_IP_CONFIG_FORWARDING_AUTO);
+    }
+
+    return forwarding;
+}
+
 static gboolean
 _prop_get_connection_ip_ping_addresses_require_all(NMDevice *self, NMSettingConnection *s_con)
 {
@@ -2717,7 +2766,7 @@ _ethtool_features_set(NMDevice         *self,
     if (nm_setting_ethtool_init_features(s_ethtool, ethtool_state->requested) == 0)
         return;
 
-    features = nm_platform_ethtool_get_link_features(platform, ethtool_state->ifindex);
+    features = nm_platform_ethtool_get_features(platform, ethtool_state->ifindex);
     if (!features) {
         _LOGW(LOGD_DEVICE, "ethtool: failure setting offload features (cannot read features)");
         return;
@@ -2836,9 +2885,9 @@ _ethtool_coalesce_set(NMDevice         *self,
             continue;
 
         if (!has_old) {
-            if (!nm_platform_ethtool_get_link_coalesce(platform,
-                                                       ethtool_state->ifindex,
-                                                       &coalesce_old)) {
+            if (!nm_platform_ethtool_get_coalesce(platform,
+                                                  ethtool_state->ifindex,
+                                                  &coalesce_old)) {
                 _LOGW(LOGD_DEVICE, "ethtool: failure getting coalesce settings (cannot read)");
                 return;
             }
@@ -2917,7 +2966,7 @@ _ethtool_ring_set(NMDevice         *self,
         nm_assert(g_variant_is_of_type(variant, G_VARIANT_TYPE_UINT32));
 
         if (!has_old) {
-            if (!nm_platform_ethtool_get_link_ring(platform, ethtool_state->ifindex, &ring_old)) {
+            if (!nm_platform_ethtool_get_ring(platform, ethtool_state->ifindex, &ring_old)) {
                 _LOGW(LOGD_DEVICE,
                       "ethtool: failure setting ring options (cannot read existing setting)");
                 return;
@@ -3013,9 +3062,9 @@ _ethtool_channels_set(NMDevice         *self,
         nm_assert(g_variant_is_of_type(variant, G_VARIANT_TYPE_UINT32));
 
         if (!has_old) {
-            if (!nm_platform_ethtool_get_link_channels(platform,
-                                                       ethtool_state->ifindex,
-                                                       &channels_old)) {
+            if (!nm_platform_ethtool_get_channels(platform,
+                                                  ethtool_state->ifindex,
+                                                  &channels_old)) {
                 _LOGW(LOGD_DEVICE,
                       "ethtool: failure setting channels options (cannot read existing setting)");
                 return;
@@ -3132,7 +3181,7 @@ _ethtool_pause_set(NMDevice         *self,
         nm_assert(g_variant_is_of_type(variant, G_VARIANT_TYPE_BOOLEAN));
 
         if (!has_old) {
-            if (!nm_platform_ethtool_get_link_pause(platform, ethtool_state->ifindex, &pause_old)) {
+            if (!nm_platform_ethtool_get_pause(platform, ethtool_state->ifindex, &pause_old)) {
                 _LOGW(LOGD_DEVICE,
                       "ethtool: failure setting pause options (cannot read "
                       "existing setting)");
@@ -3218,7 +3267,7 @@ _ethtool_eee_set(NMDevice         *self,
         nm_assert(g_variant_is_of_type(variant, G_VARIANT_TYPE_BOOLEAN));
 
         if (!has_old) {
-            if (!nm_platform_ethtool_get_link_eee(platform, ethtool_state->ifindex, &eee_old)) {
+            if (!nm_platform_ethtool_get_eee(platform, ethtool_state->ifindex, &eee_old)) {
                 _LOGW(LOGD_DEVICE,
                       "ethtool: failure setting eee options (cannot read "
                       "existing setting)");
@@ -3729,7 +3778,7 @@ nm_device_assume_state_reset(NMDevice *self)
 
 /*****************************************************************************/
 
-static char *
+char *
 nm_device_sysctl_ip_conf_get(NMDevice *self, int addr_family, const char *property)
 {
     const char *ifname;
@@ -4992,6 +5041,10 @@ _set_ifindex(NMDevice *self, int ifindex, gboolean is_ip_ifindex)
     *p_ifindex = ifindex;
 
     ip_ifindex_new = nm_device_get_ip_ifindex(self);
+
+    /* the ifindex changed; forget about any carrier change event for
+     * the previous ifindex */
+    carrier_disconnected_action_cancel(self);
 
     if (priv->l3cfg) {
         if (ip_ifindex_new <= 0 || ip_ifindex_new != nm_l3cfg_get_ifindex(priv->l3cfg)) {
@@ -6584,11 +6637,15 @@ concheck_update_state(NMDevice           *self,
 
     _notify(self, IS_IPv4 ? PROP_IP4_CONNECTIVITY : PROP_IP6_CONNECTIVITY);
 
-    if (priv->state == NM_DEVICE_STATE_ACTIVATED && !nm_device_managed_type_is_external(self))
+    /* State change could've affected the route metrics (removed the penalty
+     * once FULL connectivity is reached), redo the L3 configuration. */
+    if (priv->state > NM_DEVICE_STATE_IP_CONFIG && priv->state < NM_DEVICE_STATE_DEACTIVATING
+        && !nm_device_managed_type_is_external(self)) {
         _dev_l3_register_l3cds(self, priv->l3cfg, TRUE, NM_TERNARY_DEFAULT);
+    }
 }
 
-static const char *
+const char *
 nm_device_get_effective_ip_config_method(NMDevice *self, int addr_family)
 {
     NMDeviceClass *klass;
@@ -7725,9 +7782,7 @@ device_link_changed(gpointer user_data)
          * tagged for carrier ignore) ensure that when the carrier appears we
          * renew DHCP leases and such.
          */
-        if (priv->state == NM_DEVICE_STATE_ACTIVATED) {
-            nm_device_update_dynamic_ip_setup(self, "interface got carrier");
-        }
+        nm_device_update_dynamic_ip_setup(self, "interface got carrier");
     }
 
     if (update_unmanaged_specs)
@@ -8974,7 +9029,7 @@ nm_device_port_notify_attach_as_port(NMDevice *self, gboolean success)
 
             priv->is_attached = TRUE;
 
-            _notify(priv->controller, PROP_CONTROLLER);
+            _notify(self, PROP_CONTROLLER);
 
             nm_clear_pointer(&NM_DEVICE_GET_PRIVATE(priv->controller)->ports_variant,
                              g_variant_unref);
@@ -9053,7 +9108,7 @@ nm_device_port_notify_release(NMDevice           *self,
 
     priv->is_attached = FALSE;
 
-    _notify(priv->controller, PROP_CONTROLLER);
+    _notify(self, PROP_CONTROLLER);
 
     nm_clear_pointer(&NM_DEVICE_GET_PRIVATE(priv->controller)->ports_variant, g_variant_unref);
     nm_gobject_notify_together(priv->controller, PROP_PORTS, PROP_SLAVES);
@@ -9521,7 +9576,7 @@ nm_device_generate_connection(NMDevice *self,
                  NM_SETTING_CONNECTION_ID,
                  ifname,
                  NM_SETTING_CONNECTION_AUTOCONNECT,
-                 FALSE,
+                 TRUE,
                  NM_SETTING_CONNECTION_INTERFACE_NAME,
                  ifname,
                  NM_SETTING_CONNECTION_TIMESTAMP,
@@ -11335,6 +11390,13 @@ _dev_ipdhcpx_notify(NMDhcpClient *client, const NMDhcpClientNotifyData *notify_d
     switch (notify_data->notify_type) {
     case NM_DHCP_CLIENT_NOTIFY_TYPE_PREFIX_DELEGATED:
         nm_assert(!IS_IPv4);
+        if (notify_data->prefix_delegated.prefix->plen == 0
+            || notify_data->prefix_delegated.prefix->plen > 64) {
+            _LOGW_ipdhcp(addr_family,
+                         "ignoring invalid prefix-delegation with length %u",
+                         notify_data->prefix_delegated.prefix->plen);
+            return;
+        }
         /* Just re-emit. The device just contributes the prefix to the
          * pool in NMPolicy, which decides about subnet allocation
          * on the shared devices. */
@@ -13073,6 +13135,13 @@ activate_stage3_ip_config_for_addr_family(NMDevice *self, int addr_family)
         goto out_devip;
 
     if (IS_IPv4) {
+        NMSettingIPConfigForwarding ipv4_forwarding = nm_device_get_ipv4_forwarding(self);
+
+        if (NM_IN_SET(ipv4_forwarding,
+                      NM_SETTING_IP_CONFIG_FORWARDING_NO,
+                      NM_SETTING_IP_CONFIG_FORWARDING_YES)) {
+            nm_device_sysctl_ip_conf_set(self, AF_INET, "forwarding", ipv4_forwarding ? "1" : "0");
+        }
         priv->ipll_data_4.v4.mode = _prop_get_ipv4_link_local(self);
         if (priv->ipll_data_4.v4.mode == NM_SETTING_IP4_LL_ENABLED)
             _dev_ipll4_start(self);
@@ -13369,7 +13438,8 @@ activate_stage3_ip_config(NMDevice *self)
              * IPv6LL if this is not an assumed connection, since assumed connections
              * will already have IPv6 set up.
              */
-            if (!nm_device_managed_type_is_external_or_assume(self))
+            if ((priv->state <= NM_DEVICE_STATE_IP_CONFIG || priv->ip_data_6.do_reapply)
+                && !nm_device_managed_type_is_external_or_assume(self))
                 _dev_addrgenmode6_set(self, NM_IN6_ADDR_GEN_MODE_NONE);
 
             /* Re-enable IPv6 on the interface */
@@ -13502,19 +13572,6 @@ _dev_ipshared4_init(NMDevice *self)
     default:
         nm_assert_not_reached();
         break;
-    }
-
-    if (nm_platform_sysctl_get_int32(nm_device_get_platform(self),
-                                     NMP_SYSCTL_PATHID_ABSOLUTE("/proc/sys/net/ipv4/ip_forward"),
-                                     -1)
-        == 1) {
-        /* nothing to do. */
-    } else if (!nm_platform_sysctl_set(nm_device_get_platform(self),
-                                       NMP_SYSCTL_PATHID_ABSOLUTE("/proc/sys/net/ipv4/ip_forward"),
-                                       "1")) {
-        errsv = errno;
-        _LOGW_ipshared(AF_INET, "error enabling IPv4 forwarding: %s", nm_strerror_native(errsv));
-        return FALSE;
     }
 
     if (nm_platform_sysctl_get_int32(nm_device_get_platform(self),
@@ -13994,13 +14051,18 @@ can_reapply_change(NMDevice   *self,
         goto out_fail;
     }
 
-    if (NM_IN_STRSET(setting_name,
-                     NM_SETTING_OVS_EXTERNAL_IDS_SETTING_NAME,
-                     NM_SETTING_OVS_OTHER_CONFIG_SETTING_NAME)
-        && NM_DEVICE_GET_CLASS(self)->can_reapply_change_ovs_external_ids) {
-        /* TODO: this means, you cannot reapply changes to the external-ids for
-         * OVS system interfaces. */
-        return TRUE;
+    if (nm_streq(setting_name, NM_SETTING_BRIDGE_PORT_SETTING_NAME)) {
+        return nm_device_hash_check_invalid_keys(diffs,
+                                                 NM_SETTING_BRIDGE_PORT_SETTING_NAME,
+                                                 error,
+                                                 NM_SETTING_BRIDGE_PORT_VLANS);
+    }
+
+    if (nm_streq(setting_name, NM_SETTING_SRIOV_SETTING_NAME)) {
+        return nm_device_hash_check_invalid_keys(diffs,
+                                                 NM_SETTING_SRIOV_SETTING_NAME,
+                                                 error,
+                                                 NM_SETTING_SRIOV_PRESERVE_ON_DOWN);
     }
 
 out_fail:
@@ -16851,6 +16913,8 @@ _cleanup_generic_post(NMDevice *self, NMDeviceStateReason reason, CleanupType cl
     priv->v4_route_table_all_sync_before = FALSE;
     priv->v6_route_table_all_sync_before = FALSE;
 
+    priv->refresh_forwarding_done = FALSE;
+
     priv->mtu_force_set_done = FALSE;
 
     priv->needs_ip6_subnet = FALSE;
@@ -16896,6 +16960,7 @@ nm_device_cleanup(NMDevice *self, NMDeviceStateReason reason, CleanupType cleanu
     NMDevicePrivate *priv;
     NMDeviceClass   *klass = NM_DEVICE_GET_CLASS(self);
     int              ifindex;
+    gint32           default_forwarding_v4;
 
     g_return_if_fail(NM_IS_DEVICE(self));
 
@@ -16917,6 +16982,17 @@ nm_device_cleanup(NMDevice *self, NMDeviceStateReason reason, CleanupType cleanu
         _dev_sysctl_set_disable_ipv6(self, TRUE);
         nm_device_sysctl_ip_conf_set(self, AF_INET6, "use_tempaddr", "0");
     }
+
+    /* Restoring the device's forwarding to the sysctl default is necessary because
+     * `refresh_forwarding()` only updates forwarding on activated devices. */
+    default_forwarding_v4 = nm_platform_sysctl_get_int32(
+        nm_device_get_platform(self),
+        NMP_SYSCTL_PATHID_ABSOLUTE("/proc/sys/net/ipv4/conf/default/forwarding"),
+        0);
+    nm_device_sysctl_ip_conf_set(self,
+                                 AF_INET,
+                                 "forwarding",
+                                 default_forwarding_v4 == 1 ? "1" : "0");
 
     /* Call device type-specific deactivation */
     if (klass->deactivate)
@@ -17437,7 +17513,8 @@ _set_state_full(NMDevice *self, NMDeviceState state, NMDeviceStateReason reason,
             }
 
             if (priv->ifindex > 0
-                && (s_sriov = nm_device_get_applied_setting(self, NM_TYPE_SETTING_SRIOV))) {
+                && (s_sriov = nm_device_get_applied_setting(self, NM_TYPE_SETTING_SRIOV))
+                && (!_prop_get_sriov_preserve_on_down(self, s_sriov))) {
                 priv->sriov_reset_pending++;
                 sriov_op_queue(self,
                                0,
@@ -17492,7 +17569,8 @@ _set_state_full(NMDevice *self, NMDeviceState state, NMDeviceStateReason reason,
             nm_settings_connection_update_timestamp(sett_conn, (guint64) 0);
 
         if (priv->ifindex > 0
-            && (s_sriov = nm_device_get_applied_setting(self, NM_TYPE_SETTING_SRIOV))) {
+            && (s_sriov = nm_device_get_applied_setting(self, NM_TYPE_SETTING_SRIOV))
+            && (!_prop_get_sriov_preserve_on_down(self, s_sriov))) {
             priv->sriov_reset_pending++;
             sriov_op_queue(self,
                            0,
@@ -18613,7 +18691,7 @@ hostname_dns_lookup_callback(GObject *source, GAsyncResult *result, gpointer use
         gboolean valid;
 
         resolver->hostname = g_steal_pointer(&output);
-        valid              = nm_utils_validate_hostname(resolver->hostname);
+        valid              = nm_sd_dns_name_is_valid(resolver->hostname);
 
         _LOGD(LOGD_DNS,
               "hostname-from-dns: ipv%c resolver %s: lookup successful for %s, result %s%s%s%s",
@@ -18856,6 +18934,19 @@ nm_device_get_hostname_from_dns_lookup(NMDevice *self, int addr_family, gboolean
     }
 
     return nm_assert_unreachable_val(NULL);
+}
+
+gboolean
+nm_device_get_refresh_forwarding_done(NMDevice *self)
+{
+    return NM_DEVICE_GET_PRIVATE(self)->refresh_forwarding_done;
+}
+
+void
+nm_device_set_refresh_forwarding_done(NMDevice *self, gboolean is_refresh_forwarding_done)
+{
+    NMDevicePrivate *priv         = NM_DEVICE_GET_PRIVATE(self);
+    priv->refresh_forwarding_done = is_refresh_forwarding_done;
 }
 
 /*****************************************************************************/

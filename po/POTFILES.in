@@ -95,6 +95,7 @@ src/libnm-core-impl/nm-setting-hsr.c
 src/libnm-core-impl/nm-setting-infiniband.c
 src/libnm-core-impl/nm-setting-ip-config.c
 src/libnm-core-impl/nm-setting-ip-tunnel.c
+src/libnm-core-impl/nm-setting-ipvlan.c
 src/libnm-core-impl/nm-setting-ip4-config.c
 src/libnm-core-impl/nm-setting-ip6-config.c
 src/libnm-core-impl/nm-setting-loopback.c
@@ -148,6 +149,7 @@ src/libnmc-base/nm-secret-agent-simple.c
 src/libnmc-base/nm-vpn-helpers.c
 src/libnmc-setting/nm-meta-setting-access.c
 src/libnmc-setting/nm-meta-setting-desc.c
+src/libnmc-setting/nm-meta-setting-desc.h
 src/libnmc-setting/settings-docs.h.in
 src/libnmt-newt/nmt-newt-utils.c
 src/nm-online/nm-online.c
@@ -179,6 +181,7 @@ src/nmtui/nmt-page-infiniband.c
 src/nmtui/nmt-page-ip-tunnel.c
 src/nmtui/nmt-page-ip4.c
 src/nmtui/nmt-page-ip6.c
+src/nmtui/nmt-page-loopback.c
 src/nmtui/nmt-page-macsec.c
 src/nmtui/nmt-page-ppp.c
 src/nmtui/nmt-page-team-port.c
