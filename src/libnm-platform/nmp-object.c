@@ -16,6 +16,7 @@
 #include "libnm-platform/nm-platform-utils.h"
 #include "libnm-platform/wifi/nm-wifi-utils.h"
 #include "libnm-platform/wpan/nm-wpan-utils.h"
+#include "libnm-platform/nmp-ethtool-ioctl.h"
 
 /*****************************************************************************/
 
@@ -647,7 +648,7 @@ _link_get_driver(struct udev_device *udevice, const char *kind, int ifindex)
     if (ifindex > 0) {
         NMPUtilsEthtoolDriverInfo driver_info;
 
-        if (nmp_utils_ethtool_get_driver_info(ifindex, &driver_info)) {
+        if (nmp_ethtool_ioctl_get_driver_info(ifindex, &driver_info)) {
             if (driver_info.driver[0])
                 return g_intern_string(driver_info.driver);
         }
@@ -2006,8 +2007,8 @@ _vt_dedup_obj_clone(const NMDedupMultiObj *obj)
         .obj_destroy = _vt_dedup_obj_destroy,                                              \
         .obj_full_hash_update =                                                            \
             (void (*)(const NMDedupMultiObj *obj, NMHashState *h)) nmp_object_hash_update, \
-        .obj_full_equal = (gboolean(*)(const NMDedupMultiObj *obj_a,                       \
-                                       const NMDedupMultiObj *obj_b)) nmp_object_equal,    \
+        .obj_full_equal = (gboolean (*)(const NMDedupMultiObj *obj_a,                      \
+                                        const NMDedupMultiObj *obj_b)) nmp_object_equal,   \
     }
 
 /*****************************************************************************/

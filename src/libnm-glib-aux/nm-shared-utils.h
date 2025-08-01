@@ -2143,7 +2143,7 @@ nm_g_ptr_array_pdata(const GPtrArray *arr)
  *   must agree with the owner-ship semantics of @func.
  *
  * This is a replacement for g_ptr_array_copy(), which is not available
- * before glib 2.62. Since GPtrArray does not allow to access the internal
+ * before glib 2.62. Since GPtrArray does not allow one to access the internal
  * element_free_func, we cannot add a compatibility implementation of g_ptr_array_copy()
  * as the caller must provide the correct element_free_func.
  *
@@ -3419,6 +3419,7 @@ char *_nm_utils_format_variant_attributes(GHashTable                          *a
 gboolean nm_utils_is_localhost(const char *name);
 
 gboolean nm_utils_is_specific_hostname(const char *name);
+gboolean nm_utils_is_not_empty_hostname(const char *name);
 
 struct passwd;
 

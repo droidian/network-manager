@@ -1490,7 +1490,7 @@ clean_addresses(NMNDisc *ndisc, gint64 now_msec, NMNDiscConfigMap *changed, gint
         g_array_set_size(rdata->addresses, j);
     }
 
-    if (_array_set_size_max(rdata->gateways, priv->config.max_addresses))
+    if (_array_set_size_max(rdata->addresses, priv->config.max_addresses))
         *changed |= NM_NDISC_CONFIG_ADDRESSES;
 }
 
@@ -1830,7 +1830,7 @@ _config_init(NMNDiscConfig *config, const NMNDiscConfig *src)
     nm_assert(config);
     g_return_if_fail(src);
 
-    /* we only allow to set @config if it was cleared (or is not yet initialized). */
+    /* we only allow one to set @config if it was cleared (or is not yet initialized). */
     nm_assert(!config->l3cfg);
     nm_assert(!config->ifname);
     nm_assert(!config->network_id);

@@ -271,8 +271,7 @@ no-auto-default=*
             Set the management mode of the hostname. This parameter will
             affect only the transient hostname. If a valid static hostname is set,
             NetworkManager will skip the update of the hostname despite the value of
-            this option. An hostname empty or equal to 'localhost', 'localhost6',
-            'localhost.localdomain' or 'localhost6.localdomain' is considered invalid.
+            this option. A hostname empty or equal to '(none)' is considered invalid.
           </para>
           <para><literal>default</literal>: NetworkManager will update the
           hostname with the one provided via DHCP or reverse DNS lookup of the
@@ -943,6 +942,10 @@ ipv6.ip6-privacy=0
           <listitem><para>If configured explicitly to 0, the MTU is not reconfigured during device activation unless it is required due to IPv6 constraints. If left unspecified, a DHCP/IPv6 SLAAC provided value is used or a default of 1500.</para></listitem>
         </varlistentry>
         <varlistentry>
+          <term><varname>ipv4.forwarding</varname></term>
+          <listitem><para>Whether to configure IPv4 sysctl interface-specific forwarding. When enabled, the interface will act as a router to forward the IPv4 packet from one interface to another. If left unspecified, "auto" is used, so NetworkManager sets the IPv4 forwarding if any shared connection is active, or it will use the kernel default value otherwise. The "ipv4.forwarding" property is ignored when "ipv4.method" is set to "shared", because forwarding is always enabled in this case. The accepted values are: 0: disabled, 1: enabled, 2: auto, 3: ignored (leave the forwarding unchanged).</para></listitem>
+        </varlistentry>
+        <varlistentry>
           <term><varname>ipv4.routed-dns</varname></term>
         </varlistentry>
         <varlistentry>
@@ -1089,6 +1092,12 @@ ipv6.ip6-privacy=0
         <varlistentry>
           <term><varname>sriov.autoprobe-drivers</varname></term>
           <listitem><para>If left unspecified, drivers are autoprobed when the SR-IOV VF gets created.</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term><varname>sriov.preserve-on-down</varname></term>
+          <listitem><para>Set to 0 or 1 to select whether the SR-IOV parameters are
+          preserved when the connection is deactivated. If left unspecified, default
+          to 0 (parameters are not preserved). </para></listitem>
         </varlistentry>
         <varlistentry>
           <term><varname>vpn.timeout</varname></term>
@@ -1375,7 +1384,7 @@ managed=1
               scanning. This defaults to <literal>yes</literal> in which case
               a random, locally-administered MAC address will be used.
               The setting <literal>wifi.scan-generate-mac-address-mask</literal>
-              allows to influence the generated MAC address to use certain vendor
+              can be used to influence the generated MAC address to use certain vendor
               OUIs.
               If disabled, the MAC address during scanning is left unchanged to
               whatever is configured.
@@ -1399,7 +1408,7 @@ managed=1
           <listitem>
             <para>
               Like the per-connection settings <literal>ethernet.generate-mac-address-mask</literal>
-              and <literal>wifi.generate-mac-address-mask</literal>, this allows to configure the
+              and <literal>wifi.generate-mac-address-mask</literal>, this can be used to configure the
               generated MAC addresses during scanning. See <citerefentry><refentrytitle>nm-settings-nmcli</refentrytitle><manvolnum>5</manvolnum></citerefentry>
               for details.
             </para>
@@ -1581,7 +1590,7 @@ managed=1
   <refsect1>
     <title><literal>global-dns-domain</literal> sections</title>
     <para>Sections with a name starting with the "global-dns-domain-"
-    prefix allow to define global DNS configuration for specific
+    prefix allow one to define global DNS configuration for specific
     domains.  The part of section name after "global-dns-domain-"
     specifies the domain name a section applies to (for example, a
     section could be named "global-dns-domain-foobar.com").  More

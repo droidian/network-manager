@@ -162,7 +162,7 @@ typedef enum {
     NM_META_ACCESSOR_GET_OUT_FLAGS_NONE = 0,
     NM_META_ACCESSOR_GET_OUT_FLAGS_STRV = (1LL << 0),
 
-    /* the property allows to be hidden, if and only if, it's value is set to the
+    /* the property allows one to be hidden, if and only if, it's value is set to the
      * default. This should only be set by new properties, to preserve behavior
      * of old properties, which were always printed. */
     NM_META_ACCESSOR_GET_OUT_FLAGS_HIDE = (1LL << 1),
@@ -293,9 +293,21 @@ struct _NMMetaPropertyTypData {
                                    int                       value);
         } gobject_enum;
         struct {
-            NMMetaSignUnsignInt64          min;
-            NMMetaSignUnsignInt64          max;
-            guint                          base;
+            NMMetaSignUnsignInt64 min;
+            NMMetaSignUnsignInt64 max;
+            guint                 base;
+
+            /* Normally, when a property has "base = 16", it is printed
+             * as unsigned even if the gtype is signed. For some properties,
+             * we want to print the hexadecimal representation for positive
+             * values, and the base10 representation with minus sign for negative
+             * values. A typical use case is to encode the default value as
+             * "-1" and use positive values as a hexadecimal number. To avoid
+             * ambiguity when setting the value via nmcli, the property minimum
+             * allowed value should not be <= -10.
+             */
+            bool print_hex_negative_as_base10;
+
             const NMMetaUtilsIntValueInfo *value_infos;
         } gobject_int;
         struct {

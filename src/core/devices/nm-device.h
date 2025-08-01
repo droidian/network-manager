@@ -209,8 +209,6 @@ typedef struct _NMDeviceClass {
 
     bool act_stage1_prepare_set_hwaddr_ethernet : 1;
 
-    bool can_reapply_change_ovs_external_ids : 1;
-
     bool allow_autoconnect_on_external : 1;
 
     NMRfkillType rfkill_type : 4;
@@ -853,5 +851,15 @@ void nm_routing_rules_sync(NMConnection *applied_connection,
                            GPtrArray *(*get_extra_rules)(NMDevice *self),
                            NMDevice *self,
                            NMNetns  *netns);
+
+NMSettingIPConfigForwarding nm_device_get_ipv4_forwarding(NMDevice *self);
+
+const char *nm_device_get_effective_ip_config_method(NMDevice *self, int addr_family);
+
+char *nm_device_sysctl_ip_conf_get(NMDevice *self, int addr_family, const char *property);
+
+gboolean nm_device_get_refresh_forwarding_done(NMDevice *self);
+
+void nm_device_set_refresh_forwarding_done(NMDevice *self, gboolean is_refresh_forwarding_done);
 
 #endif /* __NETWORKMANAGER_DEVICE_H__ */

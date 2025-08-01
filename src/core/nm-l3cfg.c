@@ -2294,7 +2294,7 @@ _l3_acd_data_timeout_schedule(AcdData *acd_data, gint64 timeout_msec)
      * expect timeouts in certain states.
      *
      * That means, scheduling a timeout is only correct if we are in a certain
-     * state, which allows to handle timeouts. This assert checks for that to
+     * state, which allows one to handle timeouts. This assert checks for that to
      * ensure we don't call a timeout in an unexpected state. */
     nm_assert(NM_IN_SET(acd_data->info.state,
                         NM_L3_ACD_ADDR_STATE_PROBING,
@@ -2751,9 +2751,8 @@ handle_init:
                     goto handle_start_defending;
                 }
 
-                acd_data->probing_timestamp_msec = (*p_now_msec);
-                acd_data->probing_timeout_msec   = acd_timeout_msec;
-                log_reason                       = "retry probing on timeout";
+                acd_data->probing_timeout_msec = acd_timeout_msec;
+                log_reason                     = "retry probing on timeout";
                 goto handle_start_probing;
             }
 
@@ -3050,7 +3049,7 @@ handle_start_probing:
         if (!acd_data->nacd_probe) {
             _LOGT_acd(acd_data,
                       "probing currently %snot possible (timeout %u msec; %s, %s)",
-                      orig_state == NM_L3_ACD_ADDR_STATE_INIT ? "" : " still",
+                      orig_state == NM_L3_ACD_ADDR_STATE_INIT ? "" : "still ",
                       acd_data->probing_timeout_msec,
                       failure_reason,
                       log_reason);
