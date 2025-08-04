@@ -37,10 +37,14 @@ libnm.so.0 libnm0 #MINVER#
  libnm_1_42_2@libnm_1_42_2 1.42.2
  libnm_1_44_0@libnm_1_44_0 1.44.0
  libnm_1_46_0@libnm_1_46_0 1.46.0
+ libnm_1_46_8@libnm_1_46_8 1.54.0
  libnm_1_48_0@libnm_1_48_0 1.48.0
+ libnm_1_48_18@libnm_1_48_18 1.54.0
  libnm_1_4_0@libnm_1_4_0 1.4.0
  libnm_1_50_0@libnm_1_50_0 1.50.0
+ libnm_1_50_4@libnm_1_50_4 1.54.0
  libnm_1_52_0@libnm_1_52_0 1.52.0
+ libnm_1_54_0@libnm_1_54_0 1.54.0
  libnm_1_6_0@libnm_1_6_0 1.6.0
  libnm_1_8_0@libnm_1_8_0 1.8.0
  nm_802_11_ap_flags_get_type@libnm_1_0_0 1.0.0
@@ -537,6 +541,9 @@ libnm.so.0 libnm0 #MINVER#
  nm_ethtool_optname_is_coalesce@libnm_1_26_0 1.26.0
  nm_ethtool_optname_is_eee@libnm_1_46_0 1.46.0
  nm_ethtool_optname_is_feature@libnm_1_14_8 1.20.0
+ nm_ethtool_optname_is_fec@libnm_1_46_8 1.54.0
+ nm_ethtool_optname_is_fec@libnm_1_48_18 1.54.0
+ nm_ethtool_optname_is_fec@libnm_1_50_4 1.54.0
  nm_ethtool_optname_is_fec@libnm_1_52_0 1.52.0
  nm_ethtool_optname_is_pause@libnm_1_32_0 1.32.12
  nm_ethtool_optname_is_ring@libnm_1_26_0 1.26.0
@@ -995,6 +1002,9 @@ libnm.so.0 libnm0 #MINVER#
  nm_setting_duplicate@libnm_1_0_0 1.0.0
  nm_setting_enumerate_values@libnm_1_0_0 1.0.0
  nm_setting_ethtool_clear_features@libnm_1_14_0 1.14.0
+ nm_setting_ethtool_fec_mode_get_type@libnm_1_46_8 1.54.0
+ nm_setting_ethtool_fec_mode_get_type@libnm_1_48_18 1.54.0
+ nm_setting_ethtool_fec_mode_get_type@libnm_1_50_4 1.54.0
  nm_setting_ethtool_fec_mode_get_type@libnm_1_52_0 1.52.0
  nm_setting_ethtool_get_feature@libnm_1_14_0 1.14.0
  nm_setting_ethtool_get_optnames@libnm_1_20_0 1.20.0
@@ -1091,6 +1101,7 @@ libnm.so.0 libnm0 #MINVER#
  nm_setting_ip_config_clear_dns_searches@libnm_1_0_0 1.0.0
  nm_setting_ip_config_clear_routes@libnm_1_0_0 1.0.0
  nm_setting_ip_config_clear_routing_rules@libnm_1_18_0 1.18.0
+ nm_setting_ip_config_forwarding_get_type@libnm_1_54_0 1.54.0
  nm_setting_ip_config_get_address@libnm_1_0_0 1.0.0
  nm_setting_ip_config_get_auto_route_ext_gw@libnm_1_42_0 1.42.0
  nm_setting_ip_config_get_dad_timeout@libnm_1_2_0 1.1.91
@@ -1108,6 +1119,7 @@ libnm.so.0 libnm0 #MINVER#
  nm_setting_ip_config_get_dns_priority@libnm_1_2_4 1.2.4
  nm_setting_ip_config_get_dns_priority@libnm_1_4_0 1.4.0
  nm_setting_ip_config_get_dns_search@libnm_1_0_0 1.0.0
+ nm_setting_ip_config_get_forwarding@libnm_1_54_0 1.54.0
  nm_setting_ip_config_get_gateway@libnm_1_0_0 1.0.0
  nm_setting_ip_config_get_ignore_auto_dns@libnm_1_0_0 1.0.0
  nm_setting_ip_config_get_ignore_auto_routes@libnm_1_0_0 1.0.0
@@ -1252,10 +1264,12 @@ libnm.so.0 libnm0 #MINVER#
  nm_setting_ovs_bridge_get_type@libnm_1_10_0 1.10.0
  nm_setting_ovs_bridge_new@libnm_1_10_0 1.10.0
  nm_setting_ovs_dpdk_get_devargs@libnm_1_20_0 1.20.0
+ nm_setting_ovs_dpdk_get_lsc_interrupt@libnm_1_54_0 1.54.0
  nm_setting_ovs_dpdk_get_n_rxq@libnm_1_36_0 1.36.0
  nm_setting_ovs_dpdk_get_n_rxq_desc@libnm_1_42_0 1.42.0
  nm_setting_ovs_dpdk_get_n_txq_desc@libnm_1_42_0 1.42.0
  nm_setting_ovs_dpdk_get_type@libnm_1_20_0 1.20.0
+ nm_setting_ovs_dpdk_lsc_interrupt_get_type@libnm_1_54_0 1.54.0
  nm_setting_ovs_dpdk_new@libnm_1_20_0 1.20.0
  nm_setting_ovs_external_ids_check_key@libnm_1_30_0 1.30.0
  nm_setting_ovs_external_ids_check_val@libnm_1_30_0 1.30.0
@@ -1317,6 +1331,9 @@ libnm.so.0 libnm0 #MINVER#
  nm_setting_pppoe_get_type@libnm_1_0_0 1.0.0
  nm_setting_pppoe_get_username@libnm_1_0_0 1.0.0
  nm_setting_pppoe_new@libnm_1_0_0 1.0.0
+ nm_setting_prefix_delegation_get_subnet_id@libnm_1_54_0 1.54.0
+ nm_setting_prefix_delegation_get_type@libnm_1_54_0 1.54.0
+ nm_setting_prefix_delegation_new@libnm_1_54_0 1.54.0
  nm_setting_proxy_get_browser_only@libnm_1_6_0 1.6.0
  nm_setting_proxy_get_method@libnm_1_6_0 1.6.0
  nm_setting_proxy_get_pac_script@libnm_1_6_0 1.6.0
@@ -1341,6 +1358,7 @@ libnm.so.0 libnm0 #MINVER#
  nm_setting_sriov_get_eswitch_inline_mode@libnm_1_46_0 1.46.0
  nm_setting_sriov_get_eswitch_mode@libnm_1_46_0 1.46.0
  nm_setting_sriov_get_num_vfs@libnm_1_14_0 1.14.0
+ nm_setting_sriov_get_preserve_on_down@libnm_1_54_0 1.54.0
  nm_setting_sriov_get_total_vfs@libnm_1_14_0 1.14.0
  nm_setting_sriov_get_type@libnm_1_14_0 1.14.0
  nm_setting_sriov_get_vf@libnm_1_14_0 1.14.0
@@ -1639,6 +1657,7 @@ libnm.so.0 libnm0 #MINVER#
  nm_sriov_eswitch_encap_mode_get_type@libnm_1_46_0 1.46.0
  nm_sriov_eswitch_inline_mode_get_type@libnm_1_46_0 1.46.0
  nm_sriov_eswitch_mode_get_type@libnm_1_46_0 1.46.0
+ nm_sriov_preserve_on_down_get_type@libnm_1_54_0 1.54.0
  nm_sriov_vf_add_vlan@libnm_1_14_0 1.14.0
  nm_sriov_vf_attribute_validate@libnm_1_40_4 1.40.4
  nm_sriov_vf_dup@libnm_1_14_0 1.14.0
