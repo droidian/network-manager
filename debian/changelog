@@ -1,8 +1,14 @@
-network-manager (1.54.0-1) UNRELEASED; urgency=medium
+network-manager (1.54.0-1) experimental; urgency=medium
 
   * New upstream version 1.54.0
+  * Rebase patches
+  * Disable NBFT support in the initrd generator.
+    The nm-initrd-generator is not really hooked up in Debian and enabling
+    NBFT support would drap in additional dependencies like NVME.
+    So disable support for this feature until there is actual demand for it.
+  * Update symbols file for libm0
 
- -- Michael Biebl <biebl@debian.org>  Fri, 01 Aug 2025 19:46:07 +0200
+ -- Michael Biebl <biebl@debian.org>  Mon, 04 Aug 2025 14:58:52 +0200
 
 network-manager (1.52.1-1) unstable; urgency=medium
 
