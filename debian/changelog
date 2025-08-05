@@ -1,3 +1,10 @@
+network-manager (1.54.0-2) experimental; urgency=medium
+
+  * Increase test timeouts by a factor of two.
+    This should help slower architectures like hppa. (Closes: #1075915)
+
+ -- Michael Biebl <biebl@debian.org>  Tue, 05 Aug 2025 12:59:46 +0200
+
 network-manager (1.54.0-1) experimental; urgency=medium
 
   * New upstream version 1.54.0
