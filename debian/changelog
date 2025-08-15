@@ -1,3 +1,9 @@
+network-manager (1.54.0-4) unstable; urgency=medium
+
+  * Rename debian-branch to debian/latest as per DEP-14
+
+ -- Michael Biebl <biebl@debian.org>  Fri, 15 Aug 2025 21:35:54 +0200
+
 network-manager (1.54.0-3) unstable; urgency=medium
 
   * Upload to unstable
