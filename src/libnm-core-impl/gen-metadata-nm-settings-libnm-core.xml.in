@@ -1516,6 +1516,10 @@
     <setting name="hsr"
              gtype="NMSettingHsr"
              >
+        <property name="interlink"
+                  dbus-type="s"
+                  gprop-type="gchararray"
+                  />
         <property name="multicast-spec"
                   dbus-type="u"
                   gprop-type="guint"
@@ -1527,6 +1531,10 @@
         <property name="port2"
                   dbus-type="s"
                   gprop-type="gchararray"
+                  />
+        <property name="protocol-version"
+                  dbus-type="i"
+                  gprop-type="gint"
                   />
         <property name="prp"
                   dbus-type="b"

@@ -845,7 +845,9 @@ typedef struct {
 typedef struct {
     int         port1;
     int         port2;
+    int         interlink;
     NMEtherAddr supervision_address;
+    gint8       protocol_version;
     guint8      multicast_spec;
     bool        prp : 1;
 } _nm_alignas(NMPlatformObject) NMPlatformLnkHsr;
