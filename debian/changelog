@@ -1,8 +1,15 @@
-network-manager (1.54.2-1) UNRELEASED; urgency=medium
+network-manager (1.54.2-1) unstable; urgency=medium
 
+  [ Michael Biebl ]
   * New upstream version 1.54.2
+  * Rebase patches
+  * Update symbols file for libnm0
 
- -- Michael Biebl <biebl@debian.org>  Mon, 17 Nov 2025 17:43:44 +0100
+  [ Jeremy Bícha ]
+  * Remove unnecessary Build-Depends: gir1.2-girepository-2.0.
+    NetworkManager does not explicitly import GIRepository since 1.54.0.
+
+ -- Michael Biebl <biebl@debian.org>  Mon, 17 Nov 2025 21:46:05 +0100
 
 network-manager (1.54.1-1) unstable; urgency=medium
 
