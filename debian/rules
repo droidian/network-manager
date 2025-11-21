@@ -20,7 +20,7 @@ override_dh_auto_configure:
 		-Dpppd=/usr/sbin/pppd \
 		-Dresolvconf=/usr/sbin/resolvconf \
 		-Dmodprobe=/usr/sbin/modprobe \
-		-Ddhcpcd=false \
+		-Ddhcpcd=no \
 		-Diptables=/usr/sbin/iptables \
 		-Dip6tables=/usr/sbin/ip6tables \
 		-Dnft=/usr/sbin/nft \
