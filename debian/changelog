@@ -1,3 +1,18 @@
+network-manager (1.54.2-3) unstable; urgency=medium
+
+  * Drop Build-Depends on polkitd.
+    The polkit.its gettext extension, which is required during build, was
+    moved from polkitd to libpolkit-gobject-1-dev.
+    There is already a Build-Depends on the latter, so polkitd can be
+    dropped safely.
+  * Replace dbus Build-Depends with dbus-daemon.
+    The test-suite that is run as part of dh_auto_test only needs
+    dbus-run-session, which is part of the dbus-daemon package.
+    Replace dbus with dbus-daemon, as it has a smaller dependency tree and
+    doesn't interfere with alternatives like dbus-broker. (Closes: #1122686)
+
+ -- Michael Biebl <biebl@debian.org>  Fri, 12 Dec 2025 13:45:04 +0100
+
 network-manager (1.54.2-2) unstable; urgency=medium
 
   * Fix dhcpcd build option.
