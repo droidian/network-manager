@@ -1,3 +1,11 @@
+network-manager (1.54.3-1) UNRELEASED; urgency=medium
+
+  * New upstream version 1.54.3
+    - Avoid that non-admin users can use other users'
+      certificates. (CVE-2025-9615)
+
+ -- Michael Biebl <biebl@debian.org>  Sat, 13 Dec 2025 13:49:07 +0100
+
 network-manager (1.54.2-3) unstable; urgency=medium
 
   * Drop Build-Depends on polkitd.
