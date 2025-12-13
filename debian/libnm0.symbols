@@ -46,6 +46,7 @@ libnm.so.0 libnm0 #MINVER#
  libnm_1_52_0@libnm_1_52_0 1.52.0
  libnm_1_54_0@libnm_1_54_0 1.54.0
  libnm_1_54_2@libnm_1_54_2 1.54.2
+ libnm_1_54_3@libnm_1_54_3 1.54.3
  libnm_1_6_0@libnm_1_6_0 1.6.0
  libnm_1_8_0@libnm_1_8_0 1.8.0
  nm_802_11_ap_flags_get_type@libnm_1_0_0 1.0.0
@@ -1744,6 +1745,7 @@ libnm.so.0 libnm0 #MINVER#
  nm_utils_bond_mode_int_to_string@libnm_1_2_0 1.2.0
  nm_utils_bond_mode_string_to_int@libnm_1_2_0 1.2.0
  nm_utils_check_virtual_device_compatibility@libnm_1_0_0 1.0.0
+ nm_utils_copy_cert_as_user@libnm_1_54_3 1.54.3
  nm_utils_ensure_gtypes@libnm_1_42_0 1.42.0
  nm_utils_enum_from_str@libnm_1_0_6 1.0.6
  nm_utils_enum_from_str@libnm_1_2_0 1.2.0
@@ -1870,6 +1872,7 @@ libnm.so.0 libnm0 #MINVER#
  nm_vpn_plugin_info_set_editor_plugin@libnm_1_2_0 1.2.0
  nm_vpn_plugin_info_supports_hints@libnm_1_4_0 1.4.0
  nm_vpn_plugin_info_supports_multiple@libnm_1_40_4 1.40.4
+ nm_vpn_plugin_info_supports_safe_private_file_access@libnm_1_54_3 1.54.3
  nm_vpn_plugin_info_validate_filename@libnm_1_2_0 1.2.0
  nm_vpn_plugin_old_disconnect@libnm_1_0_0 1.0.0
  nm_vpn_plugin_old_failure@libnm_1_0_0 1.0.0
