@@ -138,6 +138,7 @@ enum {
     ACTIVE_CONNECTION_REMOVED,
     CONFIGURE_QUIT,
     DEVICE_IFINDEX_CHANGED,
+    SHARING_IPV4_CHANGED,
 
     LAST_SIGNAL
 };
@@ -243,6 +244,8 @@ typedef struct {
     NMConnectivityState connectivity_state;
 
     guint8 device_state_prune_ratelimit_count;
+
+    guint shared_connections_ip4_count;
 
     bool startup : 1;
     bool devices_inited : 1;
@@ -1966,7 +1969,7 @@ find_device_by_iface(NMManager    *self,
 }
 
 static gboolean
-manager_sleeping(NMManager *self)
+manager_is_disabled(NMManager *self)
 {
     NMManagerPrivate *priv = NM_MANAGER_GET_PRIVATE(self);
 
@@ -1979,8 +1982,8 @@ static const char *
 _nm_state_to_string(NMState state)
 {
     switch (state) {
-    case NM_STATE_ASLEEP:
-        return "ASLEEP";
+    case NM_STATE_DISABLED:
+        return "DISABLED";
     case NM_STATE_DISCONNECTED:
         return "DISCONNECTED";
     case NM_STATE_DISCONNECTING:
@@ -2105,15 +2108,18 @@ nm_manager_update_state(NMManager *self)
 {
     NMManagerPrivate *priv;
     NMState           new_state = NM_STATE_DISCONNECTED;
+    const char       *detail    = "";
 
     g_return_if_fail(NM_IS_MANAGER(self));
 
     priv = NM_MANAGER_GET_PRIVATE(self);
 
-    if (manager_sleeping(self))
-        new_state = NM_STATE_ASLEEP;
-    else
+    if (manager_is_disabled(self)) {
+        new_state = NM_STATE_DISABLED;
+        detail    = priv->sleeping ? " (ASLEEP)" : " (NETWORKING OFF)";
+    } else {
         new_state = find_best_device_state(self);
+    }
 
     if (new_state != NM_STATE_CONNECTED_GLOBAL)
         new_state = find_unmanaged_state(self, new_state);
@@ -2127,7 +2133,7 @@ nm_manager_update_state(NMManager *self)
 
     priv->state = new_state;
 
-    _LOGI(LOGD_CORE, "NetworkManager state is now %s", _nm_state_to_string(new_state));
+    _LOGI(LOGD_CORE, "NetworkManager state is now %s%s", _nm_state_to_string(new_state), detail);
 
     _notify(self, PROP_STATE);
     nm_dbus_object_emit_signal(NM_DBUS_OBJECT(self),
@@ -2986,7 +2992,7 @@ _rfkill_update_devices(NMManager *self, NMRfkillType rtype, gboolean enabled)
     _notify(self, _rfkill_type_desc[rtype].prop_id);
 
     /* Don't touch devices if asleep/networking disabled */
-    if (manager_sleeping(self))
+    if (manager_is_disabled(self))
         return;
 
     /* enable/disable wireless devices as required */
@@ -3150,7 +3156,7 @@ _rfkill_update_from_user(NMManager *self, NMRfkillType rtype, gboolean enabled)
     gboolean          old_enabled, new_enabled;
 
     /* Don't touch devices if asleep/networking disabled */
-    if (manager_sleeping(self))
+    if (manager_is_disabled(self))
         return;
 
     _LOGD(LOGD_RFKILL,
@@ -4109,7 +4115,7 @@ add_device(NMManager *self, NMDevice *device, GError **error)
 
     nm_device_set_unmanaged_by_user_settings(device, TRUE);
 
-    nm_device_set_unmanaged_flags(device, NM_UNMANAGED_SLEEPING, manager_sleeping(self));
+    nm_device_set_unmanaged_flags(device, NM_UNMANAGED_MANAGER_DISABLED, manager_is_disabled(self));
 
     dbus_path = nm_dbus_object_export(NM_DBUS_OBJECT(device));
     _LOG2I(LOGD_DEVICE, device, "new %s device (%s)", type_desc, dbus_path);
@@ -5748,6 +5754,7 @@ _internal_activate_device(NMManager *self, NMActiveConnection *active, GError **
     GError                  *local = NULL;
     NMConnectionMultiConnect multi_connect;
     const char              *parent_spec;
+    gboolean                 did_realize = FALSE;
 
     g_return_val_if_fail(NM_IS_MANAGER(self), FALSE);
     g_return_val_if_fail(NM_IS_ACTIVE_CONNECTION(active), FALSE);
@@ -5922,6 +5929,7 @@ _internal_activate_device(NMManager *self, NMActiveConnection *active, GError **
                                nm_device_get_iface(device));
                 return FALSE;
             }
+            did_realize = TRUE;
         }
     }
 
@@ -5953,7 +5961,7 @@ _internal_activate_device(NMManager *self, NMActiveConnection *active, GError **
                         "The controller connection '%s' is not compatible with '%s'",
                         nm_settings_connection_get_id(controller_connection),
                         nm_settings_connection_get_id(sett_conn));
-            return FALSE;
+            goto err_unrealize;
         }
 
         if (!controller_ac) {
@@ -5976,7 +5984,7 @@ _internal_activate_device(NMManager *self, NMActiveConnection *active, GError **
                                    "Controller connection '%s' can't be activated: ",
                                    nm_settings_connection_get_id(controller_connection));
                 }
-                return FALSE;
+                goto err_unrealize;
             }
         }
 
@@ -6070,7 +6078,7 @@ _internal_activate_device(NMManager *self, NMActiveConnection *active, GError **
                                 NM_MANAGER_ERROR,
                                 NM_MANAGER_ERROR_DEPENDENCY_FAILED,
                                 "Activation failed because the device is unmanaged");
-            return FALSE;
+            goto err_unrealize;
         }
     }
 
@@ -6078,6 +6086,11 @@ _internal_activate_device(NMManager *self, NMActiveConnection *active, GError **
     active_connection_add(self, active);
     nm_device_queue_activation(device, NM_ACT_REQUEST(active));
     return TRUE;
+
+err_unrealize:
+    if (did_realize)
+        nm_device_unrealize(device, TRUE, NULL);
+    return FALSE;
 }
 
 static gboolean
@@ -7322,7 +7335,7 @@ device_sleep_cb(NMDevice *device, GParamSpec *pspec, NMManager *self)
     case NM_DEVICE_STATE_DISCONNECTED:
         _LOGD(LOGD_SUSPEND, "sleep: unmanaging device %s", nm_device_get_ip_iface(device));
         nm_device_set_unmanaged_by_flags_queue(device,
-                                               NM_UNMANAGED_SLEEPING,
+                                               NM_UNMANAGED_MANAGER_DISABLED,
                                                NM_UNMAN_FLAG_OP_SET_UNMANAGED,
                                                NM_DEVICE_STATE_REASON_SLEEPING);
         break;
@@ -7344,24 +7357,26 @@ _handle_device_takedown(NMManager *self,
                         gboolean   suspending,
                         gboolean   is_shutdown)
 {
+    gboolean            is_sleep = suspending || is_shutdown;
+    NMDeviceStateReason reason =
+        is_sleep ? NM_DEVICE_STATE_REASON_SLEEPING : NM_DEVICE_STATE_REASON_NETWORKING_OFF;
+
     nm_device_notify_sleeping(device);
 
     if (nm_device_is_activating(device)
         || nm_device_get_state(device) == NM_DEVICE_STATE_ACTIVATED) {
-        _LOGD(LOGD_SUSPEND,
+        _LOGD(is_sleep ? LOGD_SUSPEND : LOGD_CORE,
               "%s: wait disconnection of device %s",
-              is_shutdown ? "shutdown" : "sleep",
+              is_sleep ? (is_shutdown ? "shutdown" : "sleep") : "networking off",
               nm_device_get_ip_iface(device));
 
         if (sleep_devices_add(self, device, suspending))
-            nm_device_queue_state(device,
-                                  NM_DEVICE_STATE_DEACTIVATING,
-                                  NM_DEVICE_STATE_REASON_SLEEPING);
+            nm_device_queue_state(device, NM_DEVICE_STATE_DEACTIVATING, reason);
     } else {
         nm_device_set_unmanaged_by_flags(device,
-                                         NM_UNMANAGED_SLEEPING,
+                                         NM_UNMANAGED_MANAGER_DISABLED,
                                          NM_UNMAN_FLAG_OP_SET_UNMANAGED,
-                                         NM_DEVICE_STATE_REASON_SLEEPING);
+                                         reason);
     }
 }
 
@@ -7375,8 +7390,10 @@ do_sleep_wake(NMManager *self, gboolean sleeping_changed)
     suspending          = sleeping_changed && priv->sleeping;
     waking_from_suspend = sleeping_changed && !priv->sleeping;
 
-    if (manager_sleeping(self)) {
-        _LOGD(LOGD_SUSPEND, "sleep: %s...", suspending ? "sleeping" : "disabling");
+    if (manager_is_disabled(self)) {
+        _LOGD(suspending ? LOGD_SUSPEND : LOGD_CORE,
+              "%s...",
+              suspending ? "sleep: sleeping" : "networking: disabling");
 
         /* FIXME: are there still hardware devices that need to be disabled around
          * suspend/resume?
@@ -7402,7 +7419,9 @@ do_sleep_wake(NMManager *self, gboolean sleeping_changed)
             _handle_device_takedown(self, device, suspending, FALSE);
         }
     } else {
-        _LOGD(LOGD_SUSPEND, "sleep: %s...", waking_from_suspend ? "waking up" : "re-enabling");
+        _LOGD(waking_from_suspend ? LOGD_SUSPEND : LOGD_CORE,
+              "%s...",
+              waking_from_suspend ? "sleep: waking up" : "networking: re-enabling");
 
         sleep_devices_clear(self);
 
@@ -7416,7 +7435,7 @@ do_sleep_wake(NMManager *self, gboolean sleeping_changed)
                  */
                 if (device_is_wake_on_lan(priv->platform, device))
                     nm_device_set_unmanaged_by_flags(device,
-                                                     NM_UNMANAGED_SLEEPING,
+                                                     NM_UNMANAGED_MANAGER_DISABLED,
                                                      NM_UNMAN_FLAG_OP_SET_UNMANAGED,
                                                      NM_DEVICE_STATE_REASON_SLEEPING);
 
@@ -7444,10 +7463,12 @@ do_sleep_wake(NMManager *self, gboolean sleeping_changed)
             guint               i;
 
             if (nm_device_is_software(device)
-                && !nm_device_get_unmanaged_flags(device, NM_UNMANAGED_SLEEPING)) {
+                && !nm_device_get_unmanaged_flags(device, NM_UNMANAGED_MANAGER_DISABLED)) {
                 /* DHCP leases of software devices could have gone stale
                  * so we need to renew them. */
-                nm_device_update_dynamic_ip_setup(device, "wake up");
+                nm_device_update_dynamic_ip_setup(device,
+                                                  waking_from_suspend ? "wake up"
+                                                                      : "networking on");
                 continue;
             }
 
@@ -7478,7 +7499,7 @@ do_sleep_wake(NMManager *self, gboolean sleeping_changed)
                     ? NM_DEVICE_STATE_REASON_CONNECTION_ASSUMED
                     : NM_DEVICE_STATE_REASON_NOW_MANAGED;
             nm_device_set_unmanaged_by_flags(device,
-                                             NM_UNMANAGED_SLEEPING,
+                                             NM_UNMANAGED_MANAGER_DISABLED,
                                              NM_UNMAN_FLAG_OP_SET_MANAGED,
                                              reason);
         }
@@ -8900,6 +8921,41 @@ nm_manager_emit_device_ifindex_changed(NMManager *self, NMDevice *device)
     g_signal_emit(self, signals[DEVICE_IFINDEX_CHANGED], 0, device);
 }
 
+void
+nm_manager_update_shared_connection(NMManager *self, int addr_family, gboolean enabled)
+{
+    NMManagerPrivate *priv = NM_MANAGER_GET_PRIVATE(self);
+    gboolean          state_changed, state;
+
+    /* Only IPv4 supported for the moment */
+    if (addr_family != AF_INET)
+        return;
+
+    if (enabled) {
+        g_return_if_fail(priv->shared_connections_ip4_count < G_MAXUINT);
+        priv->shared_connections_ip4_count++;
+        state_changed = priv->shared_connections_ip4_count == 1;
+    } else {
+        g_return_if_fail(priv->shared_connections_ip4_count > 0);
+        priv->shared_connections_ip4_count--;
+        state_changed = priv->shared_connections_ip4_count == 0;
+    }
+
+    if (state_changed) {
+        state = priv->shared_connections_ip4_count > 0;
+        _LOGD(LOGD_SHARING, "sharing-ipv4 state change %d -> %d", !state, state);
+        g_signal_emit(self, signals[SHARING_IPV4_CHANGED], 0, state);
+    }
+}
+
+gboolean
+nm_manager_get_sharing_ipv4(NMManager *self)
+{
+    NMManagerPrivate *priv = NM_MANAGER_GET_PRIVATE(self);
+
+    return priv->shared_connections_ip4_count > 0;
+}
+
 /*****************************************************************************/
 
 NM_DEFINE_SINGLETON_REGISTER(NMManager);
@@ -10029,6 +10085,17 @@ nm_manager_class_init(NMManagerClass *manager_class)
                                                    G_TYPE_NONE,
                                                    1,
                                                    NM_TYPE_DEVICE);
+
+    signals[SHARING_IPV4_CHANGED] = g_signal_new(NM_MANAGER_SHARING_IPV4_CHANGED,
+                                                 G_OBJECT_CLASS_TYPE(object_class),
+                                                 G_SIGNAL_RUN_FIRST,
+                                                 0,
+                                                 NULL,
+                                                 NULL,
+                                                 NULL,
+                                                 G_TYPE_NONE,
+                                                 1,
+                                                 G_TYPE_BOOLEAN);
 }
 
 NMConfig *

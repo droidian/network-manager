@@ -135,13 +135,15 @@ NM_UTILS_LOOKUP_STR_DEFINE(
     NM_UTILS_LOOKUP_STR_ITEM(NM_DEVICE_STATE_REASON_UNMANAGED_LINK_NOT_INIT,
                              "unmanaged-link-not-init"),
     NM_UTILS_LOOKUP_STR_ITEM(NM_DEVICE_STATE_REASON_UNMANAGED_QUITTING, "unmanaged-quitting"),
-    NM_UTILS_LOOKUP_STR_ITEM(NM_DEVICE_STATE_REASON_UNMANAGED_SLEEPING, "unmanaged-sleeping"),
+    NM_UTILS_LOOKUP_STR_ITEM(NM_DEVICE_STATE_REASON_UNMANAGED_MANAGER_DISABLED,
+                             "unmanaged-nm-disabled"),
     NM_UTILS_LOOKUP_STR_ITEM(NM_DEVICE_STATE_REASON_UNMANAGED_USER_CONF, "unmanaged-user-conf"),
     NM_UTILS_LOOKUP_STR_ITEM(NM_DEVICE_STATE_REASON_UNMANAGED_USER_EXPLICIT,
                              "unmanaged-user-explicit"),
     NM_UTILS_LOOKUP_STR_ITEM(NM_DEVICE_STATE_REASON_UNMANAGED_USER_SETTINGS,
                              "unmanaged-user-settings"),
-    NM_UTILS_LOOKUP_STR_ITEM(NM_DEVICE_STATE_REASON_UNMANAGED_USER_UDEV, "unmanaged-user-udev"), );
+    NM_UTILS_LOOKUP_STR_ITEM(NM_DEVICE_STATE_REASON_UNMANAGED_USER_UDEV, "unmanaged-user-udev"),
+    NM_UTILS_LOOKUP_STR_ITEM(NM_DEVICE_STATE_REASON_NETWORKING_OFF, "networking-off"), );
 
 NM_UTILS_LOOKUP_STR_DEFINE(nm_device_mtu_source_to_string,
                            NMDeviceMtuSource,
@@ -235,7 +237,7 @@ resolve_addr_helper_cb(GObject *source, GAsyncResult *result, gpointer user_data
     gs_free_error GError *error  = NULL;
     gs_free char         *output = NULL;
 
-    output = nm_utils_spawn_helper_finish(result, &error);
+    output = nm_utils_spawn_helper_finish_string(result, &error);
     if (nm_utils_error_is_cancelled(error))
         return;
 
@@ -274,6 +276,7 @@ resolve_addr_spawn_helper(ResolveAddrInfo *info, ResolveAddrService services)
     nm_inet_ntop(info->addr_family, &info->address, addr_str);
     _LOG2D(info, "start lookup via nm-daemon-helper using services: %s", str);
     nm_utils_spawn_helper(NM_MAKE_STRV("resolve-address", addr_str, str),
+                          FALSE,
                           g_task_get_cancellable(info->task),
                           resolve_addr_helper_cb,
                           info);

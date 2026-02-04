@@ -335,6 +335,12 @@ typedef struct {
     int           addr_family;
 } HostnameResolver;
 
+typedef enum {
+    PRIVATE_FILES_STATE_UNKNOWN = 0,
+    PRIVATE_FILES_STATE_READING,
+    PRIVATE_FILES_STATE_DONE,
+} PrivateFilesState;
+
 /*****************************************************************************/
 
 enum {
@@ -692,6 +698,8 @@ typedef struct _NMDevicePrivate {
 
     IPDevStateData ipdev_data_unspec;
 
+    gulong sharing_ipv4_changed_id;
+
     struct {
         /* If we set the addrgenmode6, this records the previously set value. */
         guint8 previous_mode_val;
@@ -769,6 +777,13 @@ typedef struct _NMDevicePrivate {
         guint64  rx_bytes;
     } stats;
 
+    struct {
+        GHashTable       *table;
+        GCancellable     *cancellable;
+        char             *user;
+        PrivateFilesState state;
+    } private_files;
+
     bool mtu_force_set_done : 1;
 
     bool needs_ip6_subnet : 1;
@@ -779,7 +794,6 @@ typedef struct _NMDevicePrivate {
     char     *prop_ip_iface; /* IP interface D-Bus property */
     GList    *ping_operations;
     GSource  *ping_timeout;
-    bool      refresh_forwarding_done : 1;
 } NMDevicePrivate;
 
 G_DEFINE_ABSTRACT_TYPE(NMDevice, nm_device, NM_TYPE_DBUS_OBJECT)
@@ -866,6 +880,8 @@ static void _dev_ipshared4_start(NMDevice *self);
 static void _dev_ipshared4_spawn_dnsmasq(NMDevice *self);
 
 static void _dev_ipshared6_start(NMDevice *self);
+
+static void _dev_ipforwarding4_start(NMDevice *self, int addr_family);
 
 static void
 _cleanup_ip_pre(NMDevice *self, int addr_family, CleanupType cleanup_type, gboolean preserve_dhcp);
@@ -2131,8 +2147,8 @@ _prop_get_ipvx_dhcp_send_hostname(NMDevice *self, int addr_family)
     return send_hostname_v2;
 }
 
-NMSettingIPConfigForwarding
-nm_device_get_ipv4_forwarding(NMDevice *self)
+static NMSettingIPConfigForwarding
+_prop_get_ipv4_forwarding(NMDevice *self)
 {
     NMSettingIPConfig          *s_ip;
     NMSettingIPConfigForwarding forwarding;
@@ -3778,7 +3794,7 @@ nm_device_assume_state_reset(NMDevice *self)
 
 /*****************************************************************************/
 
-char *
+static char *
 nm_device_sysctl_ip_conf_get(NMDevice *self, int addr_family, const char *property)
 {
     const char *ifname;
@@ -6645,7 +6661,7 @@ concheck_update_state(NMDevice           *self,
     }
 }
 
-const char *
+static const char *
 nm_device_get_effective_ip_config_method(NMDevice *self, int addr_family)
 {
     NMDeviceClass *klass;
@@ -8639,6 +8655,8 @@ nm_device_unrealize(NMDevice *self, gboolean remove_resources, GError **error)
 
     g_object_thaw_notify(G_OBJECT(self));
 
+    nm_device_managed_type_set(self, NM_DEVICE_MANAGED_TYPE_REMOVED);
+
     nm_device_set_unmanaged_flags(self, NM_UNMANAGED_PLATFORM_INIT, TRUE);
 
     nm_device_set_unmanaged_flags(self,
@@ -9163,6 +9181,10 @@ static gboolean
 is_available(NMDevice *self, NMDeviceCheckDevAvailableFlags flags)
 {
     NMDevicePrivate *priv = NM_DEVICE_GET_PRIVATE(self);
+
+    /* unrealized software devices are always available, hardware devices never */
+    if (!nm_device_is_real(self))
+        return nm_device_is_software(self);
 
     if (priv->carrier || priv->ignore_carrier)
         return TRUE;
@@ -10390,6 +10412,43 @@ sriov_params_cb(GError *error, gpointer user_data)
     nm_device_activate_schedule_stage1_device_prepare(self, FALSE);
 }
 
+static gboolean
+sriov_gen_platform_vfs(NMDevice       *self,
+                       NMSettingSriov *s_sriov,
+                       NMPlatformVF ***plat_vfs_out,
+                       GError        **error)
+{
+    nm_auto_freev NMPlatformVF **plat_vfs = NULL;
+    guint                        num;
+
+    nm_assert(s_sriov);
+    nm_assert(plat_vfs_out && !*plat_vfs_out);
+
+    num      = nm_setting_sriov_get_num_vfs(s_sriov);
+    plat_vfs = g_new0(NMPlatformVF *, num + 1);
+
+    for (int i = 0; i < num; i++) {
+        NMSriovVF            *vf    = nm_setting_sriov_get_vf(s_sriov, i);
+        gs_free_error GError *local = NULL;
+
+        plat_vfs[i] = sriov_vf_config_to_platform(self, vf, &local);
+
+        if (!plat_vfs[i]) {
+            g_set_error(error,
+                        local->domain,
+                        local->code,
+                        "VF '%s' is invalid: %s",
+                        nm_utils_sriov_vf_to_str(vf, FALSE, NULL),
+                        local->message);
+            return FALSE;
+        }
+    }
+
+    *plat_vfs_out = g_steal_pointer(&plat_vfs);
+
+    return TRUE;
+}
+
 /*
  * activate_stage1_device_prepare
  *
@@ -10436,10 +10495,7 @@ activate_stage1_device_prepare(NMDevice *self)
         if (s_sriov && nm_device_has_capability(self, NM_DEVICE_CAP_SRIOV)) {
             nm_auto_freev NMPlatformVF **plat_vfs = NULL;
             gs_free_error GError        *error    = NULL;
-            NMSriovVF                   *vf;
             NMTernary                    autoprobe;
-            guint                        num;
-            guint                        i;
 
             autoprobe = nm_setting_sriov_get_autoprobe_drivers(s_sriov);
             if (autoprobe == NM_TERNARY_DEFAULT) {
@@ -10452,21 +10508,12 @@ activate_stage1_device_prepare(NMDevice *self)
                     NM_OPTION_BOOL_TRUE);
             }
 
-            num      = nm_setting_sriov_get_num_vfs(s_sriov);
-            plat_vfs = g_new0(NMPlatformVF *, num + 1);
-            for (i = 0; i < num; i++) {
-                vf          = nm_setting_sriov_get_vf(s_sriov, i);
-                plat_vfs[i] = sriov_vf_config_to_platform(self, vf, &error);
-                if (!plat_vfs[i]) {
-                    _LOGE(LOGD_DEVICE,
-                          "failed to apply SR-IOV VF '%s': %s",
-                          nm_utils_sriov_vf_to_str(vf, FALSE, NULL),
-                          error->message);
-                    nm_device_state_changed(self,
-                                            NM_DEVICE_STATE_FAILED,
-                                            NM_DEVICE_STATE_REASON_SRIOV_CONFIGURATION_FAILED);
-                    return;
-                }
+            if (!sriov_gen_platform_vfs(self, s_sriov, &plat_vfs, &error)) {
+                _LOGE(LOGD_DEVICE, "cannot parse the VF list: %s", error->message);
+                nm_device_state_changed(self,
+                                        NM_DEVICE_STATE_FAILED,
+                                        NM_DEVICE_STATE_REASON_SRIOV_CONFIGURATION_FAILED);
+                return;
             }
 
             /* When changing the number of VFs the kernel can block
@@ -10773,6 +10820,49 @@ tc_commit(NMDevice *self)
     return TRUE;
 }
 
+static void
+read_private_files_cb(GObject *source_object, GAsyncResult *result, gpointer data)
+{
+    gs_unref_hashtable GHashTable *table = NULL;
+    gs_free_error GError          *error = NULL;
+    NMDevice                      *self;
+    NMDevicePrivate               *priv;
+
+    table = nm_utils_read_private_files_finish(result, &error);
+    if (nm_utils_error_is_cancelled(error))
+        return;
+
+    self = NM_DEVICE(data);
+    priv = NM_DEVICE_GET_PRIVATE(self);
+
+    if (error) {
+        NMConnection *connection = nm_device_get_applied_connection(self);
+
+        _LOGW(LOGD_DEVICE,
+              "could not read files for private connection %s owned by user '%s': %s",
+              connection ? nm_connection_get_uuid(connection) : NULL,
+              priv->private_files.user,
+              error->message);
+        nm_device_state_changed(self, NM_DEVICE_STATE_FAILED, NM_DEVICE_STATE_REASON_CONFIG_FAILED);
+        return;
+    }
+
+    _LOGD(LOGD_DEVICE, "private files successfully read");
+
+    priv->private_files.state = PRIVATE_FILES_STATE_DONE;
+    priv->private_files.table = g_steal_pointer(&table);
+    g_clear_pointer(&priv->private_files.user, g_free);
+    g_clear_object(&priv->private_files.cancellable);
+
+    nm_device_activate_schedule_stage2_device_config(self, FALSE);
+}
+
+GHashTable *
+nm_device_get_private_files(NMDevice *self)
+{
+    return NM_DEVICE_GET_PRIVATE(self)->private_files.table;
+}
+
 /*
  * activate_stage2_device_config
  *
@@ -10785,6 +10875,7 @@ activate_stage2_device_config(NMDevice *self)
 {
     NMDevicePrivate *priv  = NM_DEVICE_GET_PRIVATE(self);
     NMDeviceClass   *klass = NM_DEVICE_GET_CLASS(self);
+    NMConnection    *applied;
     NMActStageReturn ret;
     NMSettingWired  *s_wired;
     gboolean         no_firmware = FALSE;
@@ -10792,6 +10883,68 @@ activate_stage2_device_config(NMDevice *self)
     NMTernary        accept_all_mac_addresses;
 
     nm_device_state_changed(self, NM_DEVICE_STATE_CONFIG, NM_DEVICE_STATE_REASON_NONE);
+
+    applied = nm_device_get_applied_connection(self);
+
+    /* If the connection is private (owned by a specific user), we need to
+     * verify that the user has permission to access any files specified in
+     * the connection, such as certificates and keys. We do that by calling
+     * nm_utils_read_private_files() and saving the file contents in a hash
+     * table that can be accessed later during the activation. It is important
+     * to never access the files again to avoid TOCTOU bugs.
+     */
+    switch (priv->private_files.state) {
+    case PRIVATE_FILES_STATE_UNKNOWN:
+    {
+        gs_free const char **paths = NULL;
+        NMSettingConnection *s_con;
+        const char          *user;
+
+        s_con = nm_connection_get_setting_connection(applied);
+        nm_assert(s_con);
+        user = _nm_setting_connection_get_first_permissions_user(s_con);
+
+        priv->private_files.user = g_strdup(user);
+        if (!priv->private_files.user) {
+            priv->private_files.state = PRIVATE_FILES_STATE_DONE;
+            break;
+        }
+
+        paths = nm_utils_get_connection_private_files_paths(applied);
+        if (!paths) {
+            priv->private_files.state = PRIVATE_FILES_STATE_DONE;
+            break;
+        }
+
+        if (_nm_setting_connection_get_num_permissions_users(s_con) > 1) {
+            _LOGW(LOGD_DEVICE,
+                  "private connections with multiple users are not allowed to reference "
+                  "certificates and keys on the filesystem. Specify only one user in the "
+                  "connection.permissions property.");
+            nm_device_state_changed(self,
+                                    NM_DEVICE_STATE_FAILED,
+                                    NM_DEVICE_STATE_REASON_CONFIG_FAILED);
+            return;
+        }
+
+        priv->private_files.state       = PRIVATE_FILES_STATE_READING;
+        priv->private_files.cancellable = g_cancellable_new();
+
+        _LOGD(LOGD_DEVICE, "reading private files");
+        nm_utils_read_private_files(paths,
+                                    priv->private_files.user,
+                                    priv->private_files.cancellable,
+                                    read_private_files_cb,
+                                    self);
+        return;
+    }
+    case PRIVATE_FILES_STATE_READING:
+        /* wait */
+        return;
+    case PRIVATE_FILES_STATE_DONE:
+        /* proceed */
+        break;
+    }
 
     if (!nm_device_managed_type_is_external(self)) {
         _ethtool_state_set(self);
@@ -10809,7 +10962,7 @@ activate_stage2_device_config(NMDevice *self)
         priv->tc_committed = TRUE;
     }
 
-    nm_routing_rules_sync(nm_device_get_applied_connection(self),
+    nm_routing_rules_sync(applied,
                           NM_TERNARY_TRUE,
                           klass->get_extra_rules,
                           self,
@@ -13135,16 +13288,11 @@ activate_stage3_ip_config_for_addr_family(NMDevice *self, int addr_family)
         goto out_devip;
 
     if (IS_IPv4) {
-        NMSettingIPConfigForwarding ipv4_forwarding = nm_device_get_ipv4_forwarding(self);
-
-        if (NM_IN_SET(ipv4_forwarding,
-                      NM_SETTING_IP_CONFIG_FORWARDING_NO,
-                      NM_SETTING_IP_CONFIG_FORWARDING_YES)) {
-            nm_device_sysctl_ip_conf_set(self, AF_INET, "forwarding", ipv4_forwarding ? "1" : "0");
-        }
         priv->ipll_data_4.v4.mode = _prop_get_ipv4_link_local(self);
         if (priv->ipll_data_4.v4.mode == NM_SETTING_IP4_LL_ENABLED)
             _dev_ipll4_start(self);
+
+        _dev_ipforwarding4_start(self, addr_family);
 
         if (nm_streq(priv->ipv4_method, NM_SETTING_IP4_CONFIG_METHOD_AUTO))
             _dev_ipdhcpx_start(self, AF_INET);
@@ -13465,15 +13613,21 @@ nm_device_activate_schedule_stage3_ip_config(NMDevice *self, gboolean do_sync)
 static void
 _dev_ipsharedx_set_state(NMDevice *self, int addr_family, NMDeviceIPState state)
 {
-    NMDevicePrivate *priv    = NM_DEVICE_GET_PRIVATE(self);
-    const int        IS_IPv4 = NM_IS_IPv4(addr_family);
+    NMDevicePrivate *priv      = NM_DEVICE_GET_PRIVATE(self);
+    const int        IS_IPv4   = NM_IS_IPv4(addr_family);
+    NMDeviceIPState  old_state = priv->ipshared_data_x[IS_IPv4].state;
 
-    if (priv->ipshared_data_x[IS_IPv4].state != state) {
+    if (old_state != state) {
         _LOGD_ipshared(addr_family,
                        "set state %s (was %s)",
                        nm_device_ip_state_to_string(state),
-                       nm_device_ip_state_to_string(priv->ipshared_data_x[IS_IPv4].state));
+                       nm_device_ip_state_to_string(old_state));
         priv->ipshared_data_x[IS_IPv4].state = state;
+
+        if (old_state == NM_DEVICE_IP_STATE_READY || state == NM_DEVICE_IP_STATE_READY)
+            nm_manager_update_shared_connection(NM_MANAGER_GET,
+                                                addr_family,
+                                                state == NM_DEVICE_IP_STATE_READY);
     }
 }
 
@@ -13768,6 +13922,106 @@ _dev_ipshared6_start(NMDevice *self)
 
 /*****************************************************************************/
 
+/**
+ * Set the device's forwarding to the specified value. If %NM_TERNARY_DEFAULT is specified,
+ * it's set to the kernel's default, otherwise it's set to the specific value.
+ */
+static void
+_dev_ipforwarding4_set(NMDevice *self, NMTernary val)
+{
+    gs_free const char *default_forwarding = NULL;
+    gs_free const char *current_forwarding = NULL;
+    const char         *val_str;
+
+    if (val != NM_TERNARY_DEFAULT) {
+        val_str = val ? "1" : "0";
+    } else {
+        default_forwarding = nm_platform_sysctl_get(
+            nm_device_get_platform(self),
+            NMP_SYSCTL_PATHID_ABSOLUTE("/proc/sys/net/ipv4/conf/default/forwarding"));
+
+        if (!default_forwarding) {
+            _LOGW(LOGD_DEVICE,
+                  "error setting IPv4 forwarding: can't read default forwarding value: %s",
+                  nm_strerror_native(errno));
+            return; /* Non fatal */
+        }
+
+        val_str = default_forwarding;
+    }
+
+    current_forwarding = nm_device_sysctl_ip_conf_get(self, AF_INET, "forwarding");
+    if (nm_streq0(current_forwarding, val_str))
+        return;
+
+    if (!nm_device_sysctl_ip_conf_set(self, AF_INET, "forwarding", val_str))
+        _LOGW(LOGD_DEVICE,
+              "error setting IPv4 forwarding to '%s': %s",
+              val_str,
+              nm_strerror_native(errno));
+}
+
+static void
+_dev_ipforwarding4_auto_cb(NMManager *manager, gboolean sharing_ipv4, gpointer data)
+{
+    NMDevice *self = NM_DEVICE(data);
+
+    _dev_ipforwarding4_set(self, sharing_ipv4 ? NM_TERNARY_TRUE : NM_TERNARY_DEFAULT);
+}
+
+static void
+_dev_ipforwarding4_start(NMDevice *self, int addr_family)
+{
+    NMDevicePrivate            *priv            = NM_DEVICE_GET_PRIVATE(self);
+    NMSettingIPConfigForwarding ipv4_forwarding = _prop_get_ipv4_forwarding(self);
+    NMTernary                   new_forwarding  = NM_TERNARY_DEFAULT;
+
+    /* IPv6 per-interface forwarding not supported yet */
+    if (addr_family != AF_INET)
+        return;
+
+    if (nm_streq(priv->ipv4_method, NM_SETTING_IP4_CONFIG_METHOD_SHARED)) {
+        new_forwarding = NM_TERNARY_TRUE;
+    } else if (ipv4_forwarding == NM_SETTING_IP_CONFIG_FORWARDING_YES) {
+        new_forwarding = NM_TERNARY_TRUE;
+    } else if (ipv4_forwarding == NM_SETTING_IP_CONFIG_FORWARDING_NO) {
+        new_forwarding = NM_TERNARY_FALSE;
+    } else if (ipv4_forwarding == NM_SETTING_IP_CONFIG_FORWARDING_AUTO) {
+        if (nm_manager_get_sharing_ipv4(NM_MANAGER_GET))
+            new_forwarding = NM_TERNARY_TRUE;
+        else
+            new_forwarding = NM_TERNARY_DEFAULT;
+
+        if (!priv->sharing_ipv4_changed_id)
+            priv->sharing_ipv4_changed_id = g_signal_connect(NM_MANAGER_GET,
+                                                             NM_MANAGER_SHARING_IPV4_CHANGED,
+                                                             G_CALLBACK(_dev_ipforwarding4_auto_cb),
+                                                             self);
+    } else {
+        nm_assert_not_reached();
+    }
+
+    _dev_ipforwarding4_set(self, new_forwarding);
+}
+
+static void
+_dev_ipforwarding_cleanup(NMDevice *self, int addr_family, CleanupType cleanup_type)
+{
+    NMDevicePrivate *priv = NM_DEVICE_GET_PRIVATE(self);
+
+    if (!NM_IS_IPv4(addr_family))
+        return;
+
+    nm_clear_g_signal_handler(NM_MANAGER_GET, &priv->sharing_ipv4_changed_id);
+
+    if (NM_IN_SET(cleanup_type, CLEANUP_TYPE_DECONFIGURE, CLEANUP_TYPE_KEEP_REAPPLY)) {
+        /* Deconfigure by restoring kernel's default */
+        _dev_ipforwarding4_set(self, NM_TERNARY_DEFAULT);
+    }
+}
+
+/*****************************************************************************/
+
 static void
 act_request_set(NMDevice *self, NMActRequest *act_request)
 {
@@ -13879,6 +14133,8 @@ _cleanup_ip_pre(NMDevice *self, int addr_family, CleanupType cleanup_type, gbool
     const int        IS_IPv4      = NM_IS_IPv4(addr_family);
     NMDevicePrivate *priv         = NM_DEVICE_GET_PRIVATE(self);
     gboolean         keep_reapply = (cleanup_type == CLEANUP_TYPE_KEEP_REAPPLY);
+
+    _dev_ipforwarding_cleanup(self, addr_family, cleanup_type);
 
     _dev_ipsharedx_cleanup(self, addr_family);
 
@@ -14062,7 +14318,8 @@ can_reapply_change(NMDevice   *self,
         return nm_device_hash_check_invalid_keys(diffs,
                                                  NM_SETTING_SRIOV_SETTING_NAME,
                                                  error,
-                                                 NM_SETTING_SRIOV_PRESERVE_ON_DOWN);
+                                                 NM_SETTING_SRIOV_PRESERVE_ON_DOWN,
+                                                 NM_SETTING_SRIOV_VFS);
     }
 
 out_fail:
@@ -14240,8 +14497,34 @@ check_and_reapply_connection(NMDevice            *self,
 
     nm_device_link_properties_set(self, TRUE);
 
-    if (priv->state >= NM_DEVICE_STATE_CONFIG)
+    if (priv->state >= NM_DEVICE_STATE_CONFIG) {
+        GHashTable *sriov_diff;
+
         lldp_setup(self, NM_TERNARY_DEFAULT);
+
+        sriov_diff = nm_g_hash_table_lookup(diffs, NM_SETTING_SRIOV_SETTING_NAME);
+
+        if (sriov_diff && nm_g_hash_table_lookup(sriov_diff, NM_SETTING_SRIOV_VFS)) {
+            nm_auto_freev NMPlatformVF **plat_vfs = NULL;
+            NMSettingSriov              *s_sriov;
+
+            s_sriov = (NMSettingSriov *) nm_connection_get_setting(applied, NM_TYPE_SETTING_SRIOV);
+
+            if (s_sriov) {
+                gs_free_error GError *local = NULL;
+
+                if (!sriov_gen_platform_vfs(self, s_sriov, &plat_vfs, &local)
+                    || !nm_platform_link_set_sriov_vfs(nm_device_get_platform(self),
+                                                       priv->ifindex,
+                                                       (const NMPlatformVF *const *) plat_vfs)) {
+                    _LOGE(LOGD_DEVICE,
+                          "failed to reapply SRIOV VFs%s%s",
+                          local ? ": " : "",
+                          local ? local->message : "");
+                }
+            }
+        }
+    }
 
     if (priv->state >= NM_DEVICE_STATE_IP_CONFIG) {
         /* Allow reapply of MTU */
@@ -14696,13 +14979,15 @@ impl_device_delete(NMDBusObject                      *obj,
                            NULL);
 }
 
-static void
+static gboolean
 _device_activate(NMDevice *self, NMActRequest *req)
 {
     NMConnection *connection;
 
-    g_return_if_fail(NM_IS_DEVICE(self));
-    g_return_if_fail(NM_IS_ACT_REQUEST(req));
+    /* Returns TRUE on success, FALSE if the activation request could not be started */
+
+    g_return_val_if_fail(NM_IS_DEVICE(self), FALSE);
+    g_return_val_if_fail(NM_IS_ACT_REQUEST(req), FALSE);
     nm_assert(nm_device_is_real(self));
 
     /* Ensure the activation request is still valid; the controller may have
@@ -14710,7 +14995,7 @@ _device_activate(NMDevice *self, NMActRequest *req)
      */
     if (nm_active_connection_get_state(NM_ACTIVE_CONNECTION(req))
         >= NM_ACTIVE_CONNECTION_STATE_DEACTIVATING)
-        return;
+        return FALSE;
 
     if (!nm_device_get_managed(self, FALSE)) {
         /* It's unclear why the device would be unmanaged at this point.
@@ -14721,7 +15006,7 @@ _device_activate(NMDevice *self, NMActRequest *req)
         nm_active_connection_set_state_fail((NMActiveConnection *) req,
                                             NM_ACTIVE_CONNECTION_STATE_REASON_UNKNOWN,
                                             NULL);
-        return;
+        return FALSE;
     }
 
     connection = nm_act_request_get_applied_connection(req);
@@ -14737,6 +15022,8 @@ _device_activate(NMDevice *self, NMActRequest *req)
     act_request_set(self, req);
 
     nm_device_activate_schedule_stage1_device_prepare(self, FALSE);
+
+    return TRUE;
 }
 
 static void
@@ -14756,7 +15043,9 @@ _carrier_wait_check_queued_act_request(NMDevice *self)
 
         _LOGD(LOGD_DEVICE, "Activate queued activation request as we now have carrier");
         queued_req = g_steal_pointer(&priv->queued_act_request);
-        _device_activate(self, queued_req);
+        if (!_device_activate(self, queued_req)) {
+            delete_on_deactivate_check_and_schedule(self);
+        }
     }
 }
 
@@ -15603,7 +15892,7 @@ nm_device_get_firmware_missing(NMDevice *self)
 
 NM_UTILS_FLAGS2STR_DEFINE(nm_unmanaged_flags2str,
                           NMUnmanagedFlags,
-                          NM_UTILS_FLAGS2STR(NM_UNMANAGED_SLEEPING, "sleeping"),
+                          NM_UTILS_FLAGS2STR(NM_UNMANAGED_MANAGER_DISABLED, "nm-disabled"),
                           NM_UTILS_FLAGS2STR(NM_UNMANAGED_QUITTING, "quitting"),
                           NM_UTILS_FLAGS2STR(NM_UNMANAGED_PLATFORM_INIT, "platform-init"),
                           NM_UTILS_FLAGS2STR(NM_UNMANAGED_USER_EXPLICIT, "user-explicit"),
@@ -15667,8 +15956,8 @@ unmanaged_flags_to_reason(NMUnmanagedFlags flags)
     /* Even if there are multiple flags, we can only return one reason.
      * Return the most important reason.
      */
-    if (NM_FLAGS_HAS(flags, NM_UNMANAGED_SLEEPING))
-        return NM_DEVICE_STATE_REASON_UNMANAGED_SLEEPING;
+    if (NM_FLAGS_HAS(flags, NM_UNMANAGED_MANAGER_DISABLED))
+        return NM_DEVICE_STATE_REASON_UNMANAGED_MANAGER_DISABLED;
     if (NM_FLAGS_HAS(flags, NM_UNMANAGED_QUITTING))
         return NM_DEVICE_STATE_REASON_UNMANAGED_QUITTING;
     if (NM_FLAGS_HAS(flags, NM_UNMANAGED_USER_SETTINGS))
@@ -16913,8 +17202,6 @@ _cleanup_generic_post(NMDevice *self, NMDeviceStateReason reason, CleanupType cl
     priv->v4_route_table_all_sync_before = FALSE;
     priv->v6_route_table_all_sync_before = FALSE;
 
-    priv->refresh_forwarding_done = FALSE;
-
     priv->mtu_force_set_done = FALSE;
 
     priv->needs_ip6_subnet = FALSE;
@@ -16960,7 +17247,6 @@ nm_device_cleanup(NMDevice *self, NMDeviceStateReason reason, CleanupType cleanu
     NMDevicePrivate *priv;
     NMDeviceClass   *klass = NM_DEVICE_GET_CLASS(self);
     int              ifindex;
-    gint32           default_forwarding_v4;
 
     g_return_if_fail(NM_IS_DEVICE(self));
 
@@ -16983,20 +17269,15 @@ nm_device_cleanup(NMDevice *self, NMDeviceStateReason reason, CleanupType cleanu
         nm_device_sysctl_ip_conf_set(self, AF_INET6, "use_tempaddr", "0");
     }
 
-    /* Restoring the device's forwarding to the sysctl default is necessary because
-     * `refresh_forwarding()` only updates forwarding on activated devices. */
-    default_forwarding_v4 = nm_platform_sysctl_get_int32(
-        nm_device_get_platform(self),
-        NMP_SYSCTL_PATHID_ABSOLUTE("/proc/sys/net/ipv4/conf/default/forwarding"),
-        0);
-    nm_device_sysctl_ip_conf_set(self,
-                                 AF_INET,
-                                 "forwarding",
-                                 default_forwarding_v4 == 1 ? "1" : "0");
-
     /* Call device type-specific deactivation */
     if (klass->deactivate)
         klass->deactivate(self);
+
+    /* Clean up private files */
+    nm_clear_g_cancellable(&priv->private_files.cancellable);
+    g_clear_pointer(&priv->private_files.table, g_hash_table_unref);
+    g_clear_pointer(&priv->private_files.user, g_free);
+    priv->private_files.state = PRIVATE_FILES_STATE_UNKNOWN;
 
     ifindex = nm_device_get_ip_ifindex(self);
 
@@ -17534,7 +17815,8 @@ _set_state_full(NMDevice *self, NMDeviceState state, NMDeviceStateReason reason,
             gs_unref_object NMActRequest *queued_req = NULL;
 
             queued_req = g_steal_pointer(&priv->queued_act_request);
-            _device_activate(self, queued_req);
+            if (!_device_activate(self, queued_req))
+                delete_on_deactivate_check_and_schedule(self);
         }
         break;
     case NM_DEVICE_STATE_ACTIVATED:
@@ -18934,19 +19216,6 @@ nm_device_get_hostname_from_dns_lookup(NMDevice *self, int addr_family, gboolean
     }
 
     return nm_assert_unreachable_val(NULL);
-}
-
-gboolean
-nm_device_get_refresh_forwarding_done(NMDevice *self)
-{
-    return NM_DEVICE_GET_PRIVATE(self)->refresh_forwarding_done;
-}
-
-void
-nm_device_set_refresh_forwarding_done(NMDevice *self, gboolean is_refresh_forwarding_done)
-{
-    NMDevicePrivate *priv         = NM_DEVICE_GET_PRIVATE(self);
-    priv->refresh_forwarding_done = is_refresh_forwarding_done;
 }
 
 /*****************************************************************************/
