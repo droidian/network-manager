@@ -484,7 +484,9 @@ _version_info_get(void)
          * Each of the array's elements has 32 bits. This means that capabilities
          * with index 0-31 goes to element #1, with index 32-63 to element #2,
          * with index 64-95 to element #3 and so on. */
-        1 << NM_VERSION_INFO_CAPABILITY_SYNC_ROUTE_WITH_TABLE,
+        (1 << NM_VERSION_INFO_CAPABILITY_SYNC_ROUTE_WITH_TABLE)
+            | (1 << NM_VERSION_INFO_CAPABILITY_IP4_FORWARDING)
+            | (1 << NM_VERSION_INFO_CAPABILITY_SRIOV_PRESERVE_ON_DOWN),
     };
 
     return nm_g_variant_new_au(arr, G_N_ELEMENTS(arr));
@@ -4280,6 +4282,7 @@ add:
         case NM_LINK_TYPE_OLPC_MESH:
         case NM_LINK_TYPE_TEAM:
         case NM_LINK_TYPE_WIFI:
+        case NM_LINK_TYPE_OPENVSWITCH:
             _LOGI(LOGD_PLATFORM,
                   "(%s): '%s' plugin not available; creating generic device",
                   plink->name,
@@ -4719,16 +4722,10 @@ found_better:
         if (nm_g_hash_table_contains(exclude_devices, device))
             continue;
 
-        /* During startup, NM performs a cleanup of the ovsdb to remove previous entries.
-         * Before the device is suitable for the connection, it must have ovsdb->ready set
-         * to TRUE. Performing this check in all kind of interfaces is too agressive and leads
-         * to race conditions, e.g when a non-virtual bond port gets a carrier, preventing the
-         * device to be a good candidate for the connection. */
-        if (nm_device_get_device_type(device) == NM_DEVICE_TYPE_OVS_INTERFACE
-            && !nm_device_is_available(device,
-                                       for_user_request
-                                           ? NM_DEVICE_CHECK_DEV_AVAILABLE_FOR_USER_REQUEST
-                                           : NM_DEVICE_CHECK_DEV_AVAILABLE_NONE))
+        if (!nm_device_is_available(device,
+                                    for_user_request
+                                        ? NM_DEVICE_CHECK_DEV_AVAILABLE_FOR_USER_REQUEST
+                                        : NM_DEVICE_CHECK_DEV_AVAILABLE_NONE))
             continue;
 
         /* determine the priority of this device. Currently, this priority is independent

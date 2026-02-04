@@ -16,6 +16,8 @@
 #include "nm-setting-ovs-bridge.h"
 #include "nm-setting-ovs-interface.h"
 #include "nm-setting-ovs-port.h"
+#include "nm-setting-ovs-external-ids.h"
+#include "nm-setting-ovs-other-config.h"
 
 #define _NMLOG_DEVICE_TYPE NMDeviceOvsInterface
 #include "devices/nm-device-logging.h"
@@ -26,16 +28,18 @@ typedef struct {
     NMOvsdb *ovsdb;
 
     struct {
-        /* The source for the idle handler to set the TUN ifindex */
-        GSource *tun_set_ifindex_idle_source;
+        /* The signal id for the TUN link-changed event */
+        gulong tun_link_signal_id;
+        /* The idle handler source for the TUN link-changed event */
+        GSource *tun_link_idle_source;
+        /* The ifindex for the TUN link-changed event */
+        int tun_ifindex;
+
         /* The cloned MAC to set */
         char *cloned_mac;
-        /* The id for the signal watching the TUN link to appear/change */
-        gulong tun_link_signal_id;
-        /* The TUN ifindex to set in the idle handler */
-        int tun_ifindex;
         /* Whether we have determined the cloned MAC */
         bool cloned_mac_evaluated : 1;
+
         /* Whether we are waiting for the kernel link */
         bool waiting : 1;
     } wait_link;
@@ -261,39 +265,33 @@ ready_for_ip_config(NMDevice *device, gboolean is_manual)
 }
 
 static gboolean
-_set_ip_ifindex_tun(gpointer user_data)
+_netdev_tun_link_cb_in_idle(gpointer user_data)
 {
     NMDevice                    *device = user_data;
     NMDeviceOvsInterface        *self   = NM_DEVICE_OVS_INTERFACE(device);
     NMDeviceOvsInterfacePrivate *priv   = NM_DEVICE_OVS_INTERFACE_GET_PRIVATE(self);
 
-    _LOGT(LOGD_CORE,
-          "ovs-wait-link: setting ip-ifindex %d from tun interface",
-          priv->wait_link.tun_ifindex);
+    if (nm_device_get_ip_ifindex(device) <= 0) {
+        _LOGT(LOGD_CORE,
+              "ovs-wait-link: setting ip-ifindex %d from tun link",
+              priv->wait_link.tun_ifindex);
+        nm_device_set_ip_ifindex(device, priv->wait_link.tun_ifindex);
+    }
 
-    nm_clear_g_source_inst(&priv->wait_link.tun_set_ifindex_idle_source);
-
-    nm_device_set_ip_ifindex(device, priv->wait_link.tun_ifindex);
-
-    if (check_waiting_for_link(device, "set-ip-ifindex-tun")) {
-        /* If the link is not ready, it means the MAC is not set yet. We don't have
-         * a convenient way to monitor for ip-ifindex changes other than listening
-         * for platform events again.*/
-        nm_assert(!priv->wait_link.tun_link_signal_id);
-        priv->wait_link.tun_link_signal_id = g_signal_connect(nm_device_get_platform(device),
-                                                              NM_PLATFORM_SIGNAL_LINK_CHANGED,
-                                                              G_CALLBACK(_netdev_tun_link_cb),
-                                                              self);
+    if (check_waiting_for_link(device, "tun-link-changed")) {
+        nm_clear_g_source_inst(&priv->wait_link.tun_link_idle_source);
         return G_SOURCE_CONTINUE;
     }
 
-    _LOGT(LOGD_CORE, "tun link is ready");
-
+    _LOGT(LOGD_CORE, "ovs-wait-link: tun link is ready");
     nm_device_link_properties_set(device, FALSE);
+    nm_device_bring_up(device);
 
     nm_device_devip_set_state(device, AF_INET, NM_DEVICE_IP_STATE_PENDING, NULL);
     nm_device_devip_set_state(device, AF_INET6, NM_DEVICE_IP_STATE_PENDING, NULL);
     nm_device_activate_schedule_stage3_ip_config(device, FALSE);
+    nm_clear_g_signal_handler(nm_device_get_platform(device), &priv->wait_link.tun_link_signal_id);
+    nm_clear_g_source_inst(&priv->wait_link.tun_link_idle_source);
 
     return G_SOURCE_CONTINUE;
 }
@@ -309,40 +307,28 @@ _netdev_tun_link_cb(NMPlatform     *platform,
     const NMPlatformSignalChangeType change_type = change_type_i;
     NMDeviceOvsInterface            *self        = NM_DEVICE_OVS_INTERFACE(device);
     NMDeviceOvsInterfacePrivate     *priv        = NM_DEVICE_OVS_INTERFACE_GET_PRIVATE(self);
-    int                              ip_ifindex;
 
+    /* This is the handler for the link-changed platform events. It is triggered for all
+     * link changes. Keep only the ones matching our device. */
+    if (!NM_IN_SET(change_type, NM_PLATFORM_SIGNAL_ADDED, NM_PLATFORM_SIGNAL_CHANGED))
+        return;
     if (pllink->type != NM_LINK_TYPE_TUN || !nm_streq0(pllink->name, nm_device_get_iface(device)))
         return;
 
-    ip_ifindex = nm_device_get_ip_ifindex(device);
-    if (ip_ifindex > 0) {
-        /* When we have an ifindex, we are only waiting for the MAC to settle */
-        if (change_type != NM_PLATFORM_SIGNAL_CHANGED)
-            return;
-
-        if (!check_waiting_for_link(device, "tun-link-changed")) {
-            _LOGT(LOGD_CORE, "ovs-wait-link: tun link is ready, cloned MAC is set");
-
-            nm_clear_g_signal_handler(platform, &priv->wait_link.tun_link_signal_id);
-            nm_device_link_properties_set(device, FALSE);
-
-            nm_device_devip_set_state(device, AF_INET, NM_DEVICE_IP_STATE_PENDING, NULL);
-            nm_device_devip_set_state(device, AF_INET6, NM_DEVICE_IP_STATE_PENDING, NULL);
-            nm_device_activate_schedule_stage3_ip_config(device, FALSE);
-        }
-        return;
-    }
-
-    /* No ip-ifindex on the device, set it when the link appears */
-    if (change_type != NM_PLATFORM_SIGNAL_ADDED)
-        return;
-
     _LOGT(LOGD_CORE,
-          "ovs-wait-link: found matching tun interface, schedule set-ip-ifindex(%d)",
+          "ovs-wait-link: got platform event \'%s\' for ifindex %d, scheduling idle handler",
+          change_type == NM_PLATFORM_SIGNAL_ADDED ? "added" : "changed",
           ifindex);
-    nm_clear_g_signal_handler(platform, &priv->wait_link.tun_link_signal_id);
-    priv->wait_link.tun_ifindex                 = ifindex;
-    priv->wait_link.tun_set_ifindex_idle_source = nm_g_idle_add_source(_set_ip_ifindex_tun, device);
+
+    /* The handler is invoked by the platform synchronously in the netlink receive loop.
+     * We can't perform other platform operations (like bringing the interface up) since
+     * the code there is not re-entrant. Schedule an idle handler. */
+    nm_clear_g_source_inst(&priv->wait_link.tun_link_idle_source);
+    priv->wait_link.tun_link_idle_source =
+        nm_g_idle_add_source(_netdev_tun_link_cb_in_idle, device);
+    priv->wait_link.tun_ifindex = ifindex;
+
+    return;
 }
 
 static gboolean
@@ -464,7 +450,7 @@ act_stage3_ip_config(NMDevice *device, int addr_family)
         nm_device_activate_schedule_stage3_ip_config(device, TRUE);
         return;
     }
-    nm_clear_g_source_inst(&priv->wait_link.tun_set_ifindex_idle_source);
+    nm_clear_g_source_inst(&priv->wait_link.tun_link_idle_source);
     nm_clear_g_signal_handler(nm_device_get_platform(device), &priv->wait_link.tun_link_signal_id);
 
     nm_device_link_properties_set(device, FALSE);
@@ -488,7 +474,7 @@ deactivate(NMDevice *device)
     priv->wait_link.cloned_mac_evaluated = FALSE;
     nm_clear_g_free(&priv->wait_link.cloned_mac);
     nm_clear_g_signal_handler(nm_device_get_platform(device), &priv->wait_link.tun_link_signal_id);
-    nm_clear_g_source_inst(&priv->wait_link.tun_set_ifindex_idle_source);
+    nm_clear_g_source_inst(&priv->wait_link.tun_link_idle_source);
 }
 
 typedef struct {
@@ -581,7 +567,7 @@ deactivate_async(NMDevice                  *device,
     _LOGT(LOGD_CORE, "deactivate: start async");
 
     nm_clear_g_signal_handler(nm_device_get_platform(device), &priv->wait_link.tun_link_signal_id);
-    nm_clear_g_source_inst(&priv->wait_link.tun_set_ifindex_idle_source);
+    nm_clear_g_source_inst(&priv->wait_link.tun_link_idle_source);
     priv->wait_link.tun_ifindex          = -1;
     priv->wait_link.cloned_mac_evaluated = FALSE;
     nm_clear_g_free(&priv->wait_link.cloned_mac);
@@ -647,6 +633,28 @@ can_update_from_platform_link(NMDevice *device, const NMPlatformLink *plink)
     return !plink || nm_device_get_state(device) != NM_DEVICE_STATE_DEACTIVATING;
 }
 
+static gboolean
+can_reapply_change(NMDevice   *device,
+                   const char *setting_name,
+                   NMSetting  *s_old,
+                   NMSetting  *s_new,
+                   GHashTable *diffs,
+                   GError    **error)
+{
+    NMDeviceClass *device_class = NM_DEVICE_CLASS(nm_device_ovs_interface_parent_class);
+
+    if (NM_IN_STRSET(setting_name,
+                     NM_SETTING_OVS_EXTERNAL_IDS_SETTING_NAME,
+                     NM_SETTING_OVS_OTHER_CONFIG_SETTING_NAME)) {
+        /* TODO: it's currently not possible to reapply those settings on OVS
+         * system interfaces because they have type != "ovs-interface" (e.g.
+         * "ethernet") */
+        return TRUE;
+    }
+
+    return device_class->can_reapply_change(device, setting_name, s_old, s_new, diffs, error);
+}
+
 /*****************************************************************************/
 
 static void
@@ -682,7 +690,7 @@ dispose(GObject *object)
 
     nm_assert(!priv->wait_link.waiting);
     nm_assert(priv->wait_link.tun_link_signal_id == 0);
-    nm_assert(!priv->wait_link.tun_set_ifindex_idle_source);
+    nm_assert(!priv->wait_link.tun_link_idle_source);
 
     if (priv->ovsdb) {
         g_signal_handlers_disconnect_by_func(priv->ovsdb, G_CALLBACK(ovsdb_ready), self);
@@ -712,21 +720,21 @@ nm_device_ovs_interface_class_init(NMDeviceOvsInterfaceClass *klass)
     device_class->connection_type_check_compatible = NM_SETTING_OVS_INTERFACE_SETTING_NAME;
     device_class->link_types = NM_DEVICE_DEFINE_LINK_TYPES(NM_LINK_TYPE_OPENVSWITCH);
 
-    device_class->can_auto_connect                    = can_auto_connect;
-    device_class->can_update_from_platform_link       = can_update_from_platform_link;
-    device_class->deactivate                          = deactivate;
-    device_class->deactivate_async                    = deactivate_async;
-    device_class->get_type_description                = get_type_description;
-    device_class->create_and_realize                  = create_and_realize;
-    device_class->get_generic_capabilities            = get_generic_capabilities;
-    device_class->is_available                        = is_available;
-    device_class->check_connection_compatible         = check_connection_compatible;
-    device_class->link_changed                        = link_changed;
-    device_class->act_stage3_ip_config                = act_stage3_ip_config;
-    device_class->ready_for_ip_config                 = ready_for_ip_config;
-    device_class->can_unmanaged_external_down         = can_unmanaged_external_down;
-    device_class->set_platform_mtu                    = set_platform_mtu;
-    device_class->get_configured_mtu                  = nm_device_get_configured_mtu_for_wired;
-    device_class->can_reapply_change_ovs_external_ids = TRUE;
-    device_class->reapply_connection                  = nm_device_ovs_reapply_connection;
+    device_class->can_auto_connect              = can_auto_connect;
+    device_class->can_update_from_platform_link = can_update_from_platform_link;
+    device_class->deactivate                    = deactivate;
+    device_class->deactivate_async              = deactivate_async;
+    device_class->get_type_description          = get_type_description;
+    device_class->create_and_realize            = create_and_realize;
+    device_class->get_generic_capabilities      = get_generic_capabilities;
+    device_class->is_available                  = is_available;
+    device_class->check_connection_compatible   = check_connection_compatible;
+    device_class->link_changed                  = link_changed;
+    device_class->act_stage3_ip_config          = act_stage3_ip_config;
+    device_class->ready_for_ip_config           = ready_for_ip_config;
+    device_class->can_unmanaged_external_down   = can_unmanaged_external_down;
+    device_class->set_platform_mtu              = set_platform_mtu;
+    device_class->get_configured_mtu            = nm_device_get_configured_mtu_for_wired;
+    device_class->can_reapply_change            = can_reapply_change;
+    device_class->reapply_connection            = nm_device_ovs_reapply_connection;
 }

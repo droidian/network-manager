@@ -5,7 +5,7 @@ project(
 # NOTE: When incrementing version also add corresponding
 #       NM_VERSION_x_y_z macros in
 #       "src/libnm-core-public/nm-version-macros.h.in"
-  version: '1.52.0',
+  version: '1.54.0',
   license: 'GPL2+',
   default_options: [
     'buildtype=debugoptimized',
@@ -137,6 +137,9 @@ config_h.set10('HAVE_DECL_REALLOCARRAY', cc.has_function('reallocarray', prefix:
 config_h.set10('HAVE_DECL_EXPLICIT_BZERO', cc.has_function('explicit_bzero', prefix: '#include <string.h>'))
 config_h.set10('HAVE_DECL_MEMFD_CREATE', cc.has_function('memfd_create', prefix: '#include <sys/mman.h>'))
 
+config_h.set10('HAVE_DLVSYM', cc.has_function('dlvsym', prefix: '''#define _GNU_SOURCE
+                                                                   #include <dlfcn.h>'''))
+
 # types
 config_h.set('SIZEOF_PID_T', cc.sizeof('pid_t', prefix : '#include <sys/types.h>'))
 config_h.set('SIZEOF_UID_T', cc.sizeof('uid_t', prefix : '#include <sys/types.h>'))
@@ -173,13 +176,13 @@ endif
 
 enable_lto = get_option('b_lto')
 if enable_lto
-  if  cc.get_id() == 'clang'
-    clang_version = cc.version()
-    if clang_version <= '18.0.0'
-      error('Clang version should be greater then 18.0.0 got : ' + clang_version)
+  cc_version = cc.version()
+  if cc.get_id() == 'clang'
+    if cc_version <= '18.0.0'
+      error('Clang version should be greater than 18.0.0, got : ' + cc_version)
     endif
-  else
-    # Meson already adds '-flto'
+  elif cc_version < '12.0'
+    # GCC < 12 breaks libnm symbol versioning with LTO, use workarounds
     lto_flag = '-flto-partition=none'
     assert(cc.has_argument(lto_flag), '-flto-partition=none not supported. Disable link-time optimization with -Db_lto=false.')
     common_flags += lto_flag
@@ -723,6 +726,7 @@ default_paths = ['/sbin', '/usr/sbin']
 
 # 0: cmdline option, 1: paths, 2: fallback
 progs = [['iptables', default_paths, '/usr/sbin/iptables'],
+         ['ip6tables', default_paths, '/usr/sbin/ip6tables'],
          ['nft',      default_paths, '/usr/sbin/nft'],
          ['dnsmasq',  default_paths, ''],
          ['modprobe', default_paths, '/sbin/modprobe']
@@ -928,6 +932,14 @@ if python.found()
   config_h.set_quoted('TEST_NM_PYTHON', python_path)
 endif
 
+# libnvme (NBFT support)
+enable_nbft = get_option('nbft')
+if enable_nbft
+  libnvme_dep = dependency('libnvme', version: '>= 1.5', required: false)
+  assert(libnvme_dep.found(), 'NBFT support was requested, but the libnvme library is not available. Use -Dnbft=false to build without it.')
+endif
+config_h.set10('WITH_NBFT', enable_nbft)
+
 data_conf = configuration_data()
 data_conf.set('DISTRO_NETWORK_SERVICE',                  (enable_ifcfg_rh ? 'network.service' : ''))
 data_conf.set('NM_CONFIG_DEFAULT_LOGGING_AUDIT_TEXT',    config_default_logging_audit)
@@ -1125,6 +1137,7 @@ endif
 output += '\n'
 output += '  jansson: ' + jansson_msg + '\n'
 output += '  iptables: ' + config_h.get('IPTABLES_PATH') + '\n'
+output += '  ip6tables: ' + config_h.get('IP6TABLES_PATH') + '\n'
 output += '  nft: ' + config_h.get('NFT_PATH') + '\n'
 output += '  modprobe: ' + config_h.get('MODPROBE_PATH') + '\n'
 output += '  modemmanager-1: ' + enable_modem_manager.to_string() + '\n'

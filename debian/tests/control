@@ -1,0 +1,5 @@
+Features: test-name=nm-eth.py
+Tests-Directory: debian/tests
+Test-Command: python3 debian/tests/nm-eth.py
+Depends: python3, udev, dnsmasq-base, gir1.2-nm-1.0, network-manager, python3-dbusmock
+Restrictions: needs-root, allow-stderr, isolation-machine, breaks-testbed

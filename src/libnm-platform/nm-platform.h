@@ -89,7 +89,7 @@ typedef enum {
      * long as NM_PLATFORM_IP_ROUTE_CMP_TYPE_ID differs. */
     NM_PLATFORM_IP_ROUTE_CMP_TYPE_WEAK_ID,
 
-    /* compare two routes as kernel would allow to add them with
+    /* compare two routes as kernel would allow one to add them with
      * `ip route append`. In other words, kernel does not allow you to
      * add two routes (at the same time) which compare equal according
      * to NM_PLATFORM_IP_ROUTE_CMP_TYPE_ID.
@@ -314,6 +314,7 @@ guint _nm_platform_signal_id_get(NMPlatformSignalIdType signal_type);
     guint32 initrwnd;                                                                     \
                                                                                           \
     /* RTA_METRICS.RTAX_RTO_MIN (iproute2: rto_min) */                                    \
+    /* Valid only when 'rto_min_set' is true. */                                          \
     guint32 rto_min;                                                                      \
                                                                                           \
     /* RTA_METRICS.RTAX_MTU (iproute2: mtu) */                                            \
@@ -366,6 +367,10 @@ guint _nm_platform_signal_id_get(NMPlatformSignalIdType signal_type);
                                                                                           \
     /* RTA_METRICS.RTAX_QUICKACK (iproute2: quickack) */                                  \
     bool quickack : 1;                                                                    \
+                                                                                          \
+    /* RTA_METRICS.RTAX_RTO_MIN (iproute2: rto_min) */                                    \
+    /* If true, the 'rto_min' value is valid. */                                          \
+    bool rto_min_set : 1;                                                                 \
                                                                                           \
     /* if TRUE, the "metric" field is interpreted as an offset that is added to a default
      * metric. For example, form a DHCP lease we don't know the actually used metric, because
@@ -508,7 +513,7 @@ struct _NMPlatformIP6Route {
      * Kernel clears the host part of src/src_plen.
      *
      * src/src_plen is part of the ID of a route just like network/plen. That is,
-     * Not only `ip route append`, but also `ip route add` allows to add routes that only
+     * Not only `ip route append`, but also `ip route add` allows one to add routes that only
      * differ in their src/src_plen.
      */
     struct in6_addr src;
@@ -1341,6 +1346,12 @@ typedef struct {
 
     GPtrArray *(*mptcp_addrs_dump)(NMPlatform *self);
 
+    gboolean (*ethtool_get_pause)(NMPlatform *self, int ifindex, NMEthtoolPauseState *pause);
+    gboolean (*ethtool_set_pause)(NMPlatform *self, int ifindex, const NMEthtoolPauseState *pause);
+    gboolean (*ethtool_get_eee)(NMPlatform *self, int ifindex, NMEthtoolEEEState *eee);
+    gboolean (*ethtool_set_eee)(NMPlatform *self, int ifindex, const NMEthtoolEEEState *eee);
+    gboolean (*ethtool_get_ring)(NMPlatform *self, int ifindex, NMEthtoolRingState *ring);
+    gboolean (*ethtool_set_ring)(NMPlatform *self, int ifindex, const NMEthtoolRingState *ring);
 } NMPlatformClass;
 
 /* NMPlatform signals
@@ -2626,7 +2637,7 @@ gboolean nm_platform_ethtool_get_link_settings(NMPlatform               *self,
                                                guint32                  *out_speed,
                                                NMPlatformLinkDuplexType *out_duplex);
 
-NMEthtoolFeatureStates *nm_platform_ethtool_get_link_features(NMPlatform *self, int ifindex);
+NMEthtoolFeatureStates *nm_platform_ethtool_get_features(NMPlatform *self, int ifindex);
 gboolean                nm_platform_ethtool_set_features(
                    NMPlatform                   *self,
                    int                           ifindex,
@@ -2634,22 +2645,20 @@ gboolean                nm_platform_ethtool_set_features(
                    const NMOptionBool *requested /* indexed by NMEthtoolID - _NM_ETHTOOL_ID_FEATURE_FIRST */,
                    gboolean            do_set /* or reset */);
 
-gboolean nm_platform_ethtool_get_link_coalesce(NMPlatform             *self,
-                                               int                     ifindex,
-                                               NMEthtoolCoalesceState *coalesce);
+gboolean
+nm_platform_ethtool_get_coalesce(NMPlatform *self, int ifindex, NMEthtoolCoalesceState *coalesce);
 
 gboolean nm_platform_ethtool_set_coalesce(NMPlatform                   *self,
                                           int                           ifindex,
                                           const NMEthtoolCoalesceState *coalesce);
 
-gboolean nm_platform_ethtool_get_link_ring(NMPlatform *self, int ifindex, NMEthtoolRingState *ring);
+gboolean nm_platform_ethtool_get_ring(NMPlatform *self, int ifindex, NMEthtoolRingState *ring);
 
 gboolean
 nm_platform_ethtool_set_ring(NMPlatform *self, int ifindex, const NMEthtoolRingState *ring);
 
-gboolean nm_platform_ethtool_get_link_channels(NMPlatform             *self,
-                                               int                     ifindex,
-                                               NMEthtoolChannelsState *channels);
+gboolean
+nm_platform_ethtool_get_channels(NMPlatform *self, int ifindex, NMEthtoolChannelsState *channels);
 
 gboolean nm_platform_ethtool_set_channels(NMPlatform                   *self,
                                           int                           ifindex,
@@ -2659,10 +2668,9 @@ gboolean nm_platform_ethtool_get_fec_mode(NMPlatform *self, int ifindex, uint32_
 
 gboolean nm_platform_ethtool_set_fec_mode(NMPlatform *self, int ifindex, uint32_t fec_mode);
 
-gboolean
-nm_platform_ethtool_get_link_pause(NMPlatform *self, int ifindex, NMEthtoolPauseState *pause);
+gboolean nm_platform_ethtool_get_pause(NMPlatform *self, int ifindex, NMEthtoolPauseState *pause);
 
-gboolean nm_platform_ethtool_get_link_eee(NMPlatform *self, int ifindex, NMEthtoolEEEState *eee);
+gboolean nm_platform_ethtool_get_eee(NMPlatform *self, int ifindex, NMEthtoolEEEState *eee);
 
 gboolean
 nm_platform_ethtool_set_pause(NMPlatform *self, int ifindex, const NMEthtoolPauseState *pause);

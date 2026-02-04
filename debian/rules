@@ -11,7 +11,7 @@ export PYTHON=/usr/bin/python3
 PPPD_PLUGIN_DIR := $(shell dh_ppp --plugin-dir)
 
 %:
-	dh $@ --with ppp --without autoreconf --buildsystem=meson
+	dh $@ --with ppp
 
 override_dh_auto_configure:
 	dh_auto_configure -- \
@@ -22,6 +22,7 @@ override_dh_auto_configure:
 		-Dmodprobe=/usr/sbin/modprobe \
 		-Ddhcpcd=false \
 		-Diptables=/usr/sbin/iptables \
+		-Dip6tables=/usr/sbin/ip6tables \
 		-Dnft=/usr/sbin/nft \
 		-Ddnsmasq=/usr/sbin/dnsmasq \
 		-Dpolkit_agent_helper_1=/usr/lib/policykit-1/polkit-agent-helper-1 \
@@ -56,7 +57,8 @@ override_dh_auto_configure:
 		-Dovs=false \
 		-Dqt=false \
 		-Debpf=false \
-		-Dofono=false
+		-Dnbft=false \
+		-Dofono=true
 
 override_dh_makeshlibs:
 	dh_makeshlibs -X/usr/lib/$(DEB_HOST_MULTIARCH)/NetworkManager/ -X/usr/lib/pppd/
@@ -67,3 +69,7 @@ override_dh_installsystemd:
 
 override_dh_ppp:
 	dh_ppp --breaks
+
+override_dh_auto_test:
+	# workaround for slower architectures like hppa, see #1075915
+	dh_auto_test -- --timeout-multiplier 2

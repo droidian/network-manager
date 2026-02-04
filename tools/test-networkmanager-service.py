@@ -613,6 +613,7 @@ class NmUtil:
         if t not in [
             NM.SETTING_GSM_SETTING_NAME,
             NM.SETTING_MACVLAN_SETTING_NAME,
+            NM.SETTING_OVS_INTERFACE_SETTING_NAME,
             NM.SETTING_VLAN_SETTING_NAME,
             NM.SETTING_VPN_SETTING_NAME,
             NM.SETTING_WIMAX_SETTING_NAME,
@@ -868,7 +869,7 @@ class Device(ExportedObj):
         self.activation_state_change_delay_ms = 50
         self.hwaddr = hwaddr is None if "" else hwaddr
 
-        self.prp_state = NM.DeviceState.UNAVAILABLE
+        self.prp_state = NM.DeviceState.DISCONNECTED
 
         if devtype == NM.DeviceType.MODEM:
             udi = "/org/freedesktop/ModemManager1/Modem/0"

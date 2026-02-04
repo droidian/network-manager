@@ -6,6 +6,7 @@ option('dbus_conf_dir', type: 'string', value: '', description: 'where D-Bus sys
 option('kernel_firmware_dir', type: 'string', value: '/lib/firmware', description: 'where kernel firmware directory is (default is /lib/firmware)')
 option('runtime_dir', type: 'string', value: '', description: 'Directory for transient runtime state [default: LOCALSTATEDIR/run or /run]')
 option('iptables', type: 'string', value: '', description: 'path to iptables')
+option('ip6tables', type: 'string', value: '', description: 'path to ip6tables')
 option('nft', type: 'string', value: '', description: 'path to nft')
 option('dnsmasq', type: 'string', value: '', description: 'path to dnsmasq')
 option('modprobe', type: 'string', value: '', description: 'path to modprobe')
@@ -44,6 +45,7 @@ option('nmtui', type: 'boolean', value: true, description: 'Build nmtui')
 option('nm_cloud_setup', type: 'boolean', value: true, description: 'Build nm-cloud-setup, a tool for automatically configuring networking in cloud')
 option('bluez5_dun', type: 'boolean', value: false, description: 'enable Bluez5 DUN support')
 option('ebpf', type: 'combo', choices: ['auto', 'true', 'false'], description: 'Enable eBPF support')
+option('nbft', type: 'boolean', value: true, description: 'Enable NBFT support in the initrd generator')
 
 # configuration plugins
 option('config_plugins_default', type: 'string', value: '', description: 'Default configuration option for main.plugins setting, used as fallback if the configuration option is unset')

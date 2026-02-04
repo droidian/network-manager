@@ -1979,6 +1979,11 @@ global:
 	nm_sriov_eswitch_mode_get_type;
 } libnm_1_44_0;
 
+libnm_1_46_8 {
+	#nm_ethtool_optname_is_fec@libnm_1_46_8;
+	#nm_setting_ethtool_fec_mode_get_type@libnm_1_46_8;
+} libnm_1_46_0;
+
 libnm_1_48_0 {
 global:
 	nm_setting_connection_down_on_poweroff_get_type;
@@ -2003,11 +2008,21 @@ global:
 	nm_setting_802_1x_get_openssl_ciphers;
 } libnm_1_46_0;
 
+libnm_1_48_18 {
+	#nm_ethtool_optname_is_fec@libnm_1_48_18;
+	#nm_setting_ethtool_fec_mode_get_type@libnm_1_48_18;
+} libnm_1_48_0;
+
 libnm_1_50_0 {
 global:
 	nm_setting_wireless_channel_width_get_type;
 	nm_setting_wireless_get_channel_width;
 } libnm_1_48_0;
+
+libnm_1_50_4 {
+	#nm_ethtool_optname_is_fec@libnm_1_50_4;
+	#nm_setting_ethtool_fec_mode_get_type@libnm_1_50_4;
+} libnm_1_50_0;
 
 libnm_1_52_0 {
 global:
@@ -2048,3 +2063,16 @@ global:
 	nm_setting_ethtool_fec_mode_get_type;
 	nm_ethtool_optname_is_fec;
 } libnm_1_50_0;
+
+libnm_1_54_0 {
+global:
+	nm_setting_ip_config_forwarding_get_type;
+	nm_setting_ip_config_get_forwarding;
+	nm_setting_ovs_dpdk_get_lsc_interrupt;
+	nm_setting_ovs_dpdk_lsc_interrupt_get_type;
+	nm_setting_prefix_delegation_get_subnet_id;
+	nm_setting_prefix_delegation_get_type;
+	nm_setting_prefix_delegation_new;
+	nm_setting_sriov_get_preserve_on_down;
+	nm_sriov_preserve_on_down_get_type;
+} libnm_1_52_0;

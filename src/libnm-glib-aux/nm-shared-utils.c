@@ -2898,7 +2898,7 @@ nm_utils_buf_utf8safe_unescape(const char             *str,
  *
  * Depending on @flags, valid UTF-8 characters are not escaped at all
  * (except the escape character '\\'). This is the difference to g_strescape(),
- * which escapes all non-ASCII characters. This allows to pass on
+ * which escapes all non-ASCII characters. This allows one to pass on
  * valid UTF-8 characters as-is and can be directly shown to the user
  * as UTF-8 -- with exception of the backslash escape character,
  * invalid UTF-8 sequences, and other (depending on @flags).
@@ -3113,7 +3113,7 @@ nm_utils_str_utf8safe_unescape(const char *str, NMUtilsStrUtf8SafeFlags flags, c
  *
  * Depending on @flags, valid UTF-8 characters are not escaped at all
  * (except the escape character '\\'). This is the difference to g_strescape(),
- * which escapes all non-ASCII characters. This allows to pass on
+ * which escapes all non-ASCII characters. This allows one to pass on
  * valid UTF-8 characters as-is and can be directly shown to the user
  * as UTF-8 -- with exception of the backslash escape character,
  * invalid UTF-8 sequences, and other (depending on @flags).
@@ -6004,8 +6004,8 @@ nm_utils_is_localhost(const char *name)
     return FALSE;
 }
 
-gboolean
-nm_utils_is_specific_hostname(const char *name)
+static gboolean
+_nm_utils_check_hostname(const char *name, bool allow_localhost)
 {
     if (nm_str_is_empty(name))
         return FALSE;
@@ -6016,12 +6016,24 @@ nm_utils_is_specific_hostname(const char *name)
         return FALSE;
     }
 
-    if (nm_utils_is_localhost(name))
+    if (!allow_localhost && nm_utils_is_localhost(name))
         return FALSE;
 
     /* FIXME: properly validate the hostname, like systemd's hostname_is_valid() */
 
     return TRUE;
+}
+
+gboolean
+nm_utils_is_specific_hostname(const char *name)
+{
+    return _nm_utils_check_hostname(name, FALSE);
+}
+
+gboolean
+nm_utils_is_not_empty_hostname(const char *name)
+{
+    return _nm_utils_check_hostname(name, TRUE);
 }
 
 /*****************************************************************************/

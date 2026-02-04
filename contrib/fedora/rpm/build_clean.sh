@@ -143,7 +143,7 @@ while [[ $# -gt 0 ]]; do
             ;;
         --no-auto-with-test)
             # by default, the script adds "-w test" (unless the command line contains
-            # "-w test" or "-W test"). This flags allows to suppress that automatism.
+            # "-w test" or "-W test"). This flag suppresses that automatism.
             # It's really only useful to test the spec file's internal default for the
             # "test" option. Otherwise, you can always just explicitly select "-w test"
             # or "-W test".
@@ -222,6 +222,7 @@ if [[ $NO_DIST != 1 ]]; then
         -Dconfig_dhcp_default=internal \
         -Dconfig_dns_rc_manager_default=auto \
         -Diptables=/usr/sbin/iptables \
+        -Dip6tables=/usr/sbin/ip6tables \
         -Dnft=/usr/bin/nft \
         || die "Error meson setup"
 

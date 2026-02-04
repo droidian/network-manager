@@ -99,6 +99,10 @@
  *   on connection down.
  *   https://issues.redhat.com/browse/RHEL-66262
  *   https://issues.redhat.com/browse/RHEL-67324
+ * @NM_VERSION_INFO_CAPABILITY_IP4_FORWARDING: Indicates that NetworkManager supports
+ * configuring per-device IPv4 sysctl forwarding setting. Since: 1.54.
+ * @NM_VERSION_INFO_CAPABILITY_SRIOV_PRESERVE_ON_DOWN: NetworkManager supports the
+ *   "sriov.preserve-on-down" property. Since: 1.54
  *
  * The numeric values represent the bit index of the capability. These capabilities
  * can be queried in the "VersionInfo" D-Bus property.
@@ -106,7 +110,9 @@
  * Since: 1.42
  */
 typedef enum {
-    NM_VERSION_INFO_CAPABILITY_SYNC_ROUTE_WITH_TABLE = 0,
+    NM_VERSION_INFO_CAPABILITY_SYNC_ROUTE_WITH_TABLE  = 0,
+    NM_VERSION_INFO_CAPABILITY_IP4_FORWARDING         = 1,
+    NM_VERSION_INFO_CAPABILITY_SRIOV_PRESERVE_ON_DOWN = 2,
 } NMVersionInfoCapability;
 
 /**
@@ -1014,7 +1020,7 @@ typedef enum {
  *   checkpoints is allowed, however, if an older checkpoint
  *   that references overlapping devices gets rolled back, it will
  *   automatically destroy this checkpoint during rollback. This
- *   allows to create several overlapping checkpoints in parallel,
+ *   allows one to create several overlapping checkpoints in parallel,
  *   and rollback to them at will. With the special case that
  *   rolling back to an older checkpoint will invalidate all
  *   overlapping younger checkpoints. This opts-in that the

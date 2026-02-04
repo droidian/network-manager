@@ -18,6 +18,7 @@
 #include "NetworkManagerUtils.h"
 #include "devices/nm-device.h"
 #include "devices/nm-device-factory.h"
+#include "devices/nm-device-private.h"
 #include "dns/nm-dns-manager.h"
 #include "nm-act-request.h"
 #include "nm-auth-utils.h"
@@ -97,7 +98,6 @@ typedef struct {
     bool updating_dns : 1;
 
     GArray *ip6_prefix_delegations; /* pool of ip6 prefixes delegated to all devices */
-
 } NMPolicyPrivate;
 
 struct _NMPolicy {
@@ -155,17 +155,15 @@ static gboolean  hostname_retry_cb(gpointer user_data);
 
 typedef struct {
     NMPlatformIP6Address prefix;
-    NMDevice            *device;      /* The requesting ("uplink") device */
-    guint64              next_subnet; /* Cache of the next subnet number to be
-                                       * assigned from this prefix */
-    GHashTable          *subnets;     /* ifindex -> NMPlatformIP6Address */
+    NMDevice            *device;                   /* The requesting ("uplink") device */
+    GHashTable          *map_subnet_id_to_ifindex; /* (guint64 *) subnet_id -> int ifindex */
+    GHashTable          *map_ifindex_to_subnet; /* int ifindex -> (NMPlatformIP6Address *) prefix */
 } IP6PrefixDelegation;
 
 static void
-_clear_ip6_subnet(gpointer key, gpointer value, gpointer user_data)
+clear_ip6_subnet(int ifindex, NMPlatformIP6Address *subnet)
 {
-    NMPlatformIP6Address *subnet = value;
-    NMDevice *device = nm_manager_get_device_by_ifindex(NM_MANAGER_GET, GPOINTER_TO_INT(key));
+    NMDevice *device = nm_manager_get_device_by_ifindex(NM_MANAGER_GET, ifindex);
 
     if (device) {
         /* We can not remove a subnet we already started announcing.
@@ -174,6 +172,12 @@ _clear_ip6_subnet(gpointer key, gpointer value, gpointer user_data)
         nm_device_use_ip6_subnet(device, subnet);
     }
     g_slice_free(NMPlatformIP6Address, subnet);
+}
+
+static void
+clear_ip6_subnet_entry(gpointer key, gpointer value, gpointer user_data)
+{
+    clear_ip6_subnet(GPOINTER_TO_INT(key), value);
 }
 
 static void
@@ -187,8 +191,9 @@ clear_ip6_prefix_delegation(gpointer data)
           nm_inet6_ntop(&delegation->prefix.address, sbuf),
           delegation->prefix.plen);
 
-    g_hash_table_foreach(delegation->subnets, _clear_ip6_subnet, NULL);
-    g_hash_table_destroy(delegation->subnets);
+    g_hash_table_foreach(delegation->map_ifindex_to_subnet, clear_ip6_subnet_entry, NULL);
+    g_hash_table_destroy(delegation->map_ifindex_to_subnet);
+    g_hash_table_destroy(delegation->map_subnet_id_to_ifindex);
 }
 
 static void
@@ -215,46 +220,112 @@ expire_ip6_delegations(NMPolicy *self)
 static gboolean
 ip6_subnet_from_delegation(IP6PrefixDelegation *delegation, NMDevice *device)
 {
-    NMPlatformIP6Address *subnet;
-    int                   ifindex = nm_device_get_ifindex(device);
-    char                  sbuf[NM_INET_ADDRSTRLEN];
+    NMPlatformIP6Address      *subnet;
+    int                        ifindex = nm_device_get_ifindex(device);
+    char                       sbuf[NM_INET_ADDRSTRLEN];
+    NMSettingPrefixDelegation *s_pd;
+    gint64                     wanted_subnet_id = -1;
+    guint64                    num_subnets;
+    guint64                    old_subnet_id;
 
-    subnet = g_hash_table_lookup(delegation->subnets, GINT_TO_POINTER(ifindex));
-    if (!subnet) {
-        /* Check for out-of-prefixes condition. */
-        if (delegation->next_subnet >= (1 << (64 - delegation->prefix.plen))) {
-            _LOGD(LOGD_IP6,
-                  "ipv6-pd: no more prefixes in %s/%d",
-                  nm_inet6_ntop(&delegation->prefix.address, sbuf),
-                  delegation->prefix.plen);
-            return FALSE;
-        }
+    nm_assert(delegation->prefix.plen > 0 && delegation->prefix.plen <= 64);
 
-        /* Allocate a new subnet. */
-        subnet = g_slice_new0(NMPlatformIP6Address);
-        g_hash_table_insert(delegation->subnets, GINT_TO_POINTER(ifindex), subnet);
-
-        subnet->plen = 64;
-        subnet->address.s6_addr32[0] =
-            delegation->prefix.address.s6_addr32[0] | htonl(delegation->next_subnet >> 32);
-        subnet->address.s6_addr32[1] =
-            delegation->prefix.address.s6_addr32[1] | htonl(delegation->next_subnet);
-
-        /* Out subnet pool management is pretty unsophisticated. We only add
-         * the subnets and index them by ifindex. That keeps the implementation
-         * simple and the dead entries make it easy to reuse the same subnet on
-         * subsequent activations. On the other hand they may waste the subnet
-         * space. */
-        delegation->next_subnet++;
+    s_pd = nm_device_get_applied_setting(device, NM_TYPE_SETTING_PREFIX_DELEGATION);
+    if (s_pd) {
+        wanted_subnet_id = nm_setting_prefix_delegation_get_subnet_id(s_pd);
     }
 
+    /* Try to use the cached subnet assigned to the interface */
+    subnet = g_hash_table_lookup(delegation->map_ifindex_to_subnet, GINT_TO_POINTER(ifindex));
+    if (subnet) {
+        old_subnet_id = nm_ip6_addr_get_subnet_id(&subnet->address, delegation->prefix.plen);
+        if (wanted_subnet_id != -1 && wanted_subnet_id != old_subnet_id) {
+            /* The device had a subnet assigned before, but now wants a
+             * different subnet-id. Release the old subnet and continue below
+             * to get a new one. */
+            clear_ip6_subnet(ifindex, subnet);
+            subnet = NULL;
+            g_hash_table_remove(delegation->map_ifindex_to_subnet, GINT_TO_POINTER(ifindex));
+            g_hash_table_remove(delegation->map_subnet_id_to_ifindex, &old_subnet_id);
+        } else {
+            goto subnet_found;
+        }
+    }
+
+    /* Check for out-of-prefixes condition */
+    num_subnets = 1 << (64 - delegation->prefix.plen);
+    if (nm_g_hash_table_size(delegation->map_subnet_id_to_ifindex) >= num_subnets) {
+        _LOGD(LOGD_IP6,
+              "ipv6-pd: no more prefixes in %s/%u",
+              nm_inet6_ntop(&delegation->prefix.address, sbuf),
+              delegation->prefix.plen);
+        return FALSE;
+    }
+
+    /* Try to honor the "prefix-delegation.subnet-id" property */
+    if (wanted_subnet_id >= 0) {
+        gpointer  value;
+        NMDevice *other_device;
+
+        if (g_hash_table_lookup_extended(delegation->map_subnet_id_to_ifindex,
+                                         &wanted_subnet_id,
+                                         NULL,
+                                         &value)) {
+            other_device = nm_manager_get_device_by_ifindex(NM_MANAGER_GET, GPOINTER_TO_INT(value));
+            _LOGW(LOGD_IP6,
+                  "ipv6-pd: subnet-id 0x%" G_GINT64_MODIFIER
+                  "x wanted by device %s is already in use by "
+                  "device %s (ifindex %d)",
+                  (guint64) wanted_subnet_id,
+                  nm_device_get_iface(device),
+                  other_device ? nm_device_get_ip_iface(other_device) : NULL,
+                  GPOINTER_TO_INT(value));
+            wanted_subnet_id = -1;
+        }
+    }
+
+    /* If we don't have a subnet-id yet, find the first one available */
+    if (wanted_subnet_id < 0) {
+        guint64 i;
+
+        for (i = 0; i < num_subnets; i++) {
+            if (!g_hash_table_lookup_extended(delegation->map_subnet_id_to_ifindex,
+                                              &i,
+                                              NULL,
+                                              NULL)) {
+                wanted_subnet_id = (gint64) i;
+                break;
+            }
+        }
+
+        if (wanted_subnet_id < 0) {
+            /* We already verified that there are available subnets, this should not happen */
+            return nm_assert_unreachable_val(FALSE);
+        }
+    }
+
+    /* Allocate a new subnet */
+    subnet = g_slice_new0(NMPlatformIP6Address);
+    g_hash_table_insert(delegation->map_ifindex_to_subnet, GINT_TO_POINTER(ifindex), subnet);
+    g_hash_table_insert(delegation->map_subnet_id_to_ifindex,
+                        nm_memdup(&wanted_subnet_id, sizeof(guint64)),
+                        GINT_TO_POINTER(ifindex));
+
+    subnet->plen = 64;
+    subnet->address.s6_addr32[0] =
+        delegation->prefix.address.s6_addr32[0] | htonl(wanted_subnet_id >> 32);
+    subnet->address.s6_addr32[1] =
+        delegation->prefix.address.s6_addr32[1] | htonl(wanted_subnet_id);
+
+subnet_found:
     subnet->timestamp = delegation->prefix.timestamp;
     subnet->lifetime  = delegation->prefix.lifetime;
     subnet->preferred = delegation->prefix.preferred;
 
     _LOGD(LOGD_IP6,
-          "ipv6-pd: %s allocated from a /%d prefix on %s",
+          "ipv6-pd: %s/64 (subnet-id 0x%" G_GINT64_MODIFIER "x) allocated from a /%d prefix on %s",
           nm_inet6_ntop(&subnet->address, sbuf),
+          (guint64) wanted_subnet_id,
           delegation->prefix.plen,
           nm_device_get_iface(device));
 
@@ -345,8 +416,9 @@ device_ip6_prefix_delegated(NMDevice                   *device,
     if (i == priv->ip6_prefix_delegations->len) {
         /* Allocate a delegation for new prefix. */
         delegation = nm_g_array_append_new(priv->ip6_prefix_delegations, IP6PrefixDelegation);
-        delegation->subnets     = g_hash_table_new(nm_direct_hash, NULL);
-        delegation->next_subnet = 0;
+        delegation->map_subnet_id_to_ifindex =
+            g_hash_table_new_full(nm_puint64_hash, nm_puint64_equal, g_free, NULL);
+        delegation->map_ifindex_to_subnet = g_hash_table_new(nm_direct_hash, NULL);
     }
 
     delegation->device = device;
@@ -960,7 +1032,7 @@ update_system_hostname(NMPolicy *self, const char *msg, gboolean reset_retry_int
 
     /* Try a persistent hostname first */
     configured_hostname = nm_hostname_manager_get_static_hostname(priv->hostname_manager);
-    if (configured_hostname && nm_utils_is_specific_hostname(configured_hostname)) {
+    if (configured_hostname && nm_utils_is_not_empty_hostname(configured_hostname)) {
         _set_hostname(self, configured_hostname, "from system configuration", FALSE);
         priv->dhcp_hostname = FALSE;
         return;
@@ -2012,6 +2084,65 @@ unblock_autoconnect_for_ports_for_sett_conn(NMPolicy *self, NMSettingsConnection
 }
 
 static void
+refresh_forwarding(NMPolicy *self, NMDevice *device, gboolean is_activated_shared_device)
+{
+    NMActiveConnection *ac;
+    NMDevice           *tmp_device;
+    NMPolicyPrivate    *priv = NM_POLICY_GET_PRIVATE(self);
+    const CList        *tmp_lst;
+    gboolean            any_shared_active = false;
+    gint32              default_forwarding_v4;
+    const char         *new_value = NULL;
+
+    /* FIXME: This implementation is still inefficient because refresh_forwarding()
+     * is called every time a device goes up or down, requiring a full scan of all
+     * active connections to determine if any shared connection is active. */
+    nm_manager_for_each_active_connection (priv->manager, ac, tmp_lst) {
+        NMSettingIPConfig *s_ip;
+        NMDevice          *to_device = nm_active_connection_get_device(ac);
+
+        if (to_device) {
+            s_ip = nm_device_get_applied_setting(to_device, NM_TYPE_SETTING_IP4_CONFIG);
+            if (s_ip) {
+                if (nm_streq0(nm_device_get_effective_ip_config_method(to_device, AF_INET),
+                              NM_SETTING_IP4_CONFIG_METHOD_SHARED)) {
+                    any_shared_active = true;
+                    break;
+                }
+            }
+        }
+    }
+
+    default_forwarding_v4 = nm_platform_sysctl_get_int32(
+        NM_PLATFORM_GET,
+        NMP_SYSCTL_PATHID_ABSOLUTE("/proc/sys/net/ipv4/conf/default/forwarding"),
+        0);
+
+    new_value = any_shared_active ? "1" : (default_forwarding_v4 ? "1" : "0");
+
+    nm_manager_for_each_device (priv->manager, tmp_device, tmp_lst) {
+        NMDeviceState               state;
+        NMSettingIPConfigForwarding ipv4_forwarding;
+
+        state = nm_device_get_state(tmp_device);
+        if (state != NM_DEVICE_STATE_ACTIVATED)
+            continue;
+
+        ipv4_forwarding = nm_device_get_ipv4_forwarding(tmp_device);
+
+        if (ipv4_forwarding == NM_SETTING_IP_CONFIG_FORWARDING_AUTO
+            || (device == tmp_device && is_activated_shared_device)) {
+            gs_free char *sysctl_value = NULL;
+
+            sysctl_value = nm_device_sysctl_ip_conf_get(tmp_device, AF_INET, "forwarding");
+
+            if (!nm_streq0(sysctl_value, new_value))
+                nm_device_sysctl_ip_conf_set(tmp_device, AF_INET, "forwarding", new_value);
+        }
+    }
+}
+
+static void
 activate_port_or_children_connections(NMPolicy *self,
                                       NMDevice *device,
                                       gboolean  activate_children_connections_only)
@@ -2155,8 +2286,9 @@ device_state_changed(NMDevice           *device,
     NMPolicyPrivate      *priv = user_data;
     NMPolicy             *self = _PRIV_TO_SELF(priv);
     NMActiveConnection   *ac;
-    NMSettingsConnection *sett_conn = nm_device_get_settings_connection(device);
-    NMSettingConnection  *s_con     = NULL;
+    NMSettingsConnection *sett_conn                  = nm_device_get_settings_connection(device);
+    NMSettingConnection  *s_con                      = NULL;
+    gboolean              is_activated_shared_device = FALSE;
 
     switch (nm_device_state_reason_check(reason)) {
     case NM_DEVICE_STATE_REASON_GSM_SIM_PIN_REQUIRED:
@@ -2211,8 +2343,10 @@ device_state_changed(NMDevice           *device,
                 con_v = nm_settings_connection_get_last_secret_agent_version_id(sett_conn);
                 if (con_v == 0 || con_v == nm_agent_manager_get_agent_version_id(priv->agent_mgr)) {
                     _LOGD(LOGD_DEVICE,
-                          "block-autoconnect: connection '%s' now blocked from autoconnect due to "
-                          "no secrets",
+                          "block-autoconnect: connection[" NM_HASH_OBFUSCATE_PTR_FMT
+                          "] (%s) now blocked from "
+                          "autoconnect due to no secrets",
+                          NM_HASH_OBFUSCATE_PTR(sett_conn),
                           nm_settings_connection_get_id(sett_conn));
                     nm_settings_connection_autoconnect_blocked_reason_set(
                         sett_conn,
@@ -2230,10 +2364,10 @@ device_state_changed(NMDevice           *device,
                  * be marked as blocked when it fails with dependency-failed.
                  */
                 _LOGD(LOGD_DEVICE,
-                      "block-autoconnect: connection[%p] (%s) now blocked from autoconnect due to "
-                      "failed "
-                      "dependency",
-                      sett_conn,
+                      "block-autoconnect: connection[" NM_HASH_OBFUSCATE_PTR_FMT
+                      "] (%s) now blocked "
+                      "from autoconnect due to failed dependency",
+                      NM_HASH_OBFUSCATE_PTR(sett_conn),
                       nm_settings_connection_get_id(sett_conn));
                 nm_manager_devcon_autoconnect_blocked_reason_set(
                     priv->manager,
@@ -2255,19 +2389,24 @@ device_state_changed(NMDevice           *device,
                     /* blocked */
                 } else if (tries != NM_AUTOCONNECT_RETRIES_FOREVER) {
                     _LOGD(LOGD_DEVICE,
-                          "autoconnect: connection[%p] (%s): failed to autoconnect; %u tries left",
-                          sett_conn,
+                          "autoconnect: connection[" NM_HASH_OBFUSCATE_PTR_FMT "] (%s): failed to "
+                          "autoconnect; %u tries left",
+                          NM_HASH_OBFUSCATE_PTR(sett_conn),
                           nm_settings_connection_get_id(sett_conn),
                           tries - 1u);
                     _connection_autoconnect_retries_set(self, device, sett_conn, tries - 1u);
                 } else {
                     _LOGD(LOGD_DEVICE,
-                          "autoconnect: connection[%p] (%s) failed to autoconnect; infinite tries "
-                          "left",
-                          sett_conn,
+                          "autoconnect: connection[" NM_HASH_OBFUSCATE_PTR_FMT "] (%s) failed to "
+                          "autoconnect; infinite tries left",
+                          NM_HASH_OBFUSCATE_PTR(sett_conn),
                           nm_settings_connection_get_id(sett_conn));
                 }
             }
+        }
+        if (!nm_device_get_refresh_forwarding_done(device)) {
+            refresh_forwarding(self, device, FALSE);
+            nm_device_set_refresh_forwarding_done(device, TRUE);
         }
         break;
     case NM_DEVICE_STATE_ACTIVATED:
@@ -2301,11 +2440,20 @@ device_state_changed(NMDevice           *device,
         update_system_hostname(self, "routing and dns", TRUE);
         nm_dns_manager_end_updates(priv->dns_manager, __func__);
 
+        is_activated_shared_device =
+            nm_streq0(nm_device_get_effective_ip_config_method(device, AF_INET),
+                      NM_SETTING_IP4_CONFIG_METHOD_SHARED);
+        refresh_forwarding(self, device, is_activated_shared_device);
+        nm_device_set_refresh_forwarding_done(device, FALSE);
         break;
     case NM_DEVICE_STATE_UNMANAGED:
     case NM_DEVICE_STATE_UNAVAILABLE:
         if (old_state > NM_DEVICE_STATE_DISCONNECTED)
             update_routing_and_dns(self, FALSE, device);
+        if (!nm_device_get_refresh_forwarding_done(device)) {
+            refresh_forwarding(self, device, FALSE);
+            nm_device_set_refresh_forwarding_done(device, TRUE);
+        }
         break;
     case NM_DEVICE_STATE_DEACTIVATING:
         if (sett_conn) {
@@ -2341,6 +2489,10 @@ device_state_changed(NMDevice           *device,
             }
         }
         ip6_remove_device_prefix_delegations(self, device);
+        if (!nm_device_get_refresh_forwarding_done(device)) {
+            refresh_forwarding(self, device, FALSE);
+            nm_device_set_refresh_forwarding_done(device, TRUE);
+        }
         break;
     case NM_DEVICE_STATE_DISCONNECTED:
         g_signal_handlers_disconnect_by_func(device, device_dns_lookup_done, self);
@@ -2357,6 +2509,10 @@ device_state_changed(NMDevice           *device,
 
         /* Device is now available for auto-activation */
         nm_policy_device_recheck_auto_activate_schedule(self, device);
+        if (!nm_device_get_refresh_forwarding_done(device)) {
+            refresh_forwarding(self, device, FALSE);
+            nm_device_set_refresh_forwarding_done(device, TRUE);
+        }
         break;
 
     case NM_DEVICE_STATE_PREPARE:
@@ -2372,6 +2528,10 @@ device_state_changed(NMDevice           *device,
             g_object_weak_unref(G_OBJECT(ac), pending_ac_gone, self);
             g_object_unref(self);
         }
+        if (!nm_device_get_refresh_forwarding_done(device)) {
+            refresh_forwarding(self, device, FALSE);
+            nm_device_set_refresh_forwarding_done(device, TRUE);
+        }
         break;
     case NM_DEVICE_STATE_IP_CONFIG:
         /* We must have secrets if we got here. */
@@ -2382,6 +2542,10 @@ device_state_changed(NMDevice           *device,
                 sett_conn,
                 NM_SETTINGS_AUTOCONNECT_BLOCKED_REASON_FAILED,
                 FALSE);
+        if (!nm_device_get_refresh_forwarding_done(device)) {
+            refresh_forwarding(self, device, FALSE);
+            nm_device_set_refresh_forwarding_done(device, TRUE);
+        }
         break;
     case NM_DEVICE_STATE_SECONDARIES:
         if (sett_conn)

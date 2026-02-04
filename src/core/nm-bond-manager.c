@@ -882,7 +882,7 @@ nm_bond_manager_send_arp(int                 bond_ifindex,
         .sll_protocol = htons(ETH_P_ARP),
         .sll_ifindex  = bond_ifindex,
     };
-    ARPPacket         data;
+    ARPPacket         data = {0};
     const guint8     *hwaddr;
     gsize             hwaddrlen    = 0;
     nm_auto_close int sockfd       = -1;
@@ -916,21 +916,21 @@ nm_bond_manager_send_arp(int                 bond_ifindex,
     if (announce_fdb) {
         /* if we are announcing the FDB we do a RARP, we don't set the
          * source/dest IPv4 address */
-        int                   ifindexes[] = {bridge_ifindex, bond_ifindex};
-        int                   i;
-        gs_free NMEtherAddr **fdb_addrs = NULL;
+        int                         ifindexes[] = {bridge_ifindex, bond_ifindex};
+        int                         i;
+        nm_auto_freev NMEtherAddr **fdb_addrs = NULL;
 
-        fdb_addrs = nm_linux_platform_get_link_fdb_table(platform, ifindexes, 2);
+        fdb_addrs = nm_linux_platform_get_bridge_fdb(platform, ifindexes, 2);
         /* we want to send a Reverse ARP (RARP) packet */
         data.op = htons(ARP_OP_RARP);
 
         i = 0;
         while (fdb_addrs[i] != NULL) {
             NMEtherAddr *tmp_hwaddr = fdb_addrs[i];
+
             memcpy(data.s_hw_addr, tmp_hwaddr, ETH_ALEN);
             memcpy(data.d_hw_addr, tmp_hwaddr, ETH_ALEN);
             memcpy(data.s_addr, tmp_hwaddr, ETH_ALEN);
-            g_free(tmp_hwaddr);
             if (sendto(sockfd, &data, sizeof(data), 0, (struct sockaddr *) &addr, sizeof(addr)) < 0)
                 return FALSE;
             i++;
@@ -940,6 +940,7 @@ nm_bond_manager_send_arp(int                 bond_ifindex,
         data.op = htons(ARP_OP_GARP);
         memcpy(data.s_addr, hwaddr, hwaddrlen);
         memcpy(data.s_hw_addr, hwaddr, hwaddrlen);
+        memset(data.d_hw_addr, 0xff, ETH_ALEN);
         for (int i = 0; i < addrs_len; i++) {
             const in_addr_t tmp_addr = addrs_array[i];
 
