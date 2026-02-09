@@ -1,3 +1,20 @@
+network-manager (1.54.3-2) unstable; urgency=medium
+
+  [ Max Nikulin ]
+  * Add nftables to as a preferred alternative to iptables
+
+  [ Michael Biebl ]
+  * Do not ship initrd specific services.
+    Those systemd services are meant for the initrd but are not actually
+    used by dracut (yet). They conflict with the main services and can lead
+    to potentially confusing error messages. So remove them for now.
+    (Closes: #1117732)
+  * Drop redundant Priority and Rules-Requires-Root field
+  * Bump Standards-Version to 4.7.3
+  * Drop no longer needed migration code from pre-oldstable
+
+ -- Michael Biebl <biebl@debian.org>  Mon, 09 Feb 2026 12:02:29 +0100
+
 network-manager (1.54.3-1) unstable; urgency=medium
 
   * New upstream version 1.54.3
