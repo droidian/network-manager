@@ -83,6 +83,14 @@ Description: network management framework (daemon and userspace tools)
     teamed together and act like a single one. This process is called "ethernet
     bonding", "channel teaming" or "link aggregation".
 
+Package: network-manager-ovs
+Architecture: linux-any
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+         libnm0 (= ${binary:Version}),
+Description: Open vSwitch (OVS) support for NetworkManager
+ This package adds Open vSwitch support.
+
 Package: network-manager-dev
 Section: devel
 Architecture: all
