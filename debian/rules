@@ -59,6 +59,14 @@ override_dh_auto_configure:
 		-Dnbft=false \
 		-Dofono=true
 
+execute_after_dh_auto_install:
+	# Those initrd specific services are not actually used by dracut and
+	# conflict with the main services, so remove them for now.
+	# https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=1117732
+	rm -f debian/tmp/usr/lib/systemd/system/NetworkManager-config-initrd.service
+	rm -f debian/tmp/usr/lib/systemd/system/NetworkManager-wait-online-initrd.service
+	rm -f debian/tmp/usr/lib/systemd/system/NetworkManager-initrd.service
+
 override_dh_makeshlibs:
 	dh_makeshlibs -X/usr/lib/$(DEB_HOST_MULTIARCH)/NetworkManager/ -X/usr/lib/pppd/
 
