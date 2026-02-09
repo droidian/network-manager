@@ -1,6 +1,5 @@
 Source: network-manager
 Section: net
-Priority: optional
 Maintainer: Utopia Maintenance Team <pkg-utopia-maintainers@lists.alioth.debian.org>
 Uploaders: Michael Biebl <biebl@debian.org>
 Build-Depends: debhelper-compat (= 13),
@@ -42,7 +41,6 @@ Build-Depends: debhelper-compat (= 13),
                python3-pexpect <!nocheck>,
                iproute2 <!nocheck>,
 Standards-Version: 4.7.2
-Rules-Requires-Root: no
 Vcs-Git: https://salsa.debian.org/utopia-team/network-manager.git
 Vcs-Browser: https://salsa.debian.org/utopia-team/network-manager
 Homepage: https://networkmanager.dev/
