@@ -41,9 +41,6 @@ case "$1" in
             fi
         fi
 
-        if dpkg --compare-versions "$2" lt-nl "1.35.91-1"; then
-            deb-systemd-helper purge "nm-priv-helper.service" || true
-        fi
         ;;
 
     abort-upgrade|abort-deconfigure|abort-remove)
