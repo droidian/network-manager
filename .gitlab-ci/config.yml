@@ -23,17 +23,39 @@ distributions:
   - name: fedora
     tier: 1
     versions:
-      - '43'
+      - '42'
 
   # TIER 2: distribution versions that will or might use the current NM version.
   # Run when doing a release.
+  - name: fedora
+    tier: 2
+    versions:
+      - 'rawhide'
+  - name: centos
+    tier: 2
+    versions:
+      - 'stream10'
+      - 'stream9'
+  - name: ubuntu
+    tier: 2
+    versions:
+      - 'devel'
+  - name: debian
+    tier: 2
+    versions:
+      - 'testing'
+      - 'sid'
+  - name: alpine
+    tier: 2
+    versions:
+      - 'edge'
 
   # TIER 3: distribution versions not in EOL but don't use the current NM version.
   # Run when doing a release, but a failure won't be blocking for the release.
   - name: fedora
     tier: 3
     versions:
-      - '42'
+      - '43'
       - '41'
   - name: ubuntu
     tier: 3
@@ -53,8 +75,3 @@ distributions:
       - '3.21'
       - '3.20'
       - '3.19'
-  - name: centos
-    tier: 3
-    versions:
-      - 'stream10'
-      - 'stream9'

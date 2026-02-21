@@ -2865,6 +2865,7 @@ _host_id_read(guint8 **out_host_id, gsize *out_host_id_len)
                                                0600,
                                                NULL,
                                                NULL,
+                                               NULL,
                                                &error)) {
             nm_log_warn(
                 LOGD_CORE,
@@ -5162,6 +5163,14 @@ helper_have_data(int fd, GIOCondition condition, gpointer user_data)
     n_read = nm_utils_fd_read(fd, &info->in_buffer);
     _LOG2T(info, "read returns %ld", (long) n_read);
 
+    if (info->in_buffer.len > 32 * 1024 * 1024) {
+        helper_complete(info,
+                        g_error_new_literal(NM_UTILS_ERROR,
+                                            NM_UTILS_ERROR_UNKNOWN,
+                                            "the output is larger than 32MiB"));
+        return G_SOURCE_CONTINUE;
+    }
+
     if (n_read > 0)
         return G_SOURCE_CONTINUE;
 
@@ -5502,6 +5511,155 @@ nm_utils_shorten_hostname(const char *hostname, char **shortened)
 
     *shortened = g_steal_pointer(&s);
     return TRUE;
+}
+
+/**
+ * nm_utils_connection_supported:
+ * @connection: the connection
+ * @error: on return, the reason why the connection in not supported
+ *
+ * Returns whether the given connection is supported by this version
+ * of NetworkManager.
+ */
+gboolean
+nm_utils_connection_supported(NMConnection *connection, GError **error)
+{
+    const char *type;
+    const char *feature = NULL;
+
+    g_return_val_if_fail(connection, FALSE);
+    g_return_val_if_fail(!error || !*error, FALSE);
+
+    type = nm_connection_get_connection_type(connection);
+
+    if (!WITH_TEAMDCTL) {
+        NMSettingConnection *s_con;
+
+        if (nm_streq0(type, NM_SETTING_TEAM_SETTING_NAME)) {
+            feature = "team";
+            goto out_disabled;
+        }
+
+        /* Match team ports */
+        if ((s_con = nm_connection_get_setting_connection(connection))
+            && nm_streq0(nm_setting_connection_get_port_type(s_con),
+                         NM_SETTING_TEAM_SETTING_NAME)) {
+            feature = "team";
+            goto out_disabled;
+        }
+    }
+
+    if (!WITH_OPENVSWITCH) {
+        if (NM_IN_STRSET(type,
+                         NM_SETTING_OVS_BRIDGE_SETTING_NAME,
+                         NM_SETTING_OVS_PORT_SETTING_NAME,
+                         NM_SETTING_OVS_INTERFACE_SETTING_NAME)) {
+            feature = "Open vSwitch";
+            goto out_disabled;
+        }
+
+        /* Match OVS system interfaces */
+        if (nm_connection_get_setting_ovs_interface(connection)) {
+            feature = "Open vSwitch";
+            goto out_disabled;
+        }
+    }
+
+    if (!WITH_WIFI
+        && NM_IN_STRSET(type,
+                        NM_SETTING_WIRELESS_SETTING_NAME,
+                        NM_SETTING_OLPC_MESH_SETTING_NAME,
+                        NM_SETTING_WIFI_P2P_SETTING_NAME)) {
+        feature = "Wi-Fi";
+        goto out_disabled;
+    }
+
+    if (!WITH_WWAN
+        && NM_IN_STRSET(type, NM_SETTING_GSM_SETTING_NAME, NM_SETTING_CDMA_SETTING_NAME)) {
+        feature = "WWAN";
+        goto out_disabled;
+    }
+
+    if (nm_streq0(type, NM_SETTING_WIMAX_SETTING_NAME)) {
+        feature = "WiMAX";
+        goto out_removed;
+    }
+
+    return TRUE;
+
+out_disabled:
+    nm_assert(feature);
+    g_set_error(error,
+                NM_SETTINGS_ERROR,
+                NM_SETTINGS_ERROR_FEATURE_DISABLED,
+                "%s support is disabled in this build",
+                feature);
+    return FALSE;
+
+out_removed:
+    nm_assert(feature);
+    g_set_error(error,
+                NM_SETTINGS_ERROR,
+                NM_SETTINGS_ERROR_FEATURE_REMOVED,
+                "%s is no longer supported",
+                feature);
+    return FALSE;
+}
+
+/*****************************************************************************/
+
+/**
+ * nm_rate_limit_check():
+ * @rate_limit: the NMRateLimit instance
+ * @window_sec: the time window in seconds, between 1 and 864000 (ten days)
+ * @burst: the number of max allowed event occurrences in the given time
+ *   window
+ *
+ * The function rate limits an event. Call it multiple times with the
+ * same @window_sec, and @burst values.
+ *
+ * Returns: TRUE if the event is allowed, FALSE if it is rate-limited
+ */
+gboolean
+nm_rate_limit_check(NMRateLimit *rate_limit, gint32 window_sec, gint32 burst)
+{
+    gint64 now;
+    gint64 old_ts_msec;
+    gint64 window_msec;
+    gint64 capacity;
+    gint64 elapsed;
+
+    nm_assert(window_sec >= 1 && window_sec <= 864000);
+    nm_assert(burst >= 1);
+
+    /* This implements a simple token bucket algorithm. For each millisecond,
+     * refill "burst" tokens. Thus, during a full time window we
+     * refill (window_msec * burst) tokens. Each event consumes @window_msec
+     * tokens. */
+
+    window_msec         = (gint64) window_sec * NM_UTILS_MSEC_PER_SEC;
+    capacity            = window_msec * (gint64) burst;
+    old_ts_msec         = rate_limit->ts_msec;
+    now                 = nm_utils_get_monotonic_timestamp_msec();
+    rate_limit->ts_msec = now;
+
+    elapsed = now - old_ts_msec;
+    if (old_ts_msec == 0 || elapsed > window_msec) {
+        /* On the first call, or in case a whole window passed, (re)start with
+         * a full budget */
+        rate_limit->tokens = capacity;
+    } else {
+        rate_limit->tokens += elapsed * (gint64) burst;
+        rate_limit->tokens = NM_MIN(rate_limit->tokens, capacity);
+    }
+
+    /* Consume the tokens */
+    if (rate_limit->tokens >= window_msec) {
+        rate_limit->tokens -= window_msec;
+        return TRUE;
+    }
+
+    return FALSE;
 }
 
 const char *

@@ -508,8 +508,9 @@ find_gsm_apn_cb(const char   *apn,
 static gboolean
 try_create_connect_properties(NMModemBroadband *self)
 {
-    NMModemBroadbandPrivate *priv = NM_MODEM_BROADBAND_GET_PRIVATE(self);
-    ConnectContext          *ctx  = priv->ctx;
+    NMModemBroadbandPrivate *priv        = NM_MODEM_BROADBAND_GET_PRIVATE(self);
+    ConnectContext          *ctx         = priv->ctx;
+    NMDeviceStateReason      fail_reason = NM_DEVICE_STATE_REASON_MODEM_INIT_FAILED;
 
     if (MODEM_CAPS_3GPP(ctx->caps)) {
         NMSettingGsm *s_gsm = nm_connection_get_setting_gsm(ctx->connection);
@@ -522,7 +523,7 @@ try_create_connect_properties(NMModemBroadband *self)
             if (s_gsm)
                 network_id = nm_setting_gsm_get_network_id(s_gsm);
             if (!network_id) {
-                if (mm_modem_get_state(self->_priv.modem_iface) < MM_MODEM_STATE_REGISTERED)
+                if (mm_modem_get_state(self->_priv.modem_iface) != MM_MODEM_STATE_REGISTERED)
                     return FALSE;
                 modem_3gpp = mm_object_get_modem_3gpp(priv->modem_object);
                 network_id = mm_modem_3gpp_get_operator_code(modem_3gpp);
@@ -530,6 +531,7 @@ try_create_connect_properties(NMModemBroadband *self)
             if (!network_id) {
                 _LOGW("failed to connect '%s': unable to determine the network id",
                       nm_connection_get_id(ctx->connection));
+                fail_reason = NM_DEVICE_STATE_REASON_MODEM_NO_OPERATOR_CODE;
                 goto out;
             }
 
@@ -558,7 +560,7 @@ try_create_connect_properties(NMModemBroadband *self)
     }
 
 out:
-    nm_modem_emit_prepare_result(NM_MODEM(self), FALSE, NM_DEVICE_STATE_REASON_MODEM_INIT_FAILED);
+    nm_modem_emit_prepare_result(NM_MODEM(self), FALSE, fail_reason);
     connect_context_clear(self);
     return TRUE;
 }
@@ -1649,6 +1651,8 @@ nm_modem_broadband_new(GObject *object, GError **error)
                         driver,
                         NM_MODEM_OPERATOR_CODE,
                         operator_code,
+                        NM_MODEM_DEVICE_UID,
+                        mm_modem_get_device(modem_iface),
                         NULL);
 }
 

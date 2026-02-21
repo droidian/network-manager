@@ -483,7 +483,7 @@ NM_UTILS_LOOKUP_STR_DEFINE(
            "(\"unmanaged-devices\" for keyfile or \"NM_CONTROLLED=no\" for ifcfg-rh)")),
     NM_UTILS_LOOKUP_ITEM(NM_DEVICE_STATE_REASON_UNMANAGED_USER_CONF,
                          N_("The device is unmanaged by user decision in NetworkManager.conf "
-                            "('unmanaged' in a [device*] section")),
+                            "('unmanaged' in a [device*] section)")),
     NM_UTILS_LOOKUP_ITEM(
         NM_DEVICE_STATE_REASON_UNMANAGED_BY_DEFAULT,
         N_("The device is unmanaged because the device type is unmanaged by default")),
@@ -493,6 +493,8 @@ NM_UTILS_LOOKUP_STR_DEFINE(
                          N_("The device is unmanaged because it is an external device and is "
                             "unconfigured (down or without addresses)")),
     NM_UTILS_LOOKUP_ITEM(NM_DEVICE_STATE_REASON_NETWORKING_OFF, N_("Networking was disabled")),
+    NM_UTILS_LOOKUP_ITEM(NM_DEVICE_STATE_REASON_MODEM_NO_OPERATOR_CODE,
+                         N_("The modem didn't have an operator code")),
 
 );
 
