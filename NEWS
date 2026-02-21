@@ -1,36 +1,45 @@
-===============================================
-NetworkManager-1.54.3
-Overview of changes since NetworkManager-1.54.2
-===============================================
+=============================================
+NetworkManager-1.56
+Overview of changes since NetworkManager-1.54
+=============================================
 
+* Unify the versioning to use everywhere the scheme with the -rcX or -dev
+  suffixes when appropriate. This affects, for example, the URL and filename
+  of the release tarball and the version reported by nmcli and the daemon.
+  As an exception, the C API will continue to use the 90+ scheme for RC versions.
+* nmcli now supports viewing and managing WireGuard peers.
+* Support reapplying the "sriov.vfs" property as long as
+  "sriov.total-vfs" is not changed.
+* Support reapplying "bond-port.vlans".
+* Accept hostnames longer than 64 characters from DNS lookup.
+* Make that global-dns configuration overwrites DNS searches and
+  options from connections, instead of merging all together.
+* Add support for a new rd.net.dhcp.client-id option in
+  nm-initrd-generator.
+* Add gsm device-uid setting to restrict the devices the connection applies to.
+* Support configuring the HSR protocol version via the
+  "hsr.protocol-version" property.
+* Fix a bug that makes broadband connections auto-connect getting 
+  blocked if the connection tries to reconnect when modem status is 
+  "disconnecting" / "disconnected".
+* Treat modem connection not having an operator code available
+  as a recoverable error.
+* Add support for configuring systemd-resolved's DNSSEC option
+  per-connection via the "connection.dnssec" connection property.
+* Support configuring the HSR interlink port via the
+  "hsr.interlink" property.
+* Fix some connection properties not being applied to vpn connections
+  (connection.mdns, connection.llmnr, connection.dns-over-tls,
+   connection.mptcp-flags, ipv6.ip6-privacy)
+* Update n-acd to always compile with eBPF enabled, as support
+  for eBPF is now detected at run time.
+* Add new MPTCP 'laminar' endpoint type, and set it by default alongside
+  the 'subflow' one.
 * For private connections (the ones that specify a user in the
   "connection.permissions" property), verify that the user can access
   the 802.1X certificates and keys set in the connection.
 * Introduce a libnm function that can be used by VPN plugins to check
   user permissions on certificate and keys.
-
-===============================================
-NetworkManager-1.54.2
-Overview of changes since NetworkManager-1.54.1
-===============================================
-
-* Support reapplying the "sriov.vfs" property as long as
-  "sriov.total-vfs" is not changed.
-* Support configuring the HSR protocol version via the
-  "hsr.protocol-version" property.
-* Support configuring the HSR interlink port via the
-  "hsr.interlink" property.
-
-===============================================
-NetworkManager-1.54.1
-Overview of changes since NetworkManager-1.54.0
-===============================================
-
-* Make that global-dns configuration overwrites DNS searches and
-  options from connections, instead of merging all together.
-* Add support for a new rd.net.dhcp.client-id option in
-  nm-initrd-generator.
-* Minor bug fixes.
 
 =============================================
 NetworkManager-1.54

@@ -494,6 +494,19 @@ gid_t nm_utils_get_nm_gid(void);
 
 /*****************************************************************************/
 
+gboolean nm_utils_connection_supported(NMConnection *connection, GError **error);
+
+/*****************************************************************************/
+
+typedef struct {
+    gint64 ts_msec;
+    gint64 tokens;
+} NMRateLimit;
+
+gboolean nm_rate_limit_check(NMRateLimit *rate_limit, gint32 window_sec, gint32 burst);
+
+/*****************************************************************************/
+
 const char *nm_utils_get_connection_first_permissions_user(NMConnection *connection);
 
 /*****************************************************************************/

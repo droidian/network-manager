@@ -113,6 +113,19 @@ typedef enum {
     RELEASE_PORT_TYPE_CONFIG_FORCE,
 } ReleasePortType;
 
+/**
+ * CleanupType:
+ * @CLEANUP_TYPE_KEEP: Cleanup internally but keep the real device's config. This is
+ *   often used when moving a partially managed device to "unmanaged" (but not only).
+ * @CLEANUP_TYPE_REMOVED: The device suddently disappeared. Cleanup internally but don't
+ *   make any action on the real device at all, as it no longer exists.
+ * @CLEANUP_TYPE_DECONFIGURE: Also deconfigure the real device. This is the typical
+ *   action when a connection or device is set to "down", or fully managed devices
+ *   moved to "unmanaged".
+ * @CLEANUP_TYPE_KEEP_REAPPLY: Like %CLEANUP_TYPE_KEEP, but indicating that it's a
+ *   reapply. Some special actions can be done if we're doing a reapply, like keeping
+ *   the existing DHCP lease, for example.
+ */
 typedef enum {
     CLEANUP_TYPE_KEEP,
     CLEANUP_TYPE_REMOVED,
@@ -265,11 +278,11 @@ typedef struct {
     NMDeviceIPState state;
     union {
         struct {
-            NMDnsMasqManager      *dnsmasq_manager;
-            NMNetnsSharedIPHandle *shared_ip_handle;
-            NMFirewallConfig      *firewall_config;
-            gulong                 dnsmasq_state_id;
-            const NML3ConfigData  *l3cd;
+            NMDnsMasqManager     *dnsmasq_manager;
+            NMNetnsIPReservation *ip_reservation;
+            NMFirewallConfig     *firewall_config;
+            gulong                dnsmasq_state_id;
+            const NML3ConfigData *l3cd;
         } v4;
         struct {
         } v6;
@@ -1411,14 +1424,12 @@ _prop_get_ipvx_routed_dns(NMDevice *self, int addr_family)
 }
 
 static NMSettingConnectionMdns
-_prop_get_connection_mdns(NMDevice *self)
+_prop_get_connection_mdns(NMDevice *self, NMConnection *connection)
 {
-    NMConnection           *connection;
     NMSettingConnectionMdns mdns = NM_SETTING_CONNECTION_MDNS_DEFAULT;
 
     g_return_val_if_fail(NM_IS_DEVICE(self), NM_SETTING_CONNECTION_MDNS_DEFAULT);
 
-    connection = nm_device_get_applied_connection(self);
     if (connection)
         mdns = nm_setting_connection_get_mdns(nm_connection_get_setting_connection(connection));
     if (mdns != NM_SETTING_CONNECTION_MDNS_DEFAULT)
@@ -1453,14 +1464,12 @@ _prop_get_sriov_preserve_on_down(NMDevice *self, NMSettingSriov *s_sriov)
 }
 
 static NMSettingConnectionLlmnr
-_prop_get_connection_llmnr(NMDevice *self)
+_prop_get_connection_llmnr(NMDevice *self, NMConnection *connection)
 {
-    NMConnection            *connection;
     NMSettingConnectionLlmnr llmnr = NM_SETTING_CONNECTION_LLMNR_DEFAULT;
 
     g_return_val_if_fail(NM_IS_DEVICE(self), NM_SETTING_CONNECTION_LLMNR_DEFAULT);
 
-    connection = nm_device_get_applied_connection(self);
     if (connection)
         llmnr = nm_setting_connection_get_llmnr(nm_connection_get_setting_connection(connection));
     if (llmnr != NM_SETTING_CONNECTION_LLMNR_DEFAULT)
@@ -1475,14 +1484,12 @@ _prop_get_connection_llmnr(NMDevice *self)
 }
 
 static NMSettingConnectionDnsOverTls
-_prop_get_connection_dns_over_tls(NMDevice *self)
+_prop_get_connection_dns_over_tls(NMDevice *self, NMConnection *connection)
 {
-    NMConnection                 *connection;
     NMSettingConnectionDnsOverTls dns_over_tls = NM_SETTING_CONNECTION_DNS_OVER_TLS_DEFAULT;
 
     g_return_val_if_fail(NM_IS_DEVICE(self), NM_SETTING_CONNECTION_DNS_OVER_TLS_DEFAULT);
 
-    connection = nm_device_get_applied_connection(self);
     if (connection)
         dns_over_tls = nm_setting_connection_get_dns_over_tls(
             nm_connection_get_setting_connection(connection));
@@ -1497,15 +1504,33 @@ _prop_get_connection_dns_over_tls(NMDevice *self)
                                                        NM_SETTING_CONNECTION_DNS_OVER_TLS_DEFAULT);
 }
 
-static NMMptcpFlags
-_prop_get_connection_mptcp_flags(NMDevice *self)
+static NMSettingConnectionDnssec
+_prop_get_connection_dnssec(NMDevice *self, NMConnection *connection)
 {
-    NMConnection *connection;
-    NMMptcpFlags  mptcp_flags = NM_MPTCP_FLAGS_NONE;
+    NMSettingConnectionDnssec dnssec = NM_SETTING_CONNECTION_DNSSEC_DEFAULT;
+
+    g_return_val_if_fail(NM_IS_DEVICE(self), NM_SETTING_CONNECTION_DNSSEC_DEFAULT);
+
+    if (connection)
+        dnssec = nm_setting_connection_get_dnssec(nm_connection_get_setting_connection(connection));
+    if (dnssec != NM_SETTING_CONNECTION_DNSSEC_DEFAULT)
+        return dnssec;
+
+    return nm_config_data_get_connection_default_int64(NM_CONFIG_GET_DATA,
+                                                       NM_CON_DEFAULT("connection.dnssec"),
+                                                       self,
+                                                       NM_SETTING_CONNECTION_DNSSEC_NO,
+                                                       NM_SETTING_CONNECTION_DNSSEC_YES,
+                                                       NM_SETTING_CONNECTION_DNSSEC_DEFAULT);
+}
+
+static NMMptcpFlags
+_prop_get_connection_mptcp_flags(NMDevice *self, NMConnection *connection)
+{
+    NMMptcpFlags mptcp_flags = NM_MPTCP_FLAGS_NONE;
 
     g_return_val_if_fail(NM_IS_DEVICE(self), NM_MPTCP_FLAGS_DISABLED);
 
-    connection = nm_device_get_applied_connection(self);
     if (connection) {
         mptcp_flags =
             nm_setting_connection_get_mptcp_flags(nm_connection_get_setting_connection(connection));
@@ -2471,16 +2496,14 @@ _prop_get_ipv4_dhcp_vendor_class_identifier(NMDevice *self, NMSettingIP4Config *
 }
 
 static NMSettingIP6ConfigPrivacy
-_prop_get_ipv6_ip6_privacy(NMDevice *self)
+_prop_get_ipv6_ip6_privacy(NMDevice *self, NMConnection *connection)
 {
     NMSettingIP6ConfigPrivacy ip6_privacy;
-    NMConnection             *connection;
 
     g_return_val_if_fail(self, NM_SETTING_IP6_CONFIG_PRIVACY_UNKNOWN);
 
     /* 1.) First look at the per-connection setting. If it is not -1 (unknown),
      * use it. */
-    connection = nm_device_get_applied_connection(self);
     if (connection) {
         NMSettingIPConfig *s_ip6 = nm_connection_get_setting_ip6_config(connection);
 
@@ -3613,11 +3636,12 @@ nm_device_create_l3_config_data_from_connection(NMDevice *self, NMConnection *co
 
     l3cd =
         nm_l3_config_data_new_from_connection(nm_device_get_multi_index(self), ifindex, connection);
-    nm_l3_config_data_set_mdns(l3cd, _prop_get_connection_mdns(self));
-    nm_l3_config_data_set_llmnr(l3cd, _prop_get_connection_llmnr(self));
-    nm_l3_config_data_set_dns_over_tls(l3cd, _prop_get_connection_dns_over_tls(self));
-    nm_l3_config_data_set_ip6_privacy(l3cd, _prop_get_ipv6_ip6_privacy(self));
-    nm_l3_config_data_set_mptcp_flags(l3cd, _prop_get_connection_mptcp_flags(self));
+    nm_l3_config_data_set_mdns(l3cd, _prop_get_connection_mdns(self, connection));
+    nm_l3_config_data_set_llmnr(l3cd, _prop_get_connection_llmnr(self, connection));
+    nm_l3_config_data_set_dns_over_tls(l3cd, _prop_get_connection_dns_over_tls(self, connection));
+    nm_l3_config_data_set_dnssec(l3cd, _prop_get_connection_dnssec(self, connection));
+    nm_l3_config_data_set_ip6_privacy(l3cd, _prop_get_ipv6_ip6_privacy(self, connection));
+    nm_l3_config_data_set_mptcp_flags(l3cd, _prop_get_connection_mptcp_flags(self, connection));
     return l3cd;
 }
 
@@ -12974,7 +12998,7 @@ _dev_ipac6_start(NMDevice *self)
             .router_solicitations         = router_solicitations,
             .router_solicitation_interval = router_solicitation_interval,
             .ra_timeout                   = ra_timeout,
-            .ip6_privacy                  = _prop_get_ipv6_ip6_privacy(self),
+            .ip6_privacy                  = _prop_get_ipv6_ip6_privacy(self, connection),
         };
 
         priv->ipac6_data.ndisc = nm_lndp_ndisc_new(&config);
@@ -13161,7 +13185,6 @@ _dev_addrgenmode6_set(NMDevice *self, guint8 addr_gen_mode)
     if (!priv->addrgenmode6_data.previous_mode_has) {
         priv->addrgenmode6_data.previous_mode_has = TRUE;
         priv->addrgenmode6_data.previous_mode_val = cur_addr_gen_mode;
-        nm_assert(priv->addrgenmode6_data.previous_mode_val == cur_addr_gen_mode);
     }
 
     _LOGD_ip(AF_INET6,
@@ -13650,7 +13673,7 @@ _dev_ipsharedx_cleanup(NMDevice *self, int addr_family)
             nm_clear_pointer(&priv->ipshared_data_4.v4.firewall_config, nm_firewall_config_free);
         }
 
-        nm_clear_pointer(&priv->ipshared_data_4.v4.shared_ip_handle, nm_netns_shared_ip_release);
+        nm_clear_pointer(&priv->ipshared_data_4.v4.ip_reservation, nm_netns_ip_reservation_release);
         nm_clear_l3cd(&priv->ipshared_data_4.v4.l3cd);
 
         _dev_l3_register_l3cds_set_one(self, L3_CONFIG_DATA_TYPE_SHARED_4, NULL, FALSE);
@@ -13684,13 +13707,14 @@ _dev_ipshared4_new_l3cd(NMDevice *self, NMConnection *connection, NMPlatformIP4A
 
         nm_ip_address_get_address_binary(user, &a);
         nm_platform_ip4_address_set_addr(&address, a, nm_ip_address_get_prefix(user));
-        nm_clear_pointer(&priv->ipshared_data_4.v4.shared_ip_handle, nm_netns_shared_ip_release);
+        nm_clear_pointer(&priv->ipshared_data_4.v4.ip_reservation, nm_netns_ip_reservation_release);
     } else {
-        if (!priv->ipshared_data_4.v4.shared_ip_handle)
-            priv->ipshared_data_4.v4.shared_ip_handle =
-                nm_netns_shared_ip_reserve(nm_device_get_netns(self));
+        if (!priv->ipshared_data_4.v4.ip_reservation)
+            priv->ipshared_data_4.v4.ip_reservation =
+                nm_netns_ip_reservation_get(nm_device_get_netns(self),
+                                            NM_NETNS_IP_RESERVATION_TYPE_SHARED4);
         nm_platform_ip4_address_set_addr(&address,
-                                         priv->ipshared_data_4.v4.shared_ip_handle->addr,
+                                         priv->ipshared_data_4.v4.ip_reservation->addr,
                                          24);
     }
 
@@ -14283,6 +14307,7 @@ can_reapply_change(NMDevice   *self,
                                                  NM_SETTING_CONNECTION_MDNS,
                                                  NM_SETTING_CONNECTION_LLMNR,
                                                  NM_SETTING_CONNECTION_DNS_OVER_TLS,
+                                                 NM_SETTING_CONNECTION_DNSSEC,
                                                  NM_SETTING_CONNECTION_MPTCP_FLAGS,
                                                  NM_SETTING_CONNECTION_WAIT_ACTIVATION_DELAY);
     }
@@ -14541,6 +14566,7 @@ check_and_reapply_connection(NMDevice            *self,
                 NM_SETTING_CONNECTION_MDNS,
                 NM_SETTING_CONNECTION_LLMNR,
                 NM_SETTING_CONNECTION_DNS_OVER_TLS,
+                NM_SETTING_CONNECTION_DNSSEC,
                 NM_SETTING_CONNECTION_MPTCP_FLAGS)) {
             priv->ip_data_4.do_reapply = TRUE;
             priv->ip_data_6.do_reapply = TRUE;
@@ -17285,6 +17311,25 @@ nm_device_cleanup(NMDevice *self, NMDeviceStateReason reason, CleanupType cleanu
         /* controller: release ports */
         nm_device_controller_release_ports_all(self);
 
+        /* port: detach from controller */
+        if (priv->controller) {
+            nm_device_controller_release_port(priv->controller,
+                                              self,
+                                              RELEASE_PORT_TYPE_CONFIG,
+                                              reason);
+        }
+    }
+
+    /* port: mark no longer attached */
+    if (priv->controller && priv->ifindex > 0
+        && nm_platform_link_get_controller(nm_device_get_platform(self), priv->ifindex) <= 0) {
+        nm_device_controller_release_port(priv->controller,
+                                          self,
+                                          RELEASE_PORT_TYPE_NO_CONFIG,
+                                          NM_DEVICE_STATE_REASON_CONNECTION_ASSUMED);
+    }
+
+    if (cleanup_type == CLEANUP_TYPE_DECONFIGURE) {
         /* Take out any entries in the routing table and any IP address the device had. */
         if (ifindex > 0) {
             NMPlatform *platform = nm_device_get_platform(self);
@@ -17307,15 +17352,6 @@ nm_device_cleanup(NMDevice *self, NMDeviceStateReason reason, CleanupType cleanu
 
     if (ifindex > 0)
         nm_platform_ip4_dev_route_blacklist_set(nm_device_get_platform(self), ifindex, NULL);
-
-    /* port: mark no longer attached */
-    if (priv->controller && priv->ifindex > 0
-        && nm_platform_link_get_controller(nm_device_get_platform(self), priv->ifindex) <= 0) {
-        nm_device_controller_release_port(priv->controller,
-                                          self,
-                                          RELEASE_PORT_TYPE_NO_CONFIG,
-                                          NM_DEVICE_STATE_REASON_CONNECTION_ASSUMED);
-    }
 
     lldp_setup(self, NM_TERNARY_FALSE);
 

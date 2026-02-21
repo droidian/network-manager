@@ -46,6 +46,7 @@ typedef gboolean (*NMPObjectPredicateFunc)(const NMPObject *obj, gpointer user_d
 #define NM_MPTCP_PM_ADDR_FLAG_BACKUP   ((guint32) (1 << 2))
 #define NM_MPTCP_PM_ADDR_FLAG_FULLMESH ((guint32) (1 << 3))
 #define NM_MPTCP_PM_ADDR_FLAG_IMPLICIT ((guint32) (1 << 4))
+#define NM_MPTCP_PM_ADDR_FLAG_LAMINAR  ((guint32) (1 << 5))
 
 /* Redefine this in host's endianness */
 #define NM_GRE_KEY 0x2000
@@ -442,6 +443,12 @@ struct _NMPlatformIP4Route {
      * If n_nexthops is greater or equal to one, this is the gateway of
      * the first hop. */
     in_addr_t gateway;
+
+    /* RTA_VIA. Part of the primary key for a route. Allows a gateway for a
+     * route to exist in a different address family.
+     * Only valid if: n_nexthops == 1, gateway == 0, via.family != AF_UNSPEC
+     */
+    NMIPAddrTyped via;
 
     /* RTA_PREFSRC (called "src" by iproute2).
      *
@@ -2404,6 +2411,14 @@ nm_platform_ip_route_get_gateway(int addr_family, const NMPlatformIPRoute *route
     if (NM_IS_IPv4(addr_family))
         return &((NMPlatformIP4Route *) route)->gateway;
     return &((NMPlatformIP6Route *) route)->gateway;
+}
+
+static inline const NMIPAddrTyped *
+nm_platform_ip4_route_get_via(const NMPlatformIP4Route *route)
+{
+    nm_assert(route);
+
+    return &route->via;
 }
 
 static inline gconstpointer

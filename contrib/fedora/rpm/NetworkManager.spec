@@ -6,18 +6,23 @@
 #
 # Note that it contains __PLACEHOLDERS__ that will be replaced by the accompanying 'build.sh' script.
 
+Name:    NetworkManager
+Summary: Network connection manager and user applications
+License: GPL-2.0-or-later AND LGPL-2.1-or-later
+URL:     https://networkmanager.dev/
+Group:   System Environment/Base
+
+Epoch:   1
+Version: __VERSION__
+Release: __RELEASE_VERSION__%{?dist}
+
+###############################################################################
 
 %global wpa_supplicant_version 1:1.1
 
 %global ppp_version %(pkg-config --modversion pppd 2>/dev/null || sed -n 's/^#define\\s*VERSION\\s*"\\([^\\s]*\\)"$/\\1/p' %{_includedir}/pppd/patchlevel.h 2>/dev/null | grep . || echo bad)
 %global glib2_version %(pkg-config --modversion glib-2.0 2>/dev/null || echo bad)
 
-%global epoch_version 1
-%global real_version __VERSION__
-%global rpm_version %{real_version}
-%global release_version __RELEASE_VERSION__
-%global snapshot __SNAPSHOT__
-%global git_sha __COMMIT__
 %global bcond_default_debug __BCOND_DEFAULT_DEBUG__
 %global bcond_default_lto __BCOND_DEFAULT_LTO__
 %global bcond_default_test __BCOND_DEFAULT_TEST__
@@ -31,17 +36,6 @@
 %global nmplugindir %{_libdir}/%{name}/%{version}-%{release}
 
 %global _hardened_build 1
-
-%if "x%{?snapshot}" != "x"
-%global snapshot_dot .%{snapshot}
-%endif
-%if "x%{?git_sha}" != "x"
-%global git_sha_dot .%{git_sha}
-%endif
-
-%global snap %{?snapshot_dot}%{?git_sha_dot}
-
-%global real_version_major %(printf '%s' '%{real_version}' | sed -n 's/^\\([1-9][0-9]*\\.[0-9][0-9]*\\)\\.[0-9][0-9]*$/\\1/p')
 
 %global systemd_units NetworkManager.service NetworkManager-wait-online.service NetworkManager-dispatcher.service nm-priv-helper.service
 
@@ -153,17 +147,6 @@
 %bcond_with ifcfg_migrate
 %endif
 
-%if 0%{?fedora}
-# Although eBPF would be available on Fedora's kernel, it seems
-# we often get SELinux denials (rh#1651654). But even aside them,
-# bpf(BPF_MAP_CREATE, ...) randomly fails with EPERM. That might
-# be related to `ulimit -l`. Anyway, this is not usable at the
-# moment.
-%global ebpf_enabled "no"
-%else
-%global ebpf_enabled "no"
-%endif
-
 # Fedora 33 enables LTO by default by setting CFLAGS="-flto -ffat-lto-objects".
 # However, we also require "-flto -flto-partition=none", so disable Fedora's
 # default and use our configure option --with-lto instead.
@@ -171,16 +154,7 @@
 
 ###############################################################################
 
-Name: NetworkManager
-Summary: Network connection manager and user applications
-Epoch: %{epoch_version}
-Version: %{rpm_version}
-Release: %{release_version}%{?snap}%{?dist}
-Group: System Environment/Base
-License: GPL-2.0-or-later AND LGPL-2.1-or-later
-URL: https://networkmanager.dev/
-
-#Source: https://download.gnome.org/sources/NetworkManager/%{real_version_major}/%{name}-%{real_version}.tar.xz
+#Source: https://gitlab.freedesktop.org/NetworkManager/NetworkManager/-/releases/%{version_no_tilde}/downloads/%{name}-%{version_no_tilde}.tar.xz
 Source: __SOURCE1__
 Source1: NetworkManager.conf
 Source2: 00-server.conf
@@ -253,7 +227,6 @@ Conflicts: NetworkManager-dispatcher-routing-rules <= 1:1.47.5-3
 %endif
 
 BuildRequires: gcc
-BuildRequires: libtool
 BuildRequires: pkgconfig
 BuildRequires: meson
 BuildRequires: gettext-devel >= 0.19.8
@@ -586,7 +559,7 @@ Preferably use nmcli instead.
 
 
 %prep
-%autosetup -p1 -n NetworkManager-%{real_version}
+%autosetup -p1 -n NetworkManager-%{version_no_tilde}
 
 
 %build
@@ -683,11 +656,6 @@ Preferably use nmcli instead.
 %else
 	-Dlibpsl=false \
 %endif
-%if %{ebpf_enabled} != "yes"
-	-Debpf=false \
-%else
-	-Debpf=true \
-%endif
 	-Dsession_tracking=systemd \
 	-Dsuspend_resume=systemd \
 	-Dsystemdsystemunitdir=%{_unitdir} \
@@ -771,8 +739,8 @@ rm -f %{buildroot}%{_unitdir}/NetworkManager-wait-online-initrd.service
 find %{buildroot}%{_datadir}/gtk-doc -exec touch --reference meson.build '{}' \+
 
 %if 0%{?__debug_package} && ! 0%{?flatpak}
-mkdir -p %{buildroot}%{_prefix}/src/debug/NetworkManager-%{real_version}
-cp valgrind.suppressions %{buildroot}%{_prefix}/src/debug/NetworkManager-%{real_version}
+mkdir -p %{buildroot}%{_prefix}/src/debug/NetworkManager-%{version_no_tilde}
+cp valgrind.suppressions %{buildroot}%{_prefix}/src/debug/NetworkManager-%{version_no_tilde}
 %endif
 
 %if %{with ifcfg_rh}

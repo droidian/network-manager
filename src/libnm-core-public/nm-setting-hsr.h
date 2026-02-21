@@ -38,7 +38,7 @@ G_BEGIN_DECLS
  *
  * #NMSettingHsrProtocolVersion values indicate the HSR protocol version.
  *
- * Since: 1.56, 1.54.2
+ * Since: 1.56
  */
 typedef enum {
     NM_SETTING_HSR_PROTOCOL_VERSION_DEFAULT  = -1,
@@ -61,9 +61,9 @@ NM_AVAILABLE_IN_1_46
 guint32 nm_setting_hsr_get_multicast_spec(NMSettingHsr *setting);
 NM_AVAILABLE_IN_1_46
 gboolean nm_setting_hsr_get_prp(NMSettingHsr *setting);
-NM_AVAILABLE_IN_1_54_2
+NM_AVAILABLE_IN_1_56
 NMSettingHsrProtocolVersion nm_setting_hsr_get_protocol_version(NMSettingHsr *setting);
-NM_AVAILABLE_IN_1_54_2
+NM_AVAILABLE_IN_1_56
 const char *nm_setting_hsr_get_interlink(NMSettingHsr *setting);
 
 G_END_DECLS

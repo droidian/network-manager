@@ -921,7 +921,7 @@ nm_vpn_plugin_info_supports_multiple(NMVpnPluginInfo *self)
  *     private connections in a safe way (i.e. checking user permissions), or
        if the service doesn't need to read any file from disk.
  *
- * Since: 1.56, 1.54.3
+ * Since: 1.56
  */
 gboolean
 nm_vpn_plugin_info_supports_safe_private_file_access(NMVpnPluginInfo *self)
