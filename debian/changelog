@@ -1,3 +1,14 @@
+network-manager (1.56.0-2) experimental; urgency=medium
+
+  * Enable Open vSwitch (OVS) support.
+    This includes a drop-in config for NetworkManager.service which changes
+    its ordering. So ship the plugin in a separate package named
+    network-manager-ovs. (Closes: #1127478)
+  * Build-Depend on libselinux-dev instead of libselinux1-dev.
+    See https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=966687
+
+ -- Michael Biebl <biebl@debian.org>  Tue, 24 Feb 2026 15:05:52 +0100
+
 network-manager (1.56.0-1) experimental; urgency=medium
 
   * New upstream version 1.56.0
