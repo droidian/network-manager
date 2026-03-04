@@ -63,7 +63,7 @@ Recommends: ppp,
             udev,
             network-manager-l10n,
 Suggests: network-manager-ovs,
-          libteam-utils,
+          network-manager-team,
           nftables | iptables,
 Breaks: ${misc:Breaks}
 Description: network management framework (daemon and userspace tools)
@@ -80,9 +80,6 @@ Description: network management framework (daemon and userspace tools)
   * ppp: Required for establishing dial-up connections (e.g. via GSM).
   * dnsmasq-base/nftables or iptables: Required for creating Ad-hoc connections
     and connection sharing.
-  * libteam-utils: Network Team driver allows multiple network interfaces to be
-    teamed together and act like a single one. This process is called "ethernet
-    bonding", "channel teaming" or "link aggregation".
 
 Package: network-manager-ovs
 Architecture: linux-any
@@ -92,6 +89,17 @@ Depends: ${shlibs:Depends},
          openvswitch-switch,
 Description: Open vSwitch device plugin for NetworkManager
  This package contains NetworkManager support for Open vSwitch bridges.
+
+Package: network-manager-team
+Architecture: linux-any
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+         libnm0 (= ${binary:Version}),
+Recommends: libteam-utils,
+Breaks: network-manager (<< 1.56.0-3~)
+Replaces: network-manager (<< 1.56.0-3~)
+Description: Team device plugin for NetworkManager
+ This package contains NetworkManager support for team devices.
 
 Package: network-manager-dev
 Section: devel

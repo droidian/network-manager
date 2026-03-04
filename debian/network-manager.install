@@ -7,7 +7,6 @@ usr/lib/NetworkManager/
 usr/lib/*/NetworkManager/*/libnm-settings-plugin-ifupdown.so
 usr/lib/*/NetworkManager/*/libnm-device-plugin-adsl.so
 usr/lib/*/NetworkManager/*/libnm-device-plugin-bluetooth.so
-usr/lib/*/NetworkManager/*/libnm-device-plugin-team.so
 usr/lib/*/NetworkManager/*/libnm-device-plugin-wifi.so
 usr/lib/*/NetworkManager/*/libnm-device-plugin-wwan.so
 usr/lib/*/NetworkManager/*/libnm-ppp-plugin.so
