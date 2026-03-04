@@ -64,6 +64,7 @@ Recommends: ppp,
             network-manager-l10n,
 Suggests: network-manager-ovs,
           network-manager-team,
+          network-manager-tui,
           nftables | iptables,
 Breaks: ${misc:Breaks}
 Description: network management framework (daemon and userspace tools)
@@ -80,6 +81,18 @@ Description: network management framework (daemon and userspace tools)
   * ppp: Required for establishing dial-up connections (e.g. via GSM).
   * dnsmasq-base/nftables or iptables: Required for creating Ad-hoc connections
     and connection sharing.
+
+Package: network-manager-tui
+Architecture: linux-any
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+         libnm0 (= ${binary:Version}),
+Breaks: network-manager (<< 1.56.0-4~)
+Replaces: network-manager (<< 1.56.0-4~)
+Description: NetworkManager curses-based UI
+ This adds a curses-based "TUI" (Text User Interface) to
+ NetworkManager, to allow performing some of the operations supported
+ by nm-connection-editor and nm-applet in a non-graphical environment.
 
 Package: network-manager-ovs
 Architecture: linux-any
