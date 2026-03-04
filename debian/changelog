@@ -1,3 +1,12 @@
+network-manager (1.56.0-4) experimental; urgency=medium
+
+  * Split off nmtui into network-manager-tui.
+    To further reduce shlibs dependencies of the main network-manager (i.e.
+    getting rid of libnewt) and to reduce the on-disk footprint, split off
+    the nmtui binary into a separate package named network-manager-tui.
+
+ -- Michael Biebl <biebl@debian.org>  Wed, 04 Mar 2026 19:49:02 +0100
+
 network-manager (1.56.0-3) experimental; urgency=medium
 
   [ Luca Boccassi ]
