@@ -62,7 +62,8 @@ Recommends: ppp,
             polkitd,
             udev,
             network-manager-l10n,
-Suggests: libteam-utils,
+Suggests: network-manager-ovs,
+          libteam-utils,
           nftables | iptables,
 Breaks: ${misc:Breaks}
 Description: network management framework (daemon and userspace tools)
@@ -88,8 +89,9 @@ Architecture: linux-any
 Depends: ${shlibs:Depends},
          ${misc:Depends},
          libnm0 (= ${binary:Version}),
-Description: Open vSwitch (OVS) support for NetworkManager
- This package adds Open vSwitch support.
+         openvswitch-switch,
+Description: Open vSwitch device plugin for NetworkManager
+ This package contains NetworkManager support for Open vSwitch bridges.
 
 Package: network-manager-dev
 Section: devel
