@@ -1,3 +1,24 @@
+network-manager (1.56.0-3) experimental; urgency=medium
+
+  [ Luca Boccassi ]
+  * Install and use sysusers.d config file
+    sysusers.d config files allow a package to use declarative configuration
+    instead of manually written maintainer scripts.
+    This also allows image-based systems to be created with /usr/ only, and
+    also allows for factory resetting a system and recreating /etc/ on boot.
+    https://www.freedesktop.org/software/systemd/man/latest/sysusers.d.html
+
+  [ Michael Biebl ]
+  * Tweak package description and dependencies for network-manager-ovs
+  * Split off support for team devices.
+    Support for team devices is a rarely used feature.
+    Ship it in a separate package named network-manager-team.
+    This reduces the dependency chain of the main network-manager package
+    (removes libjansson and libteamdctl) and also reduces the runtime
+    footprint.
+
+ -- Michael Biebl <biebl@debian.org>  Wed, 04 Mar 2026 17:36:26 +0100
+
 network-manager (1.56.0-2) experimental; urgency=medium
 
   * Enable Open vSwitch (OVS) support.
