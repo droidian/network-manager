@@ -90,9 +90,9 @@ Depends: ${shlibs:Depends},
 Breaks: network-manager (<< 1.56.0-4~)
 Replaces: network-manager (<< 1.56.0-4~)
 Description: NetworkManager curses-based UI
- This adds a curses-based "TUI" (Text User Interface) to
- NetworkManager, to allow performing some of the operations supported
- by nm-connection-editor and nm-applet in a non-graphical environment.
+ This package contains nmtui, a curses-based "TUI" (Text User Interface) for
+ NetworkManager, to allow performing some of the operations supported by
+ nm-connection-editor and nm-applet in a non-graphical environment.
 
 Package: network-manager-ovs
 Architecture: linux-any
