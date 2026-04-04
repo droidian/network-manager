@@ -99,7 +99,7 @@ Architecture: linux-any
 Depends: ${shlibs:Depends},
          ${misc:Depends},
          libnm0 (= ${binary:Version}),
-         openvswitch-switch,
+Recommends: openvswitch-switch,
 Description: Open vSwitch device plugin for NetworkManager
  This package contains NetworkManager support for Open vSwitch bridges.
 
