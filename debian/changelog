@@ -4,7 +4,7 @@ network-manager (1.56.0-6) unstable; urgency=medium
     Explicitly mention nmtui in the long description.
     See #1132248
   * Downgrade openvswitch-switch Depends to Recommends.
-    The openvswitch-switch package is only available on 32 bit
+    The openvswitch-switch package is only available on 64 bit
     architectures, so a hard Depends prevents testing migration.
 
  -- Michael Biebl <biebl@debian.org>  Sat, 04 Apr 2026 18:55:21 +0200
