@@ -62,9 +62,9 @@ Recommends: ppp,
             polkitd,
             udev,
             network-manager-l10n,
+          network-manager-tui,
 Suggests: network-manager-ovs,
           network-manager-team,
-          network-manager-tui,
           nftables | iptables,
 Breaks: ${misc:Breaks}
 Description: network management framework (daemon and userspace tools)
