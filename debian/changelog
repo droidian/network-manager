@@ -1,8 +1,10 @@
-network-manager (1.56.1-1) UNRELEASED; urgency=medium
+network-manager (1.56.1-1) unstable; urgency=medium
 
   * New upstream version 1.56.1
+  * Bump Standards-Version to 4.7.4
+  * Update symbols file for libnm0
 
- -- Michael Biebl <biebl@debian.org>  Thu, 14 May 2026 19:22:45 +0200
+ -- Michael Biebl <biebl@debian.org>  Thu, 14 May 2026 22:14:33 +0200
 
 network-manager (1.56.0-7) unstable; urgency=medium
 
