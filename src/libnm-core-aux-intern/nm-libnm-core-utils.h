@@ -300,13 +300,15 @@ gpointer _nm_connection_new_setting(NMConnection *connection, GType gtype);
 
 /*****************************************************************************/
 
-#define _NM_MPTCP_FLAGS_ALL                                                              \
-    ((NMMptcpFlags) (NM_MPTCP_FLAGS_DISABLED | NM_MPTCP_FLAGS_ENABLED                    \
-                     | NM_MPTCP_FLAGS_ALSO_WITHOUT_SYSCTL                                \
-                     | NM_MPTCP_FLAGS_ALSO_WITHOUT_DEFAULT_ROUTE | NM_MPTCP_FLAGS_SIGNAL \
-                     | NM_MPTCP_FLAGS_SUBFLOW | NM_MPTCP_FLAGS_BACKUP | NM_MPTCP_FLAGS_FULLMESH))
+#define _NM_MPTCP_FLAGS_ALL                                                                     \
+    ((NMMptcpFlags) (NM_MPTCP_FLAGS_DISABLED | NM_MPTCP_FLAGS_ENABLED                           \
+                     | NM_MPTCP_FLAGS_ALSO_WITHOUT_SYSCTL                                       \
+                     | NM_MPTCP_FLAGS_ALSO_WITHOUT_DEFAULT_ROUTE | NM_MPTCP_FLAGS_SIGNAL        \
+                     | NM_MPTCP_FLAGS_SUBFLOW | NM_MPTCP_FLAGS_BACKUP | NM_MPTCP_FLAGS_FULLMESH \
+                     | NM_MPTCP_FLAGS_LAMINAR))
 
-#define _NM_MPTCP_FLAGS_DEFAULT ((NMMptcpFlags) (NM_MPTCP_FLAGS_ENABLED | NM_MPTCP_FLAGS_SUBFLOW))
+#define _NM_MPTCP_FLAGS_DEFAULT \
+    ((NMMptcpFlags) (NM_MPTCP_FLAGS_ENABLED | NM_MPTCP_FLAGS_SUBFLOW | NM_MPTCP_FLAGS_LAMINAR))
 
 NMMptcpFlags nm_mptcp_flags_normalize(NMMptcpFlags flags);
 
@@ -330,7 +332,7 @@ typedef struct {
     guint16        port;
 } NMDnsServer;
 
-gboolean nm_dns_uri_parse(int addr_family, const char *str, NMDnsServer *out_dns);
+gboolean nm_dns_uri_parse(int addr_family, const char *str, NMDnsServer *out_dns, GError **error);
 gboolean
 nm_dns_uri_parse_plain(int addr_family, const char *str, char *out_addrstr, NMIPAddr *out_addr);
 const char *nm_dns_uri_normalize(int addr_family, const char *str, char **out_free);

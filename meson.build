@@ -5,23 +5,48 @@ project(
 # NOTE: When incrementing version also add corresponding
 #       NM_VERSION_x_y_z macros in
 #       "src/libnm-core-public/nm-version-macros.h.in"
-  version: '1.54.3',
+  version: '1.56.1',
   license: 'GPL2+',
   default_options: [
     'buildtype=debugoptimized',
     'c_std=gnu11',
     'warning_level=2' # value "2" will add "-Wall" and "-Wextra" to the compiler flags
   ],
-  meson_version: '>= 0.51.0',
+  meson_version: '>= 0.56.0',
 )
 
 nm_name = meson.project_name()
-
 nm_version = meson.project_version()
-version_array = nm_version.split('.')
-nm_major_version = version_array[0].to_int()
-nm_minor_version = version_array[1].to_int()
-nm_micro_version = version_array[2].to_int()
+
+version_and_suffix = nm_version.split('-')
+version_array = version_and_suffix[0].split('.')
+if version_and_suffix.length() == 2
+  version_suffix = version_and_suffix[1]
+else
+  assert(version_and_suffix.length() == 1)
+  version_suffix = ''
+endif
+
+# In the C API we encode the version in 90+ scheme (1.56-rc1 = 1.55.90, rc2 = .91, etc)
+if version_suffix == '' or version_suffix == 'dev'
+  assert(version_array.length() == 3)
+  nm_major_version = version_array[0].to_int()
+  nm_minor_version = version_array[1].to_int()
+  nm_micro_version = version_array[2].to_int()
+elif version_suffix.startswith('rc')
+  assert(version_array.length() == 2)
+  nm_major_version = version_array[0].to_int()
+  nm_minor_version = version_array[1].to_int() - 1
+  nm_micro_version = version_suffix.substring(2).to_int() + 89
+else
+  error('Invalid suffix: ' + version_suffix)
+endif
+
+if nm_minor_version % 2 == 1 and version_suffix == ''
+  error('Expected a "-dev" or "-rc" suffix')
+elif nm_minor_version %2 == 0 and version_suffix != ''
+  error('Unexpected "' + version_suffix + '" suffix')
+endif
 
 nm_id_prefix = 'NM'
 
@@ -77,6 +102,7 @@ libnm_version = '@0@.@1@.@2@'.format(current - age, age, revision)
 
 libnm_pkgincludedir = join_paths(nm_includedir, libnm_name)
 
+fs = import('fs')
 gnome = import('gnome')
 i18n = import('i18n')
 pkg = import('pkgconfig')
@@ -89,7 +115,6 @@ po_dir = source_root / 'po'
 top_inc = include_directories('.')
 
 perl = find_program('perl')
-xsltproc = find_program('xsltproc')
 
 check_exports = find_program(join_paths(source_root, 'tools', 'check-exports.sh'))
 
@@ -327,6 +352,7 @@ config_h.set10('WITH_CONFIG_PLUGIN_IFUPDOWN', enable_ifupdown)
 config_h.set_quoted('NM_DIST_VERSION', dist_version)
 
 enable_wifi = get_option('wifi')
+config_h.set10('WITH_WIFI', enable_wifi)
 
 enable_iwd = get_option('iwd')
 assert((not enable_iwd) or enable_wifi, 'Enabling iwd support requires Wi-Fi support as well')
@@ -476,19 +502,6 @@ if enable_selinux
 endif
 config_h.set10('HAVE_SELINUX', enable_selinux)
 
-# eBPF support
-ebpf_opt = get_option('ebpf')
-# 'auto' means 'false', because there are still issues.
-if ebpf_opt != 'true'
-  enable_ebpf = false
-else
-  enable_ebpf = true
-  if not cc.has_header('linux/bpf.h')
-    assert(ebpf_opt != 'true', 'eBPF requires kernel support')
-    enable_ebpf = false
-  endif
-endif
-
 # libaudit support
 libaudit = get_option('libaudit')
 enable_libaudit = libaudit.contains('yes')
@@ -507,12 +520,14 @@ if enable_teamdctl
   libteamdctl_dep = dependency('libteamdctl', version: '>= 1.9')
   assert(libteamdctl_dep.found(), 'You must have libteamdctl installed to build. Use -Dteamdctl=false to disable it')
 endif
+config_h.set10('WITH_TEAMDCTL', enable_teamdctl)
 
 # polkit
 enable_polkit = get_option('polkit')
 if enable_polkit
   # FIXME: policydir should be relative to `datadir`, not `prefix`. Fixed in https://gitlab.freedesktop.org/polkit/polkit/merge_requests/2
-  polkit_gobject_policydir = dependency('polkit-gobject-1').get_variable(pkgconfig: 'policydir', pkgconfig_define: ['prefix', nm_prefix])
+  polkit_policydir = dependency('polkit-gobject-1').get_variable(pkgconfig: 'policydir', pkgconfig_define: ['prefix', nm_prefix])
+  polkit_rulesdir = join_paths(fs.parent(polkit_policydir), 'rules.d')
 endif
 
 config_auth_polkit_default = get_option('config_auth_polkit_default')
@@ -522,6 +537,8 @@ endif
 config_h.set_quoted('NM_CONFIG_DEFAULT_MAIN_AUTH_POLKIT', config_auth_polkit_default)
 
 enable_modify_system = get_option('modify_system')
+
+polkit_noauth_group = get_option('polkit_noauth_group')
 
 polkit_agent_helper_1_path = get_option('polkit_agent_helper_1')
 foreach p : [ '/usr/libexec/polkit-agent-helper-1',
@@ -616,6 +633,7 @@ if enable_modem_manager
   endif
   config_h.set_quoted('MOBILE_BROADBAND_PROVIDER_INFO_DATABASE', mobile_broadband_provider_info_database)
 endif
+config_h.set10('WITH_WWAN', enable_modem_manager)
 
 # Bluez5 DUN support
 enable_bluez5_dun = get_option('bluez5_dun')
@@ -816,6 +834,7 @@ if enable_nm_cloud_setup
   assert(jansson_dep.found(), 'nm-cloud-setup requires jansson library. Use -Dnm_cloud_setup=false to disable it')
 endif
 
+enable_man = get_option('man')
 enable_docs = get_option('docs')
 
 more_asserts = get_option('more_asserts')
@@ -914,7 +933,6 @@ endif
 test_args = [
   '--called-from-make',
   build_root,
-  '',
   enable_valgrind ? valgrind_path : '',
   enable_valgrind ? valgrind_suppressions_path : '',
   '--launch-dbus=auto',
@@ -964,38 +982,6 @@ data_conf.set('nmstatedir',                              nm_pkgstatedir)
 data_conf.set('sbindir',                                 nm_sbindir)
 data_conf.set('sysconfdir',                              nm_sysconfdir)
 
-# check if we can build setting property documentation
-'''
-build_docs=no
-if test -n "$INTROSPECTION_MAKEFILE"; then
-  # If g-i is installed we know we have python, but we might not have pygobject
-  if ! "$PYTHON" -c 'from gi.repository import GObject' >& /dev/null; then
-    AC_MSG_ERROR(["--enable-introspection aims to build the settings documentation. This requires GObject introspection for python (pygobject)])
-  fi
-
-  AC_PATH_PROG(PERL, perl)
-  if test -z "$PERL"; then
-    AC_MSG_ERROR([--enable-introspection requires perl])
-  fi
-  AC_PATH_PROG(XSLTPROC, xsltproc)
-  if test -z "$XSLTPROC"; then
-    AC_MSG_ERROR([--enable-introspection requires xsltproc])
-  fi
-
-  have_introspection=yes
-  if test "$enable_gtk_doc" = "yes"; then
-    build_docs=yes
-  fi
-else
-  if test "$enable_gtk_doc" = "yes"; then
-    # large parts of the documentation require introspection/pygobject to extract
-    # the documentation out of the source files. You cannot enable gtk-doc without alone.
-    AC_MSG_ERROR(["--with-gtk-doc requires --enable-introspection"])
-  fi
-  have_introspection=no
-fi
-'''
-
 content_files = []
 
 subdir('introspection')
@@ -1033,9 +1019,14 @@ if enable_qt != 'false'
   endif
 endif
 
+# The man/ directory builds a couple targets needed by the docs build too.
+# If we build with docs but no man, then enter the subdir and only build
+# some targets.
+if enable_docs or enable_man
+  subdir('man')
+endif
 if enable_docs
   assert(enable_introspection, '-Ddocs=true requires -Dintrospection=true')
-  subdir('man')
   subdir('docs')
   meson.add_dist_script(
     'tools/meson-dist-data.sh',
@@ -1086,7 +1077,7 @@ meson.add_install_script(
   nm_pkgstatedir,
   nm_mandir,
   nm_sysconfdir,
-  enable_docs ? '1' : '0',
+  enable_man ? '1' : '0',
   enable_ifcfg_rh ? '1' : '0',
   enable_nm_cloud_setup ? '1' : '0',
   install_systemdunitdir ? '1' : '0',
@@ -1110,7 +1101,7 @@ output += '  dbus_conf_dir: ' + dbus_conf_dir + '\n'
 output += '\nPlatform:\n'
 output += '  session tracking: ' + ','.join(session_trackers) + '\n'
 output += '  suspend/resume: ' + suspend_resume + '\n'
-output += '  policykit: ' + enable_polkit.to_string() + ' (default: ' + config_auth_polkit_default + ')'
+output += '  policykit: ' + enable_polkit.to_string() + ' (default: ' + config_auth_polkit_default + ', noauth_group: "' + polkit_noauth_group + '")'
 if enable_polkit
   output += ' ('
   if enable_modify_system
@@ -1184,6 +1175,5 @@ output +=      'have-nss: ' + crypto_nss_dep.found().to_string() + ')\n'
 output += '  sanitizers: ' + get_option('b_sanitize') + '\n'
 output += '  Mozilla Public Suffix List: ' + enable_libpsl.to_string() + '\n'
 output += '  vapi: ' + enable_vapi.to_string() + '\n'
-output += '  ebpf: ' + enable_ebpf.to_string() + '\n'
 output += '  readline: ' + with_readline + '\n'
 message(output)

@@ -97,8 +97,6 @@ ENV_NM_TEST_UBSAN_OPTIONS = "NM_TEST_UBSAN_OPTIONS"
 # Valgrind is always disabled, if NM_TEST_REGENERATE is enabled.
 ENV_NM_TEST_VALGRIND = "NM_TEST_VALGRIND"
 
-ENV_LIBTOOL = "LIBTOOL"
-
 ###############################################################################
 
 import collections
@@ -678,9 +676,6 @@ class Util:
                 "--log-file=" + valgrind_log[1],
                 cmd,
             ]
-            libtool = conf.get(ENV_LIBTOOL)
-            if libtool:
-                argv = list(libtool) + ["--mode=execute"] + argv
         else:
             argv = [cmd]
 
@@ -693,7 +688,17 @@ class Util:
         micro = ver & 0xFF
         minor = (ver >> 8) & 0xFF
         major = ver >> 16
-        return "%s.%s.%s" % (major, minor, micro)
+
+        # Convert 1.57.1 -> 1.57.1-dev and 1.55.90 -> 1.56-rc1
+        if micro >= 90:
+            minor += 1
+            micro = "-rc" + str(micro - 89)
+        elif minor % 2 == 1:
+            micro = f".{micro}-dev"
+        else:
+            micro = f".{micro}"
+
+        return "%s.%s%s" % (major, minor, micro)
 
 
 ###############################################################################
@@ -784,21 +789,6 @@ class Configuration:
                     v = "print_stacktrace=1:halt_on_error=1"
                 else:
                     assert False
-        elif name == ENV_LIBTOOL:
-            v = os.environ.get(name, None)
-            if v is None:
-                v = os.path.abspath(
-                    os.path.dirname(self.get("ENV_NM_TEST_CLIENT_NMCLI_UNCHECKED_PATH"))
-                    + "/../../libtool"
-                )
-                if not os.path.isfile(v):
-                    v = None
-                else:
-                    v = [v]
-            elif not v:
-                v = None
-            else:
-                v = shlex.split(v)
         else:
             raise Exception()
         self._values[name] = v
@@ -3284,7 +3274,7 @@ def main():
                     sys.executable,
                     __file__,
                     "--started-with-dbus-session",
-                    *sys.argv[1:]
+                    *sys.argv[1:],
                 )
             except OSError as e:
                 if e.errno != errno.ENOENT:

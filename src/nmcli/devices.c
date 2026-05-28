@@ -854,7 +854,8 @@ usage(void)
           "delete | monitor | wifi | lldp }\n\n"
           "  status\n\n"
           "  show [<ifname>]\n\n"
-          "  set [ifname] <ifname> [autoconnect yes|no] [managed yes|no]\n\n"
+          "  set [ifname] <ifname> [autoconnect yes|no] [managed [--permanent|--permanent-only] "
+          "yes|no|up|down|reset]\n\n"
           "  connect <ifname>\n\n"
           "  reapply <ifname>\n\n"
           "  modify <ifname> ([+|-]<setting>.<property> <value>)+\n\n"
@@ -972,14 +973,15 @@ usage_device_delete(void)
 static void
 usage_device_set(void)
 {
-    nmc_printerr(_("Usage: nmcli device set { ARGUMENTS | help }\n"
-                   "\n"
-                   "ARGUMENTS := DEVICE { PROPERTY [ PROPERTY ... ] }\n"
-                   "DEVICE    := [ifname] <ifname> \n"
-                   "PROPERTY  := { autoconnect { yes | no } |\n"
-                   "             { managed { yes | no }\n"
-                   "\n"
-                   "Modify device properties.\n\n"));
+    nmc_printerr(_(
+        "Usage: nmcli device set { ARGUMENTS | help }\n"
+        "\n"
+        "ARGUMENTS := DEVICE { PROPERTY [ PROPERTY ... ] }\n"
+        "DEVICE    := [ifname] <ifname> \n"
+        "PROPERTY  := { autoconnect { yes | no } |\n"
+        "             { managed [--permanent | --permanent-only] { yes | no | up | down | reset }\n"
+        "\n"
+        "Modify device properties.\n\n"));
 }
 
 static void
@@ -2090,6 +2092,7 @@ typedef struct {
     char               *specific_object;
     bool                hotspot : 1;
     bool                create : 1;
+    bool                start_agent : 1;
 } AddAndActivateInfo;
 
 static AddAndActivateInfo *
@@ -2097,6 +2100,7 @@ add_and_activate_info_new(NmCli      *nmc,
                           NMDevice   *device,
                           gboolean    hotspot,
                           gboolean    create,
+                          gboolean    start_agent,
                           const char *specific_object)
 {
     AddAndActivateInfo *info;
@@ -2107,6 +2111,7 @@ add_and_activate_info_new(NmCli      *nmc,
         .device          = g_object_ref(device),
         .hotspot         = hotspot,
         .create          = create,
+        .start_agent     = start_agent,
         .specific_object = g_strdup(specific_object),
     };
     return info;
@@ -2364,7 +2369,7 @@ do_device_connect(const NMCCommand *cmd, NmCli *nmc, int argc, const char *const
                          nmc);
     }
 
-    info = add_and_activate_info_new(nmc, device, FALSE, FALSE, NULL);
+    info = add_and_activate_info_new(nmc, device, FALSE, FALSE, FALSE, NULL);
 
     nm_client_activate_connection_async(nmc->client,
                                         NULL, /* let NM find a connection automatically */
@@ -2790,20 +2795,62 @@ do_devices_delete(const NMCCommand *cmd, NmCli *nmc, int argc, const char *const
     }
 }
 
+typedef struct {
+    NmCli   *nmc;
+    GSource *timeout_source;
+} DeviceSetCbInfo;
+
+static void
+device_set_cb_info_finish(DeviceSetCbInfo *info)
+{
+    nm_clear_g_source_inst(&info->timeout_source);
+    g_slice_free(DeviceSetCbInfo, info);
+    quit();
+}
+
+static gboolean
+device_set_timeout_cb(gpointer user_data)
+{
+    DeviceSetCbInfo *cb_info = user_data;
+
+    timeout_cb(cb_info->nmc);
+    device_set_cb_info_finish(cb_info);
+    return G_SOURCE_REMOVE;
+}
+
+static void
+device_set_cb(GObject *object, GAsyncResult *result, gpointer user_data)
+{
+    NMDevice             *device = NM_DEVICE(object);
+    DeviceSetCbInfo      *info   = (DeviceSetCbInfo *) user_data;
+    NmCli                *nmc    = info->nmc;
+    gs_free_error GError *error  = NULL;
+
+    /* Only 'managed' is treated asynchronously, 'autoconnect' is treated synchronously */
+    if (!nm_device_set_managed_finish(device, result, &error)) {
+        g_string_printf(nmc->return_text, _("Error: set managed failed: %s."), error->message);
+        nmc->return_value = NMC_RESULT_ERROR_UNKNOWN;
+    }
+
+    device_set_cb_info_finish(info);
+}
+
 static void
 do_device_set(const NMCCommand *cmd, NmCli *nmc, int argc, const char *const *argv)
 {
-#define DEV_SET_AUTOCONNECT 0
-#define DEV_SET_MANAGED     1
-    NMDevice *device = NULL;
-    int       i;
+    NMDevice        *device  = NULL;
+    DeviceSetCbInfo *cb_info = NULL;
+    int              i;
     struct {
         int      idx;
         gboolean value;
-    } values[2] = {
-        [DEV_SET_AUTOCONNECT] = {-1},
-        [DEV_SET_MANAGED]     = {-1},
-    };
+    } autoconnect_data = {-1};
+    struct {
+        int             idx;
+        NMDeviceManaged value;
+        guint32         flags;
+    } managed_data = {-1};
+
     gs_free_error GError *error = NULL;
 
     next_arg(nmc, &argc, &argv, NULL);
@@ -2825,49 +2872,120 @@ do_device_set(const NMCCommand *cmd, NmCli *nmc, int argc, const char *const *ar
 
     i = 0;
     do {
-        gboolean flag;
-
         if (argc == 1 && nmc->complete)
             nmc_complete_strings(*argv, "managed", "autoconnect");
 
         if (matches(*argv, "managed")) {
+            NMDeviceManaged val;
+            guint32         flags = 0;
+            gboolean        val_bool;
+            gboolean        perm = FALSE, perm_only = FALSE;
+
             argc--;
             argv++;
+
+            if (argc == 1 && nmc->complete) {
+                nmc_complete_strings(*argv,
+                                     "true",
+                                     "yes",
+                                     "on",
+                                     "false",
+                                     "no",
+                                     "off",
+                                     "up",
+                                     "down",
+                                     "reset",
+                                     "--permanent",
+                                     "--permanent-only");
+            }
+
+            if (managed_data.idx != -1) {
+                g_string_printf(nmc->return_text, _("Error: 'managed' can only be set once."));
+                nmc->return_value = NMC_RESULT_ERROR_USER_INPUT;
+                return;
+            }
+
+            while (argc > 0) {
+                /* --perm matches with --permanent, the most common,
+                 * but --permanent-only requires a exact match */
+                if (nm_streq0(*argv, "--permanent-only"))
+                    perm_only = TRUE;
+                else if (matches(*argv, "--permanent"))
+                    perm = TRUE;
+                else
+                    break;
+                argc--;
+                argv++;
+            }
+
+            if (perm_only && perm) {
+                g_string_printf(
+                    nmc->return_text,
+                    _("Error: '--permanent-only' and '--permanent' cannot be used together."));
+                nmc->return_value = NMC_RESULT_ERROR_USER_INPUT;
+                return;
+            } else if (perm) {
+                flags |= NM_DEVICE_MANAGED_FLAGS_RUNTIME | NM_DEVICE_MANAGED_FLAGS_PERMANENT;
+            } else if (perm_only) {
+                flags |= NM_DEVICE_MANAGED_FLAGS_PERMANENT;
+            } else {
+                /* If --permanent/--permanent-only are missing, set only the runtime flag, as this
+                 * is how it used to work when these options didn't exist. */
+                flags |= NM_DEVICE_MANAGED_FLAGS_RUNTIME;
+            }
+
             if (!argc) {
-                g_string_printf(nmc->return_text,
-                                _("Error: '%s' argument is missing."),
-                                *(argv - 1));
+                g_string_printf(nmc->return_text, _("Error: 'managed' argument is missing."));
                 nmc->return_value = NMC_RESULT_ERROR_USER_INPUT;
                 return;
             }
-            if (argc == 1 && nmc->complete)
-                nmc_complete_bool(*argv);
-            if (!nmc_string_to_bool(*argv, &flag, &error)) {
-                g_string_printf(nmc->return_text, _("Error: 'managed': %s."), error->message);
+
+            if (matches(*argv, "up") || matches(*argv, "down")) {
+                flags |= NM_DEVICE_MANAGED_FLAGS_SET_ADMIN_STATE;
+                val = matches(*argv, "up") ? NM_DEVICE_MANAGED_YES : NM_DEVICE_MANAGED_NO;
+            } else if (matches(*argv, "reset")) {
+                val = NM_DEVICE_MANAGED_RESET;
+            } else if (nmc_string_to_bool(*argv, &val_bool, NULL)) {
+                val = val_bool ? NM_DEVICE_MANAGED_YES : NM_DEVICE_MANAGED_NO;
+            } else {
+                g_string_printf(
+                    nmc->return_text,
+                    _("Error: 'managed': '%s' is not valid, use 'yes/no/up/down/reset'."),
+                    *argv);
                 nmc->return_value = NMC_RESULT_ERROR_USER_INPUT;
                 return;
             }
-            values[DEV_SET_MANAGED].idx   = ++i;
-            values[DEV_SET_MANAGED].value = flag;
+
+            managed_data.idx   = i++;
+            managed_data.value = val;
+            managed_data.flags = flags;
         } else if (matches(*argv, "autoconnect")) {
+            gboolean val;
+
             argc--;
             argv++;
+
             if (!argc) {
-                g_string_printf(nmc->return_text,
-                                _("Error: '%s' argument is missing."),
-                                *(argv - 1));
+                g_string_printf(nmc->return_text, _("Error: 'autoconnect' argument is missing."));
                 nmc->return_value = NMC_RESULT_ERROR_USER_INPUT;
                 return;
             }
+            if (autoconnect_data.idx != -1) {
+                g_string_printf(nmc->return_text, _("Error: 'autoconnect' can only be set once."));
+                nmc->return_value = NMC_RESULT_ERROR_USER_INPUT;
+                return;
+            }
+
             if (argc == 1 && nmc->complete)
                 nmc_complete_bool(*argv);
-            if (!nmc_string_to_bool(*argv, &flag, &error)) {
+
+            if (!nmc_string_to_bool(*argv, &val, &error)) {
                 g_string_printf(nmc->return_text, _("Error: 'autoconnect': %s."), error->message);
                 nmc->return_value = NMC_RESULT_ERROR_USER_INPUT;
                 return;
             }
-            values[DEV_SET_AUTOCONNECT].idx   = ++i;
-            values[DEV_SET_AUTOCONNECT].value = flag;
+            autoconnect_data.idx   = i++;
+            autoconnect_data.value = val;
         } else {
             g_string_printf(nmc->return_text, _("Error: property '%s' is not known."), *argv);
             nmc->return_value = NMC_RESULT_ERROR_USER_INPUT;
@@ -2880,15 +2998,28 @@ do_device_set(const NMCCommand *cmd, NmCli *nmc, int argc, const char *const *ar
 
     /* when multiple properties are specified, set them in the order as they
      * are specified on the command line. */
-    if (values[DEV_SET_AUTOCONNECT].idx >= 0 && values[DEV_SET_MANAGED].idx >= 0
-        && values[DEV_SET_MANAGED].idx < values[DEV_SET_AUTOCONNECT].idx) {
-        nm_device_set_managed(device, values[DEV_SET_MANAGED].value);
-        values[DEV_SET_MANAGED].idx = -1;
+    for (i = 0; i < 2; i++) {
+        if (autoconnect_data.idx == i) {
+            nm_device_set_autoconnect(device, autoconnect_data.value);
+        }
+        if (managed_data.idx == i) {
+            cb_info      = g_slice_new0(DeviceSetCbInfo);
+            cb_info->nmc = nmc;
+            if (nmc->timeout > 0)
+                cb_info->timeout_source =
+                    nm_g_timeout_add_seconds_source(nmc->timeout, device_set_timeout_cb, cb_info);
+
+            nmc->nowait_flag = (nmc->timeout == 0);
+            nmc->should_wait++;
+
+            nm_device_set_managed_async(device,
+                                        managed_data.value,
+                                        managed_data.flags,
+                                        NULL,
+                                        device_set_cb,
+                                        cb_info);
+        }
     }
-    if (values[DEV_SET_AUTOCONNECT].idx >= 0)
-        nm_device_set_autoconnect(device, values[DEV_SET_AUTOCONNECT].value);
-    if (values[DEV_SET_MANAGED].idx >= 0)
-        nm_device_set_managed(device, values[DEV_SET_MANAGED].value);
 }
 
 static void
@@ -3603,6 +3734,16 @@ activate_update2_cb(GObject *source_object, GAsyncResult *res, gpointer user_dat
         return;
     }
 
+    if (info->start_agent && !nmc->secret_agent) {
+        nmc->secret_agent = nm_secret_agent_simple_new("nmcli-connect");
+        if (nmc->secret_agent) {
+            g_signal_connect(nmc->secret_agent,
+                             NM_SECRET_AGENT_SIMPLE_REQUEST_SECRETS,
+                             G_CALLBACK(nmc_secrets_requested),
+                             nmc);
+        }
+    }
+
     nm_client_activate_connection_async(nmc->client,
                                         NM_CONNECTION(remote_con),
                                         info->device,
@@ -3617,6 +3758,7 @@ save_and_activate_connection(NmCli        *nmc,
                              NMDevice     *device,
                              NMConnection *connection,
                              gboolean      hotspot,
+                             gboolean      start_agent,
                              const char   *specific_object)
 {
     AddAndActivateInfo *info;
@@ -3625,9 +3767,15 @@ save_and_activate_connection(NmCli        *nmc,
                                      device,
                                      hotspot,
                                      !NM_IS_REMOTE_CONNECTION(connection),
+                                     start_agent,
                                      specific_object);
 
     if (NM_IS_REMOTE_CONNECTION(connection)) {
+        /* Don't start the agent immediately. Otherwise the agent registration
+         * to the daemon will trigger a new activation if the connection was
+         * blocked due to bad secrets. This new activation would use the old
+         * secrets.
+         */
         nm_remote_connection_update2(NM_REMOTE_CONNECTION(connection),
                                      nm_connection_to_dbus(connection, NM_CONNECTION_SERIALIZE_ALL),
                                      NM_SETTINGS_UPDATE2_FLAG_BLOCK_AUTOCONNECT,
@@ -3636,6 +3784,16 @@ save_and_activate_connection(NmCli        *nmc,
                                      activate_update2_cb,
                                      info);
     } else {
+        if (start_agent) {
+            nmc->secret_agent = nm_secret_agent_simple_new("nmcli-connect");
+            if (nmc->secret_agent) {
+                g_signal_connect(nmc->secret_agent,
+                                 NM_SECRET_AGENT_SIMPLE_REQUEST_SECRETS,
+                                 G_CALLBACK(nmc_secrets_requested),
+                                 nmc);
+            }
+        }
+
         nm_client_add_and_activate_connection_async(nmc->client,
                                                     connection,
                                                     info->device,
@@ -3665,6 +3823,7 @@ do_device_wifi_connect(const NMCCommand *cmd, NmCli *nmc, int argc, const char *
     gboolean private                         = FALSE;
     gboolean           hidden                = FALSE;
     gboolean           wep_passphrase        = FALSE;
+    gboolean           start_agent           = FALSE;
     GByteArray        *bssid1_arr            = NULL;
     GByteArray        *bssid2_arr            = NULL;
     gs_free NMDevice **devices               = NULL;
@@ -4029,18 +4188,13 @@ do_device_wifi_connect(const NMCCommand *cmd, NmCli *nmc, int argc, const char *
                              NM_802_11_AP_SEC_KEY_MGMT_OWE | NM_802_11_AP_SEC_KEY_MGMT_OWE_TM))) {
         NMSettingWirelessSecurity *s_wsec = NULL;
 
-        /* Create secret agent */
-        nmc->secret_agent = nm_secret_agent_simple_new("nmcli-connect");
-        if (nmc->secret_agent) {
-            g_signal_connect(nmc->secret_agent,
-                             NM_SECRET_AGENT_SIMPLE_REQUEST_SECRETS,
-                             G_CALLBACK(nmc_secrets_requested),
-                             nmc);
-        }
+        /* Start the secret agent just before initiating the activation. */
+        start_agent = TRUE;
 
         if (password) {
             if (!connection)
                 connection = nm_simple_connection_new();
+            s_wsec = nm_connection_get_setting_wireless_security(connection);
             if (!s_wsec) {
                 s_wsec = (NMSettingWirelessSecurity *) nm_setting_wireless_security_new();
                 nm_connection_add_setting(connection, NM_SETTING(s_wsec));
@@ -4075,7 +4229,12 @@ do_device_wifi_connect(const NMCCommand *cmd, NmCli *nmc, int argc, const char *
     nmc->nowait_flag = (nmc->timeout == 0);
     nmc->should_wait++;
 
-    save_and_activate_connection(nmc, device, connection, FALSE, nm_object_get_path(NM_OBJECT(ap)));
+    save_and_activate_connection(nmc,
+                                 device,
+                                 connection,
+                                 FALSE,
+                                 start_agent,
+                                 nm_object_get_path(NM_OBJECT(ap)));
 
 finish:
     if (bssid1_arr)
@@ -4535,7 +4694,7 @@ do_device_wifi_hotspot(const NMCCommand *cmd, NmCli *nmc, int argc, const char *
     nmc->nowait_flag = (nmc->timeout == 0);
     nmc->should_wait++;
 
-    save_and_activate_connection(nmc, device, connection, TRUE, NULL);
+    save_and_activate_connection(nmc, device, connection, TRUE, FALSE, NULL);
 }
 
 static void

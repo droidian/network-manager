@@ -206,20 +206,30 @@ nm_supplicant_config_add_blob(NMSupplicantConfig *self,
     ConfigOption              *old_opt;
     ConfigOption              *opt;
     NMSupplOptType             type;
-    const guint8              *data;
     gsize                      data_len;
+    gs_free char              *full_value = NULL;
 
     g_return_val_if_fail(NM_IS_SUPPLICANT_CONFIG(self), FALSE);
     g_return_val_if_fail(key != NULL, FALSE);
     g_return_val_if_fail(value != NULL, FALSE);
     g_return_val_if_fail(blobid != NULL, FALSE);
 
-    data = g_bytes_get_data(value, &data_len);
+    g_bytes_get_data(value, &data_len);
     g_return_val_if_fail(data_len > 0, FALSE);
 
-    priv = NM_SUPPLICANT_CONFIG_GET_PRIVATE(self);
+    if (data_len > 32 * 1024 * 1024) {
+        g_set_error(error,
+                    NM_SUPPLICANT_ERROR,
+                    NM_SUPPLICANT_ERROR_CONFIG,
+                    "blob '%s' is larger than 32MiB",
+                    key);
+        return FALSE;
+    }
 
-    type = nm_supplicant_settings_verify_setting(key, (const char *) data, data_len);
+    priv       = NM_SUPPLICANT_CONFIG_GET_PRIVATE(self);
+    full_value = g_strdup_printf("blob://%s", blobid);
+
+    type = nm_supplicant_settings_verify_setting(key, full_value, strlen(full_value));
     if (type == NM_SUPPL_OPT_TYPE_INVALID) {
         g_set_error(error,
                     NM_SUPPLICANT_ERROR,
@@ -240,7 +250,7 @@ nm_supplicant_config_add_blob(NMSupplicantConfig *self,
     }
 
     opt        = g_slice_new0(ConfigOption);
-    opt->value = g_strdup_printf("blob://%s", blobid);
+    opt->value = g_steal_pointer(&full_value);
     opt->len   = strlen(opt->value);
     opt->type  = type;
 
@@ -521,6 +531,7 @@ get_ap_params(guint                         freq,
     case NM_SETTING_WIRELESS_CHANNEL_WIDTH_80MHZ:
     {
         guint channel;
+        guint center_channel = 0;
 
         if (freq < 5000) {
             /* the setting is not valid */
@@ -530,12 +541,29 @@ get_ap_params(guint                         freq,
 
         /* Determine the center channel according to the table at
          * https://en.wikipedia.org/wiki/List_of_WLAN_channels */
-        channel = (freq - 5000) / 5;
-        channel = ((channel / 4 - 1) / 4) * 16 + 10;
 
-        *out_ht40             = 1;
-        *out_max_oper_chwidth = 1;
-        *out_center_freq      = 5000 + 5 * channel;
+        channel = (freq - 5000) / 5;
+
+        if (channel >= 36 && channel <= 48)
+            center_channel = 42;
+        else if (channel >= 52 && channel <= 64)
+            center_channel = 58;
+        else if (channel >= 100 && channel <= 112)
+            center_channel = 106;
+        else if (channel >= 116 && channel <= 128)
+            center_channel = 122;
+        else if (channel >= 132 && channel <= 144)
+            center_channel = 138;
+        else if (channel >= 149 && channel <= 161)
+            center_channel = 155;
+        else if (channel >= 165 && channel <= 177)
+            center_channel = 171;
+
+        if (center_channel) {
+            *out_ht40             = 1;
+            *out_max_oper_chwidth = 1;
+            *out_center_freq      = 5000 + 5 * center_channel;
+        }
 
         return;
     }
@@ -1016,7 +1044,7 @@ nm_supplicant_config_add_setting_wireless_security(NMSupplicantConfig           
         if (_get_capability(priv, NM_SUPPL_CAP_TYPE_SAE)
             && _get_capability(priv, NM_SUPPL_CAP_TYPE_PMF)
             && _get_capability(priv, NM_SUPPL_CAP_TYPE_BIP)
-            && (!is_ap || pmf != NM_SETTING_WIRELESS_SECURITY_PMF_DISABLE)) {
+            && (pmf != NM_SETTING_WIRELESS_SECURITY_PMF_DISABLE)) {
             g_string_append(key_mgmt_conf, " SAE");
             if (!is_ap && _get_capability(priv, NM_SUPPL_CAP_TYPE_FT))
                 g_string_append(key_mgmt_conf, " FT-SAE");

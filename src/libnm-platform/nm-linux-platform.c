@@ -59,6 +59,7 @@ G_STATIC_ASSERT(NM_MPTCP_PM_ADDR_FLAG_SUBFLOW == MPTCP_PM_ADDR_FLAG_SUBFLOW);
 G_STATIC_ASSERT(NM_MPTCP_PM_ADDR_FLAG_BACKUP == MPTCP_PM_ADDR_FLAG_BACKUP);
 G_STATIC_ASSERT(NM_MPTCP_PM_ADDR_FLAG_FULLMESH == MPTCP_PM_ADDR_FLAG_FULLMESH);
 G_STATIC_ASSERT(NM_MPTCP_PM_ADDR_FLAG_IMPLICIT == MPTCP_PM_ADDR_FLAG_IMPLICIT);
+G_STATIC_ASSERT(NM_MPTCP_PM_ADDR_FLAG_LAMINAR == MPTCP_PM_ADDR_FLAG_LAMINAR);
 
 /*****************************************************************************/
 
@@ -861,6 +862,7 @@ static const LinkDesc link_descs[] = {
 
     [NM_LINK_TYPE_BNEP]        = {"bluetooth", NULL, "bluetooth"},
     [NM_LINK_TYPE_DUMMY]       = {"dummy", "dummy", NULL},
+    [NM_LINK_TYPE_GENEVE]      = {"geneve", "geneve", "geneve"},
     [NM_LINK_TYPE_GRE]         = {"gre", "gre", NULL},
     [NM_LINK_TYPE_GRETAP]      = {"gretap", "gretap", NULL},
     [NM_LINK_TYPE_IFB]         = {"ifb", "ifb", NULL},
@@ -908,6 +910,7 @@ _link_type_from_rtnl_type(const char *name)
         NM_LINK_TYPE_BOND,        /* "bond"        */
         NM_LINK_TYPE_BRIDGE,      /* "bridge"      */
         NM_LINK_TYPE_DUMMY,       /* "dummy"       */
+        NM_LINK_TYPE_GENEVE,      /* "geneve"      */
         NM_LINK_TYPE_GRE,         /* "gre"         */
         NM_LINK_TYPE_GRETAP,      /* "gretap"      */
         NM_LINK_TYPE_HSR,         /* "hsr"         */
@@ -986,6 +989,7 @@ _link_type_from_devtype(const char *name)
         NM_LINK_TYPE_BNEP,      /* "bluetooth" */
         NM_LINK_TYPE_BOND,      /* "bond"      */
         NM_LINK_TYPE_BRIDGE,    /* "bridge"    */
+        NM_LINK_TYPE_GENEVE,    /* "geneve"    */
         NM_LINK_TYPE_HSR,       /* "hsr"       */
         NM_LINK_TYPE_PPP,       /* "ppp"       */
         NM_LINK_TYPE_VLAN,      /* "vlan"      */
@@ -1849,6 +1853,57 @@ _parse_lnk_gre(const char *kind, struct nlattr *info_data)
     props->ttl                = tb[IFLA_GRE_TTL] ? nla_get_u8(tb[IFLA_GRE_TTL]) : 0;
     props->path_mtu_discovery = !tb[IFLA_GRE_PMTUDISC] || !!nla_get_u8(tb[IFLA_GRE_PMTUDISC]);
     props->is_tap             = is_tap;
+
+    return obj;
+}
+
+/*****************************************************************************/
+
+static NMPObject *
+_parse_lnk_geneve(const char *kind, struct nlattr *info_data)
+{
+    static const struct nla_policy policy[] = {
+        [IFLA_GENEVE_ID]          = {.type = NLA_U32},
+        [IFLA_GENEVE_REMOTE]      = {.type = NLA_U32},
+        [IFLA_GENEVE_REMOTE6]     = {.type = NLA_UNSPEC, .minlen = sizeof(struct in6_addr)},
+        [IFLA_GENEVE_TTL]         = {.type = NLA_U8},
+        [IFLA_GENEVE_TOS]         = {.type = NLA_U8},
+        [IFLA_GENEVE_TTL_INHERIT] = {.type = NLA_U8},
+        [IFLA_GENEVE_PORT]        = {.type = NLA_U16},
+        [IFLA_GENEVE_DF]          = {.type = NLA_U8},
+    };
+
+    struct nlattr       *tb[G_N_ELEMENTS(policy)];
+    NMPObject           *obj;
+    NMPlatformLnkGeneve *props;
+
+    if (!info_data || !nm_streq0(kind, "geneve"))
+        return NULL;
+
+    if (nla_parse_nested_arr(tb, info_data, policy) < 0)
+        return NULL;
+
+    obj   = nmp_object_new(NMP_OBJECT_TYPE_LNK_GENEVE, NULL);
+    props = &obj->lnk_geneve;
+
+    if (tb[IFLA_GENEVE_ID])
+        props->id = nla_get_u32(tb[IFLA_GENEVE_ID]);
+    if (tb[IFLA_GENEVE_REMOTE])
+        props->remote = nla_get_u32(tb[IFLA_GENEVE_REMOTE]);
+    if (tb[IFLA_GENEVE_REMOTE6])
+        props->remote6 = *nla_data_as(struct in6_addr, tb[IFLA_GENEVE_REMOTE6]);
+
+    if (tb[IFLA_GENEVE_TTL_INHERIT] && nla_get_u8(tb[IFLA_GENEVE_TTL_INHERIT]))
+        props->ttl = -1;
+    else if (tb[IFLA_GENEVE_TTL])
+        props->ttl = nla_get_u8(tb[IFLA_GENEVE_TTL]);
+
+    if (tb[IFLA_GENEVE_TOS])
+        props->tos = nla_get_u8(tb[IFLA_GENEVE_TOS]);
+    if (tb[IFLA_GENEVE_PORT])
+        props->dst_port = ntohs(nla_get_u16(tb[IFLA_GENEVE_PORT]));
+    if (tb[IFLA_GENEVE_DF])
+        props->df = nla_get_u8(tb[IFLA_GENEVE_DF]);
 
     return obj;
 }
@@ -3693,6 +3748,9 @@ _new_from_nl_link(NMPlatform            *platform,
     case NM_LINK_TYPE_BOND:
         lnk_data = _parse_lnk_bond(nl_info_kind, nl_info_data);
         break;
+    case NM_LINK_TYPE_GENEVE:
+        lnk_data = _parse_lnk_geneve(nl_info_kind, nl_info_data);
+        break;
     case NM_LINK_TYPE_GRE:
     case NM_LINK_TYPE_GRETAP:
         lnk_data = _parse_lnk_gre(nl_info_kind, nl_info_data);
@@ -4014,6 +4072,7 @@ _new_from_nl_route(const struct nlmsghdr *nlh, gboolean id_only, ParseNlmsgIter 
         [RTA_PREF]      = {.type = NLA_U8},
         [RTA_FLOW]      = {.type = NLA_U32},
         [RTA_CACHEINFO] = {.minlen = nm_offsetofend(struct rta_cacheinfo, rta_tsage)},
+        [RTA_VIA]       = {.minlen = nm_offsetofend(struct rtvia, rtvia_family)},
         [RTA_METRICS]   = {.type = NLA_NESTED},
         [RTA_MULTIPATH] = {.type = NLA_NESTED},
     };
@@ -4030,9 +4089,12 @@ _new_from_nl_route(const struct nlmsghdr *nlh, gboolean id_only, ParseNlmsgIter 
         guint8   weight;
         int      ifindex;
         NMIPAddr gateway;
+        gboolean is_via;
+        unsigned rtnh_flags;
     } nh = {
         .found    = FALSE,
         .has_more = FALSE,
+        .is_via   = FALSE,
     };
     guint                           v4_n_nexthops = 0;
     NMPlatformIP4RtNextHop          v4_nh_extra_nexthops_stack[10];
@@ -4138,9 +4200,10 @@ _new_from_nl_route(const struct nlmsghdr *nlh, gboolean id_only, ParseNlmsgIter 
                     v4_nh_extra_nexthops = v4_nh_extra_nexthops_heap;
                 }
                 nm_assert(v4_n_nexthops - 1u < v4_nh_extra_alloc);
-                new_nexthop          = &v4_nh_extra_nexthops[v4_n_nexthops - 1u];
-                new_nexthop->ifindex = rtnh->rtnh_ifindex;
-                new_nexthop->weight  = NM_MAX(((guint) rtnh->rtnh_hops) + 1u, 1u);
+                new_nexthop             = &v4_nh_extra_nexthops[v4_n_nexthops - 1u];
+                new_nexthop->ifindex    = rtnh->rtnh_ifindex;
+                new_nexthop->weight     = NM_MAX(((guint) rtnh->rtnh_hops) + 1u, 1u);
+                new_nexthop->rtnh_flags = rtnh->rtnh_flags;
                 if (rtnh->rtnh_len > sizeof(*rtnh)) {
                     struct nlattr *ntb[RTA_MAX + 1];
 
@@ -4155,9 +4218,10 @@ _new_from_nl_route(const struct nlmsghdr *nlh, gboolean id_only, ParseNlmsgIter 
                         memcpy(&new_nexthop->gateway, nla_data(ntb[RTA_GATEWAY]), addr_len);
                 }
             } else if (IS_IPv4 || idx == multihop_idx) {
-                nh.found   = TRUE;
-                nh.ifindex = rtnh->rtnh_ifindex;
-                nh.weight  = NM_MAX(((guint) rtnh->rtnh_hops) + 1u, 1u);
+                nh.found      = TRUE;
+                nh.ifindex    = rtnh->rtnh_ifindex;
+                nh.weight     = NM_MAX(((guint) rtnh->rtnh_hops) + 1u, 1u);
+                nh.rtnh_flags = rtnh->rtnh_flags;
                 if (rtnh->rtnh_len > sizeof(*rtnh)) {
                     struct nlattr *ntb[RTA_MAX + 1];
 
@@ -4201,13 +4265,26 @@ rta_multipath_done:
         return nm_assert_unreachable_val(NULL);
     }
 
-    if (tb[RTA_OIF] || tb[RTA_GATEWAY] || tb[RTA_FLOW]) {
+    if (tb[RTA_OIF] || tb[RTA_GATEWAY] || tb[RTA_FLOW] || tb[RTA_VIA]) {
         int      ifindex = 0;
         NMIPAddr gateway = {};
 
         if (tb[RTA_OIF])
             ifindex = nla_get_u32(tb[RTA_OIF]);
-        if (_check_addr_or_return_null(tb, RTA_GATEWAY, addr_len))
+
+        if (tb[RTA_VIA]) {
+            struct rtvia *rtvia;
+
+            /* Used when the gateway family doesn't match the route family */
+            rtvia = nla_data(tb[RTA_VIA]);
+            if (rtvia->rtvia_family != AF_INET6)
+                return NULL;
+            if (nla_len(tb[RTA_VIA]) < sizeof(struct rtvia) + sizeof(struct in6_addr))
+                return NULL;
+
+            nh.is_via = TRUE;
+            memcpy(&gateway, rtvia->rtvia_addr, sizeof(struct in6_addr));
+        } else if (_check_addr_or_return_null(tb, RTA_GATEWAY, addr_len))
             memcpy(&gateway, nla_data(tb[RTA_GATEWAY]), addr_len);
 
         if (!nh.found) {
@@ -4223,6 +4300,9 @@ rta_multipath_done:
         } else {
             /* Kernel supports new style nexthop configuration,
              * verify that it is a duplicate and ignore old-style nexthop. */
+            if (nh.is_via)
+                return NULL;
+
             if (nh.ifindex != ifindex || memcmp(&nh.gateway, &gateway, addr_len) != 0) {
                 /* we have a RTA_MULTIPATH attribute that does not agree.
                  * That seems not right. Error out. */
@@ -4238,7 +4318,7 @@ rta_multipath_done:
          * 1 (lo). Of course it does!! */
         if (nh.found) {
             if (IS_IPv4) {
-                if (nh.ifindex != 0 || nh.gateway.addr4 != 0) {
+                if (nh.ifindex != 0 || nh.gateway.addr4 != 0 || nh.is_via) {
                     /* we only accept kernel to notify about the ifindex/gateway, if it
                      * is zero. This is only to be a bit forgiving, but we really don't
                      * know how to handle such routes that have an ifindex. */
@@ -4337,9 +4417,14 @@ rta_multipath_done:
     if (tb[RTA_PRIORITY])
         obj->ip_route.metric = nla_get_u32(tb[RTA_PRIORITY]);
 
-    if (IS_IPv4)
-        obj->ip4_route.gateway = nh.gateway.addr4;
-    else
+    if (IS_IPv4) {
+        if (nh.is_via) {
+            obj->ip4_route.via.addr_family = AF_INET6;
+            obj->ip4_route.via.addr        = nh.gateway;
+        } else {
+            obj->ip4_route.gateway = nh.gateway.addr4;
+        }
+    } else
         obj->ip6_route.gateway = nh.gateway.addr6;
 
     if (IS_IPv4)
@@ -4384,7 +4469,16 @@ rta_multipath_done:
     }
 
     obj->ip_route.r_rtm_flags = rtm->rtm_flags;
-    obj->ip_route.rt_source   = nmp_utils_ip_config_source_from_rtprot(rtm->rtm_protocol);
+
+    if (IS_IPv4 && v4_n_nexthops > 1u) {
+        /* For multipath routes, rtm_flags at the route level does not contain
+         * RTNH_F_ONLINK. Instead, each nexthop has its own rtnh_flags. Merge the
+         * first nexthop's RTNH_F_ONLINK into r_rtm_flags, since the first nexthop
+         * is embedded in the route struct. */
+        obj->ip_route.r_rtm_flags |= (nh.rtnh_flags & RTNH_F_ONLINK);
+    }
+
+    obj->ip_route.rt_source = nmp_utils_ip_config_source_from_rtprot(rtm->rtm_protocol);
 
     if (nh.has_more) {
         parse_nlmsg_iter->iter_more               = TRUE;
@@ -5157,6 +5251,35 @@ _nl_msg_new_link_set_linkinfo(struct nl_msg *msg, NMLinkType link_type, gconstpo
         nla_nest_end(msg, info_peer);
         break;
     }
+    case NM_LINK_TYPE_GENEVE:
+    {
+        const NMPlatformLnkGeneve *props = extra_data;
+
+        nm_assert(props);
+
+        if (!(data = nla_nest_start(msg, IFLA_INFO_DATA)))
+            goto nla_put_failure;
+
+        NLA_PUT_U32(msg, IFLA_GENEVE_ID, props->id);
+
+        if (props->remote) {
+            NLA_PUT_U32(msg, IFLA_GENEVE_REMOTE, props->remote);
+        } else if (!IN6_IS_ADDR_UNSPECIFIED(&props->remote6)) {
+            NLA_PUT(msg, IFLA_GENEVE_REMOTE6, sizeof(props->remote6), &props->remote6);
+        }
+        NLA_PUT_U16(msg, IFLA_GENEVE_PORT, htons(props->dst_port));
+        if (props->ttl == -1) {
+            NLA_PUT_U8(msg, IFLA_GENEVE_TTL_INHERIT, 1);
+        } else {
+            /* When you want to specify a TTL value,
+             * don't add TTL_INHERIT to the message */
+            NLA_PUT_U8(msg, IFLA_GENEVE_TTL, props->ttl & 0xff);
+        }
+        NLA_PUT_U8(msg, IFLA_GENEVE_TOS, props->tos);
+        NLA_PUT_U8(msg, IFLA_GENEVE_DF, props->df);
+        break;
+    }
+
     case NM_LINK_TYPE_GRE:
     case NM_LINK_TYPE_GRETAP:
     {
@@ -5788,15 +5911,18 @@ _nl_msg_new_route(uint16_t nlmsg_type, uint16_t nlmsg_flags, const NMPObject *ob
             }
             NLA_PUT_U32(msg, RTA_GATEWAY, gw);
 
-            rtnh->rtnh_flags = 0;
+            if (i == 0u) {
+                rtnh->rtnh_flags =
+                    (gw != 0 && NM_FLAGS_HAS(obj->ip_route.r_rtm_flags, (unsigned) RTNH_F_ONLINK))
+                        ? RTNH_F_ONLINK
+                        : 0;
+            } else {
+                const NMPlatformIP4RtNextHop *n2 = &obj->_ip4_route.extra_nexthops[i - 1u];
 
-            if (obj->ip4_route.n_nexthops > 1
-                && NM_FLAGS_HAS(obj->ip_route.r_rtm_flags, (unsigned) (RTNH_F_ONLINK)) && gw != 0) {
-                /* Unlike kernel, we only track the onlink flag per NMPlatformIP4Address, and
-                 * not per nexthop. That is fine for NetworkManager configuring addresses.
-                 * It is not fine for tracking addresses from kernel in platform cache,
-                 * because the rtnh_flags of the nexthops need to be part of nmp_object_id_cmp(). */
-                rtnh->rtnh_flags |= RTNH_F_ONLINK;
+                rtnh->rtnh_flags =
+                    (gw != 0 && NM_FLAGS_HAS(n2->rtnh_flags, (unsigned) RTNH_F_ONLINK))
+                        ? RTNH_F_ONLINK
+                        : 0;
             }
 
             rtnh->rtnh_len = (char *) nlmsg_tail(nlmsg_hdr(msg)) - (char *) rtnh;
@@ -5838,7 +5964,24 @@ _nl_msg_new_route(uint16_t nlmsg_type, uint16_t nlmsg_flags, const NMPObject *ob
 
     /* We currently don't have need for multi-hop routes... */
     if (IS_IPv4) {
-        NLA_PUT(msg, RTA_GATEWAY, addr_len, &obj->ip4_route.gateway);
+        if (obj->ip4_route.gateway == INADDR_ANY && obj->ip4_route.via.addr_family != AF_UNSPEC) {
+            struct rtvia *rtvia;
+
+            nm_assert(obj->ip4_route.via.addr_family == AF_INET6);
+
+            rtvia = nla_data(nla_reserve(
+                msg,
+                RTA_VIA,
+                sizeof(*rtvia) + nm_utils_addr_family_to_size(obj->ip4_route.via.addr_family)));
+            if (!rtvia)
+                goto nla_put_failure;
+            rtvia->rtvia_family = obj->ip4_route.via.addr_family;
+            memcpy(rtvia->rtvia_addr,
+                   obj->ip4_route.via.addr.addr_ptr,
+                   nm_utils_addr_family_to_size(obj->ip4_route.via.addr_family));
+        } else {
+            NLA_PUT(msg, RTA_GATEWAY, addr_len, &obj->ip4_route.gateway);
+        }
     } else {
         if (!IN6_IS_ADDR_UNSPECIFIED(&obj->ip6_route.gateway))
             NLA_PUT(msg, RTA_GATEWAY, addr_len, &obj->ip6_route.gateway);

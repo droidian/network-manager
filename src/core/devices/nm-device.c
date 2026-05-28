@@ -113,6 +113,19 @@ typedef enum {
     RELEASE_PORT_TYPE_CONFIG_FORCE,
 } ReleasePortType;
 
+/**
+ * CleanupType:
+ * @CLEANUP_TYPE_KEEP: Cleanup internally but keep the real device's config. This is
+ *   often used when moving a partially managed device to "unmanaged" (but not only).
+ * @CLEANUP_TYPE_REMOVED: The device suddently disappeared. Cleanup internally but don't
+ *   make any action on the real device at all, as it no longer exists.
+ * @CLEANUP_TYPE_DECONFIGURE: Also deconfigure the real device. This is the typical
+ *   action when a connection or device is set to "down", or fully managed devices
+ *   moved to "unmanaged".
+ * @CLEANUP_TYPE_KEEP_REAPPLY: Like %CLEANUP_TYPE_KEEP, but indicating that it's a
+ *   reapply. Some special actions can be done if we're doing a reapply, like keeping
+ *   the existing DHCP lease, for example.
+ */
 typedef enum {
     CLEANUP_TYPE_KEEP,
     CLEANUP_TYPE_REMOVED,
@@ -265,11 +278,11 @@ typedef struct {
     NMDeviceIPState state;
     union {
         struct {
-            NMDnsMasqManager      *dnsmasq_manager;
-            NMNetnsSharedIPHandle *shared_ip_handle;
-            NMFirewallConfig      *firewall_config;
-            gulong                 dnsmasq_state_id;
-            const NML3ConfigData  *l3cd;
+            NMDnsMasqManager     *dnsmasq_manager;
+            NMNetnsIPReservation *ip_reservation;
+            NMFirewallConfig     *firewall_config;
+            gulong                dnsmasq_state_id;
+            const NML3ConfigData *l3cd;
         } v4;
         struct {
         } v6;
@@ -1411,14 +1424,12 @@ _prop_get_ipvx_routed_dns(NMDevice *self, int addr_family)
 }
 
 static NMSettingConnectionMdns
-_prop_get_connection_mdns(NMDevice *self)
+_prop_get_connection_mdns(NMDevice *self, NMConnection *connection)
 {
-    NMConnection           *connection;
     NMSettingConnectionMdns mdns = NM_SETTING_CONNECTION_MDNS_DEFAULT;
 
     g_return_val_if_fail(NM_IS_DEVICE(self), NM_SETTING_CONNECTION_MDNS_DEFAULT);
 
-    connection = nm_device_get_applied_connection(self);
     if (connection)
         mdns = nm_setting_connection_get_mdns(nm_connection_get_setting_connection(connection));
     if (mdns != NM_SETTING_CONNECTION_MDNS_DEFAULT)
@@ -1453,14 +1464,12 @@ _prop_get_sriov_preserve_on_down(NMDevice *self, NMSettingSriov *s_sriov)
 }
 
 static NMSettingConnectionLlmnr
-_prop_get_connection_llmnr(NMDevice *self)
+_prop_get_connection_llmnr(NMDevice *self, NMConnection *connection)
 {
-    NMConnection            *connection;
     NMSettingConnectionLlmnr llmnr = NM_SETTING_CONNECTION_LLMNR_DEFAULT;
 
     g_return_val_if_fail(NM_IS_DEVICE(self), NM_SETTING_CONNECTION_LLMNR_DEFAULT);
 
-    connection = nm_device_get_applied_connection(self);
     if (connection)
         llmnr = nm_setting_connection_get_llmnr(nm_connection_get_setting_connection(connection));
     if (llmnr != NM_SETTING_CONNECTION_LLMNR_DEFAULT)
@@ -1475,14 +1484,12 @@ _prop_get_connection_llmnr(NMDevice *self)
 }
 
 static NMSettingConnectionDnsOverTls
-_prop_get_connection_dns_over_tls(NMDevice *self)
+_prop_get_connection_dns_over_tls(NMDevice *self, NMConnection *connection)
 {
-    NMConnection                 *connection;
     NMSettingConnectionDnsOverTls dns_over_tls = NM_SETTING_CONNECTION_DNS_OVER_TLS_DEFAULT;
 
     g_return_val_if_fail(NM_IS_DEVICE(self), NM_SETTING_CONNECTION_DNS_OVER_TLS_DEFAULT);
 
-    connection = nm_device_get_applied_connection(self);
     if (connection)
         dns_over_tls = nm_setting_connection_get_dns_over_tls(
             nm_connection_get_setting_connection(connection));
@@ -1497,15 +1504,33 @@ _prop_get_connection_dns_over_tls(NMDevice *self)
                                                        NM_SETTING_CONNECTION_DNS_OVER_TLS_DEFAULT);
 }
 
-static NMMptcpFlags
-_prop_get_connection_mptcp_flags(NMDevice *self)
+static NMSettingConnectionDnssec
+_prop_get_connection_dnssec(NMDevice *self, NMConnection *connection)
 {
-    NMConnection *connection;
-    NMMptcpFlags  mptcp_flags = NM_MPTCP_FLAGS_NONE;
+    NMSettingConnectionDnssec dnssec = NM_SETTING_CONNECTION_DNSSEC_DEFAULT;
+
+    g_return_val_if_fail(NM_IS_DEVICE(self), NM_SETTING_CONNECTION_DNSSEC_DEFAULT);
+
+    if (connection)
+        dnssec = nm_setting_connection_get_dnssec(nm_connection_get_setting_connection(connection));
+    if (dnssec != NM_SETTING_CONNECTION_DNSSEC_DEFAULT)
+        return dnssec;
+
+    return nm_config_data_get_connection_default_int64(NM_CONFIG_GET_DATA,
+                                                       NM_CON_DEFAULT("connection.dnssec"),
+                                                       self,
+                                                       NM_SETTING_CONNECTION_DNSSEC_NO,
+                                                       NM_SETTING_CONNECTION_DNSSEC_YES,
+                                                       NM_SETTING_CONNECTION_DNSSEC_DEFAULT);
+}
+
+static NMMptcpFlags
+_prop_get_connection_mptcp_flags(NMDevice *self, NMConnection *connection)
+{
+    NMMptcpFlags mptcp_flags = NM_MPTCP_FLAGS_NONE;
 
     g_return_val_if_fail(NM_IS_DEVICE(self), NM_MPTCP_FLAGS_DISABLED);
 
-    connection = nm_device_get_applied_connection(self);
     if (connection) {
         mptcp_flags =
             nm_setting_connection_get_mptcp_flags(nm_connection_get_setting_connection(connection));
@@ -2471,16 +2496,14 @@ _prop_get_ipv4_dhcp_vendor_class_identifier(NMDevice *self, NMSettingIP4Config *
 }
 
 static NMSettingIP6ConfigPrivacy
-_prop_get_ipv6_ip6_privacy(NMDevice *self)
+_prop_get_ipv6_ip6_privacy(NMDevice *self, NMConnection *connection)
 {
     NMSettingIP6ConfigPrivacy ip6_privacy;
-    NMConnection             *connection;
 
     g_return_val_if_fail(self, NM_SETTING_IP6_CONFIG_PRIVACY_UNKNOWN);
 
     /* 1.) First look at the per-connection setting. If it is not -1 (unknown),
      * use it. */
-    connection = nm_device_get_applied_connection(self);
     if (connection) {
         NMSettingIPConfig *s_ip6 = nm_connection_get_setting_ip6_config(connection);
 
@@ -3613,11 +3636,12 @@ nm_device_create_l3_config_data_from_connection(NMDevice *self, NMConnection *co
 
     l3cd =
         nm_l3_config_data_new_from_connection(nm_device_get_multi_index(self), ifindex, connection);
-    nm_l3_config_data_set_mdns(l3cd, _prop_get_connection_mdns(self));
-    nm_l3_config_data_set_llmnr(l3cd, _prop_get_connection_llmnr(self));
-    nm_l3_config_data_set_dns_over_tls(l3cd, _prop_get_connection_dns_over_tls(self));
-    nm_l3_config_data_set_ip6_privacy(l3cd, _prop_get_ipv6_ip6_privacy(self));
-    nm_l3_config_data_set_mptcp_flags(l3cd, _prop_get_connection_mptcp_flags(self));
+    nm_l3_config_data_set_mdns(l3cd, _prop_get_connection_mdns(self, connection));
+    nm_l3_config_data_set_llmnr(l3cd, _prop_get_connection_llmnr(self, connection));
+    nm_l3_config_data_set_dns_over_tls(l3cd, _prop_get_connection_dns_over_tls(self, connection));
+    nm_l3_config_data_set_dnssec(l3cd, _prop_get_connection_dnssec(self, connection));
+    nm_l3_config_data_set_ip6_privacy(l3cd, _prop_get_ipv6_ip6_privacy(self, connection));
+    nm_l3_config_data_set_mptcp_flags(l3cd, _prop_get_connection_mptcp_flags(self, connection));
     return l3cd;
 }
 
@@ -5876,7 +5900,6 @@ nm_device_get_route_metric_default(NMDeviceType device_type)
      * in some aspects a VPN. */
     case NM_DEVICE_TYPE_WIREGUARD:
         return NM_VPN_ROUTE_METRIC_DEFAULT;
-
     case NM_DEVICE_TYPE_ETHERNET:
     case NM_DEVICE_TYPE_VETH:
         return 100;
@@ -5910,6 +5933,8 @@ nm_device_get_route_metric_default(NMDeviceType device_type)
         return 470;
     case NM_DEVICE_TYPE_VXLAN:
         return 500;
+    case NM_DEVICE_TYPE_GENEVE:
+        return 525;
     case NM_DEVICE_TYPE_DUMMY:
         return 550;
     case NM_DEVICE_TYPE_WIFI:
@@ -12974,7 +12999,7 @@ _dev_ipac6_start(NMDevice *self)
             .router_solicitations         = router_solicitations,
             .router_solicitation_interval = router_solicitation_interval,
             .ra_timeout                   = ra_timeout,
-            .ip6_privacy                  = _prop_get_ipv6_ip6_privacy(self),
+            .ip6_privacy                  = _prop_get_ipv6_ip6_privacy(self, connection),
         };
 
         priv->ipac6_data.ndisc = nm_lndp_ndisc_new(&config);
@@ -13161,7 +13186,6 @@ _dev_addrgenmode6_set(NMDevice *self, guint8 addr_gen_mode)
     if (!priv->addrgenmode6_data.previous_mode_has) {
         priv->addrgenmode6_data.previous_mode_has = TRUE;
         priv->addrgenmode6_data.previous_mode_val = cur_addr_gen_mode;
-        nm_assert(priv->addrgenmode6_data.previous_mode_val == cur_addr_gen_mode);
     }
 
     _LOGD_ip(AF_INET6,
@@ -13650,7 +13674,7 @@ _dev_ipsharedx_cleanup(NMDevice *self, int addr_family)
             nm_clear_pointer(&priv->ipshared_data_4.v4.firewall_config, nm_firewall_config_free);
         }
 
-        nm_clear_pointer(&priv->ipshared_data_4.v4.shared_ip_handle, nm_netns_shared_ip_release);
+        nm_clear_pointer(&priv->ipshared_data_4.v4.ip_reservation, nm_netns_ip_reservation_release);
         nm_clear_l3cd(&priv->ipshared_data_4.v4.l3cd);
 
         _dev_l3_register_l3cds_set_one(self, L3_CONFIG_DATA_TYPE_SHARED_4, NULL, FALSE);
@@ -13684,13 +13708,14 @@ _dev_ipshared4_new_l3cd(NMDevice *self, NMConnection *connection, NMPlatformIP4A
 
         nm_ip_address_get_address_binary(user, &a);
         nm_platform_ip4_address_set_addr(&address, a, nm_ip_address_get_prefix(user));
-        nm_clear_pointer(&priv->ipshared_data_4.v4.shared_ip_handle, nm_netns_shared_ip_release);
+        nm_clear_pointer(&priv->ipshared_data_4.v4.ip_reservation, nm_netns_ip_reservation_release);
     } else {
-        if (!priv->ipshared_data_4.v4.shared_ip_handle)
-            priv->ipshared_data_4.v4.shared_ip_handle =
-                nm_netns_shared_ip_reserve(nm_device_get_netns(self));
+        if (!priv->ipshared_data_4.v4.ip_reservation)
+            priv->ipshared_data_4.v4.ip_reservation =
+                nm_netns_ip_reservation_get(nm_device_get_netns(self),
+                                            NM_NETNS_IP_RESERVATION_TYPE_SHARED4);
         nm_platform_ip4_address_set_addr(&address,
-                                         priv->ipshared_data_4.v4.shared_ip_handle->addr,
+                                         priv->ipshared_data_4.v4.ip_reservation->addr,
                                          24);
     }
 
@@ -14283,6 +14308,7 @@ can_reapply_change(NMDevice   *self,
                                                  NM_SETTING_CONNECTION_MDNS,
                                                  NM_SETTING_CONNECTION_LLMNR,
                                                  NM_SETTING_CONNECTION_DNS_OVER_TLS,
+                                                 NM_SETTING_CONNECTION_DNSSEC,
                                                  NM_SETTING_CONNECTION_MPTCP_FLAGS,
                                                  NM_SETTING_CONNECTION_WAIT_ACTIVATION_DELAY);
     }
@@ -14541,6 +14567,7 @@ check_and_reapply_connection(NMDevice            *self,
                 NM_SETTING_CONNECTION_MDNS,
                 NM_SETTING_CONNECTION_LLMNR,
                 NM_SETTING_CONNECTION_DNS_OVER_TLS,
+                NM_SETTING_CONNECTION_DNSSEC,
                 NM_SETTING_CONNECTION_MPTCP_FLAGS)) {
             priv->ip_data_4.do_reapply = TRUE;
             priv->ip_data_6.do_reapply = TRUE;
@@ -14811,6 +14838,241 @@ impl_device_get_applied_connection(NMDBusObject                      *obj,
             "(@a{sa{sv}}t)",
             var_settings,
             nm_active_connection_version_id_get((NMActiveConnection *) priv->act_request.obj)));
+}
+
+/*****************************************************************************/
+
+typedef struct {
+    NMDeviceManaged      managed_state;
+    NMDeviceManagedFlags managed_flags;
+} SetManagedData;
+
+static gboolean
+get_managed_match_by_mac(NMDevice *self, NMDeviceManagedFlags flags, gboolean *out, GError **error)
+{
+    gboolean is_fake_hwaddr;
+
+    nm_assert(out);
+
+    if ((flags & NM_DEVICE_MANAGED_FLAGS_PERMANENT_BY_MAC)
+        && (flags & NM_DEVICE_MANAGED_FLAGS_PERMANENT_BY_NAME)) {
+        g_set_error_literal(error,
+                            NM_DEVICE_ERROR,
+                            NM_DEVICE_ERROR_INVALID_ARGUMENT,
+                            "cannot match both by 'mac' and by 'interface-name'");
+        return FALSE;
+    }
+
+    nm_device_get_permanent_hw_address_full(self, TRUE, &is_fake_hwaddr);
+
+    if ((flags & NM_DEVICE_MANAGED_FLAGS_PERMANENT_BY_MAC) && is_fake_hwaddr) {
+        g_set_error_literal(
+            error,
+            NM_DEVICE_ERROR,
+            NM_DEVICE_ERROR_INVALID_ARGUMENT,
+            "cannot match by 'mac': the device doesn't have a permanent MAC address");
+        return FALSE;
+    }
+
+    if (flags & NM_DEVICE_MANAGED_FLAGS_PERMANENT_BY_MAC)
+        *out = TRUE;
+    else if (flags & NM_DEVICE_MANAGED_FLAGS_PERMANENT_BY_NAME)
+        *out = FALSE;
+    else
+        *out = !is_fake_hwaddr;
+
+    return TRUE;
+}
+
+/**
+ * set_managed:
+ * @self: the device
+ * @managed: the new managed state to set.
+ * @flags: flags to select different behaviors like storing to disk.
+ * @error: return location for a #GError, or %NULL
+ *
+ * Sets the managed state of the device. It can affect the runtime managed state
+ * if the %NM_DEVICE_MANAGED_FLAGS_RUNTIME is set, and to the value stored on disk
+ * (persistent across reboots) state if the %NM_DEVICE_MANAGED_FLAGS_PERMANENT is set.
+ *
+ * Returns: %TRUE if the managed state was set successfully, %FALSE otherwise.
+ */
+static gboolean
+set_managed(NMDevice *self, NMDeviceManaged managed, NMDeviceManagedFlags flags, GError **error)
+{
+    NMDevicePrivate *priv = NM_DEVICE_GET_PRIVATE(self);
+
+    nm_assert(
+        NM_IN_SET(managed, NM_DEVICE_MANAGED_NO, NM_DEVICE_MANAGED_YES, NM_DEVICE_MANAGED_RESET));
+    nm_assert((flags & ~NM_DEVICE_MANAGED_FLAGS_ALL) == 0);
+
+    if (!NM_FLAGS_ANY(flags, NM_DEVICE_MANAGED_FLAGS_PERMANENT | NM_DEVICE_MANAGED_FLAGS_RUNTIME)) {
+        g_set_error_literal(error,
+                            NM_DEVICE_ERROR,
+                            NM_DEVICE_ERROR_INVALID_ARGUMENT,
+                            _("set managed: no permanent or runtime was selected"));
+        return FALSE;
+    }
+
+    if (flags & NM_DEVICE_MANAGED_FLAGS_PERMANENT) {
+        NMTernary managed_to_disk, old = NM_TERNARY_DEFAULT;
+        gboolean  by_mac;
+
+        managed_to_disk = managed == NM_DEVICE_MANAGED_RESET ? NM_TERNARY_DEFAULT : !!managed;
+        nm_config_get_device_managed(nm_manager_get_config(priv->manager), self, &old, NULL, error);
+        if (!get_managed_match_by_mac(self, flags, &by_mac, error))
+            return FALSE;
+
+        if (!nm_config_set_device_managed(nm_manager_get_config(priv->manager),
+                                          self,
+                                          managed_to_disk,
+                                          by_mac,
+                                          error))
+            return FALSE;
+
+        /* Update the unmanaged flags after the change on disk */
+        nm_device_set_unmanaged_by_user_conf(self);
+
+        if (managed_to_disk != NM_TERNARY_DEFAULT
+            && managed_to_disk != !nm_device_get_unmanaged_flags(self, NM_UNMANAGED_USER_CONF)) {
+            /* We failed to make the new state effective on disk. Maybe the new config
+             * collides with other config. Try to revert and return error. Otherwise,
+             * we would set the runtime state correctly, but get an unexpected state
+             * after a reboot. */
+            nm_config_set_device_managed(nm_manager_get_config(priv->manager),
+                                         self,
+                                         old,
+                                         by_mac,
+                                         NULL);
+            g_set_error(error,
+                        NM_DEVICE_ERROR,
+                        NM_DEVICE_ERROR_FAILED,
+                        _("failed to persist 'managed=%d' on disk, other configurations may be "
+                          "overriding it"),
+                        managed);
+            return FALSE;
+        }
+    }
+
+    if (flags & NM_DEVICE_MANAGED_FLAGS_RUNTIME) {
+        if (managed == NM_DEVICE_MANAGED_RESET) {
+            nm_device_set_unmanaged_by_flags(self,
+                                             NM_UNMANAGED_USER_EXPLICIT,
+                                             NM_UNMAN_FLAG_OP_FORGET,
+                                             NM_DEVICE_STATE_REASON_UNMANAGED_USER_EXPLICIT);
+        } else {
+            g_object_set(self, NM_DEVICE_MANAGED, !!managed, NULL);
+
+            /* If requested, set the administrative state of the device to UP if the
+             * new managed state is YES, and to DOWN if it's NO. */
+            if (flags & NM_DEVICE_MANAGED_FLAGS_SET_ADMIN_STATE) {
+                if (nm_device_get_ifindex(self))
+                    nm_platform_link_change_flags(nm_device_get_platform(self),
+                                                  nm_device_get_ifindex(self),
+                                                  IFF_UP,
+                                                  !!managed);
+            }
+        }
+    }
+
+    return TRUE;
+}
+
+static void
+set_managed_cb(NMDevice              *self,
+               GDBusMethodInvocation *context,
+               NMAuthSubject         *subject,
+               GError                *error,
+               gpointer               user_data)
+{
+    SetManagedData      *set_managed_data = user_data;
+    NMDeviceManaged      managed;
+    NMDeviceManagedFlags flags;
+    GError              *local = NULL;
+
+    managed = set_managed_data->managed_state;
+    flags   = set_managed_data->managed_flags;
+    nm_g_slice_free(set_managed_data);
+
+    if (!error) {
+        if (!NM_IN_SET(managed,
+                       NM_DEVICE_MANAGED_NO,
+                       NM_DEVICE_MANAGED_YES,
+                       NM_DEVICE_MANAGED_RESET))
+            g_set_error_literal(&error,
+                                NM_DEVICE_ERROR,
+                                NM_DEVICE_ERROR_INVALID_ARGUMENT,
+                                "Invalid managed value");
+        else if ((flags & ~NM_DEVICE_MANAGED_FLAGS_ALL) != 0)
+            g_set_error_literal(&error,
+                                NM_DEVICE_ERROR,
+                                NM_DEVICE_ERROR_INVALID_ARGUMENT,
+                                "Invalid flags");
+    }
+
+    if (error) {
+        nm_audit_log_device_op(NM_AUDIT_OP_DEVICE_MANAGED,
+                               self,
+                               FALSE,
+                               NULL,
+                               subject,
+                               error->message);
+        g_dbus_method_invocation_return_gerror(context, error);
+        return;
+    }
+
+    if (!set_managed(self, managed, flags, &local)) {
+        nm_audit_log_device_op(NM_AUDIT_OP_DEVICE_MANAGED,
+                               self,
+                               FALSE,
+                               NULL,
+                               subject,
+                               local->message);
+        g_dbus_method_invocation_take_error(context, g_steal_pointer(&local));
+        return;
+    }
+
+    nm_audit_log_device_op(NM_AUDIT_OP_DEVICE_MANAGED, self, TRUE, NULL, subject, NULL);
+    g_dbus_method_invocation_return_value(context, NULL);
+}
+
+static void
+impl_device_set_managed(NMDBusObject                      *obj,
+                        const NMDBusInterfaceInfoExtended *interface_info,
+                        const NMDBusMethodInfoExtended    *method_info,
+                        GDBusConnection                   *connection,
+                        const char                        *sender,
+                        GDBusMethodInvocation             *invocation,
+                        GVariant                          *parameters)
+{
+    NMDevice             *self  = NM_DEVICE(obj);
+    gs_free_error GError *error = NULL;
+    guint32               managed_u;
+    NMDeviceManaged       managed;
+    guint32               flags_u;
+    NMDeviceManagedFlags  flags;
+    SetManagedData       *set_managed_data;
+
+    g_variant_get(parameters, "(uu)", &managed_u, &flags_u);
+
+    managed = managed_u;
+    flags   = flags_u;
+    nm_assert(managed == managed_u && flags == flags_u);
+
+    set_managed_data  = g_slice_new(SetManagedData);
+    *set_managed_data = (SetManagedData) {
+        .managed_state = managed,
+        .managed_flags = flags,
+    };
+
+    nm_device_auth_request(self,
+                           invocation,
+                           nm_device_get_applied_connection(self),
+                           NM_AUTH_PERMISSION_NETWORK_CONTROL,
+                           TRUE,
+                           NULL,
+                           set_managed_cb,
+                           set_managed_data);
 }
 
 /*****************************************************************************/
@@ -17285,6 +17547,25 @@ nm_device_cleanup(NMDevice *self, NMDeviceStateReason reason, CleanupType cleanu
         /* controller: release ports */
         nm_device_controller_release_ports_all(self);
 
+        /* port: detach from controller */
+        if (priv->controller) {
+            nm_device_controller_release_port(priv->controller,
+                                              self,
+                                              RELEASE_PORT_TYPE_CONFIG,
+                                              reason);
+        }
+    }
+
+    /* port: mark no longer attached */
+    if (priv->controller && priv->ifindex > 0
+        && nm_platform_link_get_controller(nm_device_get_platform(self), priv->ifindex) <= 0) {
+        nm_device_controller_release_port(priv->controller,
+                                          self,
+                                          RELEASE_PORT_TYPE_NO_CONFIG,
+                                          NM_DEVICE_STATE_REASON_CONNECTION_ASSUMED);
+    }
+
+    if (cleanup_type == CLEANUP_TYPE_DECONFIGURE) {
         /* Take out any entries in the routing table and any IP address the device had. */
         if (ifindex > 0) {
             NMPlatform *platform = nm_device_get_platform(self);
@@ -17307,15 +17588,6 @@ nm_device_cleanup(NMDevice *self, NMDeviceStateReason reason, CleanupType cleanu
 
     if (ifindex > 0)
         nm_platform_ip4_dev_route_blacklist_set(nm_device_get_platform(self), ifindex, NULL);
-
-    /* port: mark no longer attached */
-    if (priv->controller && priv->ifindex > 0
-        && nm_platform_link_get_controller(nm_device_get_platform(self), priv->ifindex) <= 0) {
-        nm_device_controller_release_port(priv->controller,
-                                          self,
-                                          RELEASE_PORT_TYPE_NO_CONFIG,
-                                          NM_DEVICE_STATE_REASON_CONNECTION_ASSUMED);
-    }
 
     lldp_setup(self, NM_TERNARY_FALSE);
 
@@ -19499,7 +19771,7 @@ set_property(GObject *object, guint prop_id, const GValue *value, GParamSpec *ps
         nm_assert(priv->type == NM_DEVICE_TYPE_UNKNOWN);
         priv->type = g_value_get_uint(value);
         nm_assert(priv->type > NM_DEVICE_TYPE_UNKNOWN);
-        nm_assert(priv->type <= NM_DEVICE_TYPE_IPVLAN);
+        nm_assert(priv->type <= NM_DEVICE_TYPE_GENEVE);
         break;
     case PROP_LINK_TYPE:
         /* construct-only */
@@ -19828,6 +20100,12 @@ static const NMDBusInterfaceInfoExtended interface_info_device = {
                         NM_DEFINE_GDBUS_ARG_INFO("connection", "a{sa{sv}}"),
                         NM_DEFINE_GDBUS_ARG_INFO("version_id", "t"), ), ),
                 .handle = impl_device_get_applied_connection, ),
+            NM_DEFINE_DBUS_METHOD_INFO_EXTENDED(
+                NM_DEFINE_GDBUS_METHOD_INFO_INIT("SetManaged",
+                                                 .in_args = NM_DEFINE_GDBUS_ARG_INFOS(
+                                                     NM_DEFINE_GDBUS_ARG_INFO("managed", "u"),
+                                                     NM_DEFINE_GDBUS_ARG_INFO("flags", "u"), ), ),
+                .handle = impl_device_set_managed, ),
             NM_DEFINE_DBUS_METHOD_INFO_EXTENDED(NM_DEFINE_GDBUS_METHOD_INFO_INIT("Disconnect", ),
                                                 .handle = impl_device_disconnect, ),
             NM_DEFINE_DBUS_METHOD_INFO_EXTENDED(NM_DEFINE_GDBUS_METHOD_INFO_INIT("Delete", ),

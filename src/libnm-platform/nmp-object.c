@@ -893,7 +893,7 @@ const NMPObject *
 nmp_object_stackinit_id_ip6_address(NMPObject *obj, int ifindex, const struct in6_addr *address)
 {
     _nmp_object_stackinit_from_type(obj, NMP_OBJECT_TYPE_IP6_ADDRESS);
-    obj->ip4_address.ifindex = ifindex;
+    obj->ip6_address.ifindex = ifindex;
     if (address)
         obj->ip6_address.address = *address;
     return obj;
@@ -3468,6 +3468,18 @@ const NMPClass _nmp_classes[NMP_OBJECT_TYPE_MAX] = {
             .cmd_plobj_to_string   = (CmdPlobjToStringFunc) nm_platform_lnk_bridge_to_string,
             .cmd_plobj_hash_update = (CmdPlobjHashUpdateFunc) nm_platform_lnk_bridge_hash_update,
             .cmd_plobj_cmp         = (CmdPlobjCmpFunc) nm_platform_lnk_bridge_cmp,
+        },
+    [NMP_OBJECT_TYPE_LNK_GENEVE - 1] =
+        {
+            .parent                = DEDUP_MULTI_OBJ_CLASS_INIT(),
+            .obj_type              = NMP_OBJECT_TYPE_LNK_GENEVE,
+            .sizeof_data           = sizeof(NMPObjectLnkGeneve),
+            .sizeof_public         = sizeof(NMPlatformLnkGeneve),
+            .obj_type_name         = "geneve",
+            .lnk_link_type         = NM_LINK_TYPE_GENEVE,
+            .cmd_plobj_to_string   = (CmdPlobjToStringFunc) nm_platform_lnk_geneve_to_string,
+            .cmd_plobj_hash_update = (CmdPlobjHashUpdateFunc) nm_platform_lnk_geneve_hash_update,
+            .cmd_plobj_cmp         = (CmdPlobjCmpFunc) nm_platform_lnk_geneve_cmp,
         },
     [NMP_OBJECT_TYPE_LNK_GRE - 1] =
         {

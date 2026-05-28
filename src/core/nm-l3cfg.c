@@ -40,8 +40,7 @@ G_STATIC_ASSERT(NM_ACD_TIMEOUT_RFC5227_MSEC == N_ACD_TIMEOUT_RFC5227);
 
 #define ACD_SUPPORTED_ETH_ALEN                  ETH_ALEN
 #define ACD_ENSURE_RATELIMIT_MSEC               ((guint32) 4000u)
-#define ACD_WAIT_PROBING_EXTRA_TIME_MSEC        ((guint32) (1000u + ACD_ENSURE_RATELIMIT_MSEC))
-#define ACD_WAIT_PROBING_EXTRA_TIME2_MSEC       ((guint32) 1000u)
+#define ACD_WAIT_PROBING_EXTRA_TIME_MSEC        ((guint32) (2000u + ACD_ENSURE_RATELIMIT_MSEC))
 #define ACD_WAIT_TIME_PROBING_FULL_RESTART_MSEC ((guint32) 30000u)
 #define ACD_WAIT_TIME_CONFLICT_RESTART_MSEC     ((guint32) 120000u)
 #define ACD_WAIT_TIME_ANNOUNCE_RESTART_MSEC     ((guint32) 30000u)
@@ -625,7 +624,7 @@ _l3_config_notify_data_to_string(const NML3ConfigNotifyData *notify_data,
     case NM_L3_CONFIG_NOTIFY_TYPE_PLATFORM_CHANGE_ON_IDLE:
         nm_strbuf_append(&s,
                          &l,
-                         ", obj-type-flags=0x%x",
+                         ", obj-type-flags=0x%" G_GINT64_MODIFIER "x",
                          notify_data->platform_change_on_idle.obj_type_flags);
         break;
     case NM_L3_CONFIG_NOTIFY_TYPE_IPV4LL_EVENT:
@@ -1572,7 +1571,7 @@ _load_link(NML3Cfg *self, gboolean initial)
 /*****************************************************************************/
 
 void
-_nm_l3cfg_notify_platform_change_on_idle(NML3Cfg *self, guint32 obj_type_flags)
+_nm_l3cfg_notify_platform_change_on_idle(NML3Cfg *self, guint64 obj_type_flags)
 {
     NML3ConfigNotifyData notify_data;
 
@@ -2740,9 +2739,8 @@ handle_init:
             nm_utils_get_monotonic_timestamp_msec_cached(p_now_msec);
 
             if (acd_data->info.state == NM_L3_ACD_ADDR_STATE_PROBING) {
-                if ((*p_now_msec) > acd_data->probing_timestamp_msec
-                                        + ACD_WAIT_PROBING_EXTRA_TIME_MSEC
-                                        + ACD_WAIT_PROBING_EXTRA_TIME2_MSEC) {
+                if ((*p_now_msec)
+                    > acd_data->probing_timestamp_msec + ACD_WAIT_PROBING_EXTRA_TIME_MSEC) {
                     /* hm. We failed to create a new probe too long. Something is really wrong
                      * internally, but let's ignore the issue and assume the address is good. What
                      * else would we do? Assume the address is USED? */
@@ -2948,7 +2946,7 @@ handle_init:
             nm_utils_get_monotonic_timestamp_msec_cached(p_now_msec);
 
             if (acd_data->probing_timestamp_msec + acd_data->probing_timeout_msec
-                    + ACD_WAIT_PROBING_EXTRA_TIME_MSEC + ACD_WAIT_PROBING_EXTRA_TIME2_MSEC
+                    + ACD_WAIT_PROBING_EXTRA_TIME_MSEC
                 >= (*p_now_msec)) {
                 /* The probing already started quite a while ago. We ignore the link event
                  * and let the probe come to it's natural end. */
@@ -3058,9 +3056,10 @@ handle_start_probing:
         }
 
         _LOGT_acd(acd_data,
-                  "%sstart probing (timeout %u msec, %s)",
+                  "%sstart probing (timeout %u msec, ebpf %s; %s)",
                   orig_state == NM_L3_ACD_ADDR_STATE_INIT ? "" : "re",
                   acd_data->probing_timeout_msec,
+                  n_acd_has_bpf(self->priv.p->nacd) ? "enabled" : "disabled",
                   log_reason);
         return;
     }
@@ -3155,10 +3154,11 @@ handle_start_defending:
         }
 
         _LOGT_acd(acd_data,
-                  "start announcing (defend=%s) (probe created)",
+                  "start announcing (defend=%s) (probe created with ebpf %s)",
                   _l3_acd_defend_type_to_string(acd_data->acd_defend_type_current,
                                                 sbuf256,
-                                                sizeof(sbuf256)));
+                                                sizeof(sbuf256)),
+                  n_acd_has_bpf(self->priv.p->nacd) ? "enabled" : "disabled");
         acd_data->acd_defend_type_is_active = FALSE;
         acd_data->nacd_probe                = probe;
         return;
@@ -3989,7 +3989,7 @@ _l3cfg_routed_dns_apply(NML3Cfg *self, const NML3ConfigData *l3cd)
             NMDnsServer               dns;
             int                       r;
 
-            if (!nm_dns_uri_parse(addr_family, nameservers[i], &dns))
+            if (!nm_dns_uri_parse(addr_family, nameservers[i], &dns, NULL))
                 continue;
 
             /* Find the gateway to the DNS over the current interface. When
@@ -5054,8 +5054,8 @@ _l3_commit_mptcp_af(NML3Cfg          *self,
             (NM_FLAGS_HAS(mptcp_flags, NM_MPTCP_FLAGS_SIGNAL) ? MPTCP_PM_ADDR_FLAG_SIGNAL : 0)
             | (NM_FLAGS_HAS(mptcp_flags, NM_MPTCP_FLAGS_SUBFLOW) ? MPTCP_PM_ADDR_FLAG_SUBFLOW : 0)
             | (NM_FLAGS_HAS(mptcp_flags, NM_MPTCP_FLAGS_BACKUP) ? MPTCP_PM_ADDR_FLAG_BACKUP : 0)
-            | (NM_FLAGS_HAS(mptcp_flags, NM_MPTCP_FLAGS_FULLMESH) ? MPTCP_PM_ADDR_FLAG_FULLMESH
-                                                                  : 0);
+            | (NM_FLAGS_HAS(mptcp_flags, NM_MPTCP_FLAGS_FULLMESH) ? MPTCP_PM_ADDR_FLAG_FULLMESH : 0)
+            | (NM_FLAGS_HAS(mptcp_flags, NM_MPTCP_FLAGS_LAMINAR) ? MPTCP_PM_ADDR_FLAG_LAMINAR : 0);
         NMPlatformMptcpAddr a = {
             .ifindex     = self->priv.ifindex,
             .id          = 0,

@@ -810,6 +810,10 @@
                   dbus-type="i"
                   gprop-type="gint"
                   />
+        <property name="dnssec"
+                  dbus-type="i"
+                  gprop-type="gint"
+                  />
         <property name="down-on-poweroff"
                   dbus-type="i"
                   gprop-type="gint"
@@ -1374,6 +1378,34 @@
                   gprop-type="gchararray"
                   />
     </setting>
+    <setting name="geneve"
+             gtype="NMSettingGeneve"
+             >
+        <property name="destination-port"
+                  dbus-type="u"
+                  gprop-type="guint"
+                  />
+        <property name="df"
+                  dbus-type="i"
+                  gprop-type="gint"
+                  />
+        <property name="id"
+                  dbus-type="u"
+                  gprop-type="guint"
+                  />
+        <property name="remote"
+                  dbus-type="s"
+                  gprop-type="gchararray"
+                  />
+        <property name="tos"
+                  dbus-type="u"
+                  gprop-type="guint"
+                  />
+        <property name="ttl"
+                  dbus-type="i"
+                  gprop-type="gint"
+                  />
+    </setting>
     <setting name="gsm"
              gtype="NMSettingGsm"
              >
@@ -1390,6 +1422,10 @@
                   gprop-type="gboolean"
                   />
         <property name="device-id"
+                  dbus-type="s"
+                  gprop-type="gchararray"
+                  />
+        <property name="device-uid"
                   dbus-type="s"
                   gprop-type="gchararray"
                   />

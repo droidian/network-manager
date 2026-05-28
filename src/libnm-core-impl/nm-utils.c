@@ -6336,7 +6336,7 @@ helper_child_terminated(GPid pid, int status, gpointer user_data)
  *   if an error occurred, including when the given user can't access the
  *   file.
  *
- * Since: 1.56, 1.54.3
+ * Since: 1.56
  */
 char *
 nm_utils_copy_cert_as_user(const char *filename, const char *user, GError **error)
@@ -6442,6 +6442,7 @@ nm_utils_copy_cert_as_user(const char *filename, const char *user, GError **erro
                                     g_bytes_get_data(bytes, NULL),
                                     g_bytes_get_size(bytes),
                                     0600,
+                                    NULL,
                                     NULL,
                                     NULL,
                                     error)) {

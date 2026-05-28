@@ -1,17 +1,17 @@
 Source: network-manager
 Section: net
-Priority: optional
 Maintainer: Utopia Maintenance Team <pkg-utopia-maintainers@lists.alioth.debian.org>
 Uploaders: Michael Biebl <biebl@debian.org>
 Build-Depends: debhelper-compat (= 13),
                debhelper (>= 13.11.6),
                dh-sequence-gir,
+               dh-sequence-installsysusers,
                meson (>= 0.51.0),
                pkgconf,
                gettext (>= 0.19.8),
                libglib2.0-dev (>= 2.42),
                ppp-dev,
-               libselinux1-dev,
+               libselinux-dev,
                libaudit-dev,
                libgnutls28-dev (>= 2.12),
                uuid-dev,
@@ -41,8 +41,7 @@ Build-Depends: debhelper-compat (= 13),
                python3-dbus <!nocheck>,
                python3-pexpect <!nocheck>,
                iproute2 <!nocheck>,
-Standards-Version: 4.7.2
-Rules-Requires-Root: no
+Standards-Version: 4.7.4
 Vcs-Git: https://salsa.debian.org/utopia-team/network-manager.git
 Vcs-Browser: https://salsa.debian.org/utopia-team/network-manager
 Homepage: https://networkmanager.dev/
@@ -54,7 +53,6 @@ Depends: ${shlibs:Depends},
          ${misc:Depends},
          libnm0 (= ${binary:Version}),
          default-dbus-system-bus | dbus-system-bus,
-         adduser,
 Recommends: ppp,
             dnsmasq-base,
             modemmanager,
@@ -64,8 +62,10 @@ Recommends: ppp,
             polkitd,
             udev,
             network-manager-l10n,
-Suggests: libteam-utils,
-          iptables,
+          network-manager-tui,
+Suggests: network-manager-ovs,
+          network-manager-team,
+          nftables | iptables,
 Breaks: ${misc:Breaks}
 Description: network management framework (daemon and userspace tools)
  NetworkManager is a system network service that manages your network devices
@@ -79,11 +79,40 @@ Description: network management framework (daemon and userspace tools)
  .
  Optional dependencies:
   * ppp: Required for establishing dial-up connections (e.g. via GSM).
-  * dnsmasq-base/iptables: Required for creating Ad-hoc connections and
-    connection sharing.
-  * libteam-utils: Network Team driver allows multiple network interfaces to be
-    teamed together and act like a single one. This process is called "ethernet
-    bonding", "channel teaming" or "link aggregation".
+  * dnsmasq-base/nftables or iptables: Required for creating Ad-hoc connections
+    and connection sharing.
+
+Package: network-manager-tui
+Architecture: linux-any
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+         libnm0 (= ${binary:Version}),
+Breaks: network-manager (<< 1.56.0-4~)
+Replaces: network-manager (<< 1.56.0-4~)
+Description: NetworkManager curses-based UI
+ This package contains nmtui, a curses-based "TUI" (Text User Interface) for
+ NetworkManager, to allow performing some of the operations supported by
+ nm-connection-editor and nm-applet in a non-graphical environment.
+
+Package: network-manager-ovs
+Architecture: linux-any
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+         libnm0 (= ${binary:Version}),
+Recommends: openvswitch-switch,
+Description: Open vSwitch device plugin for NetworkManager
+ This package contains NetworkManager support for Open vSwitch bridges.
+
+Package: network-manager-team
+Architecture: linux-any
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+         libnm0 (= ${binary:Version}),
+Recommends: libteam-utils,
+Breaks: network-manager (<< 1.56.0-3~)
+Replaces: network-manager (<< 1.56.0-3~)
+Description: Team device plugin for NetworkManager
+ This package contains NetworkManager support for team devices.
 
 Package: network-manager-dev
 Section: devel

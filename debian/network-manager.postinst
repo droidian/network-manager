@@ -20,10 +20,6 @@ set -e
 
 case "$1" in
     configure)
-        # Create netdev group. Members of group netdev get access to the PolicyKit action
-        # org.freedesktop.NetworkManager.settings.modify.system without prior authentication
-        addgroup --quiet --system netdev
-
         # This directory can contain sensitive data and should not be world-readable
         chmod 0700 /var/lib/NetworkManager
 
@@ -41,9 +37,6 @@ case "$1" in
             fi
         fi
 
-        if dpkg --compare-versions "$2" lt-nl "1.35.91-1"; then
-            deb-systemd-helper purge "nm-priv-helper.service" || true
-        fi
         ;;
 
     abort-upgrade|abort-deconfigure|abort-remove)

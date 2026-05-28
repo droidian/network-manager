@@ -4221,6 +4221,25 @@ nm_setting_ip_config_clear_dns(NMSettingIPConfig *setting)
     }
 }
 
+/**
+ * nm_dns_server_validate:
+ * @str: the string containing the DNS server
+ * @family: the IP address family (%AF_INET for IPv4, %AF_INET6 for IPv6,
+ *   %AF_UNSPEC to accept both IPv4 and IPv6)
+ * @error: (nullable): a pointer to %NULL #GError, or %NULL
+ *
+ * Validates a DNS name server string.
+ *
+ * Return: %TRUE if the name server is valid, %FALSE otherwise
+ *
+ * Since: 1.56
+ */
+gboolean
+nm_dns_server_validate(const char *str, int family, GError **error)
+{
+    return nm_dns_uri_parse(family, str, NULL, error);
+}
+
 GPtrArray *
 _nm_setting_ip_config_get_dns_array(NMSettingIPConfig *setting)
 {
@@ -5060,6 +5079,9 @@ routing_rules_to_dbus(_NM_SETT_INFO_PROP_TO_DBUS_FCN_ARGS _nm_nil)
     gboolean                  any = FALSE;
     guint                     i;
 
+    if (!_nm_connection_serialize_non_secret(flags))
+        return NULL;
+
     priv = NM_SETTING_IP_CONFIG_GET_PRIVATE(self);
 
     if (!priv->routing_rules || priv->routing_rules->len == 0)
@@ -5630,18 +5652,45 @@ verify(NMSetting *setting, NMConnection *connection, GError **error)
     /* Validate DNS */
     if (priv->dns) {
         for (i = 0; i < priv->dns->len; i++) {
-            const char *dns = priv->dns->pdata[i];
+            const char           *dns   = priv->dns->pdata[i];
+            gs_free_error GError *local = NULL;
 
-            if (!nm_dns_uri_parse(NM_SETTING_IP_CONFIG_GET_ADDR_FAMILY(setting), dns, NULL)) {
+            if (!nm_dns_uri_parse(NM_SETTING_IP_CONFIG_GET_ADDR_FAMILY(setting),
+                                  dns,
+                                  NULL,
+                                  &local)) {
                 g_set_error(error,
                             NM_CONNECTION_ERROR,
                             NM_CONNECTION_ERROR_INVALID_PROPERTY,
-                            _("%u. DNS server address is invalid"),
-                            (i + 1u));
+                            _("%u. DNS server address is invalid: %s"),
+                            (i + 1u),
+                            local->message);
                 g_prefix_error(error,
                                "%s.%s: ",
                                nm_setting_get_name(setting),
                                NM_SETTING_IP_CONFIG_DNS);
+                return FALSE;
+            }
+        }
+    }
+
+    /* Validate DNS search domains */
+    if (nm_strvarray_get_strv_notempty(priv->dns_search.arr, NULL)) {
+        for (i = 0; i < priv->dns_search.arr->len; i++) {
+            const char *dns_search = nm_strvarray_get_idx(priv->dns_search.arr, i);
+
+            /* TODO: currently we only check that no wrong list separators have
+             * been used by mistake. Proper domain name validation would be better. */
+            if (strpbrk(dns_search, ",; ")) {
+                g_set_error(error,
+                            NM_CONNECTION_ERROR,
+                            NM_CONNECTION_ERROR_INVALID_PROPERTY,
+                            _("DNS search domain '%s' is invalid"),
+                            dns_search);
+                g_prefix_error(error,
+                               "%s.%s: ",
+                               nm_setting_get_name(setting),
+                               NM_SETTING_IP_CONFIG_DNS_SEARCH);
                 return FALSE;
             }
         }
@@ -6694,7 +6743,7 @@ nm_setting_ip_config_class_init(NMSettingIPConfigClass *klass)
      * NMSettingIPConfig:gateway:
      *
      * The gateway associated with this configuration. This is only meaningful
-     * if #NMSettingIPConfig:addresses is also set.
+     * if addresses are also set on the device.
      *
      * Setting the gateway causes NetworkManager to configure a standard default route
      * with the gateway as next hop. This is ignored if #NMSettingIPConfig:never-default

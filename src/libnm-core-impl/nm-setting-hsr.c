@@ -131,7 +131,7 @@ nm_setting_hsr_get_prp(NMSettingHsr *setting)
  *
  * Returns: the #NMSettingHsr:protocol-version property of the setting
  *
- * Since: 1.56, 1.54.2
+ * Since: 1.56
  **/
 NMSettingHsrProtocolVersion
 nm_setting_hsr_get_protocol_version(NMSettingHsr *setting)
@@ -147,7 +147,7 @@ nm_setting_hsr_get_protocol_version(NMSettingHsr *setting)
  *
  * Returns: the #NMSettingHsr:interlink property of the setting
  *
- * Since: 1.56, 1.54.2
+ * Since: 1.56
  **/
 const char *
 nm_setting_hsr_get_interlink(NMSettingHsr *setting)
@@ -320,7 +320,7 @@ nm_setting_hsr_class_init(NMSettingHsrClass *klass)
       * %NM_SETTING_HSR_PROTOCOL_VERSION_HSR_2010 sets the protocol version to HSRv0 (IEC 62439-3:2010).
       * %NM_SETTING_HSR_PROTOCOL_VERSION_HSR_2012 sets the protocol version to HSRv1 (IEC 62439-3:2012).
       *
-      * Since: 1.56, 1.54.2
+      * Since: 1.56
       **/
     _nm_setting_property_define_direct_enum(properties_override,
                                             obj_properties,
@@ -338,7 +338,7 @@ nm_setting_hsr_class_init(NMSettingHsrClass *klass)
       *
       * The optional interlink port name of the HSR interface.
       *
-      * Since: 1.56, 1.54.2
+      * Since: 1.56
       **/
     _nm_setting_property_define_direct_string(properties_override,
                                               obj_properties,

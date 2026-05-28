@@ -46,6 +46,7 @@ typedef gboolean (*NMPObjectPredicateFunc)(const NMPObject *obj, gpointer user_d
 #define NM_MPTCP_PM_ADDR_FLAG_BACKUP   ((guint32) (1 << 2))
 #define NM_MPTCP_PM_ADDR_FLAG_FULLMESH ((guint32) (1 << 3))
 #define NM_MPTCP_PM_ADDR_FLAG_IMPLICIT ((guint32) (1 << 4))
+#define NM_MPTCP_PM_ADDR_FLAG_LAMINAR  ((guint32) (1 << 5))
 
 /* Redefine this in host's endianness */
 #define NM_GRE_KEY 0x2000
@@ -286,7 +287,7 @@ guint _nm_platform_signal_id_get(NMPlatformSignalIdType signal_type);
 #define __NMPlatformIPRoute_COMMON                                                        \
     __NMPlatformObjWithIfindex_COMMON;                                                    \
                                                                                           \
-    /* rtnh_flags
+    /* rtm_flags and rtnh_flags
      *
      * Routes with rtm_flags RTM_F_CLONED are hidden by platform and
      * do not exist from the point-of-view of platform users.
@@ -294,8 +295,15 @@ guint _nm_platform_signal_id_get(NMPlatformSignalIdType signal_type);
      *
      * NOTE: currently we ignore all flags except RTM_F_CLONED
      * and RTNH_F_ONLINK.
-     * We also may not properly consider the flags as part of the ID
-     * in route-cmp. */                                                                         \
+     *
+     * For IPv4 routes, the RTNH_F_ONLINK flag here applies to the
+     * first nexthop (which is embedded in the route struct). Extra
+     * nexthops (NMPlatformIP4RtNextHop) each have their own
+     * rtnh_flags field.
+     *
+     * For single-hop routes, this field comes directly from
+     * rtm_flags. For multi-hop routes from kernel, the first
+     * nexthop's RTNH_F_ONLINK from rtnh_flags is merged here. */                                                           \
     unsigned r_rtm_flags;                                                                 \
                                                                                           \
     /* RTA_METRICS.RTAX_ADVMSS (iproute2: advmss) */                                      \
@@ -442,6 +450,12 @@ struct _NMPlatformIP4Route {
      * If n_nexthops is greater or equal to one, this is the gateway of
      * the first hop. */
     in_addr_t gateway;
+
+    /* RTA_VIA. Part of the primary key for a route. Allows a gateway for a
+     * route to exist in a different address family.
+     * Only valid if: n_nexthops == 1, gateway == 0, via.family != AF_UNSPEC
+     */
+    NMIPAddrTyped via;
 
     /* RTA_PREFSRC (called "src" by iproute2).
      *
@@ -726,10 +740,10 @@ typedef struct {
      */
     guint16 weight;
 
-    /* FIXME: each next hop in kernel also has a rtnh_flags (for example to
-     * set RTNH_F_ONLINK). As the next hop is part of the identifier of an
-     * IPv4 route, so is their flags. We must also track the flag, otherwise
-     * two routes that look different for kernel, get merged by platform cache. */
+    /* Each next hop in kernel has its own rtnh_flags (for example to
+     * set RTNH_F_ONLINK). The flags are part of the identifier of a
+     * route. */
+    unsigned rtnh_flags;
 } NMPlatformIP4RtNextHop;
 
 typedef struct {
@@ -827,6 +841,16 @@ typedef struct {
     bool            updelay_has : 1;
     bool            use_carrier : 1;
 } _nm_alignas(NMPlatformObject) NMPlatformLnkBond;
+
+typedef struct {
+    struct in6_addr remote6;
+    in_addr_t       remote;
+    guint32         id;
+    gint32          ttl;
+    guint16         dst_port;
+    guint8          tos;
+    guint8          df;
+} _nm_alignas(NMPlatformObject) NMPlatformLnkGeneve;
 
 typedef struct {
     int       parent_ifindex;
@@ -1852,6 +1876,15 @@ nm_platform_link_vxlan_add(NMPlatform               *self,
 }
 
 static inline int
+nm_platform_link_geneve_add(NMPlatform                *self,
+                            const char                *name,
+                            const NMPlatformLnkGeneve *props,
+                            const NMPlatformLink     **out_link)
+{
+    return nm_platform_link_add(self, NM_LINK_TYPE_GENEVE, name, 0, NULL, 0, 0, props, out_link);
+}
+
+static inline int
 nm_platform_link_6lowpan_add(NMPlatform            *self,
                              const char            *name,
                              int                    parent,
@@ -2136,6 +2169,8 @@ const NMPlatformLnkBond *
 nm_platform_link_get_lnk_bond(NMPlatform *self, int ifindex, const NMPlatformLink **out_link);
 const NMPlatformLnkBridge *
 nm_platform_link_get_lnk_bridge(NMPlatform *self, int ifindex, const NMPlatformLink **out_link);
+const NMPlatformLnkGeneve *
+nm_platform_link_get_lnk_geneve(NMPlatform *self, int ifindex, const NMPlatformLink **out_link);
 const NMPlatformLnkGre *
 nm_platform_link_get_lnk_gre(NMPlatform *self, int ifindex, const NMPlatformLink **out_link);
 const NMPlatformLnkGre *
@@ -2406,6 +2441,14 @@ nm_platform_ip_route_get_gateway(int addr_family, const NMPlatformIPRoute *route
     return &((NMPlatformIP6Route *) route)->gateway;
 }
 
+static inline const NMIPAddrTyped *
+nm_platform_ip4_route_get_via(const NMPlatformIP4Route *route)
+{
+    nm_assert(route);
+
+    return &route->via;
+}
+
 static inline gconstpointer
 nm_platform_ip_route_get_pref_src(int addr_family, const NMPlatformIPRoute *route)
 {
@@ -2467,6 +2510,7 @@ gboolean nm_platform_tc_sync(NMPlatform *self,
 const char *nm_platform_link_to_string(const NMPlatformLink *link, char *buf, gsize len);
 const char *nm_platform_lnk_bond_to_string(const NMPlatformLnkBond *lnk, char *buf, gsize len);
 const char *nm_platform_lnk_bridge_to_string(const NMPlatformLnkBridge *lnk, char *buf, gsize len);
+const char *nm_platform_lnk_geneve_to_string(const NMPlatformLnkGeneve *lnk, char *buf, gsize len);
 const char *nm_platform_lnk_gre_to_string(const NMPlatformLnkGre *lnk, char *buf, gsize len);
 const char *nm_platform_lnk_hsr_to_string(const NMPlatformLnkHsr *lnk, char *buf, gsize len);
 const char *
@@ -2522,6 +2566,7 @@ nm_platform_mptcp_addr_to_string(const NMPlatformMptcpAddr *mptcp_addr, char *bu
 int nm_platform_link_cmp(const NMPlatformLink *a, const NMPlatformLink *b);
 int nm_platform_lnk_bond_cmp(const NMPlatformLnkBond *a, const NMPlatformLnkBond *b);
 int nm_platform_lnk_bridge_cmp(const NMPlatformLnkBridge *a, const NMPlatformLnkBridge *b);
+int nm_platform_lnk_geneve_cmp(const NMPlatformLnkGeneve *a, const NMPlatformLnkGeneve *b);
 int nm_platform_lnk_gre_cmp(const NMPlatformLnkGre *a, const NMPlatformLnkGre *b);
 int nm_platform_lnk_hsr_cmp(const NMPlatformLnkHsr *a, const NMPlatformLnkHsr *b);
 int nm_platform_lnk_infiniband_cmp(const NMPlatformLnkInfiniband *a,
@@ -2597,6 +2642,7 @@ void nm_platform_routing_rule_hash_update(const NMPlatformRoutingRule *obj,
                                           NMHashState                 *h);
 void nm_platform_lnk_bond_hash_update(const NMPlatformLnkBond *obj, NMHashState *h);
 void nm_platform_lnk_bridge_hash_update(const NMPlatformLnkBridge *obj, NMHashState *h);
+void nm_platform_lnk_geneve_hash_update(const NMPlatformLnkGeneve *obj, NMHashState *h);
 void nm_platform_lnk_gre_hash_update(const NMPlatformLnkGre *obj, NMHashState *h);
 void nm_platform_lnk_hsr_hash_update(const NMPlatformLnkHsr *obj, NMHashState *h);
 void nm_platform_lnk_infiniband_hash_update(const NMPlatformLnkInfiniband *obj, NMHashState *h);

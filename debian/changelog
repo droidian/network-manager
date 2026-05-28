@@ -1,3 +1,103 @@
+network-manager (1.56.1-1) unstable; urgency=medium
+
+  * New upstream version 1.56.1
+  * Bump Standards-Version to 4.7.4
+  * Update symbols file for libnm0
+
+ -- Michael Biebl <biebl@debian.org>  Thu, 14 May 2026 22:14:33 +0200
+
+network-manager (1.56.0-7) unstable; urgency=medium
+
+  * Fix typo in changelog wrt OVS availability on 64 bit architectures
+  * Bump network-manager-tui to Recommends.
+    This way it will be installed automatically on upgrades for default
+    installations in forky. In later releases the dependency will be demoted
+    to a Suggests again.
+
+ -- Michael Biebl <biebl@debian.org>  Fri, 01 May 2026 22:56:13 +0200
+
+network-manager (1.56.0-6) unstable; urgency=medium
+
+  * Rework package description for network-manager-tui.
+    Explicitly mention nmtui in the long description.
+    See #1132248
+  * Downgrade openvswitch-switch Depends to Recommends.
+    The openvswitch-switch package is only available on 64 bit
+    architectures, so a hard Depends prevents testing migration.
+
+ -- Michael Biebl <biebl@debian.org>  Sat, 04 Apr 2026 18:55:21 +0200
+
+network-manager (1.56.0-5) unstable; urgency=medium
+
+  * Upload to unstable
+
+ -- Michael Biebl <biebl@debian.org>  Wed, 25 Mar 2026 22:06:18 +0100
+
+network-manager (1.56.0-4) experimental; urgency=medium
+
+  * Split off nmtui into network-manager-tui.
+    To further reduce shlibs dependencies of the main network-manager (i.e.
+    getting rid of libnewt) and to reduce the on-disk footprint, split off
+    the nmtui binary into a separate package named network-manager-tui.
+
+ -- Michael Biebl <biebl@debian.org>  Wed, 04 Mar 2026 19:49:02 +0100
+
+network-manager (1.56.0-3) experimental; urgency=medium
+
+  [ Luca Boccassi ]
+  * Install and use sysusers.d config file
+    sysusers.d config files allow a package to use declarative configuration
+    instead of manually written maintainer scripts.
+    This also allows image-based systems to be created with /usr/ only, and
+    also allows for factory resetting a system and recreating /etc/ on boot.
+    https://www.freedesktop.org/software/systemd/man/latest/sysusers.d.html
+
+  [ Michael Biebl ]
+  * Tweak package description and dependencies for network-manager-ovs
+  * Split off support for team devices.
+    Support for team devices is a rarely used feature.
+    Ship it in a separate package named network-manager-team.
+    This reduces the dependency chain of the main network-manager package
+    (removes libjansson and libteamdctl) and also reduces the runtime
+    footprint.
+
+ -- Michael Biebl <biebl@debian.org>  Wed, 04 Mar 2026 17:36:26 +0100
+
+network-manager (1.56.0-2) experimental; urgency=medium
+
+  * Enable Open vSwitch (OVS) support.
+    This includes a drop-in config for NetworkManager.service which changes
+    its ordering. So ship the plugin in a separate package named
+    network-manager-ovs. (Closes: #1127478)
+  * Build-Depend on libselinux-dev instead of libselinux1-dev.
+    See https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=966687
+
+ -- Michael Biebl <biebl@debian.org>  Tue, 24 Feb 2026 15:05:52 +0100
+
+network-manager (1.56.0-1) experimental; urgency=medium
+
+  * New upstream version 1.56.0
+  * Update symbols file for libnm0
+
+ -- Michael Biebl <biebl@debian.org>  Sun, 22 Feb 2026 00:53:01 +0100
+
+network-manager (1.54.3-2) unstable; urgency=medium
+
+  [ Max Nikulin ]
+  * Add nftables to as a preferred alternative to iptables
+
+  [ Michael Biebl ]
+  * Do not ship initrd specific services.
+    Those systemd services are meant for the initrd but are not actually
+    used by dracut (yet). They conflict with the main services and can lead
+    to potentially confusing error messages. So remove them for now.
+    (Closes: #1117732)
+  * Drop redundant Priority and Rules-Requires-Root field
+  * Bump Standards-Version to 4.7.3
+  * Drop no longer needed migration code from pre-oldstable
+
+ -- Michael Biebl <biebl@debian.org>  Mon, 09 Feb 2026 12:02:29 +0100
+
 network-manager (1.54.3-1) unstable; urgency=medium
 
   * New upstream version 1.54.3

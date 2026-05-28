@@ -4156,6 +4156,50 @@ _optionlist_set_fcn_vpn_secrets(NMSetting  *setting,
     return TRUE;
 }
 
+static void
+_objlist_obj_to_str_fcn_wireguard_peers(NMMetaAccessorGetType get_type,
+                                        NMSetting            *setting,
+                                        guint                 idx,
+                                        GString              *str)
+{
+    NMWireGuardPeer *peer;
+    gs_free char    *peer_str = NULL;
+
+    peer     = nm_setting_wireguard_get_peer(NM_SETTING_WIREGUARD(setting), idx);
+    peer_str = _nm_utils_wireguard_peer_to_string(peer);
+    g_string_append(str, peer_str);
+}
+
+static gboolean
+_objlist_set_fcn_wireguard_peers(NMSetting  *setting,
+                                 gboolean    do_add,
+                                 const char *value,
+                                 GError    **error)
+{
+    NMSettingWireGuard                   *s_wg = NM_SETTING_WIREGUARD(setting);
+    nm_auto_unref_wgpeer NMWireGuardPeer *peer = NULL;
+
+    peer = _nm_utils_wireguard_peer_from_string(value, error);
+    if (!peer)
+        return FALSE;
+
+    if (do_add) {
+        nm_setting_wireguard_append_peer(s_wg, peer);
+    } else {
+        NMWireGuardPeer *match;
+        guint            idx;
+
+        match = nm_setting_wireguard_get_peer_by_public_key(s_wg,
+                                                            nm_wireguard_peer_get_public_key(peer),
+                                                            &idx);
+        if (match) {
+            nm_setting_wireguard_remove_peer(s_wg, idx);
+        }
+    }
+
+    return TRUE;
+}
+
 static gboolean
 _set_fcn_wired_s390_subchannels(ARGS_SET_FCN)
 {
@@ -5801,6 +5845,9 @@ static const NMMetaPropertyInfo *const property_infos_CONNECTION[] = {
             ),
         ),
     ),
+    PROPERTY_INFO_WITH_DESC (NM_SETTING_CONNECTION_DNSSEC,
+        .property_type =                &_pt_gobject_enum,
+    ),
     PROPERTY_INFO_WITH_DESC (NM_SETTING_CONNECTION_MPTCP_FLAGS,
         .property_type =                &_pt_gobject_enum,
         .property_typ_data = DEFINE_PROPERTY_TYP_DATA (
@@ -6065,6 +6112,57 @@ static const NMMetaPropertyInfo *const property_infos_GENERIC[] = {
 };
 
 #undef  _CURRENT_NM_META_SETTING_TYPE
+#define _CURRENT_NM_META_SETTING_TYPE NM_META_SETTING_TYPE_GENEVE
+static const NMMetaPropertyInfo *const property_infos_GENEVE[] = {
+    PROPERTY_INFO_WITH_DESC (NM_SETTING_GENEVE_ID,
+        .is_cli_option =                TRUE,
+        .property_alias =               "id",
+        .inf_flags =                    NM_META_PROPERTY_INF_FLAG_REQD,
+        .prompt =                       N_("GENEVE ID"),
+        .property_type =                &_pt_gobject_int,
+    ),
+    PROPERTY_INFO_WITH_DESC (NM_SETTING_GENEVE_REMOTE,
+        .is_cli_option =                TRUE,
+        .property_alias =               "remote",
+        .inf_flags =                    NM_META_PROPERTY_INF_FLAG_REQD,
+        .prompt =                       N_("Remote"),
+        .property_type =                &_pt_gobject_string,
+    ),
+    PROPERTY_INFO_WITH_DESC (NM_SETTING_GENEVE_DESTINATION_PORT,
+        .is_cli_option =                TRUE,
+        .property_alias =               "destination-port",
+        .prompt =                       N_("Destination port"),
+        .property_type =                &_pt_gobject_int,
+    ),
+    PROPERTY_INFO_WITH_DESC (NM_SETTING_GENEVE_TOS,
+        .property_type =                &_pt_gobject_int,
+        .property_typ_data = DEFINE_PROPERTY_TYP_DATA_SUBTYPE (gobject_int,
+            .value_infos =              INT_VALUE_INFOS (
+                {
+                    .value.u64 = 1,
+                    .nick = "inherit",
+                },
+            ),
+        ),
+    ),
+    PROPERTY_INFO_WITH_DESC (NM_SETTING_GENEVE_TTL,
+        .property_type =                &_pt_gobject_int,
+        .property_typ_data = DEFINE_PROPERTY_TYP_DATA_SUBTYPE (gobject_int,
+            .value_infos =              INT_VALUE_INFOS (
+                {
+                    .value.i64 = -1,
+                    .nick = "inherit",
+                },
+            ),
+        ),
+    ),
+    PROPERTY_INFO_WITH_DESC (NM_SETTING_GENEVE_DF,
+        .property_type =                &_pt_gobject_enum,
+    ),
+    NULL
+};
+
+#undef  _CURRENT_NM_META_SETTING_TYPE
 #define _CURRENT_NM_META_SETTING_TYPE NM_META_SETTING_TYPE_GSM
 static const NMMetaPropertyInfo *const property_infos_GSM[] = {
     PROPERTY_INFO_WITH_DESC (NM_SETTING_GSM_AUTO_CONFIG,
@@ -6168,6 +6266,9 @@ static const NMMetaPropertyInfo *const property_infos_GSM[] = {
     ),
     PROPERTY_INFO_WITH_DESC (NM_SETTING_GSM_INITIAL_EPS_BEARER_REFUSE_MSCHAPV2,
         .property_type =                &_pt_gobject_bool,
+    ),
+    PROPERTY_INFO_WITH_DESC (NM_SETTING_GSM_DEVICE_UID,
+        .property_type =                &_pt_gobject_string,
     ),
     NULL
 };
@@ -8432,6 +8533,21 @@ static const NMMetaPropertyInfo *const property_infos_WIREGUARD[] = {
     PROPERTY_INFO_WITH_DESC (NM_SETTING_WIREGUARD_IP6_AUTO_DEFAULT_ROUTE,
         .property_type =                &_pt_gobject_ternary,
     ),
+
+    PROPERTY_INFO_WITH_DESC (NM_SETTING_WIREGUARD_PEERS,
+        .property_type =                &_pt_objlist,
+        .property_typ_data = DEFINE_PROPERTY_TYP_DATA (
+            PROPERTY_TYP_DATA_SUBTYPE (objlist,
+                .get_num_fcn =          OBJLIST_GET_NUM_FCN         (NMSettingWireGuard, nm_setting_wireguard_get_peers_len),
+                .clear_all_fcn =        (void (*) (NMSetting *))(void (*)(void)) nm_setting_wireguard_clear_peers,
+                .obj_to_str_fcn =       _objlist_obj_to_str_fcn_wireguard_peers,
+                .set_fcn =              _objlist_set_fcn_wireguard_peers,
+                .remove_by_idx_fcn_u =  (void (*) (NMSetting *, guint idx))(void (*)(void)) nm_setting_wireguard_remove_peer,
+                .strsplit_plain =       TRUE,
+            ),
+        ),
+    ),
+
     NULL
 };
 
@@ -8949,6 +9065,7 @@ _setting_init_fcn_wireless (ARGS_SETTING_INIT_FCN)
 #define SETTING_PRETTY_NAME_DUMMY               N_("Dummy settings")
 #define SETTING_PRETTY_NAME_ETHTOOL             N_("Ethtool settings")
 #define SETTING_PRETTY_NAME_GENERIC             N_("Generic settings")
+#define SETTING_PRETTY_NAME_GENEVE              N_("Geneve settings")
 #define SETTING_PRETTY_NAME_GSM                 N_("GSM mobile broadband connection")
 #define SETTING_PRETTY_NAME_HOSTNAME            N_("Hostname settings")
 #define SETTING_PRETTY_NAME_HSR                 N_("HSR settings")
@@ -9085,6 +9202,14 @@ const NMMetaSettingInfoEditor nm_meta_setting_infos_editor[] = {
         .valid_parts = NM_META_SETTING_VALID_PARTS (
             NM_META_SETTING_VALID_PART_ITEM (CONNECTION,            TRUE),
             NM_META_SETTING_VALID_PART_ITEM (GENERIC,               TRUE),
+        ),
+    ),
+    SETTING_INFO (GENEVE,
+        .valid_parts = NM_META_SETTING_VALID_PARTS (
+            NM_META_SETTING_VALID_PART_ITEM (CONNECTION,            TRUE),
+            NM_META_SETTING_VALID_PART_ITEM (GENEVE,                 TRUE),
+            NM_META_SETTING_VALID_PART_ITEM (WIRED,                 FALSE),
+            NM_META_SETTING_VALID_PART_ITEM (ETHTOOL,               FALSE),
         ),
     ),
     SETTING_INFO (GSM,
